@@ -1,6 +1,7 @@
 #include "main.h"
 
 #include <Arduino.h>
+#include <avr/power.h>
 #include "sleep.h"
 #include "sensors.h"
 #include "rom_conf.h"
@@ -16,48 +17,22 @@ const lmic_pinmap lmic_pins = {
 osjob_t job;
 tx_pkt_t pkt = {0};
 
-void power_save_setup(void)
-{
-  // Avoid leak currents through floating pins
-  DDRB = 0;
-  DDRC = 0;
-  DDRD = 0;
-  PORTB = 1;
-  PORTC = 1;
-  PORTD = 1;
-  MCUCR &= ~(1 << PUD);
-
-  DIDR0 = 1;
-  DIDR1 = 1;
-
-  // Disable peripherals
-  PRR |= (1 << PRTWI)    // turn off TWI
-         | (1 << PRTIM1) // turn off Timer/Counter1
-         | (1 << PRTIM2) // turn off Timer/Counter1
-         | (1 << PRADC); // turn off ADC
-
-#ifndef DEBUG
-  PRR |= (1 << PRUSART0); // turn off USART
-#endif
-}
-
 /**
  * 
  */
 void setup(void)
 {
-  power_save_setup();
-  pinMode(17, OUTPUT);
-  digitalWrite(17, LOW);
-#ifdef DEBUG
-  Serial.begin(115200);
-#endif
 #ifdef PRINT_BUILD_DATE_TIME
+  Serial.begin(115200);
   _debug(F("Build at: "));
   _debug(F(__DATE__));
   _debug(" ");
   _debug(F(__TIME__));
   _debug("\r\n");
+  Serial.flush();
+#ifndef DEBUG
+  Serial.end();
+#endif
 #endif
 
   // Retrieve keys from EEPROM
@@ -68,10 +43,8 @@ void setup(void)
       ;
   }
 
-  // Initialize sensors
   initialize_sensors();
 
-  // Initialize lmic
   os_init();
   LMIC_reset();
 
@@ -112,8 +85,11 @@ void job_measure(osjob_t *job)
 void job_queue(osjob_t *job)
 {
   _debug(F("job_queue\r\n"));
+  // For some reason the previous TX hasn't been sent yet,
+  // give it some time and go back to sleep.
   if (LMIC.opmode & OP_TXRXPEND)
   {
+    os_setTimedCallback(job, os_getTime() + sec2osticks(1), job_sleep);
     return;
   }
   LMIC_setTxData2(1, (uint8_t *)&pkt, sizeof(pkt), 0);
@@ -124,8 +100,15 @@ void job_queue(osjob_t *job)
  */
 void job_sleep(osjob_t *job)
 {
-  sleep(SLEEP_DURATION);
-  os_setCallback(job, job_measure);
+  bool joining = (LMIC.opmode & (OP_JOINING | OP_REJOIN)) != 0;
+
+  sleep((joining && LMIC.datarate != MIN_LORA_DR) ? 0 : SLEEP_DURATION);
+
+  // Schedule a measurement if not joining
+  if (!joining)
+  {
+    os_setCallback(job, job_measure);
+  }
 }
 
 /*
@@ -177,7 +160,6 @@ void onEvent(ev_t ev)
     receive a (valid) response and thus failed to join
   */
   case EV_JOIN_TXCOMPLETE:
-    _debug(F("Join failed\r\n"));
     /*
       LMIC tries every default channel once before going to the next datarate.
       This is tracked through the txCnt property. When txCnt reaches the default
@@ -192,17 +174,19 @@ void onEvent(ev_t ev)
     // to save battery
     if (LMIC.datarate <= MIN_LORA_DR)
     {
+      _debug(F("Join failed at lowest DR, waiting 1 interval\r\n"));
       LMIC.datarate = MIN_LORA_DR;
-      sleep(SLEEP_DURATION);
     }
     else
     {
       // As long as we arent at the lowest datarate, lower it and retry asap
       LMIC.datarate = decDR((dr_t)LMIC.datarate);
-      // The sleep function will choose either the given sleep time or the next
-      // possible TX time, depending on which is later to avoid being awake unnecessary
-      sleep(0);
+      _debug(F("Join failed, retry asap at DR"));
+      _debug(LMIC.datarate);
+      _debug("\r\n");
     }
+    // Enter sleep mode
+    os_setCallback(&job, job_sleep);
     break;
 
   default:
