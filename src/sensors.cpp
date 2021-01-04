@@ -17,14 +17,17 @@ bool initialize_sensors(void)
 {
   pinMode(PIN_JSN_SDN, OUTPUT);
   wire_sensors.begin();
+  bool wireSuccess = wire_sensors.getAddress(temp_sensor_addr, 0);
+  disable_sensors();
 
   // Find address for temp sensor
-  if (!wire_sensors.getAddress(temp_sensor_addr, 0))
+  if (!wireSuccess)
   {
     _debug(F("Could not find temperature sensor on index 0\r\n"));
     return false;
   }
 
+  disable_sensors();
   return true;
 }
 
@@ -37,6 +40,7 @@ void enable_sensors(void)
 void disable_sensors(void)
 {
   JSN.end();
+  wire.reset();
   digitalWrite(PIN_JSN_SDN, LOW);
   digitalWrite(PIN_JSN_TX, LOW);
   digitalWrite(PIN_JSN_RX, LOW);
