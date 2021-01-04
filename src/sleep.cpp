@@ -1,6 +1,7 @@
 #include "sleep.h"
 
 #include <util/atomic.h>
+#include <avr/power.h>
 #include <Arduino.h>
 #include <arduino_lmic.h>
 #include <LowPower.h>
@@ -27,27 +28,31 @@ void sleep(uint32_t ms)
   Serial.flush();
 #endif
 
+  // Disable ADC and all peripherals not required
+  ADCSRA &= ~(1 << ADEN);
+  power_all_disable();
+
   while (time_remaining > 0)
   {
     uint32_t slept;
     if (time_remaining >= 8000)
     {
-      LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+      LowPower.powerDown(SLEEP_8S, ADC_ON, BOD_OFF);
       slept = 8000;
     }
     else if (time_remaining >= 4000)
     {
-      LowPower.powerDown(SLEEP_4S, ADC_OFF, BOD_OFF);
+      LowPower.powerDown(SLEEP_4S, ADC_ON, BOD_OFF);
       slept = 4000;
     }
     else if (time_remaining >= 2000)
     {
-      LowPower.powerDown(SLEEP_2S, ADC_OFF, BOD_OFF);
+      LowPower.powerDown(SLEEP_2S, ADC_ON, BOD_OFF);
       slept = 2000;
     }
     else if (time_remaining >= 1000)
     {
-      LowPower.powerDown(SLEEP_1S, ADC_OFF, BOD_OFF);
+      LowPower.powerDown(SLEEP_1S, ADC_ON, BOD_OFF);
       slept = 1000;
     }
     else
@@ -67,6 +72,11 @@ void sleep(uint32_t ms)
       timer0_millis += slept;
     }
   }
+  power_timer0_enable();
+  power_spi_enable();
+#ifdef DEBUG
+  power_usart0_enable();
+#endif
 
   _debug(F("Woke up\r\n"));
 }
