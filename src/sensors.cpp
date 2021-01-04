@@ -79,24 +79,22 @@ uint16_t get_distance_to_water(void)
     {
       // Request measurement
       JSN.write(0x55);
+      delay(10);
     }
     delay(5);
 
     // JSN response frame starts with 0xFF
     // if there is anything available then check if the first byte
     // is 0xFF, if not then discard it. Do this until the byte is 0xFF
-    if (!frame_start)
+    while (!frame_start && JSN.available() > 0)
     {
-      while (!frame_start && JSN.available() > 0)
+      if (JSN.peek() == 0xff)
       {
-        if (JSN.peek() == 0xff)
-        {
-          frame_start = true;
-        }
-        else
-        {
-          JSN.read();
-        }
+        frame_start = true;
+      }
+      else
+      {
+        JSN.read();
       }
     }
     if (frame_start && JSN.available() >= 4)
