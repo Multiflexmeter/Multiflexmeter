@@ -31,9 +31,6 @@ bool initialize_sensors(void)
 void enable_sensors(void)
 {
   digitalWrite(PIN_JSN_SDN, HIGH);
-  digitalWrite(PIN_JSN_TX, HIGH);
-  digitalWrite(PIN_JSN_RX, HIGH);
-  delay(100);
   JSN.begin(9600);
 }
 
@@ -43,6 +40,7 @@ void disable_sensors(void)
   digitalWrite(PIN_JSN_SDN, LOW);
   digitalWrite(PIN_JSN_TX, LOW);
   digitalWrite(PIN_JSN_RX, LOW);
+  digitalWrite(PIN_ONE_WIRE, LOW);
 }
 
 /**
@@ -61,23 +59,49 @@ uint16_t get_distance_to_water(void)
 {
   uint8_t buffer[4];
 
-  // send "Start Reading" command to JSN
-  JSN.write(0x55);
-  JSN.flush();
-
   // Wait until there is data available or the timeout is reached
   uint32_t timeout_ms = millis() + SENSOR_JSN_TIMEOUT;
-  while (!JSN.available() && millis() < timeout_ms)
-    ;
-
-  // Nothing received...
-  if (JSN.available() <= 0)
+  bool frame_start = false;
+  for (;;)
   {
-    _debug(F("JSN time out\r\n"));
-    return -1;
+    // Respect timeout
+    if (millis() > timeout_ms)
+    {
+      _debug(F("JSN time out\r\n"));
+      return -1;
+    }
+
+    if (!frame_start)
+    {
+      // Request measurement
+      JSN.write(0x55);
+    }
+    delay(5);
+
+    // JSN response frame starts with 0xFF
+    // if there is anything available then check if the first byte
+    // is 0xFF, if not then discard it. Do this until the byte is 0xFF
+    if (!frame_start)
+    {
+      while (!frame_start && JSN.available() > 0)
+      {
+        if (JSN.peek() == 0xff)
+        {
+          frame_start = true;
+        }
+        else
+        {
+          JSN.read();
+        }
+      }
+    }
+    if (frame_start && JSN.available() >= 4)
+    {
+      break;
+    }
   }
 
-  // There is data availabe, start parsing it.
+  // Read the JSN data frame into the buffer
   JSN.readBytes(buffer, 4);
 
   // Verify the read data through its checksum
