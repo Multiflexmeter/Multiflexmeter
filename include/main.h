@@ -8,7 +8,7 @@ extern const lmic_pinmap lmic_pins;
 
 struct tx_pkt_t
 {
-  unsigned short distance_to_water;
+  uint16_t distance_to_water;
   float air_temperature;
 };
 
