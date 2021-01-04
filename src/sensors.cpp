@@ -11,7 +11,7 @@ static OneWire wire(PIN_ONE_WIRE);
 static DallasTemperature wire_sensors(&wire);
 DeviceAddress temp_sensor_addr;
 
-SoftwareSerial JSN(PIN_JSN_RX, PIN_JSN_TX);
+SoftwareSerial JSN(PIN_JSN_TX, PIN_JSN_RX);
 
 bool initialize_sensors(void)
 {

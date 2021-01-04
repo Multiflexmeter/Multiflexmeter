@@ -13,15 +13,16 @@
 // Whether to print the firmware its build date/time to the serial on power on
 #define PRINT_BUILD_DATE_TIME
 // Milliseconds before measurement times out to prevent hanging
-#define SENSOR_JSN_TIMEOUT 1000
+#define SENSOR_JSN_TIMEOUT 200
 
 /*
   Board configuration (pins)
 */
 #define PIN_JSN_SDN 2
-#define PIN_JSN_TX 3
-#define PIN_JSN_RX 4
+#define PIN_JSN_TX 4
+#define PIN_JSN_RX 3
 #define PIN_ONE_WIRE 5
+#define PIN_BUZZER 17 // Analog pin 3
 #define PIN_NSS 10
 #define PIN_RST 9
 #define PIN_DIO_0 8
