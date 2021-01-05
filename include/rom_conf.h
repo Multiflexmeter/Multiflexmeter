@@ -10,6 +10,7 @@ struct __attribute__((packed)) rom_conf_t
   uint8_t APP_EUI[8];
   uint8_t DEV_EUI[8];
   uint8_t APP_KEY[16];
+  uint32_t SLEEP_INTERVAL;
 };
 
 #ifdef __cplusplus
@@ -17,11 +18,12 @@ extern "C"
 {
 #endif
 
-  bool conf_load();
-  void conf_save();
+  bool conf_load(void);
+  void conf_save(void);
   void conf_getAppEui(uint8_t *buf);
   void conf_getDevEui(uint8_t *buf);
   void conf_getAppKey(uint8_t *buf);
+  uint32_t conf_getSleepInterval(void);
 
 #ifdef __cplusplus
 }

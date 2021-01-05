@@ -102,7 +102,7 @@ void job_sleep(osjob_t *job)
 {
   bool joining = (LMIC.opmode & (OP_JOINING | OP_REJOIN)) != 0;
 
-  sleep((joining && LMIC.datarate != MIN_LORA_DR) ? 0 : SLEEP_DURATION);
+  sleep((joining && LMIC.datarate != MIN_LORA_DR) ? 0 : conf_getSleepInterval());
 
   // Schedule a measurement if not joining
   if (!joining)

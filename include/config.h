@@ -6,8 +6,6 @@
 */
 // Whether to output debug information to the serial output
 // #define DEBUG
-// Sleep duration (-> measurement interval) in seconds
-#define SLEEP_DURATION 15000
 // The lowest DR (thus highest SF) the device will join and TX at
 #define MIN_LORA_DR LORAWAN_DR3
 // Whether to print the firmware its build date/time to the serial on power on
