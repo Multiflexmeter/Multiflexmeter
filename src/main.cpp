@@ -73,7 +73,7 @@ void job_measure(osjob_t *job)
 
   enable_sensors();
   pkt.air_temperature = get_air_temperature();
-  pkt.distance_to_water = get_distance_to_water();
+  pkt.distance_to_water = get_distance_to_water_median(13);
   disable_sensors();
 
   os_setCallback(job, job_queue);

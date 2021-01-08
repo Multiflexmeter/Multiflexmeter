@@ -13,6 +13,7 @@ extern "C"
   void disable_sensors(void);
   float get_air_temperature(void);
   uint16_t get_distance_to_water(void);
+  uint16_t get_distance_to_water_median(uint8_t n);
 
 #ifdef __cplusplus
 }

@@ -4,6 +4,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <SoftwareSerial.h>
+#include <MedianFilter.h>
 #include "debug.h"
 #include "config.h"
 
@@ -117,4 +118,18 @@ uint16_t get_distance_to_water(void)
   // Calculate distance and convert from mm to cm
   uint16_t distance = (buffer[1] << 8) | buffer[2];
   return distance / 10;
+}
+
+/**
+ * 
+ */
+uint16_t get_distance_to_water_median(uint8_t n)
+{
+  MedianFilter m(n, 0);
+  for (uint8_t i = 0; i < n; i++)
+  {
+    m.in(get_distance_to_water());
+    delay(10);
+  }
+  return m.out();
 }
