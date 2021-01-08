@@ -128,6 +128,9 @@ void job_sleep(osjob_t *job)
 */
 void onEvent(ev_t ev)
 {
+  _debug("EV: ");
+  _debug(ev);
+  _debug("\n");
   switch (ev)
   {
   /*
