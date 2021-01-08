@@ -166,7 +166,7 @@ us know (creating a GitHub issue is probably the best way for that).
 
 ### PDF/Word Documentation
 
-The `doc` directory contains [LMIC-v3.0.99.pdf](doc/LMIC-v3.0.99.pdf), which documents the library APIs and use. It's based on the original IBM documentation, but has been adapted for this version of the library. However, as this library is used for more than Arduino, that document is supplemented by practical details in this document.
+The `doc` directory contains [LMIC-v3.3.0.pdf](doc/LMIC-v3.3.0.pdf), which documents the library APIs and use. It's based on the original IBM documentation, but has been adapted for this version of the library. However, as this library is used for more than Arduino, that document is supplemented by practical details in this document.
 
 ### Adding Regions
 

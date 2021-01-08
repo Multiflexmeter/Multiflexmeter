@@ -27,10 +27,10 @@
 */
 
 #ifndef _lmic_eu868_h_
-#define _lmic_eu868_h_
+# define _lmic_eu868_h_
 
 #ifndef _lmic_eu_like_h_
-#include "lmic_eu_like.h"
+# include "lmic_eu_like.h"
 #endif
 
 // return maximum frame length (including PHY header) for this data rate (eu868); 0 --> not valid dr.
@@ -39,19 +39,19 @@ uint8_t LMICeu868_maxFrameLen(uint8_t dr);
 #define LMICbandplan_maxFrameLen(dr) LMICeu868_maxFrameLen(dr)
 
 int8_t LMICeu868_pow2dBm(uint8_t mcmd_ladr_p1);
-#define pow2dBm(mcmd_ladr_p1) LMICeu868_pow2dBm(mcmd_ladr_p1)
+#define pow2dBm(mcmd_ladr_p1)   LMICeu868_pow2dBm(mcmd_ladr_p1)
 
 // Times for half symbol per DR
 // Per DR table to minimize rounding errors
 ostime_t LMICeu868_dr2hsym(uint8_t dr);
 #define dr2hsym(dr) LMICeu868_dr2hsym(dr)
 
+
 // TODO(tmm@mcci.com) this looks bogus compared to current 1.02 regional
 // spec. https://github.com/mcci-catena/arduino-lmic/issues/18
 static inline int
-LMICeu868_isValidBeacon1(const uint8_t *d)
-{
-  return d[OFF_BCN_CRC1] != (u1_t)os_crc16(d, OFF_BCN_CRC1);
+LMICeu868_isValidBeacon1(const uint8_t *d) {
+    return d[OFF_BCN_CRC1] != (u1_t)os_crc16(d, OFF_BCN_CRC1);
 }
 
 #undef LMICbandplan_isValidBeacon1
@@ -59,33 +59,33 @@ LMICeu868_isValidBeacon1(const uint8_t *d)
 
 // override default for LMICbandplan_isFSK()
 #undef LMICbandplan_isFSK
-#define LMICbandplan_isFSK() (/* RX datarate */ LMIC.dndr == EU868_DR_FSK)
+#define LMICbandplan_isFSK()    (/* RX datarate */LMIC.dndr == EU868_DR_FSK)
 
 #define LMICbandplan_getInitialDrJoin() (EU868_DR_SF7)
 
 void LMICeu868_setBcnRxParams(void);
-#define LMICbandplan_setBcnRxParams() LMICeu868_setBcnRxParams()
+#define LMICbandplan_setBcnRxParams()   LMICeu868_setBcnRxParams()
 
 u4_t LMICeu868_convFreq(xref2cu1_t ptr);
-#define LMICbandplan_convFreq(ptr) LMICeu868_convFreq(ptr)
+#define LMICbandplan_convFreq(ptr)      LMICeu868_convFreq(ptr)
 
 void LMICeu868_initJoinLoop(void);
-#define LMICbandplan_initJoinLoop() LMICeu868_initJoinLoop()
+#define LMICbandplan_initJoinLoop()     LMICeu868_initJoinLoop()
 
 ostime_t LMICeu868_nextTx(ostime_t now);
-#define LMICbandplan_nextTx(now) LMICeu868_nextTx(now)
+#define LMICbandplan_nextTx(now)        LMICeu868_nextTx(now)
 
 ostime_t LMICeu868_nextJoinState(void);
-#define LMICbandplan_nextJoinState() LMICeu868_nextJoinState()
+#define LMICbandplan_nextJoinState()    LMICeu868_nextJoinState()
 
 void LMICeu868_initDefaultChannels(bit_t join);
-#define LMICbandplan_initDefaultChannels(join) LMICeu868_initDefaultChannels(join)
+#define LMICbandplan_initDefaultChannels(join)  LMICeu868_initDefaultChannels(join)
 
 #undef LMICbandplan_nextJoinTime
 ostime_t LMICeu868_nextJoinTime(ostime_t now);
-#define LMICbandplan_nextJoinTime(now) LMICeu868_nextJoinTime(now)
+#define LMICbandplan_nextJoinTime(now)     LMICeu868_nextJoinTime(now)
 
 void LMICeu868_setRx1Params(void);
-#define LMICbandplan_setRx1Params() LMICeu868_setRx1Params()
+#define LMICbandplan_setRx1Params()     LMICeu868_setRx1Params()
 
 #endif // _lmic_eu868_h_
