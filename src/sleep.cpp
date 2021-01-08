@@ -22,9 +22,17 @@ void sleep(uint32_t ms)
   uint32_t sleep_time_ms = max(ms, next_tx - now);
   uint32_t time_remaining = sleep_time_ms;
 
-  _debug(F("Sleeping for: "));
-  _debug(sleep_time_ms / 1000);
-  _debug(F(" seconds\r\n"));
+  _debug(F("Now: "));
+  _debug(now);
+  _debug(", next_tx: ");
+  _debug(next_tx);
+  _debug(", delta: ");
+  _debug(next_tx - now);
+  _debug(", sleep_req: ");
+  _debug(ms);
+  _debug(", Picked: ");
+  _debug(sleep_time_ms);
+  _debug("\n");
 #ifdef DEBUG
   Serial.flush();
 #endif
