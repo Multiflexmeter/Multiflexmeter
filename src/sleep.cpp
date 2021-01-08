@@ -14,6 +14,7 @@ void sleep(uint32_t ms)
 {
   uint32_t now = millis();
   uint32_t next_tx = osticks2ms(LMICbandplan_nextTx(os_getTime()));
+
   if (next_tx < now)
   {
     next_tx = now;
@@ -62,7 +63,7 @@ void sleep(uint32_t ms)
     time_remaining -= slept;
 
     // Fix timing
-    ATOMIC_BLOCK(ATOMIC_FORCEON)
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     {
       extern volatile unsigned long timer0_overflow_count;
       extern volatile unsigned long timer0_millis;
