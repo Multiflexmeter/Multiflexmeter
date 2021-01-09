@@ -5,8 +5,13 @@
 #include "config.h"
 
 #ifdef DEBUG
-#define _debug(msg) Serial.print(msg)
+#define _debugTime()      \
+  Serial.print("[");      \
+  Serial.print(millis()); \
+  Serial.print("] ");
+#define _debug(msg) Serial.print(msg);
 #else
+#define _debugTime()
 #define _debug(msg)
 #endif
 

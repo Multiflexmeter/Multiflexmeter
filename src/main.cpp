@@ -67,6 +67,30 @@ void loop(void)
   os_runloop_once();
 }
 
+uint32_t getSleepWakeTime(bool isJoining)
+{
+  uint32_t next_cycle = millis() + conf_getSleepInterval();
+
+  // Find next suitable channel and return availability time
+  ostime_t txbeg = LMIC.txend;
+  if ((LMIC.opmode & OP_NEXTCHNL) != 0)
+  {
+    txbeg = LMICbandplan_nextTx(os_getTime());
+  }
+  uint32_t next_allowed_tx = (uint32_t)osticks2ms(txbeg);
+
+  // If we are joining but we have not reached our lowest allowed DR,
+  // then try again as soon as possible
+  if (isJoining && LMIC.datarate > MIN_LORA_DR)
+  {
+    return next_allowed_tx;
+  }
+
+  // Test if the msb changes, this means an unsigned integer rollover
+  // indicating that next_allowed_tx is larger than next_cycle
+  return (next_cycle - next_allowed_tx) & 0x80000000 ? next_allowed_tx : next_cycle;
+}
+
 void job_measure(osjob_t *job)
 {
   _debug(F("job_measure\r\n"));
@@ -100,12 +124,16 @@ void job_queue(osjob_t *job)
  */
 void job_sleep(osjob_t *job)
 {
-  bool joining = (LMIC.opmode & (OP_JOINING | OP_REJOIN)) != 0;
+  _debug(F("job_sleep\n"));
+  uint32_t now = millis();
+  bool isJoining = (LMIC.opmode & (OP_JOINING | OP_REJOIN)) != 0;
+  uint32_t nextWake = getSleepWakeTime(isJoining);
+  uint32_t duration = nextWake - now;
 
-  sleep((joining && LMIC.datarate != MIN_LORA_DR) ? 0 : conf_getSleepInterval());
+  sleep(duration);
 
   // Schedule a measurement if not joining
-  if (!joining)
+  if (!isJoining)
   {
     os_setCallback(job, job_measure);
   }

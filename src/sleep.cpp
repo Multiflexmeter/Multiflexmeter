@@ -4,35 +4,19 @@
 #include <avr/power.h>
 #include <Arduino.h>
 #include <arduino_lmic.h>
-#include <LowPower.h>
+// #include <LowPower.h>
+#include <Adafruit_SleepyDog.h>
 #include "debug.h"
 
 /**
  * 
  */
-void sleep(uint32_t ms)
+void sleep(uint32_t sleep_time)
 {
-  uint32_t now = millis();
-  uint32_t next_tx = osticks2ms(LMICbandplan_nextTx(os_getTime()));
-
-  if (next_tx < now)
-  {
-    next_tx = now;
-  }
-  uint32_t sleep_time_ms = max(ms, next_tx - now);
-  uint32_t time_remaining = sleep_time_ms;
-
-  _debug(F("Now: "));
-  _debug(now);
-  _debug(", next_tx: ");
-  _debug(next_tx);
-  _debug(", delta: ");
-  _debug(next_tx - now);
-  _debug(", sleep_req: ");
-  _debug(ms);
-  _debug(", Picked: ");
-  _debug(sleep_time_ms);
-  _debug("\n");
+  _debugTime();
+  _debug(F("Entering sleep for: "));
+  _debug(sleep_time);
+  _debug("ms \n");
 #ifdef DEBUG
   Serial.flush();
 #endif
@@ -41,34 +25,11 @@ void sleep(uint32_t ms)
   ADCSRA &= ~(1 << ADEN);
   power_all_disable();
 
-  while (time_remaining > 0)
+  uint32_t start = millis();
+  uint32_t elapsed = 0;
+  while (elapsed < sleep_time)
   {
-    uint32_t slept;
-    if (time_remaining >= 8000)
-    {
-      LowPower.powerDown(SLEEP_8S, ADC_ON, BOD_OFF);
-      slept = 8000;
-    }
-    else if (time_remaining >= 4000)
-    {
-      LowPower.powerDown(SLEEP_4S, ADC_ON, BOD_OFF);
-      slept = 4000;
-    }
-    else if (time_remaining >= 2000)
-    {
-      LowPower.powerDown(SLEEP_2S, ADC_ON, BOD_OFF);
-      slept = 2000;
-    }
-    else if (time_remaining >= 1000)
-    {
-      LowPower.powerDown(SLEEP_1S, ADC_ON, BOD_OFF);
-      slept = 1000;
-    }
-    else
-    {
-      slept = time_remaining;
-    }
-    time_remaining -= slept;
+    uint32_t slept = Watchdog.sleep(sleep_time - elapsed);
 
     // Fix timing
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
@@ -80,6 +41,8 @@ void sleep(uint32_t ms)
       timer0_overflow_count += microsecondsToClockCycles(slept * 1000) / (64 * 256);
       timer0_millis += slept;
     }
+
+    elapsed = millis() - start;
   }
   power_timer0_enable();
   power_spi_enable();
@@ -87,5 +50,6 @@ void sleep(uint32_t ms)
   power_usart0_enable();
 #endif
 
-  _debug(F("Woke up\r\n"));
+  _debugTime();
+  _debug(F("Woke up\n"));
 }
