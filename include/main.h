@@ -23,7 +23,6 @@ extern "C"
 
   void job_measure_and_send(osjob_t *job);
   void job_sleep(osjob_t *job);
-  void sleep(uint32_t ms);
 
 #ifdef __cplusplus
 }
