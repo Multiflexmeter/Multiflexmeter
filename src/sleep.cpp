@@ -7,9 +7,7 @@
 #include <Arduino.h>
 #include <arduino_lmic.h>
 #include <hal/hal.h>
-#include <Adafruit_SleepyDog.h>
 #include "debug.h"
-#include "time_util.h"
 
 uint32_t next_job_time = 0;
 
