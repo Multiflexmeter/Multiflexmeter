@@ -7,7 +7,6 @@
 #include "rom_conf.h"
 #include "debug.h"
 #include "config.h"
-#include "time_util.h"
 
 const lmic_pinmap lmic_pins = {
     .nss = PIN_NSS,
@@ -155,7 +154,7 @@ void onEvent(ev_t ev)
   case EV_JOINED:
     _debugTime();
     _debug(F("EV_JOINED\n"));
-    LMIC_setLinkCheckMode(0);
+    LMIC_setLinkCheckMode(1);
     LMIC_setAdrMode(1);
     os_setCallback(&job, job_measure_and_send);
     break;
