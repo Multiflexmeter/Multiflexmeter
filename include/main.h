@@ -21,8 +21,7 @@ extern "C"
   // but having them defined here, save us from forward-
   // defining them in main.cpp :)
 
-  void job_measure(osjob_t *job);
-  void job_queue(osjob_t *job);
+  void job_measure_and_send(osjob_t *job);
   void job_sleep(osjob_t *job);
   void sleep(uint32_t ms);
 

@@ -9,7 +9,7 @@
   Serial.print("[");      \
   Serial.print(millis()); \
   Serial.print("] ");
-#define _debug(msg) Serial.print(msg);
+#define _debug(...) Serial.print(__VA_ARGS__);
 #else
 #define _debugTime()
 #define _debug(msg)

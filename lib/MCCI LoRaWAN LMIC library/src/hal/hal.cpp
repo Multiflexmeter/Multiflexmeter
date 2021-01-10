@@ -329,10 +329,10 @@ u4_t hal_waitUntil (u4_t time) {
 }
 
 // check and rewind for target time
-u1_t hal_checkTimer (u4_t time) {
-    // No need to schedule wakeup, since we're not sleeping
-    return delta_time(time) <= 0;
-}
+// u1_t hal_checkTimer (u4_t time) {
+//     // No need to schedule wakeup, since we're not sleeping
+//     return delta_time(time) <= 0;
+// }
 
 static uint8_t irqlevel = 0;
 
@@ -365,9 +365,9 @@ uint8_t hal_getIrqLevel(void) {
     return irqlevel;
 }
 
-void hal_sleep () {
-    // Not implemented
-}
+// void hal_sleep () {
+//     // Not implemented
+// }
 
 // -----------------------------------------------------------------------------
 

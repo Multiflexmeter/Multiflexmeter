@@ -7,6 +7,7 @@
 #include "rom_conf.h"
 #include "debug.h"
 #include "config.h"
+#include "time_util.h"
 
 const lmic_pinmap lmic_pins = {
     .nss = PIN_NSS,
@@ -15,20 +16,22 @@ const lmic_pinmap lmic_pins = {
     .dio = {PIN_DIO_0, PIN_DIO_1, PIN_DIO_2},
 };
 osjob_t job;
-tx_pkt_t pkt = {0};
+osjob_t sleep_job;
 
 /**
  * 
  */
 void setup(void)
 {
-#ifdef PRINT_BUILD_DATE_TIME
+#if defined(DEBUG) || defined(PRINT_BUILD_DATE_TIME)
   Serial.begin(115200);
+#endif
+#ifdef PRINT_BUILD_DATE_TIME
   _debug(F("Build at: "));
   _debug(F(__DATE__));
   _debug(" ");
   _debug(F(__TIME__));
-  _debug("\r\n");
+  _debug("\n");
   Serial.flush();
 #ifndef DEBUG
   Serial.end();
@@ -38,7 +41,7 @@ void setup(void)
   // Retrieve keys from EEPROM
   if (!conf_load())
   {
-    _debug(F("Invalid EEPROM, did you flash the EEPROM?\r\n"));
+    _debug(F("Invalid EEPROM, did you flash the EEPROM?\n"));
     for (;;)
       ;
   }
@@ -67,76 +70,51 @@ void loop(void)
   os_runloop_once();
 }
 
-uint32_t getSleepWakeTime(bool isJoining)
+void job_measure_and_send(osjob_t *job)
 {
-  uint32_t next_cycle = millis() + conf_getSleepInterval();
+  _debugTime();
+  _debug(F("job_measure_and_send\n"));
 
-  // Find next suitable channel and return availability time
-  ostime_t txbeg = LMIC.txend;
-  if ((LMIC.opmode & OP_NEXTCHNL) != 0)
+  // Make sure LMIC is not busy with TX/RX and that there is no
+  // TX data pending anymore. If so, then this is most likely
+  // due to us trying to send before our previous message was
+  // transmitted. This happens when trying to sent to frequently.
+  if ((LMIC.opmode & (OP_TXRXPEND | OP_TXDATA)) == 0)
   {
-    txbeg = LMICbandplan_nextTx(os_getTime());
-  }
-  uint32_t next_allowed_tx = (uint32_t)osticks2ms(txbeg);
+    // Perform measurement and save in packet
+    tx_pkt_t pkt = {0};
+    enable_sensors();
+    pkt.air_temperature = get_air_temperature();
+    pkt.distance_to_water = get_distance_to_water_median(13);
+    disable_sensors();
 
-  // If we are joining but we have not reached our lowest allowed DR,
-  // then try again as soon as possible
-  if (isJoining && LMIC.datarate > MIN_LORA_DR)
+    // Queue transmission
+    lmic_tx_error_t err = LMIC_setTxData2(1, (uint8_t *)&pkt, sizeof(pkt), 0);
+    if (err != 0)
+    {
+      _debugTime();
+      _debug(F("TX error occured! "));
+      _debug(err);
+      _debug("\n");
+    }
+  }
+  else
   {
-    return next_allowed_tx;
+    _debug(F("TXRX Pending/Queued, skipping...\n"));
   }
 
-  // Test if the msb changes, this means an unsigned integer rollover
-  // indicating that next_allowed_tx is larger than next_cycle
-  return (next_cycle - next_allowed_tx) & 0x80000000 ? next_allowed_tx : next_cycle;
-}
+  // Schedule our next measurement and send
+  ostime_t next_send = ms2osticks(conf_getSleepInterval());
 
-void job_measure(osjob_t *job)
-{
-  _debug(F("job_measure\r\n"));
-
-  enable_sensors();
-  pkt.air_temperature = get_air_temperature();
-  pkt.distance_to_water = get_distance_to_water_median(13);
-  disable_sensors();
-
-  os_setCallback(job, job_queue);
-}
-
-/**
- * Prepare and queue a new measurement and transmission
- */
-void job_queue(osjob_t *job)
-{
-  _debug(F("job_queue\r\n"));
-  // For some reason the previous TX hasn't been sent yet,
-  // give it some time and go back to sleep.
-  if (LMIC.opmode & OP_TXRXPEND)
+  ostime_t now = os_getTime();
+  ostime_t next_tx_time = ((LMIC.opmode & OP_NEXTCHNL) != 0) ? LMICbandplan_nextTx(now) : LMIC.txend;
+  ostime_t next_tx = next_tx_time - now;
+  if (next_tx > 0 && next_tx - next_send > 0)
   {
-    os_setTimedCallback(job, os_getTime() + sec2osticks(1), job_sleep);
-    return;
+    next_send = next_tx;
   }
-  LMIC_setTxData2(1, (uint8_t *)&pkt, sizeof(pkt), 0);
-}
 
-/**
- * Put the device into sleep and schedule a new transmission
- */
-void job_sleep(osjob_t *job)
-{
-  _debug(F("job_sleep\n"));
-  uint32_t now = millis();
-  bool isJoining = (LMIC.opmode & (OP_JOINING | OP_REJOIN)) != 0;
-  uint32_t nextWake = getSleepWakeTime(isJoining);
-  uint32_t duration = nextWake - now;
-
-  sleep(duration);
-
-  // Schedule a measurement if not joining
-  if (!isJoining)
-  {
-    os_setCallback(job, job_measure);
-  }
+  os_setTimedCallback(job, now + next_send, job_measure_and_send);
 }
 
 /*
@@ -156,9 +134,6 @@ void job_sleep(osjob_t *job)
 */
 void onEvent(ev_t ev)
 {
-  _debug("EV: ");
-  _debug(ev);
-  _debug("\n");
   switch (ev)
   {
   /*
@@ -166,10 +141,11 @@ void onEvent(ev_t ev)
     and is accepted
   */
   case EV_JOINED:
-    _debug(F("Joined\r\n"));
+    _debugTime();
+    _debug(F("EV_JOINED\n"));
     LMIC_setLinkCheckMode(0);
     LMIC_setAdrMode(1);
-    os_setCallback(&job, job_measure);
+    os_setCallback(&job, job_measure_and_send);
     break;
 
   /*
@@ -177,13 +153,12 @@ void onEvent(ev_t ev)
     This also includes receiving downlink message in RX1 & 2
   */
   case EV_TXCOMPLETE:
-    _debug(F("Uplink complete\r\n"));
+    _debugTime();
+    _debug(F("EV_TXCOMPLETE\n"));
     if (LMIC.dataLen)
     {
       // Data received
     }
-    // Schedule next transmission
-    os_setCallback(&job, job_sleep);
     break;
 
   /*
@@ -191,6 +166,8 @@ void onEvent(ev_t ev)
     receive a (valid) response and thus failed to join
   */
   case EV_JOIN_TXCOMPLETE:
+    _debugTime();
+    _debug(F("EV_JOIN_TXCOMPLETE\n"));
     /*
       LMIC tries every default channel once before going to the next datarate.
       This is tracked through the txCnt property. When txCnt reaches the default
@@ -205,22 +182,20 @@ void onEvent(ev_t ev)
     // to save battery
     if (LMIC.datarate <= MIN_LORA_DR)
     {
-      _debug(F("Join failed at lowest DR, waiting 1 interval\r\n"));
       LMIC.datarate = MIN_LORA_DR;
     }
     else
     {
       // As long as we arent at the lowest datarate, lower it and retry asap
       LMIC.datarate = decDR((dr_t)LMIC.datarate);
-      _debug(F("Join failed, retry asap at DR"));
-      _debug(LMIC.datarate);
-      _debug("\r\n");
     }
-    // Enter sleep mode
-    os_setCallback(&job, job_sleep);
     break;
 
   default:
+    _debugTime();
+    _debug("EV: ");
+    _debug(ev);
+    _debug("\n");
     break;
   }
 }
