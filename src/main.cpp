@@ -23,7 +23,14 @@ osjob_t sleep_job;
  */
 void setup(void)
 {
+  // Disable ADC and all peripherals not required
+  ADCSRA &= ~(1 << ADEN);
+  power_all_disable();
+  power_spi_enable();
+  power_timer0_enable();
+
 #if defined(DEBUG) || defined(PRINT_BUILD_DATE_TIME)
+  power_usart0_enable();
   Serial.begin(115200);
 #endif
 #ifdef PRINT_BUILD_DATE_TIME
@@ -35,6 +42,7 @@ void setup(void)
   Serial.flush();
 #ifndef DEBUG
   Serial.end();
+  power_usart0_disable();
 #endif
 #endif
 
@@ -114,6 +122,10 @@ void job_measure_and_send(osjob_t *job)
     next_send = next_tx;
   }
 
+  _debugTime();
+  _debug("Next measure at: ");
+  _debug(osticks2ms(now + next_send));
+  _debug("\n");
   os_setTimedCallback(job, now + next_send, job_measure_and_send);
 }
 
