@@ -53,6 +53,8 @@ void sleep_until(uint32_t wakeup_time)
   Serial.flush();
 #endif
 
+  power_all_disable();
+
   uint32_t elapsed = 0;
   // 15ms is minimum sleep time, so we do not want to
   // overshoot this
