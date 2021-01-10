@@ -27,7 +27,9 @@ void hal_sleep()
   {
     return;
   }
-  sleep_until(osticks2ms(next_job_time));
+  // Wake up an arbitrary 15 ms earlier to account
+  // for overhead
+  sleep_until(osticks2ms(next_job_time) - 15);
 }
 
 /**
@@ -51,9 +53,10 @@ void sleep_until(uint32_t wakeup_time)
   Serial.flush();
 #endif
 
-  // Rollover compatible sleep loop
   uint32_t elapsed = 0;
-  while (elapsed < duration)
+  // 15ms is minimum sleep time, so we do not want to
+  // overshoot this
+  while (duration - elapsed > 15)
   {
     uint32_t slept = sleep(duration - elapsed);
     elapsed += slept;
