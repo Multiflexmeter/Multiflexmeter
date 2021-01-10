@@ -13,21 +13,13 @@
 
 uint32_t next_job_time = 0;
 
-// Returns the number of ticks until time. Negative values indicate that
-// time has already passed.
-static int32_t delta_time(uint32_t time)
-{
-  return (int32_t)(time - hal_ticks());
-}
-
 uint8_t hal_checkTimer(uint32_t time)
 {
-  // A job is scheduled within 100 ms so don't sleep
-  if (delta_time(time) <= ms2osticks(100))
+  next_job_time = time;
+  if ((int32_t)(time - hal_ticks()) < 0)
   {
     return 1;
   }
-  next_job_time = time;
   return 0;
 }
 
@@ -37,7 +29,7 @@ void hal_sleep()
   {
     return;
   }
-  sleep_until(osticks2ms(next_job_time) - 10);
+  sleep_until(osticks2ms(next_job_time));
 }
 
 /**
@@ -48,7 +40,7 @@ void sleep_until(uint32_t wakeup_time)
   uint32_t start = millis();
   uint32_t duration = wakeup_time - start;
 
-  if (is_time_before(wakeup_time, start))
+  if ((int32_t)(duration) <= 15)
   {
     return;
   }
@@ -61,28 +53,12 @@ void sleep_until(uint32_t wakeup_time)
   Serial.flush();
 #endif
 
-  // Disable ADC and all peripherals not required
-  ADCSRA &= ~(1 << ADEN);
-  power_all_disable();
-
   // Rollover compatible sleep loop
   uint32_t elapsed = 0;
   while (elapsed < duration)
   {
-    elapsed += sleep(duration - elapsed);
-
-    // Fix timing
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
-    {
-      extern volatile unsigned long timer0_overflow_count;
-      extern volatile unsigned long timer0_millis;
-      // timer0 overflows every 64 * 256 clock cycles
-      // https://github.com/arduino/ArduinoCore-avr/blob/6ec80154cd2ca52bce443afbbed8a1ad44d049cb/cores/arduino/wiring.c#L27
-      timer0_overflow_count += microsecondsToClockCycles(slept * 1000) / (64 * 256);
-      timer0_millis += slept;
-    }
-
-    elapsed = millis() - start;
+    uint32_t slept = sleep(duration - elapsed);
+    elapsed += slept;
   }
 
   power_timer0_enable();
@@ -92,6 +68,8 @@ void sleep_until(uint32_t wakeup_time)
 #endif
 
   _debugTime();
+  _debug(F("Woke up\n"));
+}
 
 /**
  * @brief Sleep as close to `period` amount of time
@@ -138,6 +116,17 @@ uint32_t sleep(uint32_t period)
   // Once awakened by the watchdog execution resumes here.
   // Start by disabling sleep.
   sleep_disable();
+
+  // Fix timing
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+  {
+    extern volatile unsigned long timer0_overflow_count;
+    extern volatile unsigned long timer0_millis;
+    // timer0 overflows every 64 * 256 clock cycles
+    // https://github.com/arduino/ArduinoCore-avr/blob/6ec80154cd2ca52bce443afbbed8a1ad44d049cb/cores/arduino/wiring.c#L27
+    timer0_overflow_count += microsecondsToClockCycles(actual_sleep_time * 1000) / (64 * 256);
+    timer0_millis += actual_sleep_time;
+  }
 
   return actual_sleep_time;
 }
