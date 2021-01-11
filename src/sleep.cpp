@@ -58,7 +58,7 @@ void sleep_until(uint32_t wakeup_time)
   uint32_t elapsed = 0;
   // 15ms is minimum sleep time, so we do not want to
   // overshoot this
-  while (duration - elapsed > 15)
+  while ((int32_t)(duration - elapsed) > 15)
   {
     uint32_t slept = sleep(duration - elapsed);
     elapsed += slept;
