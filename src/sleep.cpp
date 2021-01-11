@@ -60,18 +60,14 @@ void sleep_until(uint32_t wakeup_time)
   // overshoot this
   while ((int32_t)(duration - elapsed) > 15)
   {
-    uint32_t slept = sleep(duration - elapsed);
-    elapsed += slept;
+    sleep(duration - elapsed);
+    elapsed = (millis() - start);
   }
 
-  power_timer0_enable();
-  power_spi_enable();
-#ifdef DEBUG
-  power_usart0_enable();
-#endif
-
   _debugTime();
-  _debug(F("Woke up\n"));
+  _debug(F("Woke up: "));
+  _debug(elapsed);
+  _debug("\n");
 }
 
 /**
