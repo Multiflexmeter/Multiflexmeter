@@ -30,7 +30,7 @@ void setup(void)
 
 #if defined(DEBUG) || defined(PRINT_BUILD_DATE_TIME)
   power_usart0_enable();
-  Serial.begin(115200);
+  Serial.begin(19200);
 #endif
 #ifdef PRINT_BUILD_DATE_TIME
   _debug(F("Build at: "));
