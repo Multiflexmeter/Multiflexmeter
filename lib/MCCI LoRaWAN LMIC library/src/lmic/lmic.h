@@ -138,10 +138,10 @@ enum { MAX_RXSYMS         = 350 };   // Stop tracking beacon if sync error grows
                                      // 4.096 ms/sym or at least 342 symbols.
 
 enum { LINK_CHECK_CONT    =  0  ,    // continue with this after reported dead link
-       LINK_CHECK_DEAD    =  32 ,    // after this UP frames and no response to ack from NWK assume link is dead (ADR_ACK_DELAY)
+       LINK_CHECK_DEAD    =  4 ,     // after this UP frames and no response to ack from NWK assume link is dead (ADR_ACK_DELAY)
        LINK_CHECK_UNJOIN_MIN = LINK_CHECK_DEAD + 4,         // this is the minimum value of LINK_CHECK_UNJOIN if we parameterize
        LINK_CHECK_UNJOIN  =  LINK_CHECK_DEAD + (3 * 240),   // after this many UP frames and no response, switch to join (by default)
-       LINK_CHECK_INIT    = -64 ,    // UP frame count until we ask for ack (ADR_ACK_LIMIT)
+       LINK_CHECK_INIT    = -48 ,     // UP frame count until we ask for ack (ADR_ACK_LIMIT)
        LINK_CHECK_OFF     =-128 };   // link check disabled
 
 enum { TIME_RESYNC        = 6*128 }; // secs
