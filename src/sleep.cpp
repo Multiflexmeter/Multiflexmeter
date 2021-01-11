@@ -126,9 +126,9 @@ uint32_t sleep(uint32_t period)
     extern volatile unsigned long timer0_millis;
     // timer0 overflows every 64 * 256 clock cycles
     // https://github.com/arduino/ArduinoCore-avr/blob/6ec80154cd2ca52bce443afbbed8a1ad44d049cb/cores/arduino/wiring.c#L27
-    timer0_overflow_count = microsecondsToClockCycles((start_ms + actual_sleep_time) * 1000) / (64 * 256);
+    timer0_overflow_count = microsecondsToClockCycles((uint64_t)(start_ms + actual_sleep_time) * 1000) / (64 * 256);
     timer0_millis = start_ms + actual_sleep_time;
-    TCNT0 = 0;
+    // TCNT0 = 0; // Max deviation from millis will be 2.048 ms
   }
 
   return actual_sleep_time;
