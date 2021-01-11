@@ -83,6 +83,7 @@ void sleep_until(uint32_t wakeup_time)
  */
 uint32_t sleep(uint32_t period)
 {
+  uint32_t start_ms = millis();
   uint32_t wdto, actual_sleep_time;
   get_sleep_period(period, wdto, actual_sleep_time);
 
@@ -123,8 +124,9 @@ uint32_t sleep(uint32_t period)
     extern volatile unsigned long timer0_millis;
     // timer0 overflows every 64 * 256 clock cycles
     // https://github.com/arduino/ArduinoCore-avr/blob/6ec80154cd2ca52bce443afbbed8a1ad44d049cb/cores/arduino/wiring.c#L27
-    timer0_overflow_count += microsecondsToClockCycles(actual_sleep_time * 1000) / (64 * 256);
-    timer0_millis += actual_sleep_time;
+    timer0_overflow_count = microsecondsToClockCycles((start_ms + actual_sleep_time) * 1000) / (64 * 256);
+    timer0_millis = start_ms + actual_sleep_time;
+    TCNT0 = 0;
   }
 
   return actual_sleep_time;
