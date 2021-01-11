@@ -16,6 +16,10 @@ uint8_t hal_checkTimer(uint32_t time)
   next_job_time = time;
   if ((int32_t)(time - hal_ticks()) <= ms2osticks(5))
   {
+    _debugTime();
+    _debug("running job for ");
+    _debug(osticks2ms(time));
+    _debug("\n");
     return 1;
   }
   return 0;
