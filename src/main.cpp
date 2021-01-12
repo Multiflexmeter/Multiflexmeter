@@ -33,11 +33,11 @@ void setup(void)
   Serial.begin(19200);
 #endif
 #ifdef PRINT_BUILD_DATE_TIME
-  _debug(F("Build at: "));
-  _debug(F(__DATE__));
-  _debug(" ");
-  _debug(F(__TIME__));
-  _debug("\n");
+  Serial.print(F("Build at: "));
+  Serial.print(F(__DATE__));
+  Serial.print(" ");
+  Serial.print(F(__TIME__));
+  Serial.print("\n");
   Serial.flush();
 #ifndef DEBUG
   Serial.end();
