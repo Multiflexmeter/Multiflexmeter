@@ -123,7 +123,7 @@ void job_measure_and_send(osjob_t *job)
 
   _debugTime();
   _debug("Next measure at: ");
-  _debug((uint32_t)(now + next_send));
+  _debug((uint32_t)osticks2ms(now + next_send));
   _debug("\n");
   os_setTimedCallback(job, now + next_send, job_measure_and_send);
 }
