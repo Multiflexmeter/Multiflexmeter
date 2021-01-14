@@ -18,7 +18,7 @@ uint8_t hal_checkTimer(uint32_t time)
   {
     _debugTime();
     _debug("running job for ");
-    _debug(osticks2ms(time));
+    _debug((uint32_t)osticks2ms(time));
     _debug("\n");
     return 1;
   }
@@ -33,16 +33,16 @@ void hal_sleep()
   }
   // Wake up an arbitrary 15 ms earlier to account
   // for overhead
-  sleep_until(osticks2ms(next_job_time) - 15);
+  uint32_t duration = osticks2ms(next_job_time - os_getTime());
+  sleep(duration);
 }
 
 /**
  * 
  */
-void sleep_until(uint32_t wakeup_time)
+void sleep(uint32_t duration)
 {
   uint32_t start = millis();
-  uint32_t duration = wakeup_time - start;
 
   if ((int32_t)(duration) <= 15)
   {
@@ -62,7 +62,7 @@ void sleep_until(uint32_t wakeup_time)
   // overshoot this
   while ((int32_t)(duration - elapsed) > 15)
   {
-    sleep(duration - elapsed);
+    _sleep(duration - elapsed);
     elapsed = (millis() - start);
   }
 
@@ -83,7 +83,7 @@ void sleep_until(uint32_t wakeup_time)
  * @param period The requested time to sleep
  * @return uint32_t The time slept
  */
-uint32_t sleep(uint32_t period)
+uint32_t _sleep(uint32_t period)
 {
   uint32_t start_ms = millis();
   uint32_t wdto, actual_sleep_time;
