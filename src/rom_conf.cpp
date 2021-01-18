@@ -37,7 +37,23 @@ void conf_getAppKey(uint8_t *buf)
   memcpy(buf, &config.APP_KEY, 16);
 }
 
-uint16_t conf_getMeasurementInterval(void)
+uint16_t conf_getMeasurementInterval(uint8_t dr)
 {
-  return config.MEASUREMENT_INTERVAL;
+  // Ensure we don't go out of bounds on the array
+  if (dr >= INTERVAL_COUNT)
+  {
+    dr = INTERVAL_COUNT - 1;
+  }
+
+  uint16_t interval = config.MEASUREMENT_INTERVAL[dr];
+
+  // In case anything goes wrong
+  // measure at least once every 2 hours
+  // but no faster than every 15 minutes
+  if (interval < MIN_INTERVAL)
+    interval = MIN_INTERVAL;
+  else if (interval > MAX_INTERVAL)
+    interval = MAX_INTERVAL;
+
+  return interval;
 }

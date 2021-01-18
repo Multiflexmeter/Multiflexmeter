@@ -111,7 +111,7 @@ void job_measure_and_send(osjob_t *job)
   }
 
   // Schedule our next measurement and send
-  ostime_t next_send = ms2osticks(conf_getMeasurementInterval());
+  ostime_t next_send = sec2osticks(conf_getMeasurementInterval(LMIC.datarate));
 
   ostime_t now = os_getTime();
   ostime_t next_tx_time = ((LMIC.opmode & OP_NEXTCHNL) != 0) ? LMICbandplan_nextTx(now) : LMIC.txend;

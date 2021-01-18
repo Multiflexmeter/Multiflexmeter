@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#define INTERVAL_COUNT 6
+#define MIN_INTERVAL 900  // 15 minutes
+#define MAX_INTERVAL 4270 // 2 hours
+
 struct __attribute__((packed)) rom_conf_t
 {
   uint8_t MAGIC[4];
@@ -10,7 +14,7 @@ struct __attribute__((packed)) rom_conf_t
   uint8_t APP_EUI[8];
   uint8_t DEV_EUI[8];
   uint8_t APP_KEY[16];
-  uint16_t MEASUREMENT_INTERVAL;
+  uint16_t MEASUREMENT_INTERVAL[INTERVAL_COUNT];
 };
 
 #ifdef __cplusplus
@@ -23,7 +27,7 @@ extern "C"
   void conf_getAppEui(uint8_t *buf);
   void conf_getDevEui(uint8_t *buf);
   void conf_getAppKey(uint8_t *buf);
-  uint16_t conf_getMeasurementInterval(void);
+  uint16_t conf_getMeasurementInterval(uint8_t dr);
 
 #ifdef __cplusplus
 }
