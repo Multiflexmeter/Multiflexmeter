@@ -10,7 +10,7 @@ struct __attribute__((packed)) rom_conf_t
   uint8_t APP_EUI[8];
   uint8_t DEV_EUI[8];
   uint8_t APP_KEY[16];
-  uint32_t MEASUREMENT_INTERVAL;
+  uint16_t MEASUREMENT_INTERVAL;
 };
 
 #ifdef __cplusplus
@@ -23,7 +23,7 @@ extern "C"
   void conf_getAppEui(uint8_t *buf);
   void conf_getDevEui(uint8_t *buf);
   void conf_getAppKey(uint8_t *buf);
-  uint32_t conf_getMeasurementInterval(void);
+  uint16_t conf_getMeasurementInterval(void);
 
 #ifdef __cplusplus
 }

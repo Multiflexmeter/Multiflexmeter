@@ -37,7 +37,7 @@ void conf_getAppKey(uint8_t *buf)
   memcpy(buf, &config.APP_KEY, 16);
 }
 
-uint32_t conf_getMeasurementInterval(void)
+uint16_t conf_getMeasurementInterval(void)
 {
   return config.MEASUREMENT_INTERVAL;
 }
