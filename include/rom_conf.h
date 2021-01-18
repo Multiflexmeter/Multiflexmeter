@@ -2,10 +2,9 @@
 #define _ROM_CONF_H_
 
 #include <stdint.h>
+#include "config.h"
 
 #define INTERVAL_COUNT 6
-#define MIN_INTERVAL 900  // 15 minutes
-#define MAX_INTERVAL 4270 // 2 hours
 
 struct __attribute__((packed)) rom_conf_t
 {

@@ -12,6 +12,9 @@
 #define PRINT_BUILD_DATE_TIME
 // Milliseconds before measurement times out to prevent hanging
 #define SENSOR_JSN_TIMEOUT 200
+// Minimum and Maximum send intervals are hardcoded limits
+#define MIN_INTERVAL 900  // 15 minutes
+#define MAX_INTERVAL 4270 // 2 hours
 
 /*
   Board configuration (pins)
