@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 #include "config.h"
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
 
 #define INTERVAL_COUNT 6
 

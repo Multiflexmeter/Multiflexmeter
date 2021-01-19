@@ -137,11 +137,10 @@ void job_measure_and_send(osjob_t *job)
         and send cycle
 
     - EV_TXCOMPLETE
-        Device just finished sending a measurement and should now sleep
+        Device just finished sending a measurement
 
     - EV_JOIN_TXCOMPLETE
-        Device could not join through OTAA, manually lower DR (increase SF)
-        and sleep
+        Device could not join through OTAA
 */
 void onEvent(ev_t ev)
 {
@@ -154,7 +153,7 @@ void onEvent(ev_t ev)
   case EV_JOINED:
     _debugTime();
     _debug(F("EV_JOINED\n"));
-    LMIC_setLinkCheckMode(1);
+    LMIC_setLinkCheckMode(0);
     LMIC_setAdrMode(1);
     os_setCallback(&job, job_measure_and_send);
     break;
@@ -179,27 +178,6 @@ void onEvent(ev_t ev)
   case EV_JOIN_TXCOMPLETE:
     _debugTime();
     _debug(F("EV_JOIN_TXCOMPLETE\n"));
-    /*
-      LMIC tries every default channel once before going to the next datarate.
-      This is tracked through the txCnt property. When txCnt reaches the default
-      channel count for the bandplan then the DR is lowered. Unfortunately we 
-      cannot directly reference the default channel count.
-
-      Instead we prevent it from reaching the default channel count and manually
-      lower the DR each time
-    */
-    LMIC.txCnt = 0;
-    // If we are at the lowest DR we allow then only join every measurement interval
-    // to save battery
-    if (LMIC.datarate <= MIN_LORA_DR)
-    {
-      LMIC.datarate = MIN_LORA_DR;
-    }
-    else
-    {
-      // As long as we arent at the lowest datarate, lower it and retry asap
-      LMIC.datarate = decDR((dr_t)LMIC.datarate);
-    }
     break;
 
   default:
