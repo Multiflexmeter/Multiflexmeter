@@ -37,6 +37,12 @@ void conf_getAppKey(uint8_t *buf)
   memcpy(buf, &config.APP_KEY, 16);
 }
 
+/**
+ * @brief Get the measurement interval in seconds for a specific datarate
+ * 
+ * @param dr The datarate
+ * @return uint16_t The measurement interval in seconds
+ */
 uint16_t conf_getMeasurementInterval(uint8_t dr)
 {
   // Ensure we don't go out of bounds on the array
