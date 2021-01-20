@@ -67,6 +67,7 @@ uint16_t get_distance_to_water(void)
   // Wait until there is data available or the timeout is reached
   uint32_t timeout_ms = millis() + SENSOR_JSN_TIMEOUT;
   bool frame_start = false;
+  JSN.write(0x55);
   for (;;)
   {
     // Respect timeout
@@ -75,14 +76,6 @@ uint16_t get_distance_to_water(void)
       _debug(F("JSN time out\r\n"));
       return -1;
     }
-
-    if (!frame_start)
-    {
-      // Request measurement
-      JSN.write(0x55);
-      delay(10);
-    }
-    delay(5);
 
     // JSN response frame starts with 0xFF
     // if there is anything available then check if the first byte
