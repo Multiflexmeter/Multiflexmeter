@@ -27,14 +27,28 @@ uint8_t hal_checkTimer(uint32_t time)
 
 void hal_sleep()
 {
+  uint32_t now = hal_ticks();
   if (LMIC.opmode & (OP_TXRXPEND))
   {
     return;
   }
-  // Wake up an arbitrary 15 ms earlier to account
-  // for overhead
-  uint32_t duration = osticks2ms(next_job_time - os_getTime());
-  sleep(duration);
+
+  int32_t duration_ticks = next_job_time - now;
+  if (duration_ticks < ms2osticks(15))
+  {
+    return;
+  }
+
+  _debugTime();
+  _debug(F("Next job at: "));
+  _debug(next_job_time);
+  _debug(F(" ticks; Now: "));
+  _debug(now);
+  _debug(F(" ticks; Duration: "));
+  _debug(duration_ticks);
+  _debug("ticks;\n");
+
+  sleep(osticks2ms(duration_ticks));
 }
 
 /**
@@ -43,16 +57,6 @@ void hal_sleep()
 void sleep(uint32_t duration)
 {
   uint32_t start = millis();
-
-  if ((int32_t)(duration) <= 15)
-  {
-    return;
-  }
-
-  _debugTime();
-  _debug(F("Entering sleep for: "));
-  _debug(duration);
-  _debug("ms...\n");
 #ifdef DEBUG
   Serial.flush();
 #endif
