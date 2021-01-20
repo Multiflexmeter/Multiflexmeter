@@ -2,7 +2,7 @@
 #define _DEBUG_H_
 
 #include <Arduino.h>
-#include <lmic/oslmic_types.h>
+#include <lmic/oslmic.h>
 #include <hal/hal.h>
 #include "config.h"
 
