@@ -180,6 +180,16 @@ void onEvent(ev_t ev)
     _debug(F("EV_JOIN_TXCOMPLETE\n"));
     break;
 
+  /*
+    Fired when the device hasn't heard from the network in 48+4 uplinks...
+    Causes the device to rejoin
+  */
+  case EV_LINK_DEAD:
+    _debugTime();
+    _debug(F("EV_LINK_DEAD\n"));
+    LMIC_unjoinAndRejoin();
+    break;
+
   default:
     _debugTime();
     _debug("EV: ");
