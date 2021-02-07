@@ -53,7 +53,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=50004",
+                "PLATFORMIO=50100",
                 "ARDUINO_AVR_MICRODUINO_CORE",
                 "ARDUINO_LMIC_PROJECT_CONFIG_H_SUPPRESS",
                 "CFG_eu868=1",
