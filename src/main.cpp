@@ -175,9 +175,14 @@ void onEvent(ev_t ev)
   case EV_TXCOMPLETE:
     _debugTime();
     _debug(F("EV_TXCOMPLETE\n"));
-    if (LMIC.dataLen)
+    if (LMIC.dataLen == 2)
     {
-      // Data received
+      if (LMIC.frame[LMIC.dataBeg] == 0xDE && LMIC.frame[LMIC.dataBeg + 1] == 0xAD)
+      {
+        LMIC_unjoinAndRejoin();
+        _debugTime();
+        _debug(F("REJOINING\n"));
+      }
     }
     break;
 
