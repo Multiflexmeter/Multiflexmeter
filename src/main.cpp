@@ -147,6 +147,16 @@ void onEvent(ev_t ev)
   switch (ev)
   {
   /*
+    Fired when the device starts the OTAA join procedure
+    This is important when Rejoining after a losing connection
+  */
+  case EV_JOINING:
+    _debugTime();
+    _debug(F("EV_JOINING\n"));
+    os_clearCallback(&job);
+    break;
+
+  /*
     Fired when the device succesfully finishes the OTAA join procedure
     and is accepted
   */
@@ -187,7 +197,6 @@ void onEvent(ev_t ev)
   case EV_LINK_DEAD:
     _debugTime();
     _debug(F("EV_LINK_DEAD\n"));
-    LMIC_unjoinAndRejoin();
     break;
 
   default:
