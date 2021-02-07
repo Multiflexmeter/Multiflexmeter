@@ -31,7 +31,7 @@ jobs:
         pip install --upgrade platformio
 
     - name: Build Firmware
-      run: pio run -t mfm
+      run: pio run -e mfm
       
     - name: Upload firmware binaries
       uses: actions/upload-artifact@v2
