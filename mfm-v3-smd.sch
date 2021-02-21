@@ -735,17 +735,13 @@ Text GLabel 2250 3850 2    50   Input ~ 0
 RADIO_NSS
 Text GLabel 2250 3750 2    50   Input ~ 0
 RADIO_RST
-Text GLabel 2250 3650 2    50   Input ~ 0
+Text GLabel 2250 4750 2    50   Input ~ 0
 RADIO_DIO0
 Text GLabel 2250 4550 2    50   Input ~ 0
-RADIO_DIO1
-Text GLabel 2250 4650 2    50   Input ~ 0
-RADIO_DIO2
-Text GLabel 2250 4750 2    50   Input ~ 0
 RADIO_DIO3
-Text GLabel 2250 4850 2    50   Input ~ 0
+Text GLabel 2250 4650 2    50   Input ~ 0
 RADIO_DIO4
-Text GLabel 2250 4950 2    50   Input ~ 0
+Text GLabel 2250 3650 2    50   Input ~ 0
 RADIO_DIO5
 Text GLabel 2250 5650 2    50   Input ~ 0
 SMBALERT
@@ -1480,8 +1476,9 @@ U 1 1 60303AD3
 P 3250 2600
 F 0 "SW2" H 3250 2400 50  0000 C CNN
 F 1 "SW_NRST" H 3250 2500 50  0000 C CNN
-F 2 "Button_Switch_SMD:SW_Push_1P1T_NO_6x6mm_H9.5mm" H 3250 2600 50  0001 C CNN
+F 2 "project:C720477" H 3250 2600 50  0001 C CNN
 F 3 "~" H 3250 2600 50  0001 C CNN
+F 4 "C720477" H 3250 2600 50  0001 C CNN "LCSC"
 	1    3250 2600
 	1    0    0    -1  
 $EndComp
@@ -1563,17 +1560,6 @@ Connection ~ 5750 1600
 NoConn ~ 5700 6900
 NoConn ~ 5700 7100
 NoConn ~ 5700 7300
-$Comp
-L Connector:Screw_Terminal_01x02 J5
-U 1 1 6036107D
-P 3500 850
-F 0 "J5" V 3650 850 50  0000 R CNN
-F 1 "screw_terminal" V 3600 1050 50  0000 R CNN
-F 2 "" H 3500 850 50  0001 C CNN
-F 3 "~" H 3500 850 50  0001 C CNN
-	1    3500 850 
-	0    -1   -1   0   
-$EndComp
 Wire Wire Line
 	3600 1050 3600 1100
 Wire Wire Line
@@ -1592,4 +1578,19 @@ F 3 "~" H 5800 7500 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 NoConn ~ 5700 7500
+Text GLabel 2250 4950 2    50   Input ~ 0
+RADIO_DIO2
+Text GLabel 2250 4850 2    50   Input ~ 0
+RADIO_DIO1
+$Comp
+L Connector_Generic:Conn_01x02 J5
+U 1 1 60B1C101
+P 3500 850
+F 0 "J5" V 3650 850 50  0000 R CNN
+F 1 "BAT" V 3600 850 50  0000 R CNN
+F 2 "" H 3500 850 50  0001 C CNN
+F 3 "~" H 3500 850 50  0001 C CNN
+	1    3500 850 
+	0    -1   -1   0   
+$EndComp
 $EndSCHEMATC
