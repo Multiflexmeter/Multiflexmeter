@@ -1,4 +1,4 @@
-update=02/23/21 16:55:40
+update=02/26/21 17:14:29
 version=1
 last_client=kicad
 [general]
@@ -241,6 +241,17 @@ Enabled=0
 [pcbnew/Netclasses]
 [pcbnew/Netclasses/Default]
 Name=Default
+Clearance=0.127
+TrackWidth=0.127
+ViaDiameter=0.6
+ViaDrill=0.3
+uViaDiameter=0.6858
+uViaDrill=0.3302
+dPairWidth=0.1524
+dPairGap=0.254
+dPairViaGap=0.25
+[pcbnew/Netclasses/1]
+Name=MountingHoles
 Clearance=0.127
 TrackWidth=0.127
 ViaDiameter=0.6
