@@ -673,17 +673,6 @@ $EndComp
 Text GLabel 8500 1600 2    50   Input ~ 0
 ONEWIRE
 $Comp
-L power:+3.3V #PWR03
-U 1 1 6049FF3B
-P 8500 1500
-F 0 "#PWR03" H 8500 1350 50  0001 C CNN
-F 1 "+3.3V" H 8650 1550 50  0000 C CNN
-F 2 "" H 8500 1500 50  0001 C CNN
-F 3 "" H 8500 1500 50  0001 C CNN
-	1    8500 1500
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GND #PWR014
 U 1 1 604A380E
 P 8500 1700
@@ -714,17 +703,6 @@ Wire Wire Line
 	9200 1750 9150 1750
 Wire Wire Line
 	9150 1750 9150 1700
-$Comp
-L power:+3.3V #PWR01
-U 1 1 604E4740
-P 9150 1500
-F 0 "#PWR01" H 9150 1350 50  0001 C CNN
-F 1 "+3.3V" H 9150 1650 50  0000 C CNN
-F 2 "" H 9150 1500 50  0001 C CNN
-F 3 "" H 9150 1500 50  0001 C CNN
-	1    9150 1500
-	1    0    0    -1  
-$EndComp
 Text GLabel 2250 5700 2    50   Input ~ 0
 I2C_SCL
 Text GLabel 2250 5800 2    50   Input ~ 0
@@ -1571,7 +1549,7 @@ RADIO_DIO2
 Text GLabel 2250 5100 2    50   Input ~ 0
 RADIO_DIO1
 $Comp
-L custom_library:Conn_01x02_+- J5
+L mfm-v3-smd-rescue:Conn_01x02_+--custom_library J5
 U 1 1 60B1C101
 P 3500 850
 F 0 "J5" V 3700 800 50  0000 C BNN
@@ -1639,6 +1617,28 @@ F 1 "+3.3V" H 11000 2400 50  0000 C CNN
 F 2 "" H 11000 2250 50  0001 C CNN
 F 3 "" H 11000 2250 50  0001 C CNN
 	1    11000 2250
+	1    0    0    -1  
+$EndComp
+$Comp
+L project:+3.3V_SW #PWR?
+U 1 1 603DCAD4
+P 9150 1500
+F 0 "#PWR?" H 9150 1350 50  0001 C CNN
+F 1 "+3.3V_SW" H 9150 1650 50  0000 C CNN
+F 2 "" H 9150 1500 50  0001 C CNN
+F 3 "" H 9150 1500 50  0001 C CNN
+	1    9150 1500
+	1    0    0    -1  
+$EndComp
+$Comp
+L project:+3.3V_SW #PWR?
+U 1 1 603DD9EF
+P 8500 1500
+F 0 "#PWR?" H 8500 1350 50  0001 C CNN
+F 1 "+3.3V_SW" H 8600 1650 50  0000 C CNN
+F 2 "" H 8500 1500 50  0001 C CNN
+F 3 "" H 8500 1500 50  0001 C CNN
+	1    8500 1500
 	1    0    0    -1  
 $EndComp
 $EndSCHEMATC

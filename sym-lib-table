@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name project)(type Legacy)(uri ${KIPRJMOD}/lib/project.lib)(options "")(descr ""))
+  (lib (name mfm-v3-smd-rescue)(type Legacy)(uri ${KIPRJMOD}/mfm-v3-smd-rescue.lib)(options "")(descr ""))
 )

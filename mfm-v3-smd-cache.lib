@@ -416,11 +416,11 @@ X B 2 200 0 100 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# custom_library_Conn_01x02_+-
+# mfm-v3-smd-rescue_Conn_01x02_+--custom_library
 #
-DEF custom_library_Conn_01x02_+- J 0 40 Y N 1 F N
+DEF mfm-v3-smd-rescue_Conn_01x02_+--custom_library J 0 40 Y N 1 F N
 F0 "J" 0 100 50 H V C CNN
-F1 "custom_library_Conn_01x02_+-" 0 -200 50 H V C CNN
+F1 "mfm-v3-smd-rescue_Conn_01x02_+--custom_library" 0 -200 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
