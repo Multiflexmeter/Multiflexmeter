@@ -206,11 +206,11 @@ Text GLabel 1000 2000 0    50   Input ~ 0
 AVR_SCK
 Text Notes 600  1650 0    50   ~ 0
 SPI Bus
-Text GLabel 1850 2000 2    50   Input ~ 0
+Text GLabel 1850 2200 2    50   Input ~ 0
 SPI_MISO
 Text GLabel 1850 2100 2    50   Input ~ 0
 SPI_MOSI
-Text GLabel 1850 2200 2    50   Input ~ 0
+Text GLabel 1850 2000 2    50   Input ~ 0
 SPI_SCK
 $Comp
 L Device:R_Small R5
