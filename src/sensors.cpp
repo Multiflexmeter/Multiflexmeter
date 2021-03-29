@@ -16,7 +16,7 @@ SoftwareSerial JSN(PIN_JSN_TX, PIN_JSN_RX);
 
 bool initialize_sensors(void)
 {
-  pinMode(PIN_JSN_SDN, OUTPUT);
+  pinMode(PIN_PERIF_PWR, OUTPUT);
   wire_sensors.begin();
   bool wireSuccess = wire_sensors.getAddress(temp_sensor_addr, 0);
   disable_sensors();
@@ -34,7 +34,7 @@ bool initialize_sensors(void)
 
 void enable_sensors(void)
 {
-  digitalWrite(PIN_JSN_SDN, HIGH);
+  digitalWrite(PIN_PERIF_PWR, HIGH);
   JSN.begin(9600);
 }
 
@@ -42,7 +42,7 @@ void disable_sensors(void)
 {
   JSN.end();
   wire.reset();
-  digitalWrite(PIN_JSN_SDN, LOW);
+  digitalWrite(PIN_PERIF_PWR, LOW);
   digitalWrite(PIN_JSN_TX, LOW);
   digitalWrite(PIN_JSN_RX, LOW);
   digitalWrite(PIN_ONE_WIRE, LOW);

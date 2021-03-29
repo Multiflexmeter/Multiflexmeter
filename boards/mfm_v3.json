@@ -1,0 +1,26 @@
+{
+  "build": {
+    "core": "arduino",
+    "extra_flags": "-DARDUINO_AVR_MICRODUINO_CORE -I./boards/mfm_v3/include",
+    "f_cpu": "8000000L",
+    "mcu": "atmega328p",
+    "variant": "standard"
+  },
+  "debug": {
+    "simavr_target": "atmega328p",
+    "avr-stub": {
+      "speed": 115200
+    }
+  },
+  "frameworks": ["arduino"],
+  "name": "Microduino Core (Atmega328P@8M,3.3V)",
+  "upload": {
+    "maximum_ram_size": 2048,
+    "maximum_size": 32256,
+    "protocol": "stk500v2",
+    "require_upload_port": true,
+    "speed": 115200
+  },
+  "url": "http://wiki.microduinoinc.com/Microduino-Module_Core",
+  "vendor": "Microduino"
+}

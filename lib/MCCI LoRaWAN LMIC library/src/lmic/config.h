@@ -13,33 +13,33 @@
 
 // set up preconditions, and load configuration if needed.
 #ifndef _LMIC_CONFIG_PRECONDITIONS_H_
-# include "lmic_config_preconditions.h"
+#include "lmic_config_preconditions.h"
 #endif
 
 // check post-conditions.
 
 // make sure that we have exactly one target region defined.
 #if CFG_LMIC_REGION_MASK == 0
-# define CFG_eu868 1
+#define CFG_eu868 1
 #elif (CFG_LMIC_REGION_MASK & (-CFG_LMIC_REGION_MASK)) != CFG_LMIC_REGION_MASK
-# error You can define at most one of CFG_... variables
+#error You can define at most one of CFG_... variables
 #elif (CFG_LMIC_REGION_MASK & LMIC_REGIONS_SUPPORTED) == 0
-# error The selected CFG_... region is not supported yet.
+#error The selected CFG_... region is not supported yet.
 #endif
 
 // make sure that LMIC_COUNTRY_CODE is defined.
 #ifndef LMIC_COUNTRY_CODE
-# define LMIC_COUNTRY_CODE      LMIC_COUNTRY_CODE_NONE
+#define LMIC_COUNTRY_CODE LMIC_COUNTRY_CODE_NONE
 #endif
 
 // if the country code is Japan, then the region must be AS923
 #if LMIC_COUNTRY_CODE == LMIC_COUNTRY_CODE_JP && CFG_region != LMIC_REGION_as923
-# error "If country code is JP, then region must be AS923"
+#error "If country code is JP, then region must be AS923"
 #endif
 
 // check for internal consistency
 #if !(CFG_LMIC_EU_like || CFG_LMIC_US_like)
-# error "Internal error: Neither EU-like nor US-like!"
+#error "Internal error: Neither EU-like nor US-like!"
 #endif
 
 // This is the SX1272/SX1273 radio, which is also used on the HopeRF
@@ -50,25 +50,25 @@
 //#define CFG_sx1276_radio 1
 
 // ensure that a radio is defined.
-#if ! (defined(CFG_sx1272_radio) || defined(CFG_sx1276_radio))
-# warning Target radio not defined, assuming CFG_sx1276_radio
+#if !(defined(CFG_sx1272_radio) || defined(CFG_sx1276_radio))
+#warning Target radio not defined, assuming CFG_sx1276_radio
 #define CFG_sx1276_radio 1
 #elif defined(CFG_sx1272_radio) && defined(CFG_sx1276_radio)
-# error You can define at most one of CFG_sx1272_radio and CF_sx1276_radio
+#error You can define at most one of CFG_sx1272_radio and CF_sx1276_radio
 #endif
 
 // LMIC requires ticks to be 15.5μs - 100 μs long
 #ifndef OSTICKS_PER_SEC
 // 16 μs per tick
-# ifndef US_PER_OSTICK_EXPONENT
-#   define US_PER_OSTICK_EXPONENT 4
-# endif
-# define US_PER_OSTICK (1 << US_PER_OSTICK_EXPONENT)
-# define OSTICKS_PER_SEC (1000000 / US_PER_OSTICK)
+#ifndef US_PER_OSTICK_EXPONENT
+#define US_PER_OSTICK_EXPONENT 4
+#endif
+#define US_PER_OSTICK (1 << US_PER_OSTICK_EXPONENT)
+#define OSTICKS_PER_SEC (1000000 / US_PER_OSTICK)
 #endif /* OSTICKS_PER_SEC */
 
-#if ! (10000 <= OSTICKS_PER_SEC && OSTICKS_PER_SEC < 64516)
-# error LMIC requires ticks to be 15.5 us to 100 us long
+#if !(10000 <= OSTICKS_PER_SEC && OSTICKS_PER_SEC < 64516)
+#error LMIC requires ticks to be 15.5 us to 100 us long
 #endif
 
 // Change the SPI clock speed if you encounter errors
@@ -102,7 +102,7 @@
 // displaying runtime assertion failures. If you say nothing in your
 // lmic_project_config.h, runtime assertion failures are displayed
 // using the Serial object.
-#if ! defined(DISABLE_LMIC_FAILURE_TO) && ! defined(LMIC_FAILURE_TO)
+#if !defined(DISABLE_LMIC_FAILURE_TO) && !defined(LMIC_FAILURE_TO)
 #define LMIC_FAILURE_TO Serial
 #endif
 
@@ -143,12 +143,12 @@
 // also about twice as slow as the original).
 // #define USE_IDEETRON_AES
 
-#if ! (defined(USE_ORIGINAL_AES) || defined(USE_IDEETRON_AES))
-# define USE_IDEETRON_AES
+#if !(defined(USE_ORIGINAL_AES) || defined(USE_IDEETRON_AES))
+#define USE_IDEETRON_AES
 #endif
 
 #if defined(USE_ORIGINAL_AES) && defined(USE_IDEETRON_AES)
-# error "You may define at most one of USE_ORIGINAL_AES and USE_IDEETRON_AES"
+#error "You may define at most one of USE_ORIGINAL_AES and USE_IDEETRON_AES"
 #endif
 
 // LMIC_DISABLE_DR_LEGACY
@@ -158,32 +158,32 @@
 // everybody. We don't want to use DR_* in the LMIC itself, so we provide
 // this #define to allow them to be removed.
 #if !defined(LMIC_DR_LEGACY)
-# if !defined(LMIC_DISABLE_DR_LEGACY)
-#  define LMIC_DR_LEGACY 1
-# else // defined(LMIC_DISABLE_DR_LEGACY)
-#  define LMIC_DR_LEGACY 0
-# endif // defined(LMIC_DISABLE_DR_LEGACY)
+#if !defined(LMIC_DISABLE_DR_LEGACY)
+#define LMIC_DR_LEGACY 1
+#else // defined(LMIC_DISABLE_DR_LEGACY)
+#define LMIC_DR_LEGACY 0
+#endif // defined(LMIC_DISABLE_DR_LEGACY)
 #endif // LMIC_DR_LEGACY
 
 // LMIC_ENABLE_DeviceTimeReq
 // enable support for MCMD_DeviceTimeReq and MCMD_DeviceTimeAns
 // this is always defined, and non-zero to enable it.
 #if !defined(LMIC_ENABLE_DeviceTimeReq)
-# define LMIC_ENABLE_DeviceTimeReq 0
+#define LMIC_ENABLE_DeviceTimeReq 0
 #endif
 
 // LMIC_ENABLE_user_events
 // Enable/disable support for programmable callbacks for events, rx, and tx.
 // This is always defined, and non-zero to enable.  Default is enabled.
 #if !defined(LMIC_ENABLE_user_events)
-# define LMIC_ENABLE_user_events 1
+#define LMIC_ENABLE_user_events 1
 #endif
 
 // LMIC_ENABLE_onEvent
 // Enable/disable support for out-call to user-supplied `onEvent()` function.
 // This is always defined, and non-zero to enable. Default is enabled.
 #if !defined(LMIC_ENABLE_onEvent)
-# define LMIC_ENABLE_onEvent 1
+#define LMIC_ENABLE_onEvent 1
 #endif
 
 // LMIC_ENABLE_long_messages
@@ -193,9 +193,9 @@
 #if defined(LMIC_ENABLE_long_messages) && defined(LMIC_MAX_FRAME_LENGTH)
 #error "Use only one of LMIC_ENABLE_long_messages or LMIC_MAX_FRAME_LENGTH"
 #elif defined(LMIC_ENABLE_long_messages) && LMIC_ENABLE_long_messages == 0
-# define LMIC_MAX_FRAME_LENGTH 64
+#define LMIC_MAX_FRAME_LENGTH 64
 #elif !defined(LMIC_MAX_FRAME_LENGTH)
-# define LMIC_MAX_FRAME_LENGTH 255
+#define LMIC_MAX_FRAME_LENGTH 255
 #elif LMIC_MAX_FRAME_LENGTH > 255
 #error "LMIC_MAX_FRAME_LENGTH cannot be larger than 255"
 #endif
@@ -204,12 +204,12 @@
 // LMIC debugging for certification tests requires this, because debug prints affect
 // timing too dramatically. But normal operation doesn't need this.
 #if !defined(LMIC_ENABLE_event_logging)
-# define LMIC_ENABLE_event_logging 0        /* PARAM */
+#define LMIC_ENABLE_event_logging 0 /* PARAM */
 #endif
 
 // LMIC_LORAWAN_SPEC_VERSION
 #if !defined(LMIC_LORAWAN_SPEC_VERSION)
-# define LMIC_LORAWAN_SPEC_VERSION	LMIC_LORAWAN_SPEC_VERSION_1_0_3
+#define LMIC_LORAWAN_SPEC_VERSION LMIC_LORAWAN_SPEC_VERSION_1_0_3
 #endif
 
 // LMIC_ENABLE_arbitrary_clock_error
@@ -217,7 +217,7 @@
 // we assume reasonably-disciplined os_getTime() values. But... there might
 // be platforms that require wider errors.
 #if !defined(LMIC_ENABLE_arbitrary_clock_error)
-# define LMIC_ENABLE_arbitrary_clock_error 0	/* PARAM */
+#define LMIC_ENABLE_arbitrary_clock_error 0 /* PARAM */
 #endif
 
 #endif // _lmic_config_h_

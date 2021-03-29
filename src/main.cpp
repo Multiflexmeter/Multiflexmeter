@@ -1,12 +1,13 @@
+#include "config.h"
 #include "main.h"
 
 #include <Arduino.h>
 #include <avr/power.h>
+#include <avr/wdt.h>
 #include "sleep.h"
 #include "sensors.h"
 #include "rom_conf.h"
 #include "debug.h"
-#include "config.h"
 
 const lmic_pinmap lmic_pins = {
     .nss = PIN_NSS,
@@ -58,7 +59,7 @@ void setup(void)
   os_init();
   LMIC_reset();
 
-  LMIC_setClockError(MAX_CLOCK_ERROR * 2 / 100);
+  // LMIC_setClockError(MAX_CLOCK_ERROR * 2 / 100);
   LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7), BAND_CENTI);  // g-band
   LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI); // g-band
   LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7), BAND_CENTI);  // g-band
