@@ -1,7 +1,12 @@
 #if !defined(_CONFIG_H_)
 #define _CONFIG_H_
 
-#include "board.h"
+// Include the correct board configuration settings
+#if defined(BOARD_MFM_V3)
+#include "board_config/mfm_v3.h"
+#elif defined(BOARD_MFM_V3_SMD)
+#include "board_config/mfm_v3_smd.h"
+#endif
 
 /*
   Generic configuration
@@ -15,7 +20,7 @@
 // Milliseconds before measurement times out to prevent hanging
 #define SENSOR_JSN_TIMEOUT 200
 // Minimum and Maximum send intervals are hardcoded limits
-#define MIN_INTERVAL 900  // 15 minutes
+#define MIN_INTERVAL 20  // 15 minutes
 #define MAX_INTERVAL 4270 // 2 hours
 
 #endif // _CONFIG_H_

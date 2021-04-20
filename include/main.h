@@ -1,6 +1,7 @@
 #if !defined(_MAIN_H_)
 #define _MAIN_H_
 
+#include "config.h"
 #include <arduino_lmic.h>
 #include <hal/hal.h>
 

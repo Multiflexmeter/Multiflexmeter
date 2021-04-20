@@ -1,13 +1,12 @@
-#include "config.h"
 #include "main.h"
 
 #include <Arduino.h>
 #include <avr/power.h>
-#include <avr/wdt.h>
 #include "sleep.h"
 #include "sensors.h"
 #include "rom_conf.h"
 #include "debug.h"
+#include "board.h"
 
 const lmic_pinmap lmic_pins = {
     .nss = PIN_NSS,
@@ -23,6 +22,8 @@ osjob_t sleep_job;
  */
 void setup(void)
 {
+  board_setup();
+
   // Disable ADC and all peripherals not required
   ADCSRA &= ~(1 << ADEN);
   power_all_disable();

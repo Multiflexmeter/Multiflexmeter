@@ -1,5 +1,5 @@
-#if !defined(_BOARD_H_)
-#define _BOARD_H_
+#if !defined(_BOARD_CONFIG_H_)
+#define _BOARD_CONFIG_H_
 
 #define PIN_PERIF_PWR 20
 #define PIN_JSN_TX 10
@@ -15,4 +15,4 @@
 #define PIN_DIO_4 1
 #define PIN_DIO_5 26
 
-#endif // _BOARD_H_
+#endif // _BOARD_CONFIG_H_
