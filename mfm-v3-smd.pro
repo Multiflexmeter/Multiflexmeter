@@ -1,4 +1,4 @@
-update=2021 April 21, Wednesday 22:20:58
+update=2021 May 02, Sunday 15:43:08
 version=1
 last_client=kicad
 [general]
@@ -37,7 +37,7 @@ MinViaDiameter=0.6
 MinViaDrill=0.35
 MinMicroViaDiameter=0
 MinMicroViaDrill=0
-MinHoleToHole=0.65
+MinHoleToHole=0.25
 TrackWidth1=0.15
 TrackWidth2=0.3
 ViaDiameter1=0.6
@@ -250,6 +250,17 @@ dPairWidth=0.1524
 dPairGap=0.254
 dPairViaGap=0.25
 [pcbnew/Netclasses/1]
+Name=GND
+Clearance=0.15
+TrackWidth=0.5
+ViaDiameter=0.6
+ViaDrill=0.35
+uViaDiameter=0.15
+uViaDrill=0.1
+dPairWidth=0.1524
+dPairGap=0.254
+dPairViaGap=0.25
+[pcbnew/Netclasses/2]
 Name=MountingHoles
 Clearance=0.15
 TrackWidth=0.15
@@ -260,10 +271,10 @@ uViaDrill=0.1
 dPairWidth=0.1524
 dPairGap=0.254
 dPairViaGap=0.25
-[pcbnew/Netclasses/2]
+[pcbnew/Netclasses/3]
 Name=Power
 Clearance=0.15
-TrackWidth=0.15
+TrackWidth=0.3
 ViaDiameter=0.6
 ViaDrill=0.35
 uViaDiameter=0.15
