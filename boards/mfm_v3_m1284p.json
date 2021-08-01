@@ -3,7 +3,7 @@
     "core": "MightyCore",
     "extra_flags": [
       "-DARDUINO_AVR_ATmega1284",
-      "-DBOARD_MFM_V3_SMD",
+      "-DBOARD_MFM_V3_M1284P",
       "-DCFG_eu868=1",
       "-DCFG_sx1276_radio=1"
     ],
@@ -14,7 +14,9 @@
   "debug": {
     "simavr_target": "atmega1284p"
   },
-  "frameworks": ["arduino"],
+  "frameworks": [
+    "arduino"
+  ],
   "name": "ATmega1284P",
   "upload": {
     "maximum_ram_size": 16384,

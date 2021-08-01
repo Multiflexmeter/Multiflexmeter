@@ -14,7 +14,9 @@
   "debug": {
     "simavr_target": "atmega328p"
   },
-  "frameworks": ["arduino"],
+  "frameworks": [
+    "arduino"
+  ],
   "name": "ATmega328P/PA",
   "upload": {
     "maximum_ram_size": 2048,
