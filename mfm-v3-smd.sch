@@ -5,7 +5,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "MFM Brain board"
-Date "24-05-2021"
+Date "2021-08-30"
 Rev "v3.6"
 Comp "Senwize"
 Comment1 ""
