@@ -2,7 +2,6 @@
 
 #include <Arduino.h>
 #include <avr/power.h>
-#include "sleep.h"
 #include "sensors.h"
 #include "rom_conf.h"
 #include "debug.h"
@@ -24,15 +23,8 @@ void setup(void)
 {
   board_setup();
 
-  // Disable ADC and all peripherals not required
-  ADCSRA &= ~(1 << ADEN);
-  power_all_disable();
-  power_spi_enable();
-  power_timer0_enable();
-
 #if defined(DEBUG) || defined(PRINT_BUILD_DATE_TIME)
-  power_usart0_enable();
-  Serial.begin(19200);
+  Serial.begin(115200);
 #endif
 #ifdef PRINT_BUILD_DATE_TIME
   Serial.print(F("Build at: "));
@@ -43,7 +35,6 @@ void setup(void)
   Serial.flush();
 #ifndef DEBUG
   Serial.end();
-  power_usart0_disable();
 #endif
 #endif
 
@@ -59,8 +50,8 @@ void setup(void)
 
   os_init();
   LMIC_reset();
+  LMIC_setClockError(MAX_CLOCK_ERROR * 2 / 100);
 
-  // LMIC_setClockError(MAX_CLOCK_ERROR * 2 / 100);
   LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7), BAND_CENTI);  // g-band
   LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI); // g-band
   LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7), BAND_CENTI);  // g-band
@@ -167,7 +158,7 @@ void onEvent(ev_t ev)
     _debug(F("EV_JOINED\n"));
     LMIC_setLinkCheckMode(0);
     LMIC_setAdrMode(1);
-    os_setCallback(&job, job_measure_and_send);
+    // os_setCallback(&job, job_measure_and_send);
     break;
 
   /*
@@ -176,15 +167,22 @@ void onEvent(ev_t ev)
   */
   case EV_TXCOMPLETE:
     _debugTime();
-    _debug(F("EV_TXCOMPLETE\n"));
-    if (LMIC.dataLen == 2)
+    _debug(F("EV_TXCOMPLETE"));
+    if (LMIC.dataLen > 0)
     {
+      _debug(F(" with "));
+      _debug(LMIC.dataLen);
+      _debug(F(" bytes RX\n"));
       if (LMIC.frame[LMIC.dataBeg] == 0xDE && LMIC.frame[LMIC.dataBeg + 1] == 0xAD)
       {
         LMIC_unjoinAndRejoin();
         _debugTime();
         _debug(F("REJOINING\n"));
       }
+    }
+    else
+    {
+      _debug("\n");
     }
     break;
 
@@ -231,4 +229,9 @@ void os_getDevEui(uint8_t *buf)
 void os_getDevKey(uint8_t *buf)
 {
   conf_getAppKey(buf);
+}
+
+uint16_t os_getMeasurementInterval(uint8_t dr)
+{
+  return conf_getMeasurementInterval(dr);
 }
