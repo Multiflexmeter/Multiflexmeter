@@ -23,7 +23,8 @@ extern "C"
   // defining them in main.cpp :)
 
   void scheduleNextMeasurement(osjob_t *job);
-  void job_measure_and_send(osjob_t *job);
+  void job_performMeasurements(osjob_t *job);
+  void job_fetchAndSend(osjob_t *job);
   void job_sleep(osjob_t *job);
 
 #ifdef __cplusplus

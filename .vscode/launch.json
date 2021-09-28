@@ -12,22 +12,22 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "/home/timvosch/src/mfm-h/.pio/build/mfm/firmware.elf",
-            "projectEnvName": "mfm",
-            "toolchainBinDir": "/home/timvosch/.platformio/packages/toolchain-atmelavr/bin",
+            "executable": "/home/timvosch/src/mfm-h/.pio/build/mfm_v3_m1284p/firmware.elf",
+            "projectEnvName": "mfm_v3_m1284p",
+            "toolchainBinDir": "",
             "internalConsoleOptions": "openOnSessionStart",
             "preLaunchTask": {
                 "type": "PlatformIO",
-                "task": "Pre-Debug (mfm)"
+                "task": "Pre-Debug (mfm_v3_m1284p)"
             }
         },
         {
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "/home/timvosch/src/mfm-h/.pio/build/mfm/firmware.elf",
-            "projectEnvName": "mfm",
-            "toolchainBinDir": "/home/timvosch/.platformio/packages/toolchain-atmelavr/bin",
+            "executable": "/home/timvosch/src/mfm-h/.pio/build/mfm_v3_m1284p/firmware.elf",
+            "projectEnvName": "mfm_v3_m1284p",
+            "toolchainBinDir": "",
             "internalConsoleOptions": "openOnSessionStart"
         }
     ]

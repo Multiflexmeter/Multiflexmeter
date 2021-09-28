@@ -14,7 +14,6 @@ const lmic_pinmap lmic_pins = {
     .dio = {PIN_DIO_0, PIN_DIO_1, PIN_DIO_2},
 };
 osjob_t job;
-osjob_t sleep_job;
 
 /**
  * 
@@ -46,7 +45,7 @@ void setup(void)
       ;
   }
 
-  initialize_sensors();
+  smbus_init();
 
   os_init();
   LMIC_reset();
@@ -70,10 +69,18 @@ void loop(void)
   os_runloop_once();
 }
 
-void job_measure_and_send(osjob_t *job)
+void job_performMeasurements(osjob_t *job) {
+  _debugTime();
+  _debug(F("job_performMeasurements\n"));
+  smbus_doMeasurements();
+  os_setTimedCallback(job, os_getTime() + sec2osticks(1), &job_fetchAndSend);
+}
+
+uint8_t dataBuf[32] = {0};
+void job_fetchAndSend(osjob_t *job)
 {
   _debugTime();
-  _debug(F("job_measure_and_send\n"));
+  _debug(F("job_fetchAndSend\n"));
 
   // Make sure LMIC is not busy with TX/RX and that there is no
   // TX data pending anymore. If so, then this is most likely
@@ -86,15 +93,11 @@ void job_measure_and_send(osjob_t *job)
     return;
   }
 
-  // Perform measurement and save in packet
-  tx_pkt_t pkt = {0};
-  enable_sensors();
-  pkt.air_temperature = get_air_temperature();
-  pkt.distance_to_water = get_distance_to_water_median(13);
-  disable_sensors();
+  // Fetch measurements results
+  uint8_t count = smbus_getMeasurement(dataBuf);
 
   // Queue transmission
-  lmic_tx_error_t err = LMIC_setTxData2(1, (uint8_t *)&pkt, sizeof(pkt), 0);
+  lmic_tx_error_t err = LMIC_setTxData2(1, dataBuf, count, 0);
   if (err != 0)
   {
     _debugTime();
@@ -123,7 +126,7 @@ void scheduleNextMeasurement(osjob_t *job) {
     next_send = next_possible;
   }
 
-  os_setTimedCallback(job, now + next_send, job_measure_and_send);
+  os_setTimedCallback(job, now + next_send, &job_performMeasurements);
 }
 
 /*
@@ -163,7 +166,7 @@ void onEvent(ev_t ev)
     _debug(F("EV_JOINED\n"));
     LMIC_setLinkCheckMode(0);
     LMIC_setAdrMode(1);
-    os_setCallback(&job, job_measure_and_send);
+    os_setCallback(&job, &job_performMeasurements);
     break;
 
   /*

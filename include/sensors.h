@@ -8,12 +8,9 @@ extern "C"
 {
 #endif
 
-  bool initialize_sensors(void);
-  void enable_sensors(void);
-  void disable_sensors(void);
-  float get_air_temperature(void);
-  uint16_t get_distance_to_water(void);
-  uint16_t get_distance_to_water_median(uint8_t n);
+  void smbus_init(void);
+  void smbus_doMeasurements(void);
+  uint8_t smbus_getMeasurement(uint8_t *buf);
 
 #ifdef __cplusplus
 }

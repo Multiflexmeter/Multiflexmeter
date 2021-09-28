@@ -12,6 +12,7 @@
   Serial.print(osticks2ms(hal_ticks())); \
   Serial.print("] ");
 #define _debug(...) Serial.print(__VA_ARGS__);
+#define _debugf(...) Serial.printf(__VA_ARGS__);
 #else
 #define _debugTime()
 #define _debug(msg)
