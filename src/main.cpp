@@ -79,45 +79,50 @@ void job_measure_and_send(osjob_t *job)
   // TX data pending anymore. If so, then this is most likely
   // due to us trying to send before our previous message was
   // transmitted. This happens when trying to sent to frequently.
-  if ((LMIC.opmode & (OP_TXRXPEND | OP_TXDATA)) == 0)
+  if (LMIC.opmode & OP_TXRXPEND)
   {
-    // Perform measurement and save in packet
-    tx_pkt_t pkt = {0};
-    enable_sensors();
-    pkt.air_temperature = get_air_temperature();
-    pkt.distance_to_water = get_distance_to_water_median(13);
-    disable_sensors();
-
-    // Queue transmission
-    lmic_tx_error_t err = LMIC_setTxData2(1, (uint8_t *)&pkt, sizeof(pkt), 0);
-    if (err != 0)
-    {
-      _debugTime();
-      _debug(F("TX error occured! "));
-      _debug(err);
-      _debug("\n");
-    }
-  }
-  else
-  {
-    _debug(F("TXRX Pending/Queued, skipping...\n"));
+    _debug(F("TXRX Pending...\n"));
+    scheduleNextMeasurement(job);
+    return;
   }
 
+  // Perform measurement and save in packet
+  tx_pkt_t pkt = {0};
+  enable_sensors();
+  pkt.air_temperature = get_air_temperature();
+  pkt.distance_to_water = get_distance_to_water_median(13);
+  disable_sensors();
+
+  // Queue transmission
+  lmic_tx_error_t err = LMIC_setTxData2(1, (uint8_t *)&pkt, sizeof(pkt), 0);
+  if (err != 0)
+  {
+    _debugTime();
+    _debug(F("TX error occured: "));
+    _debug(err);
+    _debug("\n");
+  }
+  scheduleNextMeasurement(job);
+}
+
+void scheduleNextMeasurement(osjob_t *job) {
   // Schedule our next measurement and send
-  ostime_t next_send = sec2osticks(conf_getMeasurementInterval(LMIC.datarate));
-
   ostime_t now = os_getTime();
-  ostime_t next_tx_time = ((LMIC.opmode & OP_NEXTCHNL) != 0) ? LMICbandplan_nextTx(now) : LMIC.txend;
-  ostime_t next_tx = next_tx_time - now;
-  if (next_tx > 0 && next_tx - next_send > 0)
-  {
-    next_send = next_tx;
-  }
+  ostime_t next_send = sec2osticks(os_getMeasurementInterval(LMIC.datarate));
+  ostime_t next_possible = LMIC.txend - now;
 
   _debugTime();
-  _debug("Next measure at: ");
-  _debug((uint32_t)osticks2ms(now + next_send));
+  _debug("Next: ");
+  _debug(LMIC.txend);
+  _debug(" : ");
+  _debug(next_send);
   _debug("\n");
+
+  
+  if (next_send < next_possible) {
+    next_send = next_possible;
+  }
+
   os_setTimedCallback(job, now + next_send, job_measure_and_send);
 }
 
@@ -158,7 +163,7 @@ void onEvent(ev_t ev)
     _debug(F("EV_JOINED\n"));
     LMIC_setLinkCheckMode(0);
     LMIC_setAdrMode(1);
-    // os_setCallback(&job, job_measure_and_send);
+    os_setCallback(&job, job_measure_and_send);
     break;
 
   /*
@@ -233,5 +238,6 @@ void os_getDevKey(uint8_t *buf)
 
 uint16_t os_getMeasurementInterval(uint8_t dr)
 {
+  return 20;
   return conf_getMeasurementInterval(dr);
 }
