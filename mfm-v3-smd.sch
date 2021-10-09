@@ -5,9 +5,9 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "MFM Brain board"
-Date "2021-08-30"
+Date "2021-10-09"
 Rev "v3.6"
-Comp "Senwize"
+Comp "Senwize B.V."
 Comment1 ""
 Comment2 ""
 Comment3 ""
@@ -230,8 +230,8 @@ $Comp
 L Device:C_Small C1
 U 1 1 60330ED1
 P 2000 1100
-F 0 "C1" H 1900 1050 50  0000 R CNN
-F 1 "2.2uF" H 1950 1150 50  0000 R CNN
+F 0 "C1" H 1900 1100 50  0000 R CNN
+F 1 "2.2uF" H 2000 1200 50  0000 R CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric" H 2000 1100 50  0001 C CNN
 F 3 "~" H 2000 1100 50  0001 C CNN
 F 4 "C23630" H 2000 1100 50  0001 C CNN "LCSC"
@@ -246,8 +246,8 @@ $Comp
 L Device:C_Small C2
 U 1 1 60331764
 P 2800 1100
-F 0 "C2" H 2700 1050 50  0000 R CNN
-F 1 "2.2uF" H 2700 1150 50  0000 R CNN
+F 0 "C2" H 2700 1100 50  0000 R CNN
+F 1 "2.2uF" H 2750 1200 50  0000 R CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric" H 2800 1100 50  0001 C CNN
 F 3 "~" H 2800 1100 50  0001 C CNN
 F 4 "C23630" H 2800 1100 50  0001 C CNN "LCSC"
@@ -402,10 +402,10 @@ RADIO_DIO5
 Text GLabel 2350 5600 2    50   Input ~ 0
 SMBALERT
 $Comp
-L Connector_Generic:Conn_02x03_Odd_Even J7
+L Connector_Generic:Conn_02x03_Odd_Even J3
 U 1 1 605A0048
 P 9550 2200
-F 0 "J7" H 9600 2425 50  0000 C CNN
+F 0 "J3" H 9600 2425 50  0000 C CNN
 F 1 "SMBUS Connector" H 9600 2426 50  0001 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 9550 2200 50  0001 C CNN
 F 3 "~" H 9550 2200 50  0001 C CNN
@@ -474,10 +474,10 @@ F 3 "" H 1800 2000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x06 J9
+L Connector_Generic:Conn_01x06 J4
 U 1 1 60DD2D4C
 P 8300 2150
-F 0 "J9" H 8300 2450 50  0000 C CNN
+F 0 "J4" H 8300 2450 50  0000 C CNN
 F 1 "FTDI Connector" H 8218 2476 50  0001 C CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_1x06_P2.54mm_Vertical" H 8300 2150 50  0001 C CNN
 F 3 "~" H 8300 2150 50  0001 C CNN
@@ -823,10 +823,10 @@ Wire Wire Line
 	8850 5450 9350 5450
 Connection ~ 8850 5450
 $Comp
-L Connector:Conn_Coaxial J11
+L Connector:Conn_Coaxial J6
 U 1 1 60563E69
 P 11000 5150
-F 0 "J11" H 10750 5400 50  0000 L CNN
+F 0 "J6" H 10750 5400 50  0000 L CNN
 F 1 "Antenna" H 10750 5300 50  0000 L CNN
 F 2 "custom_library_FP:LINX_CONSMA001-SMD-G" H 11000 5150 50  0001 C CNN
 F 3 " ~" H 11000 5150 50  0001 C CNN
@@ -855,8 +855,8 @@ F 0 "U2" H 10000 6000 50  0000 C CNN
 F 1 "LoRa_Radio" H 10150 5900 50  0000 C CNN
 F 2 "RF_Module:HOPERF_RFM9XW_SMD" H 6550 7100 50  0001 C CNN
 F 3 "https://www.hoperf.com/data/upload/portal/20181127/5bfcbea20e9ef.pdf" H 6550 7100 50  0001 C CNN
-F 4 "Harwin" H 9850 5450 50  0001 C CNN "MFR"
-F 5 "M22-2010805" H 9850 5450 50  0001 C CNN "MFR#"
+F 4 "NiceRF" H 9850 5450 50  0001 C CNN "MFR"
+F 5 "SX1276-Module" H 9850 5450 50  0001 C CNN "MFR#"
 	1    9850 5450
 	1    0    0    -1  
 $EndComp
@@ -1096,7 +1096,7 @@ $Comp
 L Device:CP_Small C12
 U 1 1 60934E21
 P 1700 1100
-F 0 "C12" H 1450 1150 50  0000 L CNN
+F 0 "C12" H 1450 1100 50  0000 L CNN
 F 1 "820uF 16v" H 1300 1000 50  0000 L CNN
 F 2 "Capacitor_SMD:C_Elec_8x10.2" H 1700 1100 50  0001 C CNN
 F 3 "~" H 1700 1100 50  0001 C CNN
@@ -1367,10 +1367,10 @@ Wire Wire Line
 Wire Wire Line
 	10700 2300 10750 2300
 $Comp
-L Connector_Generic:Conn_02x03_Odd_Even J10
+L Connector_Generic:Conn_02x03_Odd_Even J5
 U 1 1 60A70AF4
 P 10400 1100
-F 0 "J10" H 10450 1325 50  0000 C CNN
+F 0 "J5" H 10450 1325 50  0000 C CNN
 F 1 "ICSP Connector" H 10450 1326 50  0001 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 10400 1100 50  0001 C CNN
 F 3 "~" H 10400 1100 50  0001 C CNN
@@ -1445,10 +1445,10 @@ Connection ~ 2400 1300
 Wire Wire Line
 	10350 5150 10800 5150
 $Comp
-L Connector_Generic:Conn_01x03 J5
+L Connector_Generic:Conn_01x03 J1
 U 1 1 610FD242
 P 8750 1100
-F 0 "J5" H 8700 1300 50  0000 L CNN
+F 0 "J1" H 8700 1300 50  0000 L CNN
 F 1 "MFM Module-Left" H 8100 750 50  0000 L CNN
 F 2 "custom_library_FP:MFM_Module_Board_P123" H 8750 1100 50  0001 C CNN
 F 3 "~" H 8750 1100 50  0001 C CNN
@@ -1458,10 +1458,10 @@ F 5 "801-87-003-10-005101" H 8750 1100 50  0001 C CNN "MFR#"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x03 J6
+L Connector_Generic:Conn_01x03 J2
 U 1 1 610FE4A8
 P 8900 1100
-F 0 "J6" H 8900 1300 50  0000 C CNN
+F 0 "J2" H 8900 1300 50  0000 C CNN
 F 1 "MFM Module-Right" H 8550 750 50  0000 C CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_1x03_P2.54mm_Vertical" H 8900 1100 50  0001 C CNN
 F 3 "~" H 8900 1100 50  0001 C CNN
@@ -1595,4 +1595,20 @@ Wire Wire Line
 	3600 1150 3850 1150
 Wire Wire Line
 	3600 1150 3600 1200
+Connection ~ 3950 3650
+Wire Wire Line
+	4000 3650 3950 3650
+Wire Wire Line
+	4000 3600 4000 3650
+$Comp
+L power:PWR_FLAG #FLG0101
+U 1 1 613BB44F
+P 4000 3600
+F 0 "#FLG0101" H 4000 3675 50  0001 C CNN
+F 1 "PWR_FLAG" H 4000 3773 50  0001 C CNN
+F 2 "" H 4000 3600 50  0001 C CNN
+F 3 "~" H 4000 3600 50  0001 C CNN
+	1    4000 3600
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
