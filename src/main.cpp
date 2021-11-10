@@ -22,6 +22,22 @@ void setup(void)
 {
   board_setup();
 
+  // Serial.begin(115200);
+  // Serial.println("Hello world!");
+
+  // sensors_init();
+  // sensors_performMeasurement();
+  // delay(1000);
+  // uint8_t data[16] = {};
+  // uint8_t count = 0;
+  // error_t err = ERR_NONE;
+  // for (;;) {
+  //   if ((err = sensors_readMeasurement(data, &count)) != ERR_NONE) {
+  //     Serial.printf("ERROR: %d\n", err);
+  //   }
+  //   delay(200);
+  // }
+
 #if defined(DEBUG) || defined(PRINT_BUILD_DATE_TIME)
   Serial.begin(115200);
 #endif
@@ -45,7 +61,7 @@ void setup(void)
       ;
   }
 
-  smbus_init();
+  sensors_init();
 
   os_init();
   LMIC_reset();
@@ -72,8 +88,8 @@ void loop(void)
 void job_performMeasurements(osjob_t *job) {
   _debugTime();
   _debug(F("job_performMeasurements\n"));
-  smbus_doMeasurements();
-  os_setTimedCallback(job, os_getTime() + sec2osticks(1), &job_fetchAndSend);
+  sensors_performMeasurement();
+  os_setTimedCallback(job, os_getTime() + ms2osticks(1000), &job_fetchAndSend);
 }
 
 uint8_t dataBuf[32] = {0};
@@ -94,7 +110,8 @@ void job_fetchAndSend(osjob_t *job)
   }
 
   // Fetch measurements results
-  uint8_t count = smbus_getMeasurement(dataBuf);
+  uint8_t count = 0;
+  sensors_readMeasurement(dataBuf, &count);
 
   // Queue transmission
   lmic_tx_error_t err = LMIC_setTxData2(1, dataBuf, count, 0);
@@ -241,6 +258,6 @@ void os_getDevKey(uint8_t *buf)
 
 uint16_t os_getMeasurementInterval(uint8_t dr)
 {
-  return 20;
+  return 50;
   return conf_getMeasurementInterval(dr);
 }
