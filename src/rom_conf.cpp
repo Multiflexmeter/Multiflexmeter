@@ -56,6 +56,15 @@ uint16_t conf_getMeasurementInterval()
   return config.MEASUREMENT_INTERVAL;
 }
 
+void conf_setMeasurementInterval(uint16_t interval)
+{
+  if (interval < MIN_INTERVAL)
+    interval = MIN_INTERVAL;
+  else if (interval > MAX_INTERVAL)
+    interval = MAX_INTERVAL;
+  config.MEASUREMENT_INTERVAL = interval;
+}
+
 /**
  * @brief Returns the firmware version
  * 

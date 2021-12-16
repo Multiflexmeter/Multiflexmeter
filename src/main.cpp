@@ -270,6 +270,20 @@ void onEvent(ev_t ev)
         _debugTime();
         _debug(F("Scheduling reset\n"));
         os_setTimedCallback(&main_job, os_getTime() + sec2osticks(5), FUNC_ADDR(job_reset));
+        return;
+      }
+      if (LMIC.frame[LMIC.dataBeg] == 0x10 && LMIC.dataLen >= 3)
+      {
+        uint16_t interval = LMIC.frame[LMIC.dataBeg + 1] << 8 | LMIC.frame[LMIC.dataBeg + 2];
+        _debugTime();
+        _debug(F("Changing interval: "));
+        _debug(interval);
+        _debug(F("\n"));
+        conf_setMeasurementInterval(interval);
+        conf_save();
+        os_clearCallback(&main_job);
+        scheduleNextMeasurement();
+        return;
       }
     }
     else

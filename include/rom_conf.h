@@ -64,6 +64,7 @@ extern "C"
   void conf_getDevEui(uint8_t *buf);
   void conf_getAppKey(uint8_t *buf);
   uint16_t conf_getMeasurementInterval();
+  void conf_setMeasurementInterval(uint16_t);
   version conf_getHardwareVersion(void);
   version conf_getFirmwareVersion(void);
   uint8_t conf_getUseTTNFairUsePolicy(void);
