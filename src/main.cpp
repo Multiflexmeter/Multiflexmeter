@@ -13,7 +13,6 @@ const lmic_pinmap lmic_pins = {
     .rst = PIN_RST,
     .dio = {PIN_DIO_0, PIN_DIO_1, PIN_DIO_2},
 };
-osjob_t job;
 
 /**
  * 
@@ -85,11 +84,45 @@ void loop(void)
   os_runloop_once();
 }
 
+/**
+ * @brief Verifies if the requested_time is available for the next measurement, otherwise returns the earliest available time.
+ * 
+ * @param req_time an absolute os_time value indicating when the measurement should be taken 
+ * @return ostime_t the absolute os_time of the requested time or the earliest available time
+ */
+ostime_t getTransmissionTime(ostime_t req_time)
+{
+  ostime_t now = os_getTime();
+  ostime_t earliest_time = LMICbandplan_nextTx(os_getTime());
+  if (earliest_time - now > req_time - now)
+    return earliest_time;
+  return req_time;
+}
+
+void job_pingVersion(osjob_t *job) 
+{
+  _debugTime();
+  _debug(F("job_pingVersion\n"));
+  uint16_t fw = versionToUint16(conf_getFirmwareVersion());
+  uint16_t hw = versionToUint16(conf_getHardwareVersion());
+
+  uint8_t data[5] = {
+    0x10, // 0x01 on fport 2 indicates a version response
+    (uint8_t)(fw >> 8),
+    (uint8_t)(fw & 0xFF),
+    (uint8_t)(hw >> 8),
+    (uint8_t)(hw & 0xFF),
+  };
+  
+  LMIC_setTxData2(2, data, sizeof(data), 0);
+  os_setTimedCallback(job, getTransmissionTime(os_getTime() + sec2osticks(10)), FUNC_ADDR(job_performMeasurements));
+}
+
 void job_performMeasurements(osjob_t *job) {
   _debugTime();
   _debug(F("job_performMeasurements\n"));
   sensors_performMeasurement();
-  os_setTimedCallback(job, os_getTime() + ms2osticks(1000), &job_fetchAndSend);
+  os_setTimedCallback(&fetchSendJob, os_getTime() + ms2osticks(1000), FUNC_ADDR(job_fetchAndSend));
 }
 
 uint8_t dataBuf[32] = {0};
@@ -105,7 +138,7 @@ void job_fetchAndSend(osjob_t *job)
   if (LMIC.opmode & OP_TXRXPEND)
   {
     _debug(F("TXRX Pending...\n"));
-    scheduleNextMeasurement(job);
+    scheduleNextMeasurement();
     return;
   }
 
@@ -122,28 +155,20 @@ void job_fetchAndSend(osjob_t *job)
     _debug(err);
     _debug("\n");
   }
-  scheduleNextMeasurement(job);
+  scheduleNextMeasurement();
 }
 
-void scheduleNextMeasurement(osjob_t *job) {
+void scheduleNextMeasurement() {
   // Schedule our next measurement and send
   ostime_t now = os_getTime();
-  ostime_t next_send = sec2osticks(os_getMeasurementInterval(LMIC.datarate));
-  ostime_t next_possible = LMIC.txend - now;
+  ostime_t next_send = getTransmissionTime(now + sec2osticks(os_getMeasurementInterval(LMIC.datarate)));
 
   _debugTime();
-  _debug("Next: ");
-  _debug(LMIC.txend);
-  _debug(" : ");
-  _debug(next_send);
+  _debug("Measurement scheduled: ");
+  _debug(next_send - os_getTime());
   _debug("\n");
 
-  
-  if (next_send < next_possible) {
-    next_send = next_possible;
-  }
-
-  os_setTimedCallback(job, now + next_send, &job_performMeasurements);
+  os_setTimedCallback(&performJob, next_send, FUNC_ADDR(job_performMeasurements));
 }
 
 /*
@@ -171,7 +196,9 @@ void onEvent(ev_t ev)
   case EV_JOINING:
     _debugTime();
     _debug(F("EV_JOINING\n"));
-    os_clearCallback(&job);
+    os_clearCallback(&pingJob);
+    os_clearCallback(&performJob);
+    os_clearCallback(&fetchSendJob);
     break;
 
   /*
@@ -183,7 +210,7 @@ void onEvent(ev_t ev)
     _debug(F("EV_JOINED\n"));
     LMIC_setLinkCheckMode(0);
     LMIC_setAdrMode(1);
-    os_setCallback(&job, &job_performMeasurements);
+    os_setCallback(&pingJob, FUNC_ADDR(job_pingVersion));
     break;
 
   /*
@@ -258,6 +285,5 @@ void os_getDevKey(uint8_t *buf)
 
 uint16_t os_getMeasurementInterval(uint8_t dr)
 {
-  return 50;
   return conf_getMeasurementInterval(dr);
 }

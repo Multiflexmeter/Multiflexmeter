@@ -9,10 +9,45 @@
 
 #define INTERVAL_COUNT 6
 
+#ifndef FW_VERSION_PROTO
+#define FW_VERSION_PROTO 1
+#endif
+
+#ifndef FW_VERSION_MAJOR
+#define FW_VERSION_MAJOR 0
+#endif
+
+#ifndef FW_VERSION_MINOR
+#define FW_VERSION_MINOR 0
+#endif
+
+#ifndef FW_VERSION_PATCH
+#define FW_VERSION_PATCH 0
+#endif
+
+/*
+    16-bit version number:
+    [15]      : 0 - development version
+                1 - release version
+    [14:10]     Major version
+    [9:4]       Minor version
+    [3:0]       Patch version
+*/
+typedef struct
+{
+  uint8_t proto : 1;
+  uint8_t major : 5;
+  uint8_t minor : 5;
+  uint8_t patch : 5;
+} version;
+
 struct __attribute__((packed)) rom_conf_t
 {
   uint8_t MAGIC[4];
-  uint16_t VERSION;
+  struct {
+    uint8_t MSB;
+    uint8_t LSB;
+  } HW_VERSION;
   uint8_t APP_EUI[8];
   uint8_t DEV_EUI[8];
   uint8_t APP_KEY[16];
@@ -30,6 +65,9 @@ extern "C"
   void conf_getDevEui(uint8_t *buf);
   void conf_getAppKey(uint8_t *buf);
   uint16_t conf_getMeasurementInterval(uint8_t dr);
+  version conf_getHardwareVersion();
+  version conf_getFirmwareVersion();
+  uint16_t versionToUint16(version v);
 
 #ifdef __cplusplus
 }

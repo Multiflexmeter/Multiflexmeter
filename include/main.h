@@ -22,10 +22,15 @@ extern "C"
   // but having them defined here, save us from forward-
   // defining them in main.cpp :)
 
-  void scheduleNextMeasurement(osjob_t *job);
+  void scheduleNextMeasurement();
+  ostime_t getTransmissionTime(ostime_t req_time);
+
+  osjob_t pingJob;
+  void job_pingVersion(osjob_t *job);
+  osjob_t performJob;
   void job_performMeasurements(osjob_t *job);
+  osjob_t fetchSendJob;
   void job_fetchAndSend(osjob_t *job);
-  void job_sleep(osjob_t *job);
 
 #ifdef __cplusplus
 }
