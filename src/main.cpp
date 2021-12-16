@@ -6,6 +6,7 @@
 #include "rom_conf.h"
 #include "debug.h"
 #include "board.h"
+#include "wdt.h"
 
 const lmic_pinmap lmic_pins = {
     .nss = PIN_NSS,
@@ -63,7 +64,7 @@ void setup(void)
   if (!conf_load())
   {
     _debug(F("Invalid EEPROM, did you flash the EEPROM?\n"));
-    os_setCallback(&errorJob, FUNC_ADDR(job_error));
+    os_setCallback(&main_job, FUNC_ADDR(job_error));
     return;
   }
 
@@ -73,6 +74,14 @@ void setup(void)
 void loop(void)
 {
   os_runloop_once();
+}
+
+void job_reset(osjob_t *job)
+{
+  _debugTime();
+  _debug(F("RESETTING\n"));
+  _debugFlush();
+  mcu_reset();
 }
 
 void job_error(osjob_t *job)
@@ -126,7 +135,7 @@ void job_performMeasurements(osjob_t *job) {
   _debugTime();
   _debug(F("job_performMeasurements\n"));
   sensors_performMeasurement();
-  os_setTimedCallback(&fetchSendJob, os_getTime() + ms2osticks(1000), FUNC_ADDR(job_fetchAndSend));
+  os_setTimedCallback(job, os_getTime() + ms2osticks(1000), FUNC_ADDR(job_fetchAndSend));
 }
 
 uint8_t dataBuf[32] = {0};
@@ -178,7 +187,7 @@ void scheduleNextMeasurement() {
   _debug(next_send - os_getTime());
   _debug("\n");
 
-  os_setTimedCallback(&performJob, next_send, FUNC_ADDR(job_performMeasurements));
+  os_setTimedCallback(&main_job, next_send, FUNC_ADDR(job_performMeasurements));
 }
 
 /*
@@ -206,10 +215,7 @@ void onEvent(ev_t ev)
   case EV_JOINING:
     _debugTime();
     _debug(F("EV_JOINING\n"));
-    os_clearCallback(&errorJob);
-    os_clearCallback(&pingJob);
-    os_clearCallback(&performJob);
-    os_clearCallback(&fetchSendJob);
+    os_clearCallback(&main_job);
     break;
 
   /*
@@ -221,7 +227,7 @@ void onEvent(ev_t ev)
     _debug(F("EV_JOINED\n"));
     LMIC_setLinkCheckMode(0);
     LMIC_setAdrMode(1);
-    os_setCallback(&pingJob, FUNC_ADDR(job_pingVersion));
+    os_setCallback(&main_job, FUNC_ADDR(job_pingVersion));
     break;
 
   /*
@@ -238,9 +244,9 @@ void onEvent(ev_t ev)
       _debug(F(" bytes RX\n"));
       if (LMIC.frame[LMIC.dataBeg] == 0xDE && LMIC.frame[LMIC.dataBeg + 1] == 0xAD)
       {
-        LMIC_unjoinAndRejoin();
         _debugTime();
-        _debug(F("REJOINING\n"));
+        _debug(F("Scheduling reset\n"));
+        os_setTimedCallback(&main_job, os_getTime() + sec2osticks(5), FUNC_ADDR(job_reset));
       }
     }
     else

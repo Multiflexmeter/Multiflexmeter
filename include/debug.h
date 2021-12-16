@@ -11,11 +11,13 @@
   Serial.print("[");                     \
   Serial.print(osticks2ms(hal_ticks())); \
   Serial.print("] ");
-#define _debug(...) Serial.print(__VA_ARGS__);
-#define _debugf(...) Serial.printf(__VA_ARGS__);
+#define _debug(...) Serial.print(__VA_ARGS__)
+#define _debugf(...) Serial.printf(__VA_ARGS__)
+#define _debugFlush() Serial.flush()
 #else
-#define _debugTime()
-#define _debug(msg)
+#define _debugTime(...)
+#define _debug(...)
+#define _debugFlush()
 #endif
 
 #endif // _DEBUG_H_

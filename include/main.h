@@ -25,13 +25,11 @@ extern "C"
   void scheduleNextMeasurement();
   ostime_t getTransmissionTime(ostime_t req_time);
 
-  osjob_t errorJob;
+  osjob_t main_job;
   void job_error(osjob_t *job);
-  osjob_t pingJob;
+  void job_reset(osjob_t *job);
   void job_pingVersion(osjob_t *job);
-  osjob_t performJob;
   void job_performMeasurements(osjob_t *job);
-  osjob_t fetchSendJob;
   void job_fetchAndSend(osjob_t *job);
 
 #ifdef __cplusplus
