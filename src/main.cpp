@@ -52,19 +52,20 @@ void setup(void)
 #endif
 #endif
 
-  // Retrieve keys from EEPROM
-  if (!conf_load())
-  {
-    _debug(F("Invalid EEPROM, did you flash the EEPROM?\n"));
-    for (;;)
-      ;
-  }
-
   sensors_init();
 
+  // Start the OS and reset the LoRaWAN stack
   os_init();
   LMIC_reset();
   LMIC_setClockError(MAX_CLOCK_ERROR * 2 / 100);
+
+  // Retrieve keys from EEPROM, if it fails we exit the setup and enter low-power mode by scheduling a never ending task
+  if (!conf_load())
+  {
+    _debug(F("Invalid EEPROM, did you flash the EEPROM?\n"));
+    os_setCallback(&errorJob, FUNC_ADDR(job_error));
+    return;
+  }
 
   LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7), BAND_CENTI);  // g-band
   LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI); // g-band
@@ -82,6 +83,13 @@ void setup(void)
 void loop(void)
 {
   os_runloop_once();
+}
+
+void job_error(osjob_t *job)
+{
+  _debug(F("System errored entering sleep!\n"));
+  // Loops indefinitely
+  os_setTimedCallback(job, os_getTime() + sec2osticks(60), FUNC_ADDR(job_error));
 }
 
 /**

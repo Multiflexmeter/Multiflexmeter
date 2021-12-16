@@ -25,6 +25,8 @@ extern "C"
   void scheduleNextMeasurement();
   ostime_t getTransmissionTime(ostime_t req_time);
 
+  osjob_t errorJob;
+  void job_error(osjob_t *job);
   osjob_t pingJob;
   void job_pingVersion(osjob_t *job);
   osjob_t performJob;
