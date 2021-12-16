@@ -7,8 +7,6 @@
 #include <stdbool.h>
 #endif
 
-#define INTERVAL_COUNT 6
-
 #ifndef FW_VERSION_PROTO
 #define FW_VERSION_PROTO 1
 #endif
@@ -51,7 +49,7 @@ struct __attribute__((packed)) rom_conf_t
   uint8_t APP_EUI[8];
   uint8_t DEV_EUI[8];
   uint8_t APP_KEY[16];
-  uint16_t MEASUREMENT_INTERVAL[INTERVAL_COUNT];
+  uint16_t MEASUREMENT_INTERVAL;
   uint8_t USE_TTN_FAIR_USE_POLICY;
 };
 
@@ -65,7 +63,7 @@ extern "C"
   void conf_getAppEui(uint8_t *buf);
   void conf_getDevEui(uint8_t *buf);
   void conf_getAppKey(uint8_t *buf);
-  uint16_t conf_getMeasurementInterval(uint8_t dr);
+  uint16_t conf_getMeasurementInterval();
   version conf_getHardwareVersion(void);
   version conf_getFirmwareVersion(void);
   uint8_t conf_getUseTTNFairUsePolicy(void);
