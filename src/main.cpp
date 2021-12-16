@@ -97,6 +97,9 @@ ostime_t getTransmissionTime(ostime_t req_time)
   return req_time;
 }
 
+/**
+ * @brief Transmit the firmware and hardware versions
+ */
 void job_pingVersion(osjob_t *job) 
 {
   _debugTime();
@@ -116,6 +119,9 @@ void job_pingVersion(osjob_t *job)
   os_setTimedCallback(job, getTransmissionTime(os_getTime() + sec2osticks(10)), FUNC_ADDR(job_performMeasurements));
 }
 
+/**
+ * @brief Notify module to start performing a measurement. Will schedule readout and send.
+ */
 void job_performMeasurements(osjob_t *job) {
   _debugTime();
   _debug(F("job_performMeasurements\n"));
@@ -124,6 +130,9 @@ void job_performMeasurements(osjob_t *job) {
 }
 
 uint8_t dataBuf[32] = {0};
+/**
+ * @brief Fetches latest measurements from modules and schedules them for transmission
+ */
 void job_fetchAndSend(osjob_t *job)
 {
   _debugTime();
@@ -156,6 +165,9 @@ void job_fetchAndSend(osjob_t *job)
   scheduleNextMeasurement();
 }
 
+/**
+ * @brief Schedules the next measurement job based on measurement interval and allowed duty cycle
+ */
 void scheduleNextMeasurement() {
   // Schedule our next measurement and send
   ostime_t now = os_getTime();
@@ -194,6 +206,7 @@ void onEvent(ev_t ev)
   case EV_JOINING:
     _debugTime();
     _debug(F("EV_JOINING\n"));
+    os_clearCallback(&errorJob);
     os_clearCallback(&pingJob);
     os_clearCallback(&performJob);
     os_clearCallback(&fetchSendJob);
