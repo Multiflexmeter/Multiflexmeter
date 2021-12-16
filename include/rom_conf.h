@@ -52,6 +52,7 @@ struct __attribute__((packed)) rom_conf_t
   uint8_t DEV_EUI[8];
   uint8_t APP_KEY[16];
   uint16_t MEASUREMENT_INTERVAL[INTERVAL_COUNT];
+  uint8_t USE_TTN_FAIR_USE_POLICY;
 };
 
 #ifdef __cplusplus
@@ -65,8 +66,9 @@ extern "C"
   void conf_getDevEui(uint8_t *buf);
   void conf_getAppKey(uint8_t *buf);
   uint16_t conf_getMeasurementInterval(uint8_t dr);
-  version conf_getHardwareVersion();
-  version conf_getFirmwareVersion();
+  version conf_getHardwareVersion(void);
+  version conf_getFirmwareVersion(void);
+  uint8_t conf_getUseTTNFairUsePolicy(void);
   uint16_t versionToUint16(version v);
 
 #ifdef __cplusplus

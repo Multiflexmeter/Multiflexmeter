@@ -37,6 +37,10 @@ void conf_getAppKey(uint8_t *buf)
   memcpy(buf, &config.APP_KEY, 16);
 }
 
+uint8_t conf_getUseTTNFairUsePolicy() {
+  return config.USE_TTN_FAIR_USE_POLICY;
+}
+
 /**
  * @brief Get the measurement interval in seconds for a specific datarate
  * 

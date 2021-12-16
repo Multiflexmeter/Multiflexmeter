@@ -180,7 +180,30 @@ void job_fetchAndSend(osjob_t *job)
 void scheduleNextMeasurement() {
   // Schedule our next measurement and send
   ostime_t now = os_getTime();
-  ostime_t next_send = getTransmissionTime(now + sec2osticks(os_getMeasurementInterval(LMIC.datarate)));
+
+  uint16_t interval = os_getMeasurementInterval(LMIC.datarate);
+  // Account for TTN's arbitrary fair use policy
+  if (conf_getUseTTNFairUsePolicy()) {
+    // We are assuming our average payload size is 12 bytes w/ 12 bytes of MAC overhead
+    uint32_t airtime_ms = osticks2ms(calcAirTime(LMIC.rps, 24));
+    uint32_t tx_per_day = 30000 / airtime_ms; // Policy states max 30s tx time per day
+    uint16_t interval_sec = (uint32_t)86400 / (tx_per_day + 1); // 86400 = 1 day in seconds, +1 to avoid divide by 0
+    _debugTime();
+    _debug(F("Fair use: "));
+    _debug(F("airtime_ms: "));
+    _debug(airtime_ms);
+    _debug(F(" tx_per_day: "));
+    _debug(tx_per_day);
+    _debug(F(" interval_sec: "));
+    _debug(interval_sec);
+    _debug(F("\n"));
+
+    if (interval < interval_sec) {
+      interval = interval_sec;
+    }
+  }
+
+  ostime_t next_send = getTransmissionTime(now + sec2osticks(interval));
 
   _debugTime();
   _debug("Measurement scheduled: ");
