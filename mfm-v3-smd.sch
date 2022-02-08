@@ -5,7 +5,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "MFM Brain board"
-Date "2021-10-09"
+Date "2021-10-23"
 Rev "v3.6"
 Comp "Senwize B.V."
 Comment1 ""
@@ -1620,7 +1620,7 @@ Wire Wire Line
 	4250 950  4250 1150
 Connection ~ 4250 1150
 $Comp
-L Connector:JST_Jack J7
+L mfm-v3-smd-rescue:JST_Jack-Connector J7
 U 1 1 616DA893
 P 3400 1050
 F 0 "J7" H 3400 1350 50  0000 C CNN
@@ -1628,6 +1628,39 @@ F 1 "JST Jack" H 3400 1250 50  0000 C CNN
 F 2 "Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical" H 3450 1010 50  0001 C CNN
 F 3 "~" H 3450 1010 50  0001 C CNN
 	1    3400 1050
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:Fiducial FID1
+U 1 1 6171B51C
+P 5250 7000
+F 0 "FID1" H 5335 7046 50  0000 L CNN
+F 1 "Fiducial" H 5335 6955 50  0000 L CNN
+F 2 "Fiducial:Fiducial_1mm_Mask2mm" H 5250 7000 50  0001 C CNN
+F 3 "~" H 5250 7000 50  0001 C CNN
+	1    5250 7000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:Fiducial FID2
+U 1 1 6171BC87
+P 5250 7250
+F 0 "FID2" H 5335 7296 50  0000 L CNN
+F 1 "Fiducial" H 5335 7205 50  0000 L CNN
+F 2 "Fiducial:Fiducial_1mm_Mask2mm" H 5250 7250 50  0001 C CNN
+F 3 "~" H 5250 7250 50  0001 C CNN
+	1    5250 7250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:Fiducial FID3
+U 1 1 6174AED3
+P 5250 7500
+F 0 "FID3" H 5335 7546 50  0000 L CNN
+F 1 "Fiducial" H 5335 7455 50  0000 L CNN
+F 2 "Fiducial:Fiducial_1mm_Mask2mm" H 5250 7500 50  0001 C CNN
+F 3 "~" H 5250 7500 50  0001 C CNN
+	1    5250 7500
 	1    0    0    -1  
 $EndComp
 $EndSCHEMATC
