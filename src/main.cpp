@@ -8,6 +8,9 @@
 #include "board.h"
 #include "wdt.h"
 
+#define MEASUREMENT_SEND_DELAY_S 5
+#define PING_MEASUREMENT_DELAY_s 25
+
 const lmic_pinmap lmic_pins = {
     .nss = PIN_NSS,
     .rxtx = LMIC_UNUSED_PIN,
@@ -125,7 +128,7 @@ void job_pingVersion(osjob_t *job)
   };
   
   LMIC_setTxData2(2, data, sizeof(data), 0);
-  os_setTimedCallback(job, getTransmissionTime(os_getTime() + sec2osticks(10)), FUNC_ADDR(job_performMeasurements));
+  os_setTimedCallback(job, getTransmissionTime(os_getTime() + sec2osticks(PING_MEASUREMENT_DELAY_s)), FUNC_ADDR(job_performMeasurements));
 }
 
 /**
@@ -135,7 +138,7 @@ void job_performMeasurements(osjob_t *job) {
   _debugTime();
   _debug(F("job_performMeasurements\n"));
   sensors_performMeasurement();
-  os_setTimedCallback(job, os_getTime() + ms2osticks(1000), FUNC_ADDR(job_fetchAndSend));
+  os_setTimedCallback(job, os_getTime() + sec2osticks(MEASUREMENT_SEND_DELAY_S), FUNC_ADDR(job_fetchAndSend));
 }
 
 uint8_t dataBuf[32] = {0};

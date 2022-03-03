@@ -95,7 +95,7 @@ uint16_t versionToUint16(version v)
 {
   uint16_t dat = ((v.proto & 0x01) << 15) |
     ((v.major & 0x1F) << 10) |
-    ((v.minor & 0x1F) << 4) |
+    ((v.minor & 0x1F) << 5) |
     ((v.patch & 0x1F) << 0);
   return dat;
 }
