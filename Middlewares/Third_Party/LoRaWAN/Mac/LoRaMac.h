@@ -35,7 +35,7 @@
  *            This is a placeholder for a detailed description of the LoRaMac
  *            layer and the supported features.
  * \{
- *
+ * \internal
  * \example   periodic-uplink-lpp/B-L072Z-LRWAN1/main.c
  *            LoRaWAN class A/B/C application example for the B-L072Z-LRWAN1.
  *
@@ -62,6 +62,7 @@
  *
  * \example   periodic-uplink-lpp/SKiM980A/main.c
  *            LoRaWAN class A/B/C application example for the SKiM980A.
+ * \endinternal
  */
 /**
   ******************************************************************************
