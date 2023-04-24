@@ -75,7 +75,7 @@ extern "C" {
   * @brief Enable/Disable MCU Debugger pins (dbg serial wires)
   * @note  by HW serial wires are ON by default, need to put them OFF to save power
   */
-#define DEBUGGER_ENABLED                     1
+#define DEBUGGER_ENABLED                     0
 
 /**
   * @brief Disable Low Power mode
@@ -84,7 +84,8 @@ extern "C" {
 #define LOW_POWER_DISABLE                    0
 
 /* USER CODE BEGIN EC */
-
+#undef DEBUGGER_ENABLED
+#define DEBUGGER_ENABLED                     1
 /* USER CODE END EC */
 
 /* External variables --------------------------------------------------------*/
