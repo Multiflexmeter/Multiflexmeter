@@ -690,7 +690,7 @@ static void OnTxTimerEvent(void *context)
 /* USER CODE BEGIN PrFD_LedEvents */
 static void OnTxTimerLedEvent(void *context)
 {
-#ifdef USE_LORA_APP_LED1
+#ifdef USE_LORA_APP_LED2
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); /* LED_GREEN */
 #endif
 }
