@@ -66,7 +66,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+#ifdef  USE_FULL_ASSERT
+uint32_t assert_failed_count;
+#endif
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -206,6 +208,25 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+
+  assert_failed_count++;
+
+#ifdef DEBUG_SEMIHOSTING
+  /**
+   * debug print of assert filename and line number
+   */
+  printf("Wrong parameters value: file %s on line %ld\r\n", file, line);
+#endif
+
+#ifdef DEBUG_BREAKPOINT
+  /**
+   * __BKPT(0) breakpoint instruction (pause debugging) to evaluate the assert
+   */
+  __BKPT(0);
+#endif
+
+
+
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
