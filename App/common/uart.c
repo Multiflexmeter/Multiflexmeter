@@ -68,3 +68,21 @@ bool checkMoreThenOneCharacterInDma(UART_HandleTypeDef *huart)
   return FALSE;
 }
 
+
+HAL_StatusTypeDef uartSend(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size)
+{
+	return HAL_UART_Transmit_DMA(huart, pData, Size);
+}
+
+
+bool uartTxBusy(UART_HandleTypeDef *huart)
+{
+	return (huart->gState == HAL_UART_STATE_BUSY_TX);
+}
+
+bool uartTxReady(UART_HandleTypeDef *huart)
+{
+	return !(uartTxBusy(huart));
+}
+
+
