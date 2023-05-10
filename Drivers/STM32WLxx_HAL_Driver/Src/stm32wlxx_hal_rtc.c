@@ -751,17 +751,18 @@ HAL_StatusTypeDef HAL_RTC_SetTime(RTC_HandleTypeDef *hrtc, RTC_TimeTypeDef *sTim
   uint32_t tmpreg;
   HAL_StatusTypeDef status;
 
+  /* Process Locked */
+  __HAL_LOCK(hrtc);
+
 #ifdef USE_FULL_ASSERT
   /* Check the parameters depending of the Binary mode with 32-bit free-running counter configuration. */
+
   if (READ_BIT(RTC->ICSR, RTC_ICSR_BIN) == RTC_BINARY_NONE)
   {
     /* Check the parameters */
     assert_param(IS_RTC_FORMAT(Format));
   }
 #endif
-
-  /* Process Locked */
-  __HAL_LOCK(hrtc);
 
   hrtc->State = HAL_RTC_STATE_BUSY;
 
@@ -1343,9 +1344,12 @@ HAL_StatusTypeDef HAL_RTC_SetAlarm_IT(RTC_HandleTypeDef *hrtc, RTC_AlarmTypeDef 
   __HAL_LOCK(hrtc);
   hrtc->State = HAL_RTC_STATE_BUSY;
 
+  /* Get Binary mode (32-bit free-running counter configuration) */
+  binaryMode = READ_BIT(RTC->ICSR, RTC_ICSR_BIN);
+
 #ifdef  USE_FULL_ASSERT
   /* Check the parameters depending of the Binary mode (32-bit free-running counter configuration). */
-  if (READ_BIT(RTC->ICSR, RTC_ICSR_BIN) == RTC_BINARY_NONE)
+  if ( (binaryMode & RTC_ICSR_BIN)  == RTC_BINARY_NONE)
   {
     assert_param(IS_RTC_FORMAT(Format));
     assert_param(IS_RTC_ALARM(sAlarm->Alarm));
@@ -1354,7 +1358,7 @@ HAL_StatusTypeDef HAL_RTC_SetAlarm_IT(RTC_HandleTypeDef *hrtc, RTC_AlarmTypeDef 
     assert_param(IS_RTC_ALARM_SUB_SECOND_VALUE(sAlarm->AlarmTime.SubSeconds));
     assert_param(IS_RTC_ALARM_SUB_SECOND_MASK(sAlarm->AlarmSubSecondMask));
   }
-  else if (READ_BIT(RTC->ICSR, RTC_ICSR_BIN) == RTC_BINARY_ONLY)
+  else if ((binaryMode & RTC_ICSR_BIN) == RTC_BINARY_ONLY)
   {
     assert_param(IS_RTC_ALARM_SUB_SECOND_BINARY_MASK(sAlarm->AlarmSubSecondMask));
     assert_param(IS_RTC_ALARMSUBSECONDBIN_AUTOCLR(sAlarm->BinaryAutoClr));
@@ -1369,9 +1373,6 @@ HAL_StatusTypeDef HAL_RTC_SetAlarm_IT(RTC_HandleTypeDef *hrtc, RTC_AlarmTypeDef 
     assert_param((sAlarm->AlarmSubSecondMask >> RTC_ALRMASSR_MASKSS_Pos) <= (8U + (READ_BIT(RTC->ICSR, RTC_ICSR_BCDU) >> RTC_ICSR_BCDU_Pos)));
   }
 #endif
-
-  /* Get Binary mode (32-bit free-running counter configuration) */
-  binaryMode = READ_BIT(RTC->ICSR, RTC_ICSR_BIN);
 
   if (binaryMode != RTC_BINARY_ONLY)
   {
