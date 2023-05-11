@@ -10,10 +10,13 @@
 #ifndef COMMON_UART_H_
 #define COMMON_UART_H_
 
+#include "app_types.h"
+
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 
 void setCharacterMatch(UART_HandleTypeDef *huart, uint8_t matchCharacter);
+void charachterMatch_IRQHandler(UART_HandleTypeDef *huart);
 bool checkMoreThenOneCharacterInDma(UART_HandleTypeDef *huart);
 HAL_StatusTypeDef uartSend(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size);
 bool uartTxBusy(UART_HandleTypeDef *huart);

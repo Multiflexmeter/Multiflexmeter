@@ -113,7 +113,7 @@ int main(void)
   MX_LoRaWAN_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  uartInit_Config();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -122,7 +122,6 @@ int main(void)
   {
     /* USER CODE END WHILE */
     MX_LoRaWAN_Process();
-    testConfigUartSend();
 
     /* USER CODE BEGIN 3 */
   }

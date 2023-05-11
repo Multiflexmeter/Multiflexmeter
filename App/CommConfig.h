@@ -15,7 +15,9 @@
 #define SIZE_TX_BUFFER_CONFIG	250
 #define SIZE_RX_BUFFER_CONFIG	250
 
+void uartInit_Config( void );
 HAL_StatusTypeDef uartSend_Config( const uint8_t *pData, uint16_t Size);
+void uartStartReceive_Config( uint8_t *pData, const uint16_t Size, const uint32_t timeout );
 void testConfigUartSend(void);
 
 #endif /* COMMCONFIG_H_ */
