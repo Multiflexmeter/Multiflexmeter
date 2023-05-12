@@ -81,8 +81,8 @@
 /* Private define ------------------------------------------------------------*/
 
 /* USER CODE BEGIN PD */
-#define STSOP_LATTITUDE           ((float) 43.618622 )  /*!< default latitude position */
-#define STSOP_LONGITUDE           ((float) 7.051415  )  /*!< default longitude position */
+#define STSOP_LATTITUDE           ((float) 51.497583 )  /*!< default latitude position */
+#define STSOP_LONGITUDE           ((float) 3.819969  )  /*!< default longitude position */
 #define MAX_GPS_POS               ((int32_t) 8388607 )  /*!< 2^23 - 1 */
 #define HUMIDITY_DEFAULT_VAL      50.0f                 /*!< default humidity */
 #define TEMPERATURE_DEFAULT_VAL   18.0f                 /*!< default temperature */
