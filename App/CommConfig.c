@@ -215,7 +215,7 @@ void uartStartReceive_Config( uint8_t *pData, const uint16_t Size, const uint32_
 	HAL_UART_ReceiverTimeout_Config(&config_uart, timeout); //configure receive timeout, start after character is received.
 	HAL_UART_EnableReceiverTimeout( &config_uart ); //enable the receive timeout.
 
-	assert_param( halRes != HAL_OK);
+	assert_param( halRes == HAL_OK);
 }
 
 /**
