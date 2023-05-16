@@ -279,21 +279,21 @@ void user_uart1_characterMatchDetect_Callback(UART_HandleTypeDef *huart, uint32_
 	  /*
 	   * loop for search the received command
 	   */
-		for( int i = 0; i < sizeof( stCommandsGet) / sizeof(stCommandsGet[0]); i++ )
+		for( int i = 0; i < sizeof( stCommandsSet) / sizeof(stCommandsSet[0]); i++ )
 		{
 		  /*
 		   * check command is found, use strncasecmp() to ignore the case sensitivity
 		   */
-		  if( strncasecmp( (char*)bufferRxConfig + strlen(cmdSet), stCommandsGet[i].command, stCommandsGet[i].commandLength ) == 0 )
+		  if( strncasecmp( (char*)bufferRxConfig + strlen(cmdSet), stCommandsSet[i].command, stCommandsSet[i].commandLength ) == 0 )
 		  {
 		    /*
 		     * command is founded, then execute the callback fucntion.
 		     */
-		    char * startOffArguments = (char *)bufferRxConfig + strlen(cmdSet) + stCommandsGet[i].commandLength;
+		    char * startOffArguments = (char *)bufferRxConfig + strlen(cmdSet) + stCommandsSet[i].commandLength;
 
-		    if( stCommandsGet[i].function != 0 ) //always check pointer is not zero before executing.
+		    if( stCommandsSet[i].function != 0 ) //always check pointer is not zero before executing.
 		    {
-		      stCommandsGet[i].function(stCommandsGet[i].numberOfArguments, startOffArguments);
+		      stCommandsSet[i].function(stCommandsSet[i].numberOfArguments, startOffArguments);
 		      commandProcessed = TRUE; //detect command is processed.
 		    }
 		  }
@@ -313,15 +313,15 @@ void user_uart1_characterMatchDetect_Callback(UART_HandleTypeDef *huart, uint32_
       /*
        * check command is found, use strncasecmp() to ignore the case sensitivity
        */
-      if( strncasecmp( (char*)bufferRxConfig + strlen(cmdSet), stCommandsSet[i].command, stCommandsSet[i].commandLength ) == 0 )
+      if( strncasecmp( (char*)bufferRxConfig + strlen(cmdGet), stCommandsGet[i].command, stCommandsGet[i].commandLength ) == 0 )
       {
         /*
          * command is founded, then execute the callback fucntion.
          */
-        char * startOffArguments = (char *)bufferRxConfig + strlen(cmdSet) + stCommandsSet[i].commandLength;
-        if( stCommandsSet[i].function != 0 ) //always check pointer is not zero before executing.
+        char * startOffArguments = (char *)bufferRxConfig + strlen(cmdGet) + stCommandsGet[i].commandLength;
+        if( stCommandsGet[i].function != 0 ) //always check pointer is not zero before executing.
         {
-          stCommandsSet[i].function(stCommandsSet[i].numberOfArguments, startOffArguments);
+          stCommandsGet[i].function(stCommandsGet[i].numberOfArguments, startOffArguments);
           commandProcessed = TRUE;
         }
       }
