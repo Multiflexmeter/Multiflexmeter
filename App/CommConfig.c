@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "main.h"
 
 #include "utilities_def.h"
@@ -24,7 +25,17 @@
 #include "common/uart.h"
 #include "CommConfig.h"
 
+#include "secure-element.h"
+
 #define NO_SLEEP
+
+#ifndef HEX8
+#define HEX8(X)   X[0], X[1], X[2], X[3], X[4], X[5], X[6], X[7]
+#endif
+
+#ifndef HEX16
+#define HEX16(X)  HEX8(X), X[8], X[9], X[10], X[11], X[12], X[13], X[14], X[15]
+#endif
 
 #define RECEIVE_TIMEOUT_COMMAND  (5 * config_uart.Init.BaudRate) //5 seconds
 #define UART_RX_TASK_ACTIVE_TIME  (1000000L)
@@ -59,7 +70,7 @@ static const char defaultVersion[] = "0.0";
 typedef struct{
     const char * command;
     int commandLength;
-    void (* function)(int arguments, ...);
+    void (* function)(int arguments, const char * format, ...);
     int numberOfArguments;
 }struct_commands;
 
@@ -93,8 +104,51 @@ __weak const char * getVersion(void)
   return defaultVersion;
 }
 
-void sendError(int arguments, ... );
-void sendModuleInfo(int arguments, ... );
+/**
+ * @brief weak function getJoinId(), can be override in application code.
+ *
+ * @return
+ */
+__weak const uint8_t * getJoinId(void)
+{
+  static uint8_t joinEui[SE_EUI_SIZE]={0};
+  SecureElementGetJoinEui( joinEui );
+
+  return joinEui;
+}
+
+/**
+ * @brief weak function getDeviceId(), can be override in application code.
+ *
+ * @return
+ */
+__weak const uint8_t * getDeviceId(void)
+{
+  static uint8_t devEui[SE_EUI_SIZE]={0};
+  SecureElementGetDevEui( devEui );
+
+  return devEui;
+}
+
+/**
+ * @brief weak function getAppKey(), can be override in application code.
+ *
+ * @return
+ */
+__weak const uint8_t * getAppKey(void)
+{
+  Key_t *keyItem;
+  SecureElementGetKeyByID( APP_KEY, &keyItem );
+
+  return &keyItem->KeyValue[0];
+}
+
+void sendError(int arguments, const char * format, ... );
+void sendModuleInfo(int arguments, const char * format, ... );
+void sendSensorInfo(int arguments, const char * format, ...);
+void sendJoinID(int arguments, const char * format, ...);
+void sendDeviceID(int arguments, const char * format, ...);
+void sendAppKey(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -110,7 +164,25 @@ struct_commands stCommandsGet[] =
     {
         cmdSensorInfo,
         sizeof(cmdSensorInfo) - 1,
+        sendSensorInfo,
+        1,
+    },
+    {
+        cmdJoinId,
+        sizeof(cmdJoinId) - 1,
+        sendJoinID,
         0,
+    },
+    {
+        cmdDeviceId,
+        sizeof(cmdDeviceId) - 1,
+        sendDeviceID,
+        0,
+    },
+    {
+        cmdAppKey,
+        sizeof(cmdAppKey) - 1,
+        sendAppKey,
         0,
     },
     //todo complete all GET commands
@@ -237,7 +309,7 @@ void testConfigUartSend(void)
     case 1: //send test data
       if (uartTxReady(&config_uart))
       {
-        sendModuleInfo(0);
+        sendModuleInfo(0,0);
         testStep++;
       }
       break;
@@ -334,7 +406,7 @@ void user_uart1_characterMatchDetect_Callback(UART_HandleTypeDef *huart, uint32_
 	 */
 	if( commandProcessed == FALSE )
 	{
-	  sendError(0); //reply with error.
+	  sendError(0,0); //reply with error.
 	}
 }
 
@@ -343,10 +415,71 @@ void user_uart1_characterMatchDetect_Callback(UART_HandleTypeDef *huart, uint32_
  *
  * @param arguments not used
  */
-void sendModuleInfo(int arguments, ...)
+void sendModuleInfo(int arguments, const char * format, ...)
 {
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s=%s,%s,%s\r\n", cmdModuleInfo, getProtocol1(), getProtocol2(), getVersion());
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s,%s,%s\r\n", cmdModuleInfo, getProtocol1(), getProtocol2(), getVersion());
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+}
+
+/**
+ * @brief send sensor information to config uart.
+ *
+ * @param arguments: 1: <sensor slot number> 1-6
+ */
+void sendSensorInfo(int arguments, const char * format, ...)
+{
+  int sensorId = 0;
+  if( format[0] == '=' && format[2] == '\r' && format[3] == '\n')
+  {
+    sensorId = atoi(&format[1]);
+  }
+  //check sensor range
+  if( sensorId >= 1 && sensorId <= 6 )
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%s,%s\r\n", cmdSensorInfo, sensorId, getProtocol2(), getVersion()); //todo get protocol sensor module
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
+}
+
+/**
+ * @brief send current JoinId to config uart.
+ *
+ * @param arguments not used
+ */
+void sendJoinID(int arguments, const char * format, ...)
+{
+
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdJoinId, HEX8( getJoinId() ) );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+}
+
+/**
+ * @brief send current DeviceId to config uart.
+ *
+ * @param arguments not used
+ */
+void sendDeviceID(int arguments, const char * format, ...)
+{
+
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdDeviceId, HEX8( getDeviceId() ) );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+}
+
+/**
+ * @brief send current AppKey to config uart.
+ *
+ * @param arguments not used
+ */
+void sendAppKey(int arguments, const char * format, ...)
+{
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdAppKey, HEX16( getAppKey() ) );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
 }
 
 /**
@@ -354,7 +487,7 @@ void sendModuleInfo(int arguments, ...)
  *
  * @param arguments not used
  */
-void sendError(int arguments, ... )
+void sendError(int arguments, const char * format, ... )
 {
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s\r\n", cmdError);
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
