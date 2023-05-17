@@ -149,6 +149,7 @@ void sendSensorInfo(int arguments, const char * format, ...);
 void sendJoinID(int arguments, const char * format, ...);
 void sendDeviceID(int arguments, const char * format, ...);
 void sendAppKey(int arguments, const char * format, ...);
+void sendSensor(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -184,6 +185,12 @@ struct_commands stCommandsGet[] =
         sizeof(cmdAppKey) - 1,
         sendAppKey,
         0,
+    },
+    {
+        cmdSensor,
+        sizeof(cmdSensor) - 1,
+        sendSensor,
+        1,
     },
     //todo complete all GET commands
 };
@@ -480,6 +487,34 @@ void sendAppKey(int arguments, const char * format, ...)
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdAppKey, HEX16( getAppKey() ) );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
+}
+
+/**
+ * @brief send current Sensor data to config uart.
+ *
+ * @param arguments: 1: <sensor number> 1-6
+ */
+void sendSensor(int arguments, const char * format, ...)
+{
+  int sensorId = 0;
+  int sensorStatus = 0;
+  int sensorType = 0;
+  if( format[0] == '=' && format[2] == '\r' && format[3] == '\n')
+  {
+    sensorId = atoi(&format[1]);
+  }
+
+
+  //check sensor range
+  if( sensorId >= 1 && sensorId <= 6 && sensorStatus >= 0 && sensorStatus <= 1)
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdSensor, sensorId, sensorStatus, sensorType); //todo get sensor status, get sensor type
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
 }
 
 /**
