@@ -28,6 +28,34 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
 
+typedef struct __attribute__((packed)) ContextStateFrame {
+  uint32_t r0;
+  uint32_t r1;
+  uint32_t r2;
+  uint32_t r3;
+  uint32_t r12;
+  uint32_t lr;
+  uint32_t return_address;
+  uint32_t xpsr;
+} sContextStateFrame;
+
+// NOTE: If you are using CMSIS, the registers can also be
+// accessed through CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk
+#define HALT_IF_DEBUGGING()                              \
+  do {                                                   \
+    if ((*(volatile uint32_t *)0xE000EDF0) & (1 << 0)) { \
+      __asm("bkpt 1");                                   \
+    }                                                    \
+} while (0)
+
+#define HARDFAULT_HANDLING_ASM(_x)               \
+  __asm volatile(                                \
+      "tst lr, #4 \n"                            \
+      "ite eq \n"                                \
+      "mrseq r0, msp \n"                         \
+      "mrsne r0, psp \n"                         \
+      "b my_fault_handler_c \n"                  \
+                                                 )
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
@@ -65,6 +93,36 @@ extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 /* USER CODE BEGIN EV */
 
+__attribute__((optimize("O0")))
+void my_fault_handler_c(sContextStateFrame *frame) {
+  // If and only if a debugger is attached, execute a breakpoint
+  // instruction so we can take a look at what triggered the fault
+//  HALT_IF_DEBUGGING();
+
+  volatile uint32_t *cfsr = (volatile uint32_t *)0xE000ED28;
+    const uint32_t usage_fault_mask = 0xffff0000;
+    const bool non_usage_fault_occurred =
+        (*cfsr & ~usage_fault_mask) != 0;
+    // the bottom 8 bits of the xpsr hold the exception number of the
+    // executing exception or 0 if the processor is in Thread mode
+    const bool faulted_from_exception = ((frame->xpsr & 0xFF) != 0);
+
+    if (faulted_from_exception || non_usage_fault_occurred) {
+      // For any fault within an ISR or non-usage faults
+      // let's reboot the system
+      volatile uint32_t *aircr = (volatile uint32_t *)0xE000ED0C;
+      *aircr = (0x05FA << 16) | 0x1 << 2;
+      while (1) { } // should be unreachable
+    }
+
+  // Logic for dealing with the exception. Typically:
+  //  - log the fault which occurred for postmortem analysis
+  //  - If the fault is recoverable,
+  //    - clear errors and return back to Thread Mode
+  //  - else
+  //    - reboot system
+}
+
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -91,7 +149,7 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+  HARDFAULT_HANDLING_ASM();
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
