@@ -143,6 +143,20 @@ __weak const uint8_t * getAppKey(void)
   return &keyItem->KeyValue[0];
 }
 
+
+/**
+ * @brief weak function getLeesInterval(), can be override in application code.
+ *
+ * @return Interval time in minutes
+ */
+__weak const uint16_t getLeesInterval(void)
+{
+
+  return 5;
+}
+
+
+
 void sendError(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
 void sendSensorInfo(int arguments, const char * format, ...);
@@ -150,6 +164,7 @@ void sendJoinID(int arguments, const char * format, ...);
 void sendDeviceID(int arguments, const char * format, ...);
 void sendAppKey(int arguments, const char * format, ...);
 void sendSensor(int arguments, const char * format, ...);
+void sendReadInterval(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -190,6 +205,12 @@ struct_commands stCommandsGet[] =
         cmdSensor,
         sizeof(cmdSensor) - 1,
         sendSensor,
+        1,
+    },
+    {
+        cmdLeesInterval,
+        sizeof(cmdLeesInterval) - 1,
+        sendReadInterval,
         1,
     },
     //todo complete all GET commands
@@ -516,6 +537,21 @@ void sendSensor(int arguments, const char * format, ...)
     sendError(0,0);
   }
 }
+
+/**
+ * @brief send current read interval to config uart.
+ *
+ * @param arguments not used
+ */
+void sendReadInterval(int arguments, const char * format, ...)
+{
+
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLeesInterval, getLeesInterval() );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+}
+
+
 
 /**
  * @brief function to send ERROR command
