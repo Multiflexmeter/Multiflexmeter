@@ -781,7 +781,7 @@ void rcvSensor(int arguments, const char * format, ...)
   if( format[0] == '=' && format[2] == ',' && format[4] == '\r' && format[5] == '\n')
   {
     sensorId = strtol(&format[1], &ptr, 10);
-    sensorStatus = strtol(ptr, &ptr, 10);
+    sensorStatus = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
 
   }
 
