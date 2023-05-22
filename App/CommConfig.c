@@ -244,6 +244,7 @@ void sendVbusStatus(int arguments, const char * format, ...);
 
 void rcvJoinId(int arguments, const char * format, ...);
 void rcvAppKey(int arguments, const char * format, ...);
+void rcvSensor(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -335,6 +336,12 @@ struct_commands stCommandsSet[] =
         sizeof(cmdAppKey) - 1,
         rcvAppKey,
         1,
+    },
+    {
+        cmdSensor,
+        sizeof(cmdSensor) - 1,
+        rcvSensor,
+        2,
     },
     //todo complete all SET commands
 };
@@ -729,6 +736,41 @@ void sendSensor(int arguments, const char * format, ...)
     sendError(0,0);
   }
 }
+
+/**
+ * @brief receive new sensor information from config uart.
+ *
+ * @param argument: 1: <sensor number>, 2: <sensur status>
+ *
+ */
+void rcvSensor(int arguments, const char * format, ...)
+{
+  char *ptr; //dummy pointer
+  int sensorId = 0;
+  int sensorStatus = 0;
+  int sensorType = 0;
+
+  if( format[0] == '=' && format[2] == ',' && format[4] == '\r' && format[5] == '\n')
+  {
+    sensorId = strtol(&format[1], &ptr, 10);
+    sensorStatus = strtol(ptr, &ptr, 10);
+
+  }
+
+  //todo set sensorStatus
+
+  if( sensorId >= 1 && sensorId <= 6 && sensorStatus >= 0 && sensorStatus <= 1)
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdSensor, sensorId, sensorStatus, sensorType); //todo get sensor type
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
+
+}
+
 
 /**
  * @brief send current read interval to config uart.
