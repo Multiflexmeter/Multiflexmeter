@@ -155,6 +155,16 @@ __weak const uint16_t getLeesInterval(void)
   return 5;
 }
 
+/**
+ * @brief weak function getMeetTijd(), can be override in application code.
+ *
+ * @return Measure time in milliseconds
+ */
+__weak const uint16_t getMeetTijd(void)
+{
+
+  return 100;
+}
 
 
 void sendError(int arguments, const char * format, ... );
@@ -165,6 +175,7 @@ void sendDeviceID(int arguments, const char * format, ...);
 void sendAppKey(int arguments, const char * format, ...);
 void sendSensor(int arguments, const char * format, ...);
 void sendReadInterval(int arguments, const char * format, ...);
+void sendMeasureTime(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -211,6 +222,12 @@ struct_commands stCommandsGet[] =
         cmdLeesInterval,
         sizeof(cmdLeesInterval) - 1,
         sendReadInterval,
+        1,
+    },
+    {
+        cmdMeetTijd,
+        sizeof(cmdMeetTijd) - 1,
+        sendMeasureTime,
         1,
     },
     //todo complete all GET commands
@@ -551,6 +568,18 @@ void sendReadInterval(int arguments, const char * format, ...)
 
 }
 
+/**
+ * @brief send current measure time to config uart.
+ *
+ * @param arguments not used
+ */
+void sendMeasureTime(int arguments, const char * format, ...)
+{
+
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeetTijd, getMeetTijd() );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+}
 
 
 /**
