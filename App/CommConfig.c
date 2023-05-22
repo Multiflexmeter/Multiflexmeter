@@ -246,6 +246,7 @@ void rcvJoinId(int arguments, const char * format, ...);
 void rcvAppKey(int arguments, const char * format, ...);
 void rcvSensor(int arguments, const char * format, ...);
 void rcvReadInterval(int arguments, const char * format, ...);
+void rcvMeasureTime(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -348,6 +349,12 @@ struct_commands stCommandsSet[] =
         cmdLeesInterval,
         sizeof(cmdLeesInterval) - 1,
         rcvReadInterval,
+        1,
+    },
+    {
+        cmdMeetTijd,
+        sizeof(cmdMeetTijd) - 1,
+        rcvMeasureTime,
         1,
     },
     //todo complete all SET commands
@@ -835,6 +842,39 @@ void sendMeasureTime(int arguments, const char * format, ...)
 
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeetTijd, getMeetTijd() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+}
+
+/**
+ * @brief receive new measure time from config uart.
+ *
+ * @param argument: 1: <measure time in ms>
+ *
+ */
+void rcvMeasureTime(int arguments, const char * format, ...)
+{
+  char *ptr; //dummy pointer
+  int interval = 0;
+
+
+  if( format[0] == '=' )
+  {
+    interval = strtol(&format[1], &ptr, 10);
+  }
+
+  //todo set sensorStatus
+
+  if( interval >= 0 && interval <= 60000 )
+  {
+    //todo set meetTijd
+
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeetTijd, interval );
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
 
 }
 
