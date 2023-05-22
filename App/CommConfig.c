@@ -248,6 +248,7 @@ void rcvSensor(int arguments, const char * format, ...);
 void rcvReadInterval(int arguments, const char * format, ...);
 void rcvMeasureTime(int arguments, const char * format, ...);
 void rcvAlwaysOnState(int arguments, const char * format, ...);
+void rcvErase(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -363,6 +364,12 @@ struct_commands stCommandsSet[] =
         sizeof(cmdAlwaysOn) - 1,
         rcvAlwaysOnState,
         1,
+    },
+    {
+        cmdWissen,
+        sizeof(cmdWissen) - 1,
+        rcvErase,
+        0,
     },
     //todo complete all SET commands
 };
@@ -959,6 +966,28 @@ void rcvAlwaysOnState(int arguments, const char * format, ...)
   {
     sendError(0,0);
   }
+
+}
+
+/**
+ * @brief receive erase command from config uart.
+ *
+ * @param argument: not used
+ *
+ */
+void rcvErase(int arguments, const char * format, ...)
+{
+  char *ptr; //dummy pointer
+  int status = 0;
+
+
+  //todo erase memory
+
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s\r\n", cmdWissen );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+  //todo send progress every 1 sec, not in IRQ
+  //todo send "Wissen:OK", not in IRQ
 
 }
 
