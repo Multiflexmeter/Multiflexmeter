@@ -29,7 +29,11 @@
 
 #define NO_SLEEP
 
+/*!
+ * App key size in characters
+ */
 #define APP_KEY_CHARACTERS  32
+
 
 #ifndef HEX8
 #define HEX8(X)   X[0], X[1], X[2], X[3], X[4], X[5], X[6], X[7]
