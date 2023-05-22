@@ -222,13 +222,13 @@ struct_commands stCommandsGet[] =
         cmdLeesInterval,
         sizeof(cmdLeesInterval) - 1,
         sendReadInterval,
-        1,
+        0,
     },
     {
         cmdMeetTijd,
         sizeof(cmdMeetTijd) - 1,
         sendMeasureTime,
-        1,
+        0,
     },
     //todo complete all GET commands
 };
