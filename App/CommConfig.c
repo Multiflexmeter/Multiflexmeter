@@ -984,9 +984,6 @@ void rcvAlwaysOnState(int arguments, const char * format, ...)
  */
 void rcvErase(int arguments, const char * format, ...)
 {
-  char *ptr; //dummy pointer
-  int status = 0;
-
 
   //todo erase memory
 
