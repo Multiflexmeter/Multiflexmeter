@@ -11,3 +11,15 @@
   ******************************************************************************
   */
 
+#include "adc_if.h"
+
+/**
+ * @brief override function for getBatterijSupply()
+ *
+ * @return battery supply in mV
+ */
+const uint16_t getBatterijSupply(void)
+{
+
+  return SYS_GetBatteryLevel();
+}
