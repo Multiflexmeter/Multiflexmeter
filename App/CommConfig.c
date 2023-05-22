@@ -247,6 +247,7 @@ void rcvAppKey(int arguments, const char * format, ...);
 void rcvSensor(int arguments, const char * format, ...);
 void rcvReadInterval(int arguments, const char * format, ...);
 void rcvMeasureTime(int arguments, const char * format, ...);
+void rcvAlwaysOnState(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -355,6 +356,12 @@ struct_commands stCommandsSet[] =
         cmdMeetTijd,
         sizeof(cmdMeetTijd) - 1,
         rcvMeasureTime,
+        1,
+    },
+    {
+        cmdAlwaysOn,
+        sizeof(cmdAlwaysOn) - 1,
+        rcvAlwaysOnState,
         1,
     },
     //todo complete all SET commands
@@ -919,6 +926,39 @@ void sendVbusStatus(int arguments, const char * format, ...)
 
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdVbus, getVbusSupply() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+}
+
+/**
+ * @brief receive alwaysOn supply setting from config uart.
+ *
+ * @param argument: 1: <always on state>
+ *
+ */
+void rcvAlwaysOnState(int arguments, const char * format, ...)
+{
+  char *ptr; //dummy pointer
+  int status = 0;
+
+
+  if( format[0] == '=' )
+  {
+    status = strtol(&format[1], &ptr, 10);
+  }
+
+  //todo set sensorStatus
+
+  if( status >= 0 && status <= 1 )
+  {
+    //todo set AlwaysOn status
+
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdAlwaysOn, status );
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
 
 }
 
