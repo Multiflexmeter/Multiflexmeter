@@ -249,6 +249,7 @@ void rcvReadInterval(int arguments, const char * format, ...);
 void rcvMeasureTime(int arguments, const char * format, ...);
 void rcvAlwaysOnState(int arguments, const char * format, ...);
 void rcvErase(int arguments, const char * format, ...);
+void rcvTest(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -369,6 +370,12 @@ struct_commands stCommandsSet[] =
         cmdWissen,
         sizeof(cmdWissen) - 1,
         rcvErase,
+        0,
+    },
+    {
+        cmdTest,
+        sizeof(cmdTest) - 1,
+        rcvTest,
         0,
     },
     //todo complete all SET commands
@@ -985,6 +992,55 @@ void rcvErase(int arguments, const char * format, ...)
 
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s\r\n", cmdWissen );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+  //todo send progress every 1 sec, not in IRQ
+  //todo send "Wissen:OK", not in IRQ
+
+}
+
+/**
+ * @brief receive test command from config uart.
+ *
+ * @param argument: not used
+ *
+ */
+void rcvTest(int arguments, const char * format, ...)
+{
+  char *ptr; //dummy pointer
+  int test = 0;
+  int subtest = -1;
+
+  if( format[0] == '=' )
+  {
+    test = strtol(&format[1], &ptr, 10);
+    if( *ptr!='\r' && *ptr!='\n')
+    {
+      subtest = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
+    }
+  }
+
+  //todo set sensorStatus
+
+  if( test >= 0 && test <= 5 )
+  {
+    //todo set TEST
+
+    if( subtest>=0)
+    {
+      snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test,  subtest);
+    }
+    else
+    {
+      snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdTest, test );
+    }
+
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
+
 
   //todo send progress every 1 sec, not in IRQ
   //todo send "Wissen:OK", not in IRQ
