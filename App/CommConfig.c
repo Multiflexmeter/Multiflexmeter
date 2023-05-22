@@ -167,6 +167,18 @@ __weak const uint16_t getMeetTijd(void)
 }
 
 
+/**
+ * @brief weak function getNumberOfMeasures(), can be override in application code.
+ *
+ * @return total number of measures
+ */
+__weak const uint16_t getNumberOfMeasures(void)
+{
+
+  return 3;
+}
+
+
 void sendError(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
 void sendSensorInfo(int arguments, const char * format, ...);
@@ -176,6 +188,7 @@ void sendAppKey(int arguments, const char * format, ...);
 void sendSensor(int arguments, const char * format, ...);
 void sendReadInterval(int arguments, const char * format, ...);
 void sendMeasureTime(int arguments, const char * format, ...);
+void sendDataDump(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -228,6 +241,12 @@ struct_commands stCommandsGet[] =
         cmdMeetTijd,
         sizeof(cmdMeetTijd) - 1,
         sendMeasureTime,
+        0,
+    },
+    {
+        cmdDataDump,
+        sizeof(cmdDataDump) - 1,
+        sendDataDump,
         0,
     },
     //todo complete all GET commands
@@ -578,6 +597,24 @@ void sendMeasureTime(int arguments, const char * format, ...)
 
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeetTijd, getMeetTijd() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+}
+
+/**
+ * @brief send datadump to config uart.
+ *
+ * @param arguments not used
+ */
+void sendDataDump(int arguments, const char * format, ...)
+{
+
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdDataDump, getNumberOfMeasures() );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+  //todo "sendMeasureTime()" send data line by other functions, not in IRQ
+
+  //todo snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:OK\r\n", cmdDataDump );
+  //todo uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
 
