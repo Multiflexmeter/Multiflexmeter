@@ -245,6 +245,7 @@ void sendVbusStatus(int arguments, const char * format, ...);
 void rcvJoinId(int arguments, const char * format, ...);
 void rcvAppKey(int arguments, const char * format, ...);
 void rcvSensor(int arguments, const char * format, ...);
+void rcvReadInterval(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -342,6 +343,12 @@ struct_commands stCommandsSet[] =
         sizeof(cmdSensor) - 1,
         rcvSensor,
         2,
+    },
+    {
+        cmdLeesInterval,
+        sizeof(cmdLeesInterval) - 1,
+        rcvReadInterval,
+        1,
     },
     //todo complete all SET commands
 };
@@ -782,6 +789,39 @@ void sendReadInterval(int arguments, const char * format, ...)
 
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLeesInterval, getLeesInterval() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+}
+
+/**
+ * @brief receive new read interval from config uart.
+ *
+ * @param argument: 1: <Interval>
+ *
+ */
+void rcvReadInterval(int arguments, const char * format, ...)
+{
+  char *ptr; //dummy pointer
+  int interval = 0;
+
+
+  if( format[0] == '=' )
+  {
+    interval = strtol(&format[1], &ptr, 10);
+  }
+
+  //todo set sensorStatus
+
+  if( interval >= 5 && interval <= 1440 )
+  {
+    //todo set interval
+
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLeesInterval, interval );
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
 
 }
 
