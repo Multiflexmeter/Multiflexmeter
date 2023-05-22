@@ -29,6 +29,8 @@
 
 #define NO_SLEEP
 
+#define APP_KEY_CHARACTERS  32
+
 #ifndef HEX8
 #define HEX8(X)   X[0], X[1], X[2], X[3], X[4], X[5], X[6], X[7]
 #endif
@@ -158,6 +160,17 @@ __weak const uint8_t * getAppKey(void)
 
 
 /**
+ * @brief weak function setAppKey(), can be override in application code.
+ *
+ * @return
+ */
+__weak const void setAppKey(const uint8_t *key)
+{
+  SecureElementSetKey(APP_KEY, (uint8_t *) key );
+}
+
+
+/**
  * @brief weak function getLeesInterval(), can be override in application code.
  *
  * @return Interval time in minutes
@@ -230,6 +243,7 @@ void sendBatterijStatus(int arguments, const char * format, ...);
 void sendVbusStatus(int arguments, const char * format, ...);
 
 void rcvJoinId(int arguments, const char * format, ...);
+void rcvAppKey(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -314,6 +328,12 @@ struct_commands stCommandsSet[] =
         cmdJoinId,
         sizeof(cmdJoinId) - 1,
         rcvJoinId,
+        1,
+    },
+    {
+        cmdAppKey,
+        sizeof(cmdAppKey) - 1,
+        rcvAppKey,
         1,
     },
     //todo complete all SET commands
@@ -630,6 +650,56 @@ void sendAppKey(int arguments, const char * format, ...)
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdAppKey, HEX16( getAppKey() ) );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
+}
+
+/**
+ * @brief receive new AppKey from config uart.
+ *
+ * @param argument: 1: <AppKey number>
+ */
+void rcvAppKey(int arguments, const char * format, ...)
+{
+  char *ptr; //dummy pointer
+  char halfKey[(APP_KEY_CHARACTERS>>1) + 1] = {0};
+  Key_t newKey = {0};
+  int i = SE_KEY_SIZE - 1; //start at last element.
+  uint64_t AppKeyMsb = 0;
+  uint64_t AppKeyLsb = 0;
+
+  if( format[0] == '=' && format[1] == '0' && format[2] == 'x')
+  {
+    memcpy(halfKey, &format[19], APP_KEY_CHARACTERS>>1 );
+    AppKeyLsb = strtoull(&halfKey[0], &ptr, APP_KEY_CHARACTERS>>1);  // convert string ## to uint64_t
+                                                  // <endptr> : not used
+                                                  // <base> = 16 : hexadecimal
+    memcpy(halfKey, &format[3], APP_KEY_CHARACTERS>>1 );
+    AppKeyMsb = strtoull(&halfKey[0], &ptr, APP_KEY_CHARACTERS>>1);  // convert string 0x## to uint64_t
+                                                  // <endptr> : not used
+                                                  // <base> = 16 : hexadecimal
+
+    //save each byte in uint8_t array.
+    do{
+
+      if( i >= (SE_KEY_SIZE>>1) )
+      {
+        newKey.KeyValue[i] = AppKeyLsb & 0xFF; //save one byte, start at end element.
+        AppKeyLsb>>=8; //shift one byte (8bits) to right to get next byte.
+      }
+      else
+      {
+        newKey.KeyValue[i] = AppKeyMsb & 0xFF; //save one byte, start at end element.
+        AppKeyMsb>>=8; //shift one byte (8bits) to right to get next byte.
+      }
+
+
+    }while(i--); //untill all elements are done
+
+
+    setAppKey((uint8_t*)&newKey.KeyValue[0]); //set new AppKey.
+  }
+
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdAppKey, HEX16( getAppKey() ) );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
 /**
