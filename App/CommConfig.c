@@ -61,6 +61,8 @@ static const char cmdDataDump[]="DataDump";
 static const char cmdAlwaysOn[]="AlwaysOn";
 static const char cmdWissen[]="Wissen";
 static const char cmdTest[]="Test";
+static const char cmdBatterij[]="Batterij";
+static const char cmdVbus[]="Vbus";
 
 
 static const char defaultProtocol1[] = "0.0";
@@ -179,6 +181,30 @@ __weak const uint16_t getNumberOfMeasures(void)
 }
 
 
+/**
+ * @brief weak function getBatterijSupply(), can be override in application code.
+ *
+ * @return battery supply in mV
+ */
+__weak const uint16_t getBatterijSupply(void)
+{
+
+  return 1300;
+}
+
+
+/**
+ * @brief weak function getVbusSupply(), can be override in application code.
+ *
+ * @return battery supply in mV
+ */
+__weak const uint16_t getVbusSupply(void)
+{
+
+  return 1250;
+}
+
+
 void sendError(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
 void sendSensorInfo(int arguments, const char * format, ...);
@@ -189,6 +215,8 @@ void sendSensor(int arguments, const char * format, ...);
 void sendReadInterval(int arguments, const char * format, ...);
 void sendMeasureTime(int arguments, const char * format, ...);
 void sendDataDump(int arguments, const char * format, ...);
+void sendBatterijStatus(int arguments, const char * format, ...);
+void sendVbusStatus(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -247,6 +275,18 @@ struct_commands stCommandsGet[] =
         cmdDataDump,
         sizeof(cmdDataDump) - 1,
         sendDataDump,
+        0,
+    },
+    {
+        cmdBatterij,
+        sizeof(cmdBatterij) - 1,
+        sendBatterijStatus,
+        0,
+    },
+    {
+        cmdVbus,
+        sizeof(cmdVbus) - 1,
+        sendVbusStatus,
         0,
     },
     //todo complete all GET commands
@@ -618,6 +658,31 @@ void sendDataDump(int arguments, const char * format, ...)
 
 }
 
+/**
+ * @brief send batterijstatus to config uart.
+ *
+ * @param arguments not used
+ */
+void sendBatterijStatus(int arguments, const char * format, ...)
+{
+
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdBatterij, getBatterijSupply() ); //todo battery current and capacity optional
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+}
+
+/**
+ * @brief send vbus status to config uart.
+ *
+ * @param arguments not used
+ */
+void sendVbusStatus(int arguments, const char * format, ...)
+{
+
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdVbus, getVbusSupply() );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+}
 
 /**
  * @brief function to send ERROR command
