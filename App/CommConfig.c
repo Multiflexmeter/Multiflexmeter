@@ -61,13 +61,13 @@ static const char cmdJoinId[]="JoinID";
 static const char cmdDeviceId[]="DeviceID";
 static const char cmdAppKey[]="AppKey";
 static const char cmdSensor[]="Sensor";
-static const char cmdLeesInterval[]="LoraInterval";
-static const char cmdMeetTijd[]="MeasureTime";
+static const char cmdLoraInterval[]="LoraInterval";
+static const char cmdMeasureTime[]="MeasureTime";
 static const char cmdDataDump[]="DataDump";
 static const char cmdAlwaysOn[]="AlwaysOn";
-static const char cmdWissen[]="Erase";
+static const char cmdErase[]="Erase";
 static const char cmdTest[]="Test";
-static const char cmdBatterij[]="Bat";
+static const char cmdBat[]="Bat";
 static const char cmdVbus[]="Vbus";
 
 
@@ -297,14 +297,14 @@ struct_commands stCommandsGet[] =
         1,
     },
     {
-        cmdLeesInterval,
-        sizeof(cmdLeesInterval) - 1,
+        cmdLoraInterval,
+        sizeof(cmdLoraInterval) - 1,
         sendReadInterval,
         0,
     },
     {
-        cmdMeetTijd,
-        sizeof(cmdMeetTijd) - 1,
+        cmdMeasureTime,
+        sizeof(cmdMeasureTime) - 1,
         sendMeasureTime,
         0,
     },
@@ -315,8 +315,8 @@ struct_commands stCommandsGet[] =
         0,
     },
     {
-        cmdBatterij,
-        sizeof(cmdBatterij) - 1,
+        cmdBat,
+        sizeof(cmdBat) - 1,
         sendBatterijStatus,
         0,
     },
@@ -353,14 +353,14 @@ struct_commands stCommandsSet[] =
         2,
     },
     {
-        cmdLeesInterval,
-        sizeof(cmdLeesInterval) - 1,
+        cmdLoraInterval,
+        sizeof(cmdLoraInterval) - 1,
         rcvReadInterval,
         1,
     },
     {
-        cmdMeetTijd,
-        sizeof(cmdMeetTijd) - 1,
+        cmdMeasureTime,
+        sizeof(cmdMeasureTime) - 1,
         rcvMeasureTime,
         1,
     },
@@ -371,8 +371,8 @@ struct_commands stCommandsSet[] =
         1,
     },
     {
-        cmdWissen,
-        sizeof(cmdWissen) - 1,
+        cmdErase,
+        sizeof(cmdErase) - 1,
         rcvErase,
         0,
     },
@@ -819,7 +819,7 @@ void rcvSensor(int arguments, const char * format, ...)
 void sendReadInterval(int arguments, const char * format, ...)
 {
 
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLeesInterval, getLeesInterval() );
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLoraInterval, getLeesInterval() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
@@ -847,7 +847,7 @@ void rcvReadInterval(int arguments, const char * format, ...)
   {
     //todo set interval
 
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLeesInterval, interval );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLoraInterval, interval );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -865,7 +865,7 @@ void rcvReadInterval(int arguments, const char * format, ...)
 void sendMeasureTime(int arguments, const char * format, ...)
 {
 
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeetTijd, getMeetTijd() );
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getMeetTijd() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
@@ -893,7 +893,7 @@ void rcvMeasureTime(int arguments, const char * format, ...)
   {
     //todo set meetTijd
 
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeetTijd, interval );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, interval );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -929,7 +929,7 @@ void sendDataDump(int arguments, const char * format, ...)
 void sendBatterijStatus(int arguments, const char * format, ...)
 {
 
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdBatterij, getBatterijSupply() ); //todo battery current and capacity optional
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdBat, getBatterijSupply() ); //todo battery current and capacity optional
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
@@ -989,9 +989,10 @@ void rcvAlwaysOnState(int arguments, const char * format, ...)
 void rcvErase(int arguments, const char * format, ...)
 {
 
+
   //todo erase memory
 
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s\r\n", cmdWissen );
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s\r\n", cmdErase );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
   //todo send progress every 1 sec, not in IRQ
