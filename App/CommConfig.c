@@ -232,6 +232,18 @@ __weak const uint16_t getVbusSupply(void)
   return 1250;
 }
 
+/**
+ * @brief weak function getAlwaysOn(), can be override in application code.
+ *
+ * @return always on status
+ */
+__weak const uint8_t getAlwaysOn(void)
+{
+
+  return 0;
+}
+
+
 
 void sendError(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -242,6 +254,7 @@ void sendAppKey(int arguments, const char * format, ...);
 void sendSensor(int arguments, const char * format, ...);
 void sendReadInterval(int arguments, const char * format, ...);
 void sendMeasureTime(int arguments, const char * format, ...);
+void sendAlwaysOnState(int arguments, const char * format, ...);
 void sendDataDump(int arguments, const char * format, ...);
 void sendBatterijStatus(int arguments, const char * format, ...);
 void sendVbusStatus(int arguments, const char * format, ...);
@@ -307,6 +320,12 @@ struct_commands stCommandsGet[] =
         sizeof(cmdMeasureTime) - 1,
         sendMeasureTime,
         0,
+    },
+    {
+        cmdAlwaysOn,
+        sizeof(cmdAlwaysOn) - 1,
+        sendAlwaysOnState,
+        1,
     },
     {
         cmdDataDump,
@@ -943,6 +962,19 @@ void sendVbusStatus(int arguments, const char * format, ...)
 {
 
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdVbus, getVbusSupply() );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+}
+
+/**
+ * @brief send alwaysOn supply setting to config uart
+ *
+ * @param arguments not used
+ */
+void sendAlwaysOnState(int arguments, const char * format, ...)
+{
+
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdAlwaysOn, getAlwaysOn() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
