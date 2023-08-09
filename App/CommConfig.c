@@ -51,7 +51,7 @@ static DMA_BUFFER uint8_t bufferRxConfig[SIZE_RX_BUFFER_CONFIG];
 
 static volatile uint32_t uartConfigActiveTime;
 
-static const char cmdError[]="FOUT";
+static const char cmdError[]="ERROR";
 static const char cmdOkay[]="OK";
 static const char cmdSet[]="Set+";
 static const char cmdGet[]="Get+";
@@ -61,13 +61,13 @@ static const char cmdJoinId[]="JoinID";
 static const char cmdDeviceId[]="DeviceID";
 static const char cmdAppKey[]="AppKey";
 static const char cmdSensor[]="Sensor";
-static const char cmdLeesInterval[]="LeesInterval";
-static const char cmdMeetTijd[]="MeetTijd";
+static const char cmdLeesInterval[]="LoraInterval";
+static const char cmdMeetTijd[]="MeasureTime";
 static const char cmdDataDump[]="DataDump";
 static const char cmdAlwaysOn[]="AlwaysOn";
-static const char cmdWissen[]="Wissen";
+static const char cmdWissen[]="Erase";
 static const char cmdTest[]="Test";
-static const char cmdBatterij[]="Batterij";
+static const char cmdBatterij[]="Bat";
 static const char cmdVbus[]="Vbus";
 
 
