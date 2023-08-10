@@ -27,6 +27,11 @@ const SensorReg registers[] =
     {REG_ERROR_STATUS,      UINT8_T,  1,  READ}
 };
 
+/**
+ * @brief Find the index of the register in the constant register array.
+ * @param regAddress The register address for which the index must be determined
+ * @return The index of the provided register
+ */
 int8_t findRegIndex(uint8_t regAddress)
 {
   uint8_t index = 0;

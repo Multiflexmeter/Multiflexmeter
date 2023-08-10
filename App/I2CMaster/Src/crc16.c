@@ -37,7 +37,12 @@ static const uint16_t CRC16Table[]  = {
   0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040
 };
 
-
+/**
+ * @brief Calculate the CRC CCITT
+ * @param data The message to calculate the CRC from
+ * @param length The lenght of the message
+ * @return The 16 bits CRC
+ */
 uint16_t calculateCRC_CCITT(uint8_t* data, int length) {
   uint16_t crc = CRC16INITVALUE;
   while (length--)
