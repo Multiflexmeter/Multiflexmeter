@@ -79,9 +79,9 @@ extern "C"
 #define AM1805_OSC_STATUS                 0x1D
 #define AM1805_CONFIG_KEY                 0x1F
 #define AM1805_ACAL_FLT                   0x26
-  
+
 #define AM1805_OUTPUT_CTRL                0x30
-  
+
 #define AM1805_EXTENDED_ADDR              0x3F
 #define AM1805_RAM_START                  0x40
 
@@ -107,7 +107,6 @@ extern "C"
 #define AM1805_MODE_SPI                   true
 #define AM1805_MODE_I2C                   false
 
-
 //*****************************************************************************
 //
 // Structure used for time keeping.
@@ -115,16 +114,16 @@ extern "C"
 //*****************************************************************************
 typedef struct
 {
-    uint8_t ui8Hundredth;
-    uint8_t ui8Second;
-    uint8_t ui8Minute;
-    uint8_t ui8Hour;
-    uint8_t ui8Date;
-    uint8_t ui8Weekday;
-    uint8_t ui8Month;
-    uint8_t ui8Year;
-    uint8_t ui8Century;
-    uint8_t ui8Mode;
+  uint8_t ui8Hundredth;
+  uint8_t ui8Second;
+  uint8_t ui8Minute;
+  uint8_t ui8Hour;
+  uint8_t ui8Date;
+  uint8_t ui8Weekday;
+  uint8_t ui8Month;
+  uint8_t ui8Year;
+  uint8_t ui8Century;
+  uint8_t ui8Mode;
 } am1805_time_t;
 
 extern am1805_time_t g_psTimeRegs;

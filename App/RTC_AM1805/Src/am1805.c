@@ -104,12 +104,12 @@ static void am1805_reg_write(const uint8_t ui8Register, const uint8_t ui8Value)
 //*****************************************************************************
 static uint8_t am1805_reg_read(const uint8_t ui8Register)
 {
-    uint8_t data;
+  uint8_t data;
 
-    // Read a single i2c register
-    HAL_I2C_Mem_Read(&hi2c1, AM1805_ADDRESS, ui8Register, 1, &data, 1, 100);
+  // Read a single i2c register
+  HAL_I2C_Mem_Read(&hi2c1, AM1805_ADDRESS, ui8Register, 1, &data, 1, 100);
 
-    return data;
+  return data;
 }
 
 //*****************************************************************************
@@ -127,11 +127,11 @@ static uint8_t am1805_reg_read(const uint8_t ui8Register)
 //*****************************************************************************
 static void am1805_reg_set(uint8_t ui8Address, uint8_t ui8Mask)
 {
-    uint8_t ui8Temp;
+  uint8_t ui8Temp;
 
-    ui8Temp = am1805_reg_read(ui8Address);
-    ui8Temp |= ui8Mask;
-    am1805_reg_write(ui8Address, ui8Temp);
+  ui8Temp = am1805_reg_read(ui8Address);
+  ui8Temp |= ui8Mask;
+  am1805_reg_write(ui8Address, ui8Temp);
 }
 
 //*****************************************************************************
@@ -149,11 +149,11 @@ static void am1805_reg_set(uint8_t ui8Address, uint8_t ui8Mask)
 //*****************************************************************************
 static void am1805_reg_clear(uint8_t ui8Address, uint8_t ui8Mask)
 {
-    uint8_t ui8Temp;
+  uint8_t ui8Temp;
 
-    ui8Temp = am1805_reg_read(ui8Address);
-    ui8Temp &= ~ui8Mask;
-    am1805_reg_write(ui8Address, ui8Temp);
+  ui8Temp = am1805_reg_read(ui8Address);
+  ui8Temp &= ~ui8Mask;
+  am1805_reg_write(ui8Address, ui8Temp);
 }
 
 //! @brief Reads a block of internal registers in the AM1805.
@@ -168,8 +168,7 @@ static void am1805_reg_clear(uint8_t ui8Address, uint8_t ui8Mask)
 //! @return None
 //
 //*****************************************************************************
-static void am1805_reg_block_read(const uint8_t ui8StartRegister, uint8_t *pui8Values,
-                                    const uint8_t ui8NumBytes)
+static void am1805_reg_block_read(const uint8_t ui8StartRegister, uint8_t *pui8Values, const uint8_t ui8NumBytes)
 {
   uint8_t ui8Offset = ui8StartRegister;
 
@@ -191,12 +190,11 @@ static void am1805_reg_block_read(const uint8_t ui8StartRegister, uint8_t *pui8V
 //! @return None
 //
 //*****************************************************************************
-static void am1805_reg_block_write(const uint8_t ui8StartRegister, uint8_t *pui8Values,
-                                     const uint8_t ui8NumBytes)
+static void am1805_reg_block_write(const uint8_t ui8StartRegister, uint8_t *pui8Values, const uint8_t ui8NumBytes)
 {
-    uint8_t ui8Offset = ui8StartRegister;
+  uint8_t ui8Offset = ui8StartRegister;
 
-    HAL_I2C_Mem_Write(&hi2c1, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
+  HAL_I2C_Mem_Write(&hi2c1, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
 }
 
 //*****************************************************************************
@@ -220,61 +218,58 @@ void am1805_reset(void)
 //
 //! @brief Get the time.
 //!
-//! @param psDevice is a pointer to a device structure describing the AMx8x5.
-//!
 //! This function loads the g_psTimeRegs structure with the time from the
-//! AMX8XX.
+//! AM1805.
 //!
 //! @return None.
 //
 //*****************************************************************************
-void
-am1805_time_get(void)
+void am1805_time_get(void)
 {
-    uint8_t psTempBuff[8];
+  uint8_t psTempBuff[8];
 
-    //
-    // Read the counters.
-    //
-    am1805_reg_block_read(AM1805_HUNDREDTHS, psTempBuff, 8);
+  //
+  // Read the counters.
+  //
+  am1805_reg_block_read(AM1805_HUNDREDTHS, psTempBuff, 8);
 
-    g_psTimeRegs.ui8Hundredth = bcd_to_dec(psTempBuff[0]);
-    g_psTimeRegs.ui8Second    = bcd_to_dec(psTempBuff[1]);
-    g_psTimeRegs.ui8Minute    = bcd_to_dec(psTempBuff[2]);
-    g_psTimeRegs.ui8Hour      = psTempBuff[3];
-    g_psTimeRegs.ui8Date      = bcd_to_dec(psTempBuff[4]);
-    g_psTimeRegs.ui8Month     = bcd_to_dec(psTempBuff[5]);
-    g_psTimeRegs.ui8Year      = bcd_to_dec(psTempBuff[6]);
-    g_psTimeRegs.ui8Weekday   = bcd_to_dec(psTempBuff[7]);
+  g_psTimeRegs.ui8Hundredth = bcd_to_dec(psTempBuff[0]);
+  g_psTimeRegs.ui8Second = bcd_to_dec(psTempBuff[1]);
+  g_psTimeRegs.ui8Minute = bcd_to_dec(psTempBuff[2]);
+  g_psTimeRegs.ui8Hour = psTempBuff[3];
+  g_psTimeRegs.ui8Date = bcd_to_dec(psTempBuff[4]);
+  g_psTimeRegs.ui8Month = bcd_to_dec(psTempBuff[5]);
+  g_psTimeRegs.ui8Year = bcd_to_dec(psTempBuff[6]);
+  g_psTimeRegs.ui8Weekday = bcd_to_dec(psTempBuff[7]);
 
+  //
+  // Get the current hours format mode 12:24.
+  //
+  psTempBuff[0] = am1805_reg_read(AM1805_CONTROL_1);
+  if ((psTempBuff[0] & 0x40) == 0)
+  {
     //
-    // Get the current hours format mode 12:24.
+    // 24-hour mode.
     //
-    psTempBuff[0] = am1805_reg_read(AM1805_CONTROL_1);
-    if ((psTempBuff[0] & 0x40) == 0)
-    {
-        //
-        // 24-hour mode.
-        //
-        g_psTimeRegs.ui8Mode = 2;
-        g_psTimeRegs.ui8Hour = g_psTimeRegs.ui8Hour & 0x3F;
-    }
-    else
-    {
-        //
-        // 12-hour mode.  Get PM:AM.
-        //
-        g_psTimeRegs.ui8Mode = (g_psTimeRegs.ui8Hour & 0x20) ? 1 : 0;
-        g_psTimeRegs.ui8Hour &= 0x1F;
-    }
+    g_psTimeRegs.ui8Mode = 2;
+    g_psTimeRegs.ui8Hour = g_psTimeRegs.ui8Hour & 0x3F;
+  }
+  else
+  {
+    //
+    // 12-hour mode.  Get PM:AM.
+    //
+    g_psTimeRegs.ui8Mode = (g_psTimeRegs.ui8Hour & 0x20) ? 1 : 0;
+    g_psTimeRegs.ui8Hour &= 0x1F;
+  }
 
-    g_psTimeRegs.ui8Hour = bcd_to_dec(g_psTimeRegs.ui8Hour);
+  g_psTimeRegs.ui8Hour = bcd_to_dec(g_psTimeRegs.ui8Hour);
 
-    //
-    // Get the century bit.
-    //
-    psTempBuff[0] = am1805_reg_read(AM1805_STATUS);
-    g_psTimeRegs.ui8Century = (psTempBuff[0] & 0x80) ? 1 : 0;
+  //
+  // Get the century bit.
+  //
+  psTempBuff[0] = am1805_reg_read(AM1805_STATUS);
+  g_psTimeRegs.ui8Century = (psTempBuff[0] & 0x80) ? 1 : 0;
 }
 
 //*****************************************************************************
@@ -291,100 +286,99 @@ am1805_time_get(void)
 //*****************************************************************************
 void am1805_time_set(uint8_t ui8Protect)
 {
-   uint8_t psTempBuff[8];
+  uint8_t psTempBuff[8];
 
-    //
-    // Convert decimal to binary-coded decimal.
-    //
-    g_psTimeRegs.ui8Hundredth = dec_to_bcd(g_psTimeRegs.ui8Hundredth);
-    g_psTimeRegs.ui8Second = dec_to_bcd(g_psTimeRegs.ui8Second);
-    g_psTimeRegs.ui8Minute = dec_to_bcd(g_psTimeRegs.ui8Minute);
-    g_psTimeRegs.ui8Hour = dec_to_bcd(g_psTimeRegs.ui8Hour);
-    g_psTimeRegs.ui8Date = dec_to_bcd(g_psTimeRegs.ui8Date);
-    g_psTimeRegs.ui8Weekday = dec_to_bcd(g_psTimeRegs.ui8Weekday);
-    g_psTimeRegs.ui8Month = dec_to_bcd(g_psTimeRegs.ui8Month);
-    g_psTimeRegs.ui8Year = dec_to_bcd(g_psTimeRegs.ui8Year);
+  //
+  // Convert decimal to binary-coded decimal.
+  //
+  g_psTimeRegs.ui8Hundredth = dec_to_bcd(g_psTimeRegs.ui8Hundredth);
+  g_psTimeRegs.ui8Second = dec_to_bcd(g_psTimeRegs.ui8Second);
+  g_psTimeRegs.ui8Minute = dec_to_bcd(g_psTimeRegs.ui8Minute);
+  g_psTimeRegs.ui8Hour = dec_to_bcd(g_psTimeRegs.ui8Hour);
+  g_psTimeRegs.ui8Date = dec_to_bcd(g_psTimeRegs.ui8Date);
+  g_psTimeRegs.ui8Weekday = dec_to_bcd(g_psTimeRegs.ui8Weekday);
+  g_psTimeRegs.ui8Month = dec_to_bcd(g_psTimeRegs.ui8Month);
+  g_psTimeRegs.ui8Year = dec_to_bcd(g_psTimeRegs.ui8Year);
 
-    //
-    // Determine whether 12 or 24-hour timekeeping mode is being used and set
-    // the 1224 bit appropriately.
-    // 24-hour day.
-    //
-    if (g_psTimeRegs.ui8Mode == AM1805_24HR_MODE)
-    {
-        am1805_reg_clear(AM1805_CONTROL_1, 0x40);
-    }
+  //
+  // Determine whether 12 or 24-hour timekeeping mode is being used and set
+  // the 1224 bit appropriately.
+  // 24-hour day.
+  //
+  if (g_psTimeRegs.ui8Mode == AM1805_24HR_MODE)
+  {
+    am1805_reg_clear(AM1805_CONTROL_1, 0x40);
+  }
 
+  //
+  // 12-hour day PM.
+  //
+  else if (g_psTimeRegs.ui8Mode == AM1805_12HR_MODE)
+  {
     //
-    // 12-hour day PM.
+    // Set AM/PM.
     //
-    else if (g_psTimeRegs.ui8Mode == AM1805_12HR_MODE)
-    {
-        //
-        // Set AM/PM.
-        //
-        g_psTimeRegs.ui8Hour |= 0x20;
-        am1805_reg_set(AM1805_CONTROL_1, 0x40);
-    }
+    g_psTimeRegs.ui8Hour |= 0x20;
+    am1805_reg_set(AM1805_CONTROL_1, 0x40);
+  }
 
-    //
-    // 12-hour day AM.
-    //
-    else
-    {
-        am1805_reg_set(AM1805_CONTROL_1, 0x40);
-    }
+  //
+  // 12-hour day AM.
+  //
+  else
+  {
+    am1805_reg_set(AM1805_CONTROL_1, 0x40);
+  }
 
-    //
-    // Set the WRTC bit to enable counter writes.
-    //
-    am1805_reg_set(AM1805_CONTROL_1, 0x01);
+  //
+  // Set the WRTC bit to enable counter writes.
+  //
+  am1805_reg_set(AM1805_CONTROL_1, 0x01);
 
-    //
-    // Set the correct century.
-    //
-    if (g_psTimeRegs.ui8Century == 0)
-    {
-        am1805_reg_clear(AM1805_STATUS, 0x80);
-    }
-    else
-    {
-        am1805_reg_set(AM1805_STATUS, 0x80);
-    }
+  //
+  // Set the correct century.
+  //
+  if (g_psTimeRegs.ui8Century == 0)
+  {
+    am1805_reg_clear(AM1805_STATUS, 0x80);
+  }
+  else
+  {
+    am1805_reg_set(AM1805_STATUS, 0x80);
+  }
 
-    //
-    // Write all of the time counters.
-    //
-    psTempBuff[0] = g_psTimeRegs.ui8Hundredth;
-    psTempBuff[1] = g_psTimeRegs.ui8Second;
-    psTempBuff[2] = g_psTimeRegs.ui8Minute;
-    psTempBuff[3] = g_psTimeRegs.ui8Hour;
-    psTempBuff[4] = g_psTimeRegs.ui8Date;
-    psTempBuff[5] = g_psTimeRegs.ui8Month;
-    psTempBuff[6] = g_psTimeRegs.ui8Year;
-    psTempBuff[7] = g_psTimeRegs.ui8Weekday;
+  //
+  // Write all of the time counters.
+  //
+  psTempBuff[0] = g_psTimeRegs.ui8Hundredth;
+  psTempBuff[1] = g_psTimeRegs.ui8Second;
+  psTempBuff[2] = g_psTimeRegs.ui8Minute;
+  psTempBuff[3] = g_psTimeRegs.ui8Hour;
+  psTempBuff[4] = g_psTimeRegs.ui8Date;
+  psTempBuff[5] = g_psTimeRegs.ui8Month;
+  psTempBuff[6] = g_psTimeRegs.ui8Year;
+  psTempBuff[7] = g_psTimeRegs.ui8Weekday;
 
-    //
-    // Write the values to the AMX8X5.
-    //
-    am1805_reg_block_write(AM1805_HUNDREDTHS, psTempBuff, 8);
+  //
+  // Write the values to the AMX8X5.
+  //
+  am1805_reg_block_write(AM1805_HUNDREDTHS, psTempBuff, 8);
 
-    //
-    // Load the final value of the WRTC bit based on the value of ui8Protect.
-    // Clear the WRTC bit and the STOP bit.
-    // Invert the protect bit and update WRTC.
-    //
-    psTempBuff[0] = am1805_reg_read(AM1805_CONTROL_1);
-    psTempBuff[0] &= 0x7E;
-    psTempBuff[0] |= (0x01 & (~ui8Protect));
-    am1805_reg_write(AM1805_CONTROL_1, psTempBuff[0]);
+  //
+  // Load the final value of the WRTC bit based on the value of ui8Protect.
+  // Clear the WRTC bit and the STOP bit.
+  // Invert the protect bit and update WRTC.
+  //
+  psTempBuff[0] = am1805_reg_read(AM1805_CONTROL_1);
+  psTempBuff[0] &= 0x7E;
+  psTempBuff[0] |= (0x01 & (~ui8Protect));
+  am1805_reg_write(AM1805_CONTROL_1, psTempBuff[0]);
 }
 
 ////*****************************************************************************
 ////
 ////! @brief Set the calibration.
 ////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
 ////! @param  ui8Mode:
 ////!        0 => calibrate the XT oscillator
 ////!        1 => calibrate the RC oscillator
