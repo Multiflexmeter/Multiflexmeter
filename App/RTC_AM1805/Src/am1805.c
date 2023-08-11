@@ -88,7 +88,7 @@ void am1805_reg_write(const uint8_t ui8Register, const uint8_t ui8Value)
 {
   uint8_t ui8Data = ui8Value;
 
-  HAL_I2C_Mem_Write(&hi2c2, AM1805_ADDRESS, ui8Register, 1, &ui8Data, 1, 100);
+  HAL_I2C_Mem_Write(&hi2c1, AM1805_ADDRESS, ui8Register, 1, &ui8Data, 1, 100);
 }
 
 //*****************************************************************************
@@ -107,7 +107,7 @@ uint8_t am1805_reg_read(const uint8_t ui8Register)
     uint8_t data;
 
     // Read a single i2c register
-    HAL_I2C_Mem_Read(&hi2c2, AM1805_ADDRESS, ui8Register, 1, &data, 1, 100);
+    HAL_I2C_Mem_Read(&hi2c1, AM1805_ADDRESS, ui8Register, 1, &data, 1, 100);
 
     return data;
 }
@@ -1628,7 +1628,7 @@ void am1805_reg_block_read(const uint8_t ui8StartRegister, uint8_t *pui8Values,
 {
   uint8_t ui8Offset = ui8StartRegister;
 
-  HAL_I2C_Mem_Read(&hi2c2, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
+  HAL_I2C_Mem_Read(&hi2c1, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
 
 }
 
@@ -1651,7 +1651,7 @@ void am1805_reg_block_write(const uint8_t ui8StartRegister, uint8_t *pui8Values,
 {
     uint8_t ui8Offset = ui8StartRegister;
 
-    HAL_I2C_Mem_Write(&hi2c2, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
+    HAL_I2C_Mem_Write(&hi2c1, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
 }
 
 ////*****************************************************************************

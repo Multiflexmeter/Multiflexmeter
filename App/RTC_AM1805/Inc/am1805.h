@@ -128,7 +128,7 @@ typedef struct
 } am1805_time_t;
 
 extern am1805_time_t g_psTimeRegs;
-extern I2C_HandleTypeDef hi2c2;
+extern I2C_HandleTypeDef hi2c1;
 
 //*****************************************************************************
 //
