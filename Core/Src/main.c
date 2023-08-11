@@ -47,6 +47,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../../App/CommConfig.h"
+#include "../../App/RTC_AM1805/Inc/am1805.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -124,7 +125,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
     MX_LoRaWAN_Process();
-
+    am1805_reset();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
