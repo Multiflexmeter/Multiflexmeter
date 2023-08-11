@@ -150,6 +150,16 @@ __weak const uint8_t * getDeviceId(void)
 }
 
 /**
+ * @brief weak function setDeviceId(), can be override in application code.
+ *
+ * @return
+ */
+__weak const void setDeviceId(const uint8_t * joinEui)
+{
+  SecureElementSetDevEui( (uint8_t *)joinEui );
+}
+
+/**
  * @brief weak function getAppKey(), can be override in application code.
  *
  * @return
@@ -260,6 +270,7 @@ void sendBatterijStatus(int arguments, const char * format, ...);
 void sendVbusStatus(int arguments, const char * format, ...);
 
 void rcvJoinId(int arguments, const char * format, ...);
+void rcvDeviceID(int arguments, const char * format, ...);
 void rcvAppKey(int arguments, const char * format, ...);
 void rcvSensor(int arguments, const char * format, ...);
 void rcvReadInterval(int arguments, const char * format, ...);
@@ -358,6 +369,12 @@ struct_commands stCommandsSet[] =
         sizeof(cmdJoinId) - 1,
         rcvJoinId,
         1,
+    },
+    {
+        cmdDeviceId,
+        sizeof(cmdDeviceId) - 1,
+        rcvDeviceID,
+        0,
     },
     {
         cmdAppKey,
@@ -702,6 +719,41 @@ void sendDeviceID(int arguments, const char * format, ...)
 
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdDeviceId, HEX8( getDeviceId() ) );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+}
+
+/**
+ * @brief receive DeviceId from config uart.
+ *
+ * @param arguments not used
+ */
+void rcvDeviceID(int arguments, const char * format, ...)
+{
+
+  char *ptr; //dummy pointer
+
+    uint8_t joinEui[SE_EUI_SIZE]={0}; //set all elements to zero
+    int i = SE_EUI_SIZE - 1; //start at last element.
+    uint64_t JoinId = 0;
+
+    if( format[0] == '=' && format[1] == '0' && format[2] == 'x')
+    {
+
+      JoinId = strtoull(&format[1], &ptr, 0); // convert string 0x## to uint64_t
+                                             // <endptr> : not used
+                                             // <base> = 0 : An optional prefix indicating octal or hexadecimal base ("0" or "0x"/"0X" respectively)
+
+      //save each byte in uint8_t array.
+      do{
+        joinEui[i] = JoinId & 0xFF; //save one byte, start at end element.
+        JoinId>>=8; //shift one byte (8bits) to right to get next byte.
+      }while(i--); //untill all elements are done
+
+      setDeviceId(joinEui); //set new JoinId.
+    }
+
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdDeviceId, HEX8( getDeviceId() ) );
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
 
