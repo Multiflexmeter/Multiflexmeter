@@ -67,7 +67,7 @@ uint8_t bcd_to_dec(uint8_t ui8BCDByte)
 // Converts a Decimal byte to its Binary Coded Decimal (BCD) form.
 //
 //*****************************************************************************
-uint8_t dec_to_bcd(uint8_t ui8DecimalByte)
+static uint8_t dec_to_bcd(uint8_t ui8DecimalByte)
 {
   return (((ui8DecimalByte / 10) << 4) | (ui8DecimalByte % 10));
 }
@@ -84,7 +84,7 @@ uint8_t dec_to_bcd(uint8_t ui8DecimalByte)
 //! @return
 //
 //*****************************************************************************
-void am1805_reg_write(const uint8_t ui8Register, const uint8_t ui8Value)
+static void am1805_reg_write(const uint8_t ui8Register, const uint8_t ui8Value)
 {
   uint8_t ui8Data = ui8Value;
 
@@ -102,7 +102,7 @@ void am1805_reg_write(const uint8_t ui8Register, const uint8_t ui8Value)
 //! @return
 //
 //*****************************************************************************
-uint8_t am1805_reg_read(const uint8_t ui8Register)
+static uint8_t am1805_reg_read(const uint8_t ui8Register)
 {
     uint8_t data;
 
@@ -110,28 +110,6 @@ uint8_t am1805_reg_read(const uint8_t ui8Register)
     HAL_I2C_Mem_Read(&hi2c1, AM1805_ADDRESS, ui8Register, 1, &data, 1, 100);
 
     return data;
-}
-
-//*****************************************************************************
-//
-//! @brief Clear one or more bits.
-//!
-//! @param ui8Address - RTC address.
-//! @param ui8Mask - Bits to clear.
-//!
-//! This function clears one or more bits in the selected register, selected by
-//! 1's in the mask.
-//!
-//! @return None.
-//
-//*****************************************************************************
-void am1805_reg_clear(uint8_t ui8Address, uint8_t ui8Mask)
-{
-    uint8_t ui8Temp;
-
-    ui8Temp = am1805_reg_read(ui8Address);
-    ui8Temp &= ~ui8Mask;
-    am1805_reg_write(ui8Address, ui8Temp);
 }
 
 //*****************************************************************************
@@ -147,7 +125,7 @@ void am1805_reg_clear(uint8_t ui8Address, uint8_t ui8Mask)
 //! @return None.
 //
 //*****************************************************************************
-void am1805_reg_set(uint8_t ui8Address, uint8_t ui8Mask)
+static void am1805_reg_set(uint8_t ui8Address, uint8_t ui8Mask)
 {
     uint8_t ui8Temp;
 
@@ -156,6 +134,70 @@ void am1805_reg_set(uint8_t ui8Address, uint8_t ui8Mask)
     am1805_reg_write(ui8Address, ui8Temp);
 }
 
+//*****************************************************************************
+//
+//! @brief Clear one or more bits.
+//!
+//! @param ui8Address - RTC address.
+//! @param ui8Mask - Bits to clear.
+//!
+//! This function clears one or more bits in the selected register, selected by
+//! 1's in the mask.
+//!
+//! @return None.
+//
+//*****************************************************************************
+static void am1805_reg_clear(uint8_t ui8Address, uint8_t ui8Mask)
+{
+    uint8_t ui8Temp;
+
+    ui8Temp = am1805_reg_read(ui8Address);
+    ui8Temp &= ~ui8Mask;
+    am1805_reg_write(ui8Address, ui8Temp);
+}
+
+//! @brief Reads a block of internal registers in the AM1805.
+//!
+//! @param ui8StartRegister is the address of the first register to read.
+//! @param pui8Values is the byte-packed array where the read data will go.
+//! @param ui8NumBytes is the total number of registers to read.
+//!
+//! This function performs a read to a block of AMx8x5 registers over the
+//! I2C bus.
+//!
+//! @return None
+//
+//*****************************************************************************
+static void am1805_reg_block_read(const uint8_t ui8StartRegister, uint8_t *pui8Values,
+                                const uint8_t ui8NumBytes)
+{
+  uint8_t ui8Offset = ui8StartRegister;
+
+  HAL_I2C_Mem_Read(&hi2c1, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
+
+}
+
+//*****************************************************************************
+
+//! @brief Writes a block of internal registers in the AMx8x5.
+//!
+//! @param ui8StartRegister is the address of the first register to write.
+//! @param pui8Values is the byte-packed array of data to write.
+//! @param ui8NumBytes is the total number of registers to write.
+//!
+//! This function performs a write to a block of AM1805 registers over the
+//! I2C bus.
+//!
+//! @return None
+//
+//*****************************************************************************
+static void am1805_reg_block_write(const uint8_t ui8StartRegister, uint8_t *pui8Values,
+                                 const uint8_t ui8NumBytes)
+{
+    uint8_t ui8Offset = ui8StartRegister;
+
+    HAL_I2C_Mem_Write(&hi2c1, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
+}
 
 //*****************************************************************************
 //
@@ -194,7 +236,7 @@ void am1805_reset(void)
 //    //
 //    // Read the counters.
 //    //
-//    am1805_reg_block_read(psDevice, AM_DEVICES_AMX8X5_HUNDREDTHS,
+//    am1805_reg_block_read(psDevice, AM1805_HUNDREDTHS,
 //                                     psTempBuff.words, 8,
 //                                     NULL);
 //
@@ -211,7 +253,7 @@ void am1805_reset(void)
 //    // Get the current hours format mode 12:24.
 //    //
 //    psTempBuff.bytes[0] = am1805_reg_read(psDevice,
-//                                                 AM_DEVICES_AMX8X5_CONTROL_1);
+//                                                 AM1805_CONTROL_1);
 //    if ((psTempBuff.bytes[0] & 0x40) == 0)
 //    {
 //        //
@@ -235,123 +277,114 @@ void am1805_reset(void)
 //    // Get the century bit.
 //    //
 //    psTempBuff.bytes[0] = am1805_reg_read(psDevice,
-//                                                 AM_DEVICES_AMX8X5_STATUS);
+//                                                 AM1805_STATUS);
 //    g_psTimeRegs.ui8Century = (psTempBuff.bytes[0] & 0x80) ? 1 : 0;
 //}
 //
-////*****************************************************************************
-////
-////! @brief Set the time in the counters.
-////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
-////! @param ui8Protect:  0 => leave counters writable
-////!                     1 => leave counters unwritable
-////!
-////! This function loads the AMX8XX counter registers with the current
-////! g_psTimeRegs structure values.
-////!
-////! @return None
-////
-////*****************************************************************************
-//void
-//am1805_time_set(am1805_t *psDevice, uint8_t ui8Protect)
-//{
-//    am_hal_iom_buffer(8) psTempBuff;
+//*****************************************************************************
 //
-//    //
-//    // Convert decimal to binary-coded decimal.
-//    //
-//    g_psTimeRegs.ui8Hundredth = dec_to_bcd(
-//                                             g_psTimeRegs.ui8Hundredth);
-//    g_psTimeRegs.ui8Second = dec_to_bcd(g_psTimeRegs.ui8Second);
-//    g_psTimeRegs.ui8Minute = dec_to_bcd(g_psTimeRegs.ui8Minute);
-//    g_psTimeRegs.ui8Hour = dec_to_bcd(g_psTimeRegs.ui8Hour);
-//    g_psTimeRegs.ui8Date = dec_to_bcd(g_psTimeRegs.ui8Date);
-//    g_psTimeRegs.ui8Weekday = dec_to_bcd(g_psTimeRegs.ui8Weekday);
-//    g_psTimeRegs.ui8Month = dec_to_bcd(g_psTimeRegs.ui8Month);
-//    g_psTimeRegs.ui8Year = dec_to_bcd(g_psTimeRegs.ui8Year);
+//! @brief Set the time in the counters.
+//!
+//! @param ui8Protect:  0 => leave counters writable
+//!                     1 => leave counters unwritable
+//!
+//! This function loads the AM1805 counter registers with the current
+//! g_psTimeRegs structure values.
+//!
+//! @return None
 //
-//    //
-//    // Determine whether 12 or 24-hour timekeeping mode is being used and set
-//    // the 1224 bit appropriately.
-//    // 24-hour day.
-//    //
-//    if (g_psTimeRegs.ui8Mode == AM_DEVICES_AMX8X5_24HR_MODE)
-//    {
-//        am1805_reg_clear(psDevice, AM_DEVICES_AMX8X5_CONTROL_1,
-//                                    0x40);
-//    }
-//
-//    //
-//    // 12-hour day PM.
-//    //
-//    else if (g_psTimeRegs.ui8Mode == AM_DEVICES_AMX8X5_12HR_MODE)
-//    {
-//        //
-//        // Set AM/PM.
-//        //
-//        g_psTimeRegs.ui8Hour |= 0x20;
-//        am1805_reg_set(psDevice, AM_DEVICES_AMX8X5_CONTROL_1, 0x40);
-//    }
-//
-//    //
-//    // 12-hour day AM.
-//    //
-//    else
-//    {
-//        am1805_reg_set(psDevice, AM_DEVICES_AMX8X5_CONTROL_1, 0x40);
-//    }
-//
-//    //
-//    // Set the WRTC bit to enable counter writes.
-//    //
-//    am1805_reg_set(psDevice, AM_DEVICES_AMX8X5_CONTROL_1, 0x01);
-//
-//    //
-//    // Set the correct century.
-//    //
-//    if (g_psTimeRegs.ui8Century == 0)
-//    {
-//        am1805_reg_clear(psDevice, AM_DEVICES_AMX8X5_STATUS, 0x80);
-//    }
-//    else
-//    {
-//        am1805_reg_set(psDevice, AM_DEVICES_AMX8X5_STATUS, 0x80);
-//    }
-//
-//    //
-//    // Write all of the time counters.
-//    //
-//    psTempBuff.bytes[0] = g_psTimeRegs.ui8Hundredth;
-//    psTempBuff.bytes[1] = g_psTimeRegs.ui8Second;
-//    psTempBuff.bytes[2] = g_psTimeRegs.ui8Minute;
-//    psTempBuff.bytes[3] = g_psTimeRegs.ui8Hour;
-//    psTempBuff.bytes[4] = g_psTimeRegs.ui8Date;
-//    psTempBuff.bytes[5] = g_psTimeRegs.ui8Month;
-//    psTempBuff.bytes[6] = g_psTimeRegs.ui8Year;
-//    psTempBuff.bytes[7] = g_psTimeRegs.ui8Weekday;
-//
-//    //
-//    // Write the values to the AMX8X5.
-//    //
-//    am1805_reg_block_write(psDevice, AM_DEVICES_AMX8X5_HUNDREDTHS,
-//                                      psTempBuff.words,
-//                                      8, NULL);
-//
-//    //
-//    // Load the final value of the WRTC bit based on the value of ui8Protect.
-//    // Clear the WRTC bit and the STOP bit.
-//    // Invert the protect bit and update WRTC.
-//    //
-//    psTempBuff.bytes[0] = am1805_reg_read(psDevice,
-//                                                AM_DEVICES_AMX8X5_CONTROL_1);
-//    psTempBuff.bytes[0] &= 0x7E;
-//    psTempBuff.bytes[0] |= (0x01 & (~ui8Protect));
-//    am1805_reg_write(psDevice,
-//                                AM_DEVICES_AMX8X5_CONTROL_1,
-//                                psTempBuff.bytes[0]);
-//}
-//
+//*****************************************************************************
+void am1805_time_set(uint8_t ui8Protect)
+{
+   uint8_t psTempBuff[8];
+
+    //
+    // Convert decimal to binary-coded decimal.
+    //
+    g_psTimeRegs.ui8Hundredth = dec_to_bcd(g_psTimeRegs.ui8Hundredth);
+    g_psTimeRegs.ui8Second = dec_to_bcd(g_psTimeRegs.ui8Second);
+    g_psTimeRegs.ui8Minute = dec_to_bcd(g_psTimeRegs.ui8Minute);
+    g_psTimeRegs.ui8Hour = dec_to_bcd(g_psTimeRegs.ui8Hour);
+    g_psTimeRegs.ui8Date = dec_to_bcd(g_psTimeRegs.ui8Date);
+    g_psTimeRegs.ui8Weekday = dec_to_bcd(g_psTimeRegs.ui8Weekday);
+    g_psTimeRegs.ui8Month = dec_to_bcd(g_psTimeRegs.ui8Month);
+    g_psTimeRegs.ui8Year = dec_to_bcd(g_psTimeRegs.ui8Year);
+
+    //
+    // Determine whether 12 or 24-hour timekeeping mode is being used and set
+    // the 1224 bit appropriately.
+    // 24-hour day.
+    //
+    if (g_psTimeRegs.ui8Mode == AM1805_24HR_MODE)
+    {
+        am1805_reg_clear(AM1805_CONTROL_1, 0x40);
+    }
+
+    //
+    // 12-hour day PM.
+    //
+    else if (g_psTimeRegs.ui8Mode == AM1805_12HR_MODE)
+    {
+        //
+        // Set AM/PM.
+        //
+        g_psTimeRegs.ui8Hour |= 0x20;
+        am1805_reg_set(AM1805_CONTROL_1, 0x40);
+    }
+
+    //
+    // 12-hour day AM.
+    //
+    else
+    {
+        am1805_reg_set(AM1805_CONTROL_1, 0x40);
+    }
+
+    //
+    // Set the WRTC bit to enable counter writes.
+    //
+    am1805_reg_set(AM1805_CONTROL_1, 0x01);
+
+    //
+    // Set the correct century.
+    //
+    if (g_psTimeRegs.ui8Century == 0)
+    {
+        am1805_reg_clear(AM1805_STATUS, 0x80);
+    }
+    else
+    {
+        am1805_reg_set(AM1805_STATUS, 0x80);
+    }
+
+    //
+    // Write all of the time counters.
+    //
+    psTempBuff[0] = g_psTimeRegs.ui8Hundredth;
+    psTempBuff[1] = g_psTimeRegs.ui8Second;
+    psTempBuff[2] = g_psTimeRegs.ui8Minute;
+    psTempBuff[3] = g_psTimeRegs.ui8Hour;
+    psTempBuff[4] = g_psTimeRegs.ui8Date;
+    psTempBuff[5] = g_psTimeRegs.ui8Month;
+    psTempBuff[6] = g_psTimeRegs.ui8Year;
+    psTempBuff[7] = g_psTimeRegs.ui8Weekday;
+
+    //
+    // Write the values to the AMX8X5.
+    //
+    am1805_reg_block_write(AM1805_HUNDREDTHS, psTempBuff, 8);
+
+    //
+    // Load the final value of the WRTC bit based on the value of ui8Protect.
+    // Clear the WRTC bit and the STOP bit.
+    // Invert the protect bit and update WRTC.
+    //
+    psTempBuff[0] = am1805_reg_read(AM1805_CONTROL_1);
+    psTempBuff[0] &= 0x7E;
+    psTempBuff[0] |= (0x01 & (~ui8Protect));
+    am1805_reg_write(AM1805_CONTROL_1, psTempBuff[0]);
+}
+
 ////*****************************************************************************
 ////
 ////! @brief Set the calibration.
@@ -461,13 +494,13 @@ void am1805_reset(void)
 //        // Load the CALX register.
 //        //
 //        am1805_reg_write(psDevice,
-//                                    AM_DEVICES_AMX8X5_CAL_XT, ui8Adjreg);
+//                                    AM1805_CAL_XT, ui8Adjreg);
 //
 //        //
 //        // Mask ui8XTcal.
 //        //
 //        ui8Adjreg = am1805_reg_read(psDevice,
-//                                           AM_DEVICES_AMX8X5_OSC_STATUS) & 0x3F;
+//                                           AM1805_OSC_STATUS) & 0x3F;
 //
 //        //
 //        // Add ui8XTcal field.
@@ -478,7 +511,7 @@ void am1805_reset(void)
 //        // Write it back.
 //        //
 //        am1805_reg_write(psDevice,
-//                                    AM_DEVICES_AMX8X5_OSC_STATUS, ui8Adjreg);
+//                                    AM1805_OSC_STATUS, ui8Adjreg);
 //    }
 //    else
 //    {
@@ -570,13 +603,13 @@ void am1805_reset(void)
 //        // Load the CALRU register.
 //        //
 //        am1805_reg_write(psDevice,
-//                                    AM_DEVICES_AMX8X5_CAL_RC_HI, ui8Adjregu);
+//                                    AM1805_CAL_RC_HI, ui8Adjregu);
 //
 //        //
 //        // Load the CALRL register.
 //        //
 //        am1805_reg_write(psDevice,
-//                                    AM_DEVICES_AMX8X5_CAL_RC_LOW, ui8Adjreg);
+//                                    AM1805_CAL_RC_LOW, ui8Adjreg);
 //    }
 //}
 //
@@ -662,9 +695,9 @@ void am1805_reset(void)
 //    // Clear the AIE bit IM field.
 //    // Clear the ALM flag.
 //    //
-//    am1805_reg_clear(psDevice, AM_DEVICES_AMX8X5_TIMER_CTRL, 0x1C);
-//    am1805_reg_clear(psDevice, AM_DEVICES_AMX8X5_INT_MASK, 0x64);
-//    am1805_reg_clear(psDevice, AM_DEVICES_AMX8X5_STATUS, 0x04);
+//    am1805_reg_clear(psDevice, AM1805_TIMER_CTRL, 0x1C);
+//    am1805_reg_clear(psDevice, AM1805_INT_MASK, 0x64);
+//    am1805_reg_clear(psDevice, AM1805_STATUS, 0x04);
 //
 //    if (ui8Pin == 1)
 //    {
@@ -673,7 +706,7 @@ void am1805_reset(void)
 //        // Get the Control2 Register.
 //        //
 //        ui8Temp = am1805_reg_read(psDevice,
-//                                             AM_DEVICES_AMX8X5_CONTROL_2);
+//                                             AM1805_CONTROL_2);
 //
 //        //
 //        // Extract the OUT1S field.
@@ -689,7 +722,7 @@ void am1805_reset(void)
 //            // Set OUT1S to 3.
 //            //
 //            am1805_reg_set(psDevice,
-//                                      AM_DEVICES_AMX8X5_CONTROL_2, 0x03);
+//                                      AM1805_CONTROL_2, 0x03);
 //        }
 //    }
 //    if (ui8Pin == 2)
@@ -699,7 +732,7 @@ void am1805_reset(void)
 //        // Get the Control2 Register.
 //        //
 //        ui8Temp = am1805_reg_read(psDevice,
-//                                             AM_DEVICES_AMX8X5_CONTROL_2);
+//                                             AM1805_CONTROL_2);
 //
 //        //
 //        // Extract the OUT2S field.
@@ -715,9 +748,9 @@ void am1805_reset(void)
 //            // Clear OUT2S & Set OUT2S to 3.
 //            //
 //            am1805_reg_clear(psDevice,
-//                                        AM_DEVICES_AMX8X5_CONTROL_2, 0x1C);
+//                                        AM1805_CONTROL_2, 0x1C);
 //            am1805_reg_set(psDevice,
-//                                      AM_DEVICES_AMX8X5_CONTROL_2, 0x0C);
+//                                      AM1805_CONTROL_2, 0x0C);
 //        }
 //    }
 //
@@ -757,20 +790,20 @@ void am1805_reset(void)
 //        // Set the AIE bit.
 //        //
 //        am1805_reg_set(psDevice,
-//                                  AM_DEVICES_AMX8X5_TIMER_CTRL, ui8Temp);
-//        am1805_reg_set(psDevice, AM_DEVICES_AMX8X5_INT_MASK,
+//                                  AM1805_TIMER_CTRL, ui8Temp);
+//        am1805_reg_set(psDevice, AM1805_INT_MASK,
 //                                  (ui8IntMode << 5));
 //        am1805_reg_block_write(psDevice,
-//                                          AM_DEVICES_AMX8X5_ALARM_HUNDRS,
+//                                          AM1805_ALARM_HUNDRS,
 //                                          psTempBuff.words, 7, NULL);
-//        am1805_reg_set(psDevice, AM_DEVICES_AMX8X5_INT_MASK, 0x04);
+//        am1805_reg_set(psDevice, AM1805_INT_MASK, 0x04);
 //    }
 //    else
 //    {
 //        //
 //        // Set IM field to 0x3 (reset value) to minimize current draw.
 //        //
-//        am1805_reg_set(psDevice, AM_DEVICES_AMX8X5_INT_MASK, 0x60);
+//        am1805_reg_set(psDevice, AM1805_INT_MASK, 0x60);
 //    }
 //}
 //
@@ -826,7 +859,7 @@ void am1805_reset(void)
 //    // 0 = XT, 1 = RC
 //    //
 //    ui8OMODE = (am1805_reg_read(psDevice,
-//                AM_DEVICES_AMX8X5_OSC_STATUS) & 0x10) ? 1 : 0;
+//                AM1805_OSC_STATUS) & 0x10) ? 1 : 0;
 //
 //    if (ui8Pin == 0)
 //    {
@@ -995,9 +1028,9 @@ void am1805_reset(void)
 //    // Get TCTRL, keep RPT, clear TE.
 //    //
 //    ui8TCTRL = am1805_reg_read(psDevice,
-//                                          AM_DEVICES_AMX8X5_TIMER_CTRL) & 0x1C;
+//                                          AM1805_TIMER_CTRL) & 0x1C;
 //    am1805_reg_write(psDevice,
-//                                AM_DEVICES_AMX8X5_TIMER_CTRL, ui8TCTRL);
+//                                AM1805_TIMER_CTRL, ui8TCTRL);
 //
 //    //
 //    // Merge the fields.
@@ -1013,7 +1046,7 @@ void am1805_reset(void)
 //        //
 //        // Clear OUT1S.
 //        //
-//        am1805_reg_clear(psDevice, AM_DEVICES_AMX8X5_CONTROL_2, 0x3);
+//        am1805_reg_clear(psDevice, AM1805_CONTROL_2, 0x3);
 //    }
 //
 //    //
@@ -1025,7 +1058,7 @@ void am1805_reset(void)
 //        // Get OUT2S.
 //        //
 //        ui8Temp = am1805_reg_read(psDevice,
-//                                             AM_DEVICES_AMX8X5_CONTROL_2);
+//                                             AM1805_CONTROL_2);
 //
 //        //
 //        // If OUT2S != 0, set OUT2S to 5.
@@ -1038,7 +1071,7 @@ void am1805_reset(void)
 //        //
 //        // Write back.
 //        //
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_CONTROL_2,
+//        am1805_reg_write(psDevice, AM1805_CONTROL_2,
 //                                    ui8Temp);
 //    }
 //
@@ -1050,7 +1083,7 @@ void am1805_reset(void)
 //        //
 //        // Setup SQFS field and enable SQWE.
 //        //
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_SQW, 0x9B);
+//        am1805_reg_write(psDevice, AM1805_SQW, 0x9B);
 //    }
 //
 //    //
@@ -1061,7 +1094,7 @@ void am1805_reset(void)
 //        //
 //        // Setup SQFS field and enable SQWE.
 //        //
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_SQW, 0x9A);
+//        am1805_reg_write(psDevice, AM1805_SQW, 0x9A);
 //    }
 //
 //    if (ui8Pin != 0)
@@ -1073,13 +1106,13 @@ void am1805_reset(void)
 //        // Initialize the timer repeat.
 //        // Start the timer.
 //        //
-//        am1805_reg_clear(psDevice, AM_DEVICES_AMX8X5_STATUS, 0x08);
-//        am1805_reg_set(psDevice, AM_DEVICES_AMX8X5_INT_MASK, 0x08);
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_TIMER,
+//        am1805_reg_clear(psDevice, AM1805_STATUS, 0x08);
+//        am1805_reg_set(psDevice, AM1805_INT_MASK, 0x08);
+//        am1805_reg_write(psDevice, AM1805_TIMER,
 //                                    ui8Timer);
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_TIMER_INITIAL,
+//        am1805_reg_write(psDevice, AM1805_TIMER_INITIAL,
 //                                    ui8Timer);
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_TIMER_CTRL,
+//        am1805_reg_write(psDevice, AM1805_TIMER_CTRL,
 //                                    ui8TCTRL);
 //    }
 //}
@@ -1110,15 +1143,15 @@ void am1805_reset(void)
 //    // Read Oscillator Control register.
 //    //
 //    ui8Temp = am1805_reg_read(psDevice,
-//                                         AM_DEVICES_AMX8X5_OSC_CONTROL);
+//                                         AM1805_OSC_CONTROL);
 //    ui8Temp = ui8Temp & 0x67;
 //
 //    //
 //    // Enable Oscillator Register writes.
 //    // Write the Key register.
 //    //
-//    am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_CONFIG_KEY,
-//                                AM_DEVICES_AMX8X5_CONFIG_KEY_VAL);
+//    am1805_reg_write(psDevice, AM1805_CONFIG_KEY,
+//                                AM1805_CONFIG_KEY_VAL);
 //
 //    switch (ui8OSC)
 //    {
@@ -1126,7 +1159,7 @@ void am1805_reset(void)
 //        // Do nothing, clear Key register.
 //        //
 //        case 0:
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_OSC_CONTROL,
+//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
 //                                    ui8Temp);
 //        break;
 //
@@ -1135,7 +1168,7 @@ void am1805_reset(void)
 //        //
 //        case 1:
 //        ui8Temp = ui8Temp | 0x10;
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_OSC_CONTROL,
+//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
 //                                    ui8Temp);
 //        break;
 //
@@ -1144,7 +1177,7 @@ void am1805_reset(void)
 //        //
 //        default:
 //        ui8Temp = ui8Temp | 0x80;
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_OSC_CONTROL,
+//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
 //                                    ui8Temp);
 //        break;
 //    }
@@ -1160,7 +1193,7 @@ void am1805_reset(void)
 //        //
 //        am_util_delay_ms(100);
 //        ui8Temp = am1805_reg_read(psDevice,
-//                                             AM_DEVICES_AMX8X5_OSC_STATUS);
+//                                             AM1805_OSC_STATUS);
 //        ui8Temp = (ui8Temp & 0x10) >> 4;
 //
 //        if (ui8Temp == (ui8OSC >> 1))
@@ -1205,7 +1238,7 @@ void am1805_reset(void)
 //    // Read the SQW register.
 //    // Load ui8SQFS, set SQWE.
 //    //
-//    ui8Temp = am1805_reg_read(psDevice, AM_DEVICES_AMX8X5_SQW);
+//    ui8Temp = am1805_reg_read(psDevice, AM1805_SQW);
 //    ui8Temp = (ui8Temp & 0x70) | ui8SQFS | 0x80;
 //
 //    if (ui8Pin == 0)
@@ -1223,9 +1256,9 @@ void am1805_reset(void)
 //        // Clear OUT1S.
 //        // Load OUT1S with 1.
 //        //
-//        am1805_reg_clear(psDevice, AM_DEVICES_AMX8X5_CONTROL_2,
+//        am1805_reg_clear(psDevice, AM1805_CONTROL_2,
 //                                    0x03);
-//        am1805_reg_set(psDevice, AM_DEVICES_AMX8X5_CONTROL_2, 0x01);
+//        am1805_reg_set(psDevice, AM1805_CONTROL_2, 0x01);
 //    }
 //    if (ui8Pin & 0x2)
 //    {
@@ -1234,15 +1267,15 @@ void am1805_reset(void)
 //        // Clear OUT2S.
 //        // Load OUT2S with 1.
 //        //
-//        am1805_reg_clear(psDevice, AM_DEVICES_AMX8X5_CONTROL_2,
+//        am1805_reg_clear(psDevice, AM1805_CONTROL_2,
 //                                    0x1C);
-//        am1805_reg_set(psDevice, AM_DEVICES_AMX8X5_CONTROL_2, 0x04);
+//        am1805_reg_set(psDevice, AM1805_CONTROL_2, 0x04);
 //    }
 //
 //    //
 //    // Write the SQW register.
 //    //
-//    am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_SQW, ui8Temp);
+//    am1805_reg_write(psDevice, AM1805_SQW, ui8Temp);
 //}
 //
 ////*****************************************************************************
@@ -1282,9 +1315,9 @@ void am1805_reset(void)
 //        // Write value to OUT2S.
 //        //
 //        ui8Temp0 = am1805_reg_read(psDevice,
-//                                              AM_DEVICES_AMX8X5_CONTROL_2);
+//                                              AM1805_CONTROL_2);
 //        ui8Temp0 = (ui8Temp0 & 0xE3) | 0x18;
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_CONTROL_2,
+//        am1805_reg_write(psDevice, AM1805_CONTROL_2,
 //                                    ui8Temp0);
 //        ui8SLRES = 0;
 //    }
@@ -1302,7 +1335,7 @@ void am1805_reset(void)
 //    // Write to the register.
 //    //
 //    ui8Temp0 = ui8Timeout | (ui8SLRES << 6) | 0x80;
-//    am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_SLEEP_CTRL,
+//    am1805_reg_write(psDevice, AM1805_SLEEP_CTRL,
 //                                ui8Temp0);
 //
 //    //
@@ -1310,7 +1343,7 @@ void am1805_reset(void)
 //    // Get SLP bit.
 //    //
 //    ui8Temp0 = am1805_reg_read(psDevice,
-//                                          AM_DEVICES_AMX8X5_SLEEP_CTRL) & 0x80;
+//                                          AM1805_SLEEP_CTRL) & 0x80;
 //
 //    if (ui8Temp0 == 0)
 //    {
@@ -1320,8 +1353,8 @@ void am1805_reset(void)
 //        // Get WDT register.
 //        //
 //        ui8Temp0 = am1805_reg_read(psDevice,
-//                                             AM_DEVICES_AMX8X5_INT_MASK) & 0x0F;
-//        ui8Temp1 = am1805_reg_read(psDevice, AM_DEVICES_AMX8X5_WDT);
+//                                             AM1805_INT_MASK) & 0x0F;
+//        ui8Temp1 = am1805_reg_read(psDevice, AM1805_WDT);
 //
 //        if ((ui8Temp0 == 0) & (((ui8Temp1 & 0x7C) == 0) ||
 //                               ((ui8Temp1 & 0x80) == 0x80)))
@@ -1378,8 +1411,8 @@ void am1805_reset(void)
 //    // Disable the WDT with BMB = 0.
 //    // Clear the WDT flag.
 //    //
-//    am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_WDT, 0x00);
-//    am1805_reg_clear(psDevice, AM_DEVICES_AMX8X5_STATUS, 0x20);
+//    am1805_reg_write(psDevice, AM1805_WDT, 0x00);
+//    am1805_reg_clear(psDevice, AM1805_STATUS, 0x20);
 //
 //    //
 //    // Use the shortest clock interval which will allow the selected period.
@@ -1436,7 +1469,7 @@ void am1805_reset(void)
 //        // Clear the OUT1S field
 //        //
 //        ui8WDS = 0;
-//        am1805_reg_clear(psDevice, AM_DEVICES_AMX8X5_CONTROL_2,
+//        am1805_reg_clear(psDevice, AM1805_CONTROL_2,
 //                                    0x03);
 //        break;
 //
@@ -1449,7 +1482,7 @@ void am1805_reset(void)
 //        // Clear the OUT2S field.
 //        //
 //        ui8WDS = 0;
-//        am1805_reg_clear(psDevice, AM_DEVICES_AMX8X5_CONTROL_2,
+//        am1805_reg_clear(psDevice, AM1805_CONTROL_2,
 //                                    0x1C);
 //        break;
 //
@@ -1470,7 +1503,7 @@ void am1805_reset(void)
 //    // Write the register.
 //    //
 //    ui8WDTreg = (ui8WDS * 0x80) + (ui8BMB * 0x4) + ui8WRB;
-//    am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_WDT, ui8WDTreg);
+//    am1805_reg_write(psDevice, AM1805_WDT, ui8WDTreg);
 //}
 //
 ////*****************************************************************************
@@ -1498,14 +1531,14 @@ void am1805_reset(void)
 //    // Read Oscillator Control, mask ACAL.
 //    //
 //    ui8Temp = am1805_reg_read(psDevice,
-//                                         AM_DEVICES_AMX8X5_OSC_CONTROL);
+//                                         AM1805_OSC_CONTROL);
 //    ui8Temp &= 0x9F;
 //
 //    //
 //    // Write the Key register.
 //    //
-//    am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_CONFIG_KEY,
-//                                AM_DEVICES_AMX8X5_CONFIG_KEY_VAL);
+//    am1805_reg_write(psDevice, AM1805_CONFIG_KEY,
+//                                AM1805_CONFIG_KEY_VAL);
 //
 //    switch (ui8Period)
 //    {
@@ -1513,7 +1546,7 @@ void am1805_reset(void)
 //        //
 //        // Set ACAL to 0.
 //        //
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_OSC_CONTROL,
+//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
 //                                    ui8Temp);
 //        break;
 //
@@ -1522,7 +1555,7 @@ void am1805_reset(void)
 //        // Set ACAL to 2
 //        //
 //        ui8Temp |= 0x40;
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_OSC_CONTROL,
+//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
 //                                    ui8Temp);
 //
 //        //
@@ -1533,15 +1566,15 @@ void am1805_reset(void)
 //        //
 //        // Write the Key register.
 //        //
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_CONFIG_KEY,
-//                                    AM_DEVICES_AMX8X5_CONFIG_KEY_VAL);
+//        am1805_reg_write(psDevice, AM1805_CONFIG_KEY,
+//                                    AM1805_CONFIG_KEY_VAL);
 //
 //        //
 //        // Mask ACAL.
 //        // Set ACAL to 0
 //        //
 //        ui8Temp = ui8Temp & 0x9F;
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_OSC_CONTROL,
+//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
 //                                    ui8Temp);
 //        break;
 //
@@ -1550,7 +1583,7 @@ void am1805_reset(void)
 //        // Set ACAL to 2.
 //        //
 //        ui8Temp = ui8Temp | 0x40;
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_OSC_CONTROL,
+//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
 //                                    ui8Temp);
 //        break;
 //
@@ -1559,7 +1592,7 @@ void am1805_reset(void)
 //        // Set ACAL to 3.
 //        //
 //        ui8Temp = ui8Temp | 0x60;
-//        am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_OSC_CONTROL,
+//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
 //                                    ui8Temp);
 //        break;
 //    }
@@ -1584,7 +1617,7 @@ void am1805_reset(void)
 //    uint8_t ui8Xadd, ui8Temp;
 //
 //    ui8Temp = am1805_reg_read(psDevice,
-//                                        AM_DEVICES_AMX8X5_EXTENDED_ADDR) & 0xC0;
+//                                        AM1805_EXTENDED_ADDR) & 0xC0;
 //
 //    if (ui8Address < 64)
 //    {
@@ -1611,48 +1644,6 @@ void am1805_reset(void)
 //
 //*****************************************************************************
 //
-//! @brief Reads a block of internal registers in the AM1805.
-//!
-//! @param ui8StartRegister is the address of the first register to read.
-//! @param pui8Values is the byte-packed array where the read data will go.
-//! @param ui8NumBytes is the total number of registers to read.
-//!
-//! This function performs a read to a block of AMx8x5 registers over the
-//! I2C bus.
-//!
-//! @return None
-//
-//*****************************************************************************
-void am1805_reg_block_read(const uint8_t ui8StartRegister, uint8_t *pui8Values,
-                                const uint8_t ui8NumBytes)
-{
-  uint8_t ui8Offset = ui8StartRegister;
-
-  HAL_I2C_Mem_Read(&hi2c1, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
-
-}
-
-//*****************************************************************************
-
-//! @brief Writes a block of internal registers in the AMx8x5.
-//!
-//! @param ui8StartRegister is the address of the first register to write.
-//! @param pui8Values is the byte-packed array of data to write.
-//! @param ui8NumBytes is the total number of registers to write.
-//!
-//! This function performs a write to a block of AM1805 registers over the
-//! I2C bus.
-//!
-//! @return None
-//
-//*****************************************************************************
-void am1805_reg_block_write(const uint8_t ui8StartRegister, uint8_t *pui8Values,
-                                 const uint8_t ui8NumBytes)
-{
-    uint8_t ui8Offset = ui8StartRegister;
-
-    HAL_I2C_Mem_Write(&hi2c1, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
-}
 
 ////*****************************************************************************
 ////
@@ -1679,7 +1670,7 @@ void am1805_reg_block_write(const uint8_t ui8StartRegister, uint8_t *pui8Values,
 //    //
 //    // Load the XADDR register.
 //    //
-//    am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_EXTENDED_ADDR,
+//    am1805_reg_write(psDevice, AM1805_EXTENDED_ADDR,
 //                                ui8Xadd);
 //
 //    //
@@ -1715,7 +1706,7 @@ void am1805_reg_block_write(const uint8_t ui8StartRegister, uint8_t *pui8Values,
 //    //
 //    // Load the XADDR register.
 //    //
-//    am1805_reg_write(psDevice, AM_DEVICES_AMX8X5_EXTENDED_ADDR,
+//    am1805_reg_write(psDevice, AM1805_EXTENDED_ADDR,
 //                                ui8Xadd);
 //
 //    //

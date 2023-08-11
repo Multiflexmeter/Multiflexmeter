@@ -136,19 +136,9 @@ extern I2C_HandleTypeDef hi2c1;
 //
 //*****************************************************************************
 
-//static void am1805_reg_block_read(uint8_t ui8StartRegister,
-//                                  uint32_t *pui32Values,
-//                                  uint32_t ui32NumBytes,
-//                                  am_hal_iom_callback_t pfnCallback);
-
-//static void am1805_reg_block_write(uint8_t ui8StartRegister,
-//                                   uint32_t *pui32Values,
-//                                   uint32_t ui32NumBytes,
-//                                   am_hal_iom_callback_t pfnCallback);
 void am1805_reset(void);
 //extern void am1805_time_get(am1805_t *psDevice);
-//extern void am1805_time_set(am1805_t *psDevice,
-//                                       uint8_t ui8Protect);
+void am1805_time_set(uint8_t ui8Protect);
 //
 //extern void am1805_cal_set(am1805_t *psDevice,
 //                                      uint8_t ui8Mode, int32_t iAdjust);

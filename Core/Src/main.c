@@ -91,6 +91,15 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+  g_psTimeRegs.ui8Year = 1999;
+  g_psTimeRegs.ui8Month = 11;
+  g_psTimeRegs.ui8Date = 11;
+  g_psTimeRegs.ui8Hour = 20;
+  g_psTimeRegs.ui8Minute = 56;
+  g_psTimeRegs.ui8Second = 0;
+  g_psTimeRegs.ui8Weekday = 3;
+  g_psTimeRegs.ui8Mode = AM1805_24HR_MODE;
+
 
   /* USER CODE END 1 */
 
@@ -125,7 +134,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
     MX_LoRaWAN_Process();
-    am1805_reset();
+    am1805_time_set(0);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
