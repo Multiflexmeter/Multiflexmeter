@@ -375,233 +375,182 @@ void am1805_time_set(uint8_t ui8Protect)
   am1805_reg_write(AM1805_CONTROL_1, psTempBuff[0]);
 }
 
-////*****************************************************************************
-////
-////! @brief Set the calibration.
-////!
-////! @param  ui8Mode:
-////!        0 => calibrate the XT oscillator
-////!        1 => calibrate the RC oscillator
-////! @param   iAdjust: Adjustment in ppm.
-////!
-////!  Adjustment limits are:
-////!         ui8Mode = 0 => (-610 to +242)
-////!         ui8Mode = 1 => (-65536 to +65520)
-////!         An iAdjust value of zero resets the selected oscillator calibration
-////!         value to 0.
-////!
-////! This function loads the AMX8XX counter registers with the current
-////! g_psTimeRegs structure values.
-////!
-////! @return None
-////
-////*****************************************************************************
-//void
-//am1805_cal_set(am1805_t *psDevice, uint8_t ui8Mode,
-//                          int32_t iAdjust)
-//{
-//    int32_t iAdjint;
-//    uint8_t ui8Adjreg;
-//    uint8_t ui8Adjregu;
-//    uint8_t ui8XTcal;
+//*****************************************************************************
 //
-//    //
-//    // Calculate current calibration value:
-//    //    adjval = (double)iAdjust;
-//    //    iAdjint = (int16_t)round(adjval*1000/1907)
-//    //
-//    if (iAdjust < 0 )
-//    {
-//        iAdjint = ((iAdjust)*1000 - 953);
-//    }
-//    else
-//    {
-//        iAdjint = ((iAdjust)*1000 + 953);
-//    }
-//    iAdjint = iAdjint / 1907;
+//! @brief Set the calibration.
+//!
+//! @param  ui8Mode:
+//!        0 => calibrate the XT oscillator
+//!        1 => calibrate the RC oscillator
+//! @param   iAdjust: Adjustment in ppm.
+//!
+//!  Adjustment limits are:
+//!         ui8Mode = 0 => (-610 to +242)
+//!         ui8Mode = 1 => (-65536 to +65520)
+//!         An iAdjust value of zero resets the selected oscillator calibration
+//!         value to 0.
+//!
+//! This function loads the AM1805 counter registers with the current
+//! g_psTimeRegs structure values.
+//!
+//! @return None
 //
-//    if (ui8Mode == 0)
-//    {
-//        //
-//        // XT Adjust
-//        //
-//        if (iAdjint > 63 )
-//        {
-//            //
-//            // 64 to 127.
-//            // CMDX = 1.
-//            //
-//            ui8XTcal = 0;
-//            ui8Adjreg = ((iAdjint >> 1) & 0x3F) | 0x80;
-//        }
-//        else if (iAdjint > -65)
-//        {
-//            //
-//            // -64 to 63.
-//            // CMDX = 0.
-//            //
-//            ui8XTcal = 0;
-//            ui8Adjreg = (iAdjint & 0x7F);
-//        }
-//        else if (iAdjint > -129)
-//        {
-//            //
-//            // -128 to -65.
-//            // CMDX = 0.
-//            //
-//            ui8XTcal = 1;
-//            ui8Adjreg = ((iAdjint + 64) & 0x7F);
-//        }
-//        else if (iAdjint > -193)
-//        {
-//            //
-//            // -192 to -129.
-//            // CMDX = 0.
-//            //
-//            ui8XTcal = 2;
-//            ui8Adjreg = ((iAdjint + 128) & 0x7F);
-//        }
-//        else if (iAdjint > -257)
-//        {
-//            //
-//            // -256 to -193.
-//            // CMDX = 0.
-//            //
-//            ui8XTcal = 3;
-//            ui8Adjreg = ((iAdjint + 192) & 0x7F);
-//        }
-//        else
-//        {
-//            //
-//            // -320 to -257.
-//            // CMDX = 1.
-//            //
-//            ui8XTcal = 3;
-//            ui8Adjreg = ((iAdjint + 192) >> 1) & 0xFF;
-//        }
-//        //
-//        // Load the CALX register.
-//        //
-//        am1805_reg_write(psDevice,
-//                                    AM1805_CAL_XT, ui8Adjreg);
-//
-//        //
-//        // Mask ui8XTcal.
-//        //
-//        ui8Adjreg = am1805_reg_read(psDevice,
-//                                           AM1805_OSC_STATUS) & 0x3F;
-//
-//        //
-//        // Add ui8XTcal field.
-//        //
-//        ui8Adjreg = ui8Adjreg | (ui8XTcal << 6);
-//
-//        //
-//        // Write it back.
-//        //
-//        am1805_reg_write(psDevice,
-//                                    AM1805_OSC_STATUS, ui8Adjreg);
-//    }
-//    else
-//    {
-//        //
-//        // RC Adjust.
-//        //
-//        if (iAdjint > 32767 )
-//        {
-//            //
-//            // 32768 to 65535.
-//            // Lower 8 bits.
-//            // CMDR = 3.
-//            //
-//            ui8Adjreg = ((iAdjint >> 3) & 0xFF);
-//            ui8Adjregu = ((iAdjint >> 11) | 0xC0);
-//        }
-//        else if (iAdjint > 16383 )
-//        {
-//            //
-//            // 16384 to 32767.
-//            // Lower 8 bits.
-//            // CMDR = 2.
-//            //
-//            ui8Adjreg = ((iAdjint >> 2) & 0xFF);
-//            ui8Adjregu = ((iAdjint >> 10) | 0x80);
-//        }
-//        else if (iAdjint > 8191 )
-//        {
-//            //
-//            // 8192 to 16383.
-//            // Lower 8 bits.
-//            // CMDR = 2.
-//            //
-//            ui8Adjreg = ((iAdjint >> 1) & 0xFF);
-//            ui8Adjregu = ((iAdjint >> 9) | 0x40);
-//        }
-//        else if (iAdjint >= 0 )
-//        {
-//            //
-//            // 0 to 1023.
-//            // Lower 8 bits.
-//            // CMDR = 0.
-//            //
-//            ui8Adjreg = ((iAdjint) & 0xFF);
-//            ui8Adjregu = (iAdjint >> 8);
-//        }
-//        else if (iAdjint > -8193 )
-//        {
-//            //
-//            // -8192 to -1.
-//            // Lower 8 bits.
-//            // CMDR = 0.
-//            //
-//            ui8Adjreg = ((iAdjint) & 0xFF);
-//            ui8Adjregu = (iAdjint >> 8) & 0x3F;
-//        }
-//        else if (iAdjint > -16385 )
-//        {
-//            //
-//            // -16384 to -8193.
-//            // Lower 8 bits.
-//            // CMDR = 1.
-//            //
-//            ui8Adjreg = ((iAdjint >> 1) & 0xFF);
-//            ui8Adjregu = (iAdjint >> 9) & 0x7F;
-//        }
-//        else if (iAdjint > -32769 )
-//        {
-//            //
-//            // -32768 to -16385.
-//            // Lower 8 bits.
-//            // CMDR = 2.
-//            //
-//            ui8Adjreg = ((iAdjint >> 2) & 0xFF);
-//            ui8Adjregu = (iAdjint >> 10) & 0xBF;
-//        }
-//        else
-//        {
-//            //
-//            // -65536 to -32769.
-//            // Lower 8 bits.
-//            // CMDR = 3.
-//            //
-//            ui8Adjreg = ((iAdjint >> 3) & 0xFF);
-//            ui8Adjregu = (iAdjint >> 11) & 0xFF;
-//        }
-//
-//        //
-//        // Load the CALRU register.
-//        //
-//        am1805_reg_write(psDevice,
-//                                    AM1805_CAL_RC_HI, ui8Adjregu);
-//
-//        //
-//        // Load the CALRL register.
-//        //
-//        am1805_reg_write(psDevice,
-//                                    AM1805_CAL_RC_LOW, ui8Adjreg);
-//    }
-//}
-//
+//*****************************************************************************
+void am1805_cal_set(uint8_t ui8Mode, int32_t iAdjust)
+{
+    int32_t iAdjint;
+    uint8_t ui8Adjreg;
+    uint8_t ui8Adjregu;
+    uint8_t ui8XTcal;
+
+    // Calculate current calibration value:
+    //    adjval = (double)iAdjust;
+    //    iAdjint = (int16_t)round(adjval*1000/1907)
+    if (iAdjust < 0 )
+    {
+        iAdjint = ((iAdjust)*1000 - 953);
+    }
+    else
+    {
+        iAdjint = ((iAdjust)*1000 + 953);
+    }
+    iAdjint = iAdjint / 1907;
+
+    if (ui8Mode == 0)
+    {
+        // XT Adjust
+        if (iAdjint > 63 )
+        {
+            // 64 to 127.
+            // CMDX = 1.
+            ui8XTcal = 0;
+            ui8Adjreg = ((iAdjint >> 1) & 0x3F) | 0x80;
+        }
+        else if (iAdjint > -65)
+        {
+
+            // -64 to 63.
+            // CMDX = 0.
+            ui8XTcal = 0;
+            ui8Adjreg = (iAdjint & 0x7F);
+        }
+        else if (iAdjint > -129)
+        {
+            // -128 to -65.
+            // CMDX = 0.
+            ui8XTcal = 1;
+            ui8Adjreg = ((iAdjint + 64) & 0x7F);
+        }
+        else if (iAdjint > -193)
+        {
+            // -192 to -129.
+            // CMDX = 0.
+            ui8XTcal = 2;
+            ui8Adjreg = ((iAdjint + 128) & 0x7F);
+        }
+        else if (iAdjint > -257)
+        {
+            // -256 to -193.
+            // CMDX = 0.
+            ui8XTcal = 3;
+            ui8Adjreg = ((iAdjint + 192) & 0x7F);
+        }
+        else
+        {
+            // -320 to -257.
+            // CMDX = 1.
+            ui8XTcal = 3;
+            ui8Adjreg = ((iAdjint + 192) >> 1) & 0xFF;
+        }
+
+        // Load the CALX register.
+        am1805_reg_write(AM1805_CAL_XT, ui8Adjreg);
+
+        // Mask ui8XTcal.
+        ui8Adjreg = am1805_reg_read(AM1805_OSC_STATUS) & 0x3F;
+
+        // Add ui8XTcal field.
+        ui8Adjreg = ui8Adjreg | (ui8XTcal << 6);
+
+        // Write it back.
+        am1805_reg_write(AM1805_OSC_STATUS, ui8Adjreg);
+    }
+    else
+    {
+        // RC Adjust.
+        if (iAdjint > 32767 )
+        {
+            // 32768 to 65535.
+            // Lower 8 bits.
+            // CMDR = 3.
+            ui8Adjreg = ((iAdjint >> 3) & 0xFF);
+            ui8Adjregu = ((iAdjint >> 11) | 0xC0);
+        }
+        else if (iAdjint > 16383 )
+        {
+            // 16384 to 32767.
+            // Lower 8 bits.
+            // CMDR = 2.
+            ui8Adjreg = ((iAdjint >> 2) & 0xFF);
+            ui8Adjregu = ((iAdjint >> 10) | 0x80);
+        }
+        else if (iAdjint > 8191 )
+        {
+            // 8192 to 16383.
+            // Lower 8 bits.
+            // CMDR = 2.
+            ui8Adjreg = ((iAdjint >> 1) & 0xFF);
+            ui8Adjregu = ((iAdjint >> 9) | 0x40);
+        }
+        else if (iAdjint >= 0 )
+        {
+            // 0 to 1023.
+            // Lower 8 bits.
+            // CMDR = 0.
+            ui8Adjreg = ((iAdjint) & 0xFF);
+            ui8Adjregu = (iAdjint >> 8);
+        }
+        else if (iAdjint > -8193 )
+        {
+            // -8192 to -1.
+            // Lower 8 bits.
+            // CMDR = 0.
+            ui8Adjreg = ((iAdjint) & 0xFF);
+            ui8Adjregu = (iAdjint >> 8) & 0x3F;
+        }
+        else if (iAdjint > -16385 )
+        {
+            // -16384 to -8193.
+            // Lower 8 bits.
+            // CMDR = 1.
+            ui8Adjreg = ((iAdjint >> 1) & 0xFF);
+            ui8Adjregu = (iAdjint >> 9) & 0x7F;
+        }
+        else if (iAdjint > -32769 )
+        {
+            // -32768 to -16385.
+            // Lower 8 bits.
+            // CMDR = 2.
+            ui8Adjreg = ((iAdjint >> 2) & 0xFF);
+            ui8Adjregu = (iAdjint >> 10) & 0xBF;
+        }
+        else
+        {
+            // -65536 to -32769.
+            // Lower 8 bits.
+            // CMDR = 3.
+            ui8Adjreg = ((iAdjint >> 3) & 0xFF);
+            ui8Adjregu = (iAdjint >> 11) & 0xFF;
+        }
+
+        // Load the CALRU register.
+        am1805_reg_write(AM1805_CAL_RC_HI, ui8Adjregu);
+
+        // Load the CALRL register.
+        am1805_reg_write(AM1805_CAL_RC_LOW, ui8Adjreg);
+    }
+}
+
 ////*****************************************************************************
 ////
 ////! @brief Set the alarm value.
