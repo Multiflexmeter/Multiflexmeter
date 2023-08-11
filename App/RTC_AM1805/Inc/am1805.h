@@ -4,7 +4,8 @@
 //!
 //! @brief Driver to interface with the AM1805 RTC.
 //!
-//! These functions implement the AM1805 support routines for use on STM32.
+//! These functions implement the AM1805 support routines adjusted for use on
+//! STM32 by Dekimo.
 //
 //*****************************************************************************
 
@@ -139,38 +140,16 @@ void am1805_reset(void);
 void am1805_time_get(void);
 void am1805_time_set(uint8_t ui8Protect);
 void am1805_cal_set(uint8_t ui8Mode, int32_t iAdjust);
-//
-//extern void am1805_alarm_set(am1805_t *psDevice,
-//                                        uint8_t ui8Repeat, uint8_t ui8IntMode,
-//                                        uint8_t ui8Pin);
-//
-//extern void am1805_countdown_set(am1805_t *psDevice,
-//                                            uint8_t ui8Range, int32_t iPeriod,
-//                                            uint8_t ui8Repeat, uint8_t ui8Pin);
-//
-//extern uint32_t am1805_osc_sel(am1805_t *psDevice,
-//                                          uint8_t ui8OSC);
-//
-//extern void am1805_sqw_set(am1805_t *psDevice,
-//                                      uint8_t ui8SQFS, uint8_t ui8Pin);
-//
-//extern uint32_t am1805_sleep_set(am1805_t *psDevice,
-//                                           uint8_t ui8Timeout, uint8_t ui8Mode);
-//
-//extern void am1805_watchdog_set(am1805_t *psDevice,
-//                                           uint32_t ui8Period, uint8_t ui8Pin);
-//
-//extern void am1805_autocal_set(am1805_t *psDevice,
-//                                          uint8_t ui8Period);
-//
-//extern uint8_t am1805_ext_address_get(am1805_t *psDevice,
-//                                                 uint8_t ui8Address);
-//
-//extern uint8_t am1805_ram_read(am1805_t *psDevice,
-//                                          uint8_t ui8Address);
-//
-//extern void am1805_ram_write(am1805_t *psDevice,
-//                                        uint8_t ui8Address, uint8_t ui8Data);
+void am1805_alarm_set(uint8_t ui8Repeat, uint8_t ui8IntMode, uint8_t ui8Pin);
+void am1805_countdown_set(uint8_t ui8Range, int32_t iPeriod, uint8_t ui8Repeat, uint8_t ui8Pin);
+//uint32_t am1805_osc_sel(uint8_t ui8OSC);
+//void am1805_sqw_set(uint8_t ui8SQFS, uint8_t ui8Pin);
+//uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode);
+//void am1805_watchdog_set(uint32_t ui8Period, uint8_t ui8Pin);
+//void am1805_autocal_set(uint8_t ui8Period);
+//uint8_t am1805_ext_address_get(uint8_t ui8Address);
+//uint8_t am1805_ram_read(uint8_t ui8Address);
+//void am1805_ram_write(uint8_t ui8Address, uint8_t ui8Data);
 
 #ifdef __cplusplus
 }

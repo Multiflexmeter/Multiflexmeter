@@ -4,7 +4,8 @@
 //!
 //! @brief Driver to interface with the AM1805 RTC.
 //!
-//! These functions implement the AM1805 support routines for use on STM32.
+//! These functions implement the AM1805 support routines adjusted for use on
+//! STM32 by Dekimo.
 //
 //
 //*****************************************************************************
@@ -551,1104 +552,849 @@ void am1805_cal_set(uint8_t ui8Mode, int32_t iAdjust)
     }
 }
 
-////*****************************************************************************
-////
-////! @brief Set the alarm value.
-////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
-////! @param ui8Repeat - the alarm repeat interval
-////!        0 => disable alarm
-////!        1 => once per year
-////!        2 => once per month
-////!        3 => once per week
-////!        4 => once per day
-////!        5 => once per hour
-////!        6 => once per minute
-////!        7 => once per second
-////!        8 => once per 10th of a second
-////!        9 => once per 100th of a second
-////!        NOTE: year and century are not used
-////!        NOTE: mode must match current 12/24 selection
-////! @param ui8IntMode - define the interrupt mode
-////!        0 => level interrupt
-////!        1 => pulse of 1/8192s (XT) or 1/128 s (RC)
-////!        2 => pulse of 1/64 s
-////!        3 => pulse of 1/4 s
-////! @param ui8Pin - pin on which to generate the interrupt
-////!        0 => internal flag only
-////!        1 => FOUT/nIRQ
-////!        2 => PSW/nIRQ2
-////!
-////! This function sets the alarm value and configures the correct pin (if
-////! necessary).
-////!
-////! @return None
-////
-////*****************************************************************************
-//void
-//am1805_alarm_set(am1805_t *psDevice, uint8_t ui8Repeat,
-//                            uint8_t ui8IntMode, uint8_t ui8Pin)
-//{
-//    uint8_t ui8Temp;
-//    am_hal_iom_buffer(8) psTempBuff;
-//
-//    //
-//    // Convert decimal to binary-coded decimal.
-//    //
-//    g_psTimeRegs.ui8Hundredth = dec_to_bcd(
-//                                             g_psTimeRegs.ui8Hundredth);
-//    g_psTimeRegs.ui8Second = dec_to_bcd(g_psTimeRegs.ui8Second);
-//    g_psTimeRegs.ui8Minute = dec_to_bcd(g_psTimeRegs.ui8Minute);
-//    g_psTimeRegs.ui8Hour = dec_to_bcd(g_psTimeRegs.ui8Hour);
-//    g_psTimeRegs.ui8Date = dec_to_bcd(g_psTimeRegs.ui8Date);
-//    g_psTimeRegs.ui8Weekday = dec_to_bcd(g_psTimeRegs.ui8Weekday);
-//    g_psTimeRegs.ui8Month = dec_to_bcd(g_psTimeRegs.ui8Month);
-//
-//    //
-//    // Determine whether a 12-hour or a 24-hour time keeping mode is being
-//    // used.
-//    //
-//    if (g_psTimeRegs.ui8Mode == 1)
-//    {
-//        //
-//        // A 12-hour day PM.
-//        // Set AM/PM.
-//        //
-//        g_psTimeRegs.ui8Hour = g_psTimeRegs.ui8Hour | 0x20;
-//    }
-//
-//    //
-//    // Write all of the time counters.
-//    //
-//    psTempBuff.bytes[0] = g_psTimeRegs.ui8Hundredth;
-//    psTempBuff.bytes[1] = g_psTimeRegs.ui8Second;
-//    psTempBuff.bytes[2] = g_psTimeRegs.ui8Minute;
-//    psTempBuff.bytes[3] = g_psTimeRegs.ui8Hour;
-//    psTempBuff.bytes[4] = g_psTimeRegs.ui8Date;
-//    psTempBuff.bytes[5] = g_psTimeRegs.ui8Month;
-//    psTempBuff.bytes[6] = g_psTimeRegs.ui8Weekday;
-//
-//    //
-//    // Clear the RPT field.
-//    // Clear the AIE bit IM field.
-//    // Clear the ALM flag.
-//    //
-//    am1805_reg_clear(psDevice, AM1805_TIMER_CTRL, 0x1C);
-//    am1805_reg_clear(psDevice, AM1805_INT_MASK, 0x64);
-//    am1805_reg_clear(psDevice, AM1805_STATUS, 0x04);
-//
-//    if (ui8Pin == 1)
-//    {
-//        //
-//        // Interrupt on FOUT/nIRQ.
-//        // Get the Control2 Register.
-//        //
-//        ui8Temp = am1805_reg_read(psDevice,
-//                                             AM1805_CONTROL_2);
-//
-//        //
-//        // Extract the OUT1S field.
-//        //
-//        ui8Temp = (ui8Temp & 0x03);
-//
-//        //
-//        // Not already selecting nIRQ.
-//        //
-//        if (ui8Temp != 0)
-//        {
-//            //
-//            // Set OUT1S to 3.
-//            //
-//            am1805_reg_set(psDevice,
-//                                      AM1805_CONTROL_2, 0x03);
-//        }
-//    }
-//    if (ui8Pin == 2)
-//    {
-//        //
-//        // Interrupt on PSW/nIRQ2.
-//        // Get the Control2 Register.
-//        //
-//        ui8Temp = am1805_reg_read(psDevice,
-//                                             AM1805_CONTROL_2);
-//
-//        //
-//        // Extract the OUT2S field.
-//        //
-//        ui8Temp &= 0x1C;
-//
-//        //
-//        // Not already selecting nIRQ.
-//        //
-//        if (ui8Temp != 0)
-//        {
-//            //
-//            // Clear OUT2S & Set OUT2S to 3.
-//            //
-//            am1805_reg_clear(psDevice,
-//                                        AM1805_CONTROL_2, 0x1C);
-//            am1805_reg_set(psDevice,
-//                                      AM1805_CONTROL_2, 0x0C);
-//        }
-//    }
-//
-//    if (ui8Repeat == 8)
-//    {
-//        //
-//        // 10ths interrupt.
-//        // Select correct RPT value.
-//        //
-//        psTempBuff.bytes[0] |= 0xF0;
-//        ui8Repeat = 7;
-//    }
-//    if (ui8Repeat == 9)
-//    {
-//        //
-//        // 100ths interrupt.
-//        // Select correct RPT value.
-//        //
-//        psTempBuff.bytes[0] = 0xFF;
-//        ui8Repeat = 7;
-//    }
-//
-//    //
-//    // Don't initiate if ui8Repeat = 0.
-//    //
-//    if (ui8Repeat != 0)
-//    {
-//        //
-//        // Set the RPT field to the value of ui8Repeat.
-//        //
-//        ui8Temp = (ui8Repeat << 2);
-//
-//        //
-//        // Was previously cleared.
-//        // Set the alarm interrupt mode.
-//        // Execute the burst write.
-//        // Set the AIE bit.
-//        //
-//        am1805_reg_set(psDevice,
-//                                  AM1805_TIMER_CTRL, ui8Temp);
-//        am1805_reg_set(psDevice, AM1805_INT_MASK,
-//                                  (ui8IntMode << 5));
-//        am1805_reg_block_write(psDevice,
-//                                          AM1805_ALARM_HUNDRS,
-//                                          psTempBuff.words, 7, NULL);
-//        am1805_reg_set(psDevice, AM1805_INT_MASK, 0x04);
-//    }
-//    else
-//    {
-//        //
-//        // Set IM field to 0x3 (reset value) to minimize current draw.
-//        //
-//        am1805_reg_set(psDevice, AM1805_INT_MASK, 0x60);
-//    }
-//}
-//
-////*****************************************************************************
-////
-////! @brief Configure and set the countdown.
-////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
-////! @param ui8Range:    0 => iPeriod in us
-////!                     1 => iPeriod in seconds
-////! @param iPeriod - the iPeriod of the countdown timer.
-////! @param ui8Repeat - Configure the interrupt output type:
-////!        0 => generate a single level interrupt
-////!        1 => generate a repeated pulsed interrupt, 1/4096 s (XT mode), 1/128 s
-////!        (RC mode)
-////!                (ui8Range must be 0)
-////!        2 => generate a single pulsed interrupt, 1/4096 s (XT mode), 1/128 s
-////!        (RC mode)
-////!                (ui8Range must be 0)
-////!        3 => generate a repeated pulsed interrupt, 1/128 s (ui8Range must be 0)
-////!        4 => generate a single pulsed interrupt, 1/128 s (ui8Range must be 0)
-////!        5 => generate a repeated pulsed interrupt, 1/64 s (ui8Range must be 1)
-////!        6 => generate a single pulsed interrupt, 1/64 s (ui8Range must be 1)
-////! @param ui8Pin - Select the pin to generate a countdown interrupt:
-////!        0 => disable the countdown timer
-////!        1 => generate an interrupt on nTIRQ only, asserted low
-////!        2 => generate an interrupt on FOUT/nIRQ and nTIRQ, both asserted low
-////!        3 => generate an interrupt on PSW/nIRQ2 and nTIRQ, both asserted low
-////!        4 => generate an interrupt on CLKOUT/nIRQ3 and nTIRQ, both asserted low
-////!        5 => generate an interrupt on CLKOUT/nIRQ3 (asserted high) and nTIRQ
-////!        (asserted low)
-////!
-////! This function configures and sets the countdown.
-////!
-////! @return None
-////
-////*****************************************************************************
-//void
-//am1805_countdown_set(am1805_t *psDevice, uint8_t ui8Range,
-//                                int32_t iPeriod, uint8_t ui8Repeat,
-//                                uint8_t ui8Pin)
-//{
-//    uint8_t ui8TM = 0;
-//    uint8_t ui8TRPT = 0;
-//    uint8_t ui8TFS = 0;
-//    uint8_t ui8TE;
-//    uint8_t ui8Temp;
-//    uint8_t ui8TCTRL;
-//    int32_t ui8Timer = 0;
-//    uint8_t ui8OMODE;
-//
-//    //
-//    // 0 = XT, 1 = RC
-//    //
-//    ui8OMODE = (am1805_reg_read(psDevice,
-//                AM1805_OSC_STATUS) & 0x10) ? 1 : 0;
-//
-//    if (ui8Pin == 0)
-//    {
-//        ui8TE = 0;
-//    }
-//    else
-//    {
-//        ui8TE = 1;
-//        if (ui8Repeat == 0)
-//        {
-//            //
-//            // Level interrupt
-//            //
-//            ui8TM = 1;
-//            ui8TRPT = 0;
-//            if (ui8Range == 0)
-//            {
-//                // Microseconds
-//                if (ui8OMODE == 0)
-//                {
-//                    //
-//                    // XT Mode.
-//                    // Use 4K Hz.
-//                    //
-//                    if (iPeriod <= 62500)
-//                    {
-//                        ui8TFS = 0;
-//                        ui8Timer = (iPeriod * 4096);
-//                        ui8Timer = ui8Timer / 1000000;
-//                        ui8Timer = ui8Timer - 1;
-//                    }
-//
-//                    //
-//                    // Use 64 Hz
-//                    //
-//                    else if (iPeriod <= 16384000)
-//                    {
-//                        ui8TFS = 1;
-//                        ui8Timer = (iPeriod * 64);
-//                        ui8Timer /= 1000000;
-//                        ui8Timer = ui8Timer - 1;
-//                    }
-//
-//                    //
-//                    // Else, use 1 Hz.
-//                    //
-//                    else
-//                    {
-//                        ui8TFS = 2;
-//                        ui8Timer = iPeriod / 1000000;
-//                        ui8Timer = ui8Timer - 1;
-//                    }
-//                }
-//                else
-//                {
-//                    //
-//                    // RC Mode.
-//                    // Use 128 Hz.
-//                    //
-//                    if (iPeriod <= 2000000)
-//                    {
-//                        ui8TFS = 0;
-//                        ui8Timer = (iPeriod * 128);
-//                        ui8Timer /= 1000000;
-//                        ui8Timer = ui8Timer - 1;
-//                    }
-//
-//                    //
-//                    // Use 64 Hz.
-//                    //
-//                    else if (iPeriod <= 4000000)
-//                    {
-//                        ui8TFS = 1;
-//                        ui8Timer = (iPeriod * 64);
-//                        ui8Timer /= 1000000;
-//                        ui8Timer = ui8Timer - 1;
-//                    }
-//
-//                    //
-//                    // Else, use 1 Hz.
-//                    //
-//                    else
-//                    {
-//                        ui8TFS = 2;
-//                        ui8Timer = iPeriod / 1000000;
-//                        ui8Timer = ui8Timer - 1;
-//                    }
-//                }
-//            }
-//            else
-//            {
-//                //
-//                // Seconds
-//                //
-//                if (iPeriod <= 256)
-//                {
-//                    //
-//                    // Use 1 Hz.
-//                    //
-//                    ui8TFS = 2;
-//                    ui8Timer = iPeriod - 1;
-//                }
-//                else
-//                {
-//                    //
-//                    // Use 1/60 Hz.
-//                    //
-//                    ui8TFS = 3;
-//                    ui8Timer = iPeriod / 60;
-//                    ui8Timer = ui8Timer - 1;
-//                }
-//            }
-//        }
-//        else
-//        {
-//            //
-//            // Pulse interrupts.
-//            // Set up ui8Repeat.
-//            //
-//            ui8TM = 0;
-//            ui8TRPT = ui8Repeat & 0x01;
-//            if (ui8Repeat < 3)
-//            {
-//                ui8TFS = 0;
-//                if (ui8OMODE == 0)
-//                {
-//                    ui8Timer = (iPeriod * 4096);
-//                    ui8Timer /= 1000000;
-//                    ui8Timer = ui8Timer - 1;
-//                }
-//                else
-//                {
-//                    ui8Timer = (iPeriod * 128);
-//                    ui8Timer /= 1000000;
-//                    ui8Timer = ui8Timer - 1;
-//                }
-//            }
-//            else if (ui8Repeat < 5)
-//            {
-//                ui8TFS = 1;
-//                ui8Timer = (iPeriod * 128);
-//                ui8Timer /= 1000000;
-//                ui8Timer = ui8Timer - 1;
-//            }
-//            else if (iPeriod <= 256)
-//            {
-//                //
-//                // Use 1 Hz.
-//                //
-//                ui8TFS = 2;
-//                ui8Timer = iPeriod - 1;
-//            }
-//            else
-//            {
-//                //
-//                // Use 1/60 Hz.
-//                //
-//                ui8TFS = 3;
-//                ui8Timer = iPeriod / 60;
-//                ui8Timer = ui8Timer - 1;
-//            }
-//        }
-//    }
-//
-//    //
-//    // Get TCTRL, keep RPT, clear TE.
-//    //
-//    ui8TCTRL = am1805_reg_read(psDevice,
-//                                          AM1805_TIMER_CTRL) & 0x1C;
-//    am1805_reg_write(psDevice,
-//                                AM1805_TIMER_CTRL, ui8TCTRL);
-//
-//    //
-//    // Merge the fields.
-//    //
-//    ui8TCTRL = ui8TCTRL | (ui8TE * 0x80) | (ui8TM * 0x40) |
-//        (ui8TRPT * 0x20) | ui8TFS;
-//
-//    //
-//    // Generate nTIRQ interrupt on FOUT/nIRQ (asserted low).
-//    //
-//    if (ui8Pin == 2)
-//    {
-//        //
-//        // Clear OUT1S.
-//        //
-//        am1805_reg_clear(psDevice, AM1805_CONTROL_2, 0x3);
-//    }
-//
-//    //
-//    // Generate nTIRQ interrupt on PSW/nIRQ2 (asserted low).
-//    //
-//    if (ui8Pin == 3)
-//    {
-//        //
-//        // Get OUT2S.
-//        //
-//        ui8Temp = am1805_reg_read(psDevice,
-//                                             AM1805_CONTROL_2);
-//
-//        //
-//        // If OUT2S != 0, set OUT2S to 5.
-//        //
-//        if ((ui8Temp & 0x1C) != 0)
-//        {
-//            ui8Temp = (ui8Temp & 0xE3) | 0x14;
-//        }
-//
-//        //
-//        // Write back.
-//        //
-//        am1805_reg_write(psDevice, AM1805_CONTROL_2,
-//                                    ui8Temp);
-//    }
-//
-//    //
-//    // Generate TIRQ interrupt on CLKOUT/nIRQ3 (asserted low).
-//    //
-//    if (ui8Pin == 4)
-//    {
-//        //
-//        // Setup SQFS field and enable SQWE.
-//        //
-//        am1805_reg_write(psDevice, AM1805_SQW, 0x9B);
-//    }
-//
-//    //
-//    // Generate TIRQ interrupt on CLKOUT/nIRQ3 (asserted high).
-//    //
-//    if (ui8Pin == 5)
-//    {
-//        //
-//        // Setup SQFS field and enable SQWE.
-//        //
-//        am1805_reg_write(psDevice, AM1805_SQW, 0x9A);
-//    }
-//
-//    if (ui8Pin != 0)
-//    {
-//        //
-//        // Clear TIM.
-//        // Set TIE.
-//        // Initialize the timer.
-//        // Initialize the timer repeat.
-//        // Start the timer.
-//        //
-//        am1805_reg_clear(psDevice, AM1805_STATUS, 0x08);
-//        am1805_reg_set(psDevice, AM1805_INT_MASK, 0x08);
-//        am1805_reg_write(psDevice, AM1805_TIMER,
-//                                    ui8Timer);
-//        am1805_reg_write(psDevice, AM1805_TIMER_INITIAL,
-//                                    ui8Timer);
-//        am1805_reg_write(psDevice, AM1805_TIMER_CTRL,
-//                                    ui8TCTRL);
-//    }
-//}
-//
-////*****************************************************************************
-////
-////! @brief Select an oscillator mode.
-////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
-////! @param ui8OSC - the oscillator to select
-////!        0 => 32 KHz XT oscillator, no automatic oscillator switching
-////!        1 => 32 KHz XT oscillator, automatic oscillator switching to RC on
-////!        switch to battery power
-////!        2 => 128 Hz RC oscillator
-////!
-////! This function sets the desired oscillator.
-////!
-////! @return 1 for error
-////
-////*****************************************************************************
-//uint32_t
-//am1805_osc_sel(am1805_t *psDevice, uint8_t ui8OSC)
-//{
-//    uint8_t i;
-//    uint8_t ui8Temp;
-//
-//    //
-//    // Read Oscillator Control register.
-//    //
-//    ui8Temp = am1805_reg_read(psDevice,
-//                                         AM1805_OSC_CONTROL);
-//    ui8Temp = ui8Temp & 0x67;
-//
-//    //
-//    // Enable Oscillator Register writes.
-//    // Write the Key register.
-//    //
-//    am1805_reg_write(psDevice, AM1805_CONFIG_KEY,
-//                                AM1805_CONFIG_KEY_VAL);
-//
-//    switch (ui8OSC)
-//    {
-//        //
-//        // Do nothing, clear Key register.
-//        //
-//        case 0:
-//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
-//                                    ui8Temp);
-//        break;
-//
-//        //
-//        // Set AOS.
-//        //
-//        case 1:
-//        ui8Temp = ui8Temp | 0x10;
-//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
-//                                    ui8Temp);
-//        break;
-//
-//        //
-//        // Set OSEL
-//        //
-//        default:
-//        ui8Temp = ui8Temp | 0x80;
-//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
-//                                    ui8Temp);
-//        break;
-//    }
-//
-//    //
-//    // Wait to make sure switch occurred by testing OMODE.
-//    //
-//    for (i = 0; i < 100; i++)
-//    {
-//        //
-//        // Wait 100 ms.
-//        // Read OMODE.
-//        //
-//        am_util_delay_ms(100);
-//        ui8Temp = am1805_reg_read(psDevice,
-//                                             AM1805_OSC_STATUS);
-//        ui8Temp = (ui8Temp & 0x10) >> 4;
-//
-//        if (ui8Temp == (ui8OSC >> 1))
-//        {
-//            //
-//            // Successful switch.
-//            //
-//            return 0;
-//        }
-//    }
-//
-//    //
-//    // Return Error.
-//    //
-//    return 1;
-//}
-//
-////*****************************************************************************
-////
-////! @brief Configure and enable the square wave output.
-////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
-////! @param ui8SQFS - square wave output select (0 to 31)
-////! @param ui8Pin - output pin for SQW (may be ORed) in addition to CLKOUT
-////!        0 => disable SQW
-////!        1 => FOUT
-////!        2 => PSW/nIRQ2
-////!
-////! This function configures and enables the square wave output.
-////!
-////! @return None
-////
-////*****************************************************************************
-//void
-//am1805_sqw_set(am1805_t *psDevice, uint8_t ui8SQFS,
-//                          uint8_t ui8Pin)
-//{
-//    uint8_t ui8Temp;
-//
-//    //
-//    // Set up SQW multiplexor:
-//    // Read the SQW register.
-//    // Load ui8SQFS, set SQWE.
-//    //
-//    ui8Temp = am1805_reg_read(psDevice, AM1805_SQW);
-//    ui8Temp = (ui8Temp & 0x70) | ui8SQFS | 0x80;
-//
-//    if (ui8Pin == 0)
-//    {
-//        //
-//        // Clear SQWE.
-//        //
-//        ui8Temp &= 0x7F;
-//    }
-//
-//    if (ui8Pin & 0x1)
-//    {
-//        //
-//        // Enable FOUT:
-//        // Clear OUT1S.
-//        // Load OUT1S with 1.
-//        //
-//        am1805_reg_clear(psDevice, AM1805_CONTROL_2,
-//                                    0x03);
-//        am1805_reg_set(psDevice, AM1805_CONTROL_2, 0x01);
-//    }
-//    if (ui8Pin & 0x2)
-//    {
-//        //
-//        // Enable PSW/nIRQ2:
-//        // Clear OUT2S.
-//        // Load OUT2S with 1.
-//        //
-//        am1805_reg_clear(psDevice, AM1805_CONTROL_2,
-//                                    0x1C);
-//        am1805_reg_set(psDevice, AM1805_CONTROL_2, 0x04);
-//    }
-//
-//    //
-//    // Write the SQW register.
-//    //
-//    am1805_reg_write(psDevice, AM1805_SQW, ui8Temp);
-//}
-//
-////*****************************************************************************
-////
-////! @brief Set up sleep mode (AM18x5 only).
-////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
-////! @param ui8Timeout - minimum timeout period in 7.8 ms periods (0 to 7)
-////! @param ui8Mode - sleep mode (nRST modes not available in AM08xx)
-////!        0 => nRST is pulled low in sleep mode
-////!        1 => PSW/nIRQ2 is pulled high on a sleep
-////!        2 => nRST pulled low and PSW/nIRQ2 pulled high on sleep
-////!
-////! This function sets up sleep mode. This is available on the AM18x5 only.
-////!
-////! @return returned value of the attempted sleep command:
-////!        0 => sleep request accepted, sleep mode will be initiated in
-////!        ui8Timeout seconds
-////!        1 => illegal input values
-////!        2 => sleep request declined, interrupt is currently pending
-////!        3 => sleep request declined, no sleep trigger interrupt enabled
-////
-////*****************************************************************************
-//uint32_t
-//am1805_sleep_set(am1805_t *psDevice, uint8_t ui8Timeout,
-//                            uint8_t ui8Mode)
-//{
-//    uint8_t ui8SLRES;
-//    uint8_t ui8Temp0, ui8Temp1;
-//
-//    if (ui8Mode > 0)
-//    {
-//        //
-//        // Sleep to PSW/nIRQ2.
-//        // Read OUT2S.
-//        // MUST NOT WRITE OUT2S WITH 000.
-//        // Write value to OUT2S.
-//        //
-//        ui8Temp0 = am1805_reg_read(psDevice,
-//                                              AM1805_CONTROL_2);
-//        ui8Temp0 = (ui8Temp0 & 0xE3) | 0x18;
-//        am1805_reg_write(psDevice, AM1805_CONTROL_2,
-//                                    ui8Temp0);
-//        ui8SLRES = 0;
-//    }
-//
-//    if (ui8Mode != 1)
-//    {
-//        //
-//        // Sleep to nRST.
-//        //
-//        ui8SLRES = 1;
-//    }
-//
-//    //
-//    // Assemble SLEEP register value.
-//    // Write to the register.
-//    //
-//    ui8Temp0 = ui8Timeout | (ui8SLRES << 6) | 0x80;
-//    am1805_reg_write(psDevice, AM1805_SLEEP_CTRL,
-//                                ui8Temp0);
-//
-//    //
-//    // Determine if SLEEP was accepted:
-//    // Get SLP bit.
-//    //
-//    ui8Temp0 = am1805_reg_read(psDevice,
-//                                          AM1805_SLEEP_CTRL) & 0x80;
-//
-//    if (ui8Temp0 == 0)
-//    {
-//        //
-//        // SLEEP did not happen. Determine why and return reason:
-//        // Get status register interrupt enables.
-//        // Get WDT register.
-//        //
-//        ui8Temp0 = am1805_reg_read(psDevice,
-//                                             AM1805_INT_MASK) & 0x0F;
-//        ui8Temp1 = am1805_reg_read(psDevice, AM1805_WDT);
-//
-//        if ((ui8Temp0 == 0) & (((ui8Temp1 & 0x7C) == 0) ||
-//                               ((ui8Temp1 & 0x80) == 0x80)))
-//        {
-//            //
-//            // No trigger interrupts enabled.
-//            //
-//            return 3;
-//        }
-//        else
-//        {
-//            //
-//            // Interrupt pending.
-//            //
-//            return 2;
-//        }
-//    }
-//    else
-//    {
-//        //
-//        // SLEEP request successful.
-//        //
-//        return 0;
-//    }
-//}
-//
-////*****************************************************************************
-////
-////! @brief Set up the watchdog timer.
-////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
-////! @param ui8Period - timeout period in ms (65 to 124,000)
-////! @param ui8Pin - pin to generate the watchdog signal
-////!        0 => disable WDT
-////!        1 => generate an interrupt on FOUT/nIRQ
-////!        2 => generate an interrupt on PSW/nIRQ2
-////!        3 => generate a reset on nRST (AM18xx only)
-////!
-////! This function sets up sleep mode. This is available on the AM18x5 only.
-////!
-////! @return None
-////
-////*****************************************************************************
-//void
-//am1805_watchdog_set(am1805_t *psDevice,
-//                               uint32_t ui8Period, uint8_t ui8Pin)
-//{
-//    uint8_t ui8WDTreg;
-//    uint8_t ui8WDS;
-//    uint8_t ui8BMB;
-//    uint8_t ui8WRB;
-//
-//    //
-//    // Disable the WDT with BMB = 0.
-//    // Clear the WDT flag.
-//    //
-//    am1805_reg_write(psDevice, AM1805_WDT, 0x00);
-//    am1805_reg_clear(psDevice, AM1805_STATUS, 0x20);
-//
-//    //
-//    // Use the shortest clock interval which will allow the selected period.
-//    //
-//    if (ui8Period < (31000 / 16))
-//    {
-//        //
-//        // Use 16 Hz.
-//        //
-//        ui8WRB = 0;
-//        ui8BMB = (ui8Period * 16) / 1000;
-//    }
-//    else if (ui8Period < (31000 / 4))
-//    {
-//        //
-//        // Use 4 Hz.
-//        //
-//        ui8WRB = 1;
-//        ui8BMB = (ui8Period * 4) / 1000;
-//    }
-//    else if (ui8Period < 31000)
-//    {
-//        //
-//        // Use 1 Hz.
-//        //
-//        ui8WRB = 2;
-//        ui8BMB = ui8Period / 1000;
-//    }
-//    else
-//    {
-//        //
-//        // Use 1/4 Hz.
-//        //
-//        ui8WRB = 3;
-//        ui8BMB = ui8Period / 4000;
-//    }
-//
-//    switch (ui8Pin)
-//    {
-//        //
-//        // Disable WDT.
-//        //
-//        case 0:
-//        ui8WDS = 0;
-//        ui8BMB = 0;
-//        break;
-//
-//        //
-//        // Interrupt on FOUT/nIRQ.
-//        //
-//        case 1:
-//        //
-//        // Select interrupt.
-//        // Clear the OUT1S field
-//        //
-//        ui8WDS = 0;
-//        am1805_reg_clear(psDevice, AM1805_CONTROL_2,
-//                                    0x03);
-//        break;
-//
-//        //
-//        // Interrupt on PSW/nIRQ2.
-//        //
-//        case 2:
-//        //
-//        // Select interrupt.
-//        // Clear the OUT2S field.
-//        //
-//        ui8WDS = 0;
-//        am1805_reg_clear(psDevice, AM1805_CONTROL_2,
-//                                    0x1C);
-//        break;
-//
-//        //
-//        // Interrupt on nRST.
-//        //
-//        case 3:
-//        default:
-//        //
-//        // Select reset out.
-//        //
-//        ui8WDS = 1;
-//        break;
-//    }
-//
-//    //
-//    // Create the correct value.
-//    // Write the register.
-//    //
-//    ui8WDTreg = (ui8WDS * 0x80) + (ui8BMB * 0x4) + ui8WRB;
-//    am1805_reg_write(psDevice, AM1805_WDT, ui8WDTreg);
-//}
-//
-////*****************************************************************************
-////
-////! @brief Set up autocalibration.
-////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
-////! @param ui8Period - the repeat period for autocalibration.
-////!        0 => disable autocalibration
-////!        1 => execute a single autocalibration cycle
-////!        2 => execute a cycle every 1024 seconds (~17 minutes)
-////!        3 => execute a cycle every 512 seconds (~8.5 minutes)
-////!
-////! This function sets up autocalibration.
-////!
-////! @return None
-////
-////*****************************************************************************
-//void
-//am1805_autocal_set(am1805_t *psDevice, uint8_t ui8Period)
-//{
-//    uint8_t ui8Temp;
-//
-//    //
-//    // Read Oscillator Control, mask ACAL.
-//    //
-//    ui8Temp = am1805_reg_read(psDevice,
-//                                         AM1805_OSC_CONTROL);
-//    ui8Temp &= 0x9F;
-//
-//    //
-//    // Write the Key register.
-//    //
-//    am1805_reg_write(psDevice, AM1805_CONFIG_KEY,
-//                                AM1805_CONFIG_KEY_VAL);
-//
-//    switch (ui8Period)
-//    {
-//        case 0:
-//        //
-//        // Set ACAL to 0.
-//        //
-//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
-//                                    ui8Temp);
-//        break;
-//
-//        case 1:
-//        //
-//        // Set ACAL to 2
-//        //
-//        ui8Temp |= 0x40;
-//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
-//                                    ui8Temp);
-//
-//        //
-//        // Wait for initiation of autocal (10 ms).
-//        //
-//        am_util_delay_ms(10);
-//
-//        //
-//        // Write the Key register.
-//        //
-//        am1805_reg_write(psDevice, AM1805_CONFIG_KEY,
-//                                    AM1805_CONFIG_KEY_VAL);
-//
-//        //
-//        // Mask ACAL.
-//        // Set ACAL to 0
-//        //
-//        ui8Temp = ui8Temp & 0x9F;
-//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
-//                                    ui8Temp);
-//        break;
-//
-//        case 2:
-//        //
-//        // Set ACAL to 2.
-//        //
-//        ui8Temp = ui8Temp | 0x40;
-//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
-//                                    ui8Temp);
-//        break;
-//
-//        case 3:
-//        //
-//        // Set ACAL to 3.
-//        //
-//        ui8Temp = ui8Temp | 0x60;
-//        am1805_reg_write(psDevice, AM1805_OSC_CONTROL,
-//                                    ui8Temp);
-//        break;
-//    }
-//}
-//
-////*****************************************************************************
-////
-////! @brief Gets the extension address for the AMx8x5..
-////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
-////! @param ui8Address is the address.
-////!
-////! This function returns the extension address.
-////!
-////! @return the externsion address
-////
-////*****************************************************************************
-//uint8_t
-//am1805_ext_address_get(am1805_t *psDevice,
-//                                  uint8_t ui8Address)
-//{
-//    uint8_t ui8Xadd, ui8Temp;
-//
-//    ui8Temp = am1805_reg_read(psDevice,
-//                                        AM1805_EXTENDED_ADDR) & 0xC0;
-//
-//    if (ui8Address < 64)
-//    {
-//        ui8Xadd = 0x8;
-//    }
-//    else if (ui8Address < 128)
-//    {
-//        ui8Xadd = 0x9;
-//    }
-//    else if (ui8Address < 192)
-//    {
-//        ui8Xadd = 0xA;
-//    }
-//    else
-//    {
-//        ui8Xadd = 0xB;
-//    }
-//
-//    //
-//    // Return the address.
-//    //
-//    return (ui8Xadd | ui8Temp);
-//}
-//
 //*****************************************************************************
 //
+//! @brief Set the alarm value.
+//!
+//! @param ui8Repeat - the alarm repeat interval
+//!        0 => disable alarm
+//!        1 => once per year
+//!        2 => once per month
+//!        3 => once per week
+//!        4 => once per day
+//!        5 => once per hour
+//!        6 => once per minute
+//!        7 => once per second
+//!        8 => once per 10th of a second
+//!        9 => once per 100th of a second
+//!        NOTE: year and century are not used
+//!        NOTE: mode must match current 12/24 selection
+//! @param ui8IntMode - define the interrupt mode
+//!        0 => level interrupt
+//!        1 => pulse of 1/8192s (XT) or 1/128 s (RC)
+//!        2 => pulse of 1/64 s
+//!        3 => pulse of 1/4 s
+//! @param ui8Pin - pin on which to generate the interrupt
+//!        0 => internal flag only
+//!        1 => FOUT/nIRQ
+//!        2 => PSW/nIRQ2
+//!
+//! This function sets the alarm value and configures the correct pin (if
+//! necessary).
+//!
+//! @return None
+//
+//*****************************************************************************
+void am1805_alarm_set(uint8_t ui8Repeat, uint8_t ui8IntMode, uint8_t ui8Pin)
+{
+    uint8_t ui8Temp;
+    uint8_t psTempBuff[8];
 
-////*****************************************************************************
-////
-////! @brief Read a byte from the local AMX8X5 RAM.
-////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
-////! @param ui8Address - RTC RAM address.
-////!
-////! This function reads a byte from the local AMX8X5 RAM.
-////!
-////! @return the Value at the desired address.
-////
-////*****************************************************************************
-//uint8_t
-//am1805_ram_read(am1805_t *psDevice, uint8_t ui8Address)
-//{
-//    uint8_t ui8Xadd;
+    // Convert decimal to binary-coded decimal.
+    g_psTimeRegs.ui8Hundredth = dec_to_bcd(g_psTimeRegs.ui8Hundredth);
+    g_psTimeRegs.ui8Second = dec_to_bcd(g_psTimeRegs.ui8Second);
+    g_psTimeRegs.ui8Minute = dec_to_bcd(g_psTimeRegs.ui8Minute);
+    g_psTimeRegs.ui8Hour = dec_to_bcd(g_psTimeRegs.ui8Hour);
+    g_psTimeRegs.ui8Date = dec_to_bcd(g_psTimeRegs.ui8Date);
+    g_psTimeRegs.ui8Weekday = dec_to_bcd(g_psTimeRegs.ui8Weekday);
+    g_psTimeRegs.ui8Month = dec_to_bcd(g_psTimeRegs.ui8Month);
+
+    // Determine whether a 12-hour or a 24-hour time keeping mode is being
+    // used.
+    if (g_psTimeRegs.ui8Mode == 1)
+    {
+        // A 12-hour day PM.
+        // Set AM/PM.
+        g_psTimeRegs.ui8Hour = g_psTimeRegs.ui8Hour | 0x20;
+    }
+
+    // Write all of the time counters.
+    psTempBuff[0] = g_psTimeRegs.ui8Hundredth;
+    psTempBuff[1] = g_psTimeRegs.ui8Second;
+    psTempBuff[2] = g_psTimeRegs.ui8Minute;
+    psTempBuff[3] = g_psTimeRegs.ui8Hour;
+    psTempBuff[4] = g_psTimeRegs.ui8Date;
+    psTempBuff[5] = g_psTimeRegs.ui8Month;
+    psTempBuff[6] = g_psTimeRegs.ui8Weekday;
+
+    // Clear the RPT field.
+    // Clear the AIE bit IM field.
+    // Clear the ALM flag.
+    am1805_reg_clear(AM1805_TIMER_CTRL, 0x1C);
+    am1805_reg_clear(AM1805_INT_MASK, 0x64);
+    am1805_reg_clear(AM1805_STATUS, 0x04);
+
+    if (ui8Pin == 1)
+    {
+        // Interrupt on FOUT/nIRQ.
+        // Get the Control2 Register.
+        ui8Temp = am1805_reg_read(AM1805_CONTROL_2);
+
+        // Extract the OUT1S field.
+        ui8Temp = (ui8Temp & 0x03);
+
+        // Not already selecting nIRQ.
+        if (ui8Temp != 0)
+        {
+            // Set OUT1S to 3.
+            am1805_reg_set(AM1805_CONTROL_2, 0x03);
+        }
+    }
+    if (ui8Pin == 2)
+    {
+        // Interrupt on PSW/nIRQ2.
+        // Get the Control2 Register.
+        ui8Temp = am1805_reg_read(AM1805_CONTROL_2);
+
+        // Extract the OUT2S field.
+        ui8Temp &= 0x1C;
+
+        // Not already selecting nIRQ.
+        if (ui8Temp != 0)
+        {
+            // Clear OUT2S & Set OUT2S to 3.
+            am1805_reg_clear(AM1805_CONTROL_2, 0x1C);
+            am1805_reg_set(AM1805_CONTROL_2, 0x0C);
+        }
+    }
+
+    if (ui8Repeat == 8)
+    {
+        // 10ths interrupt.
+        // Select correct RPT value.
+        psTempBuff[0] |= 0xF0;
+        ui8Repeat = 7;
+    }
+    if (ui8Repeat == 9)
+    {
+        //
+        // 100ths interrupt.
+        // Select correct RPT value.
+        //
+        psTempBuff[0] = 0xFF;
+        ui8Repeat = 7;
+    }
+
+    //
+    // Don't initiate if ui8Repeat = 0.
+    //
+    if (ui8Repeat != 0)
+    {
+        //
+        // Set the RPT field to the value of ui8Repeat.
+        //
+        ui8Temp = (ui8Repeat << 2);
+
+        //
+        // Was previously cleared.
+        // Set the alarm interrupt mode.
+        // Execute the burst write.
+        // Set the AIE bit.
+        //
+        am1805_reg_set(AM1805_TIMER_CTRL, ui8Temp);
+        am1805_reg_set(AM1805_INT_MASK, (ui8IntMode << 5));
+        am1805_reg_block_write(AM1805_ALARM_HUNDRS, psTempBuff, 7);
+        am1805_reg_set(AM1805_INT_MASK, 0x04);
+    }
+    else
+    {
+        //
+        // Set IM field to 0x3 (reset value) to minimize current draw.
+        //
+        am1805_reg_set(AM1805_INT_MASK, 0x60);
+    }
+}
+
+//*****************************************************************************
 //
-//    //
-//    // Calc XADDR value from address.
-//    //
-//    ui8Xadd = am1805_ext_address_get(psDevice, ui8Address);
+//! @brief Configure and set the countdown.
+//!
+//! @param ui8Range:    0 => iPeriod in us
+//!                     1 => iPeriod in seconds
+//! @param iPeriod - the iPeriod of the countdown timer.
+//! @param ui8Repeat - Configure the interrupt output type:
+//!        0 => generate a single level interrupt
+//!        1 => generate a repeated pulsed interrupt, 1/4096 s (XT mode), 1/128 s
+//!        (RC mode)
+//!                (ui8Range must be 0)
+//!        2 => generate a single pulsed interrupt, 1/4096 s (XT mode), 1/128 s
+//!        (RC mode)
+//!                (ui8Range must be 0)
+//!        3 => generate a repeated pulsed interrupt, 1/128 s (ui8Range must be 0)
+//!        4 => generate a single pulsed interrupt, 1/128 s (ui8Range must be 0)
+//!        5 => generate a repeated pulsed interrupt, 1/64 s (ui8Range must be 1)
+//!        6 => generate a single pulsed interrupt, 1/64 s (ui8Range must be 1)
+//! @param ui8Pin - Select the pin to generate a countdown interrupt:
+//!        0 => disable the countdown timer
+//!        1 => generate an interrupt on nTIRQ only, asserted low
+//!        2 => generate an interrupt on FOUT/nIRQ and nTIRQ, both asserted low
+//!        3 => generate an interrupt on PSW/nIRQ2 and nTIRQ, both asserted low
+//!        4 => generate an interrupt on CLKOUT/nIRQ3 and nTIRQ, both asserted low
+//!        5 => generate an interrupt on CLKOUT/nIRQ3 (asserted high) and nTIRQ
+//!        (asserted low)
+//!
+//! This function configures and sets the countdown.
+//!
+//! @return None
 //
-//    //
-//    // Load the XADDR register.
-//    //
-//    am1805_reg_write(psDevice, AM1805_EXTENDED_ADDR,
-//                                ui8Xadd);
+//*****************************************************************************
+void am1805_countdown_set(uint8_t ui8Range, int32_t iPeriod, uint8_t ui8Repeat, uint8_t ui8Pin)
+{
+    uint8_t ui8TM = 0;
+    uint8_t ui8TRPT = 0;
+    uint8_t ui8TFS = 0;
+    uint8_t ui8TE;
+    uint8_t ui8Temp;
+    uint8_t ui8TCTRL;
+    int32_t ui8Timer = 0;
+    uint8_t ui8OMODE;
+
+
+    // 0 = XT, 1 = RC
+    ui8OMODE = (am1805_reg_read(AM1805_OSC_STATUS) & 0x10) ? 1 : 0;
+
+    if (ui8Pin == 0)
+    {
+        ui8TE = 0;
+    }
+    else
+    {
+        ui8TE = 1;
+        if (ui8Repeat == 0)
+        {
+            // Level interrupt
+            ui8TM = 1;
+            ui8TRPT = 0;
+            if (ui8Range == 0)
+            {
+                // Microseconds
+                if (ui8OMODE == 0)
+                {
+                    // XT Mode.
+                    // Use 4K Hz.
+                    if (iPeriod <= 62500)
+                    {
+                        ui8TFS = 0;
+                        ui8Timer = (iPeriod * 4096);
+                        ui8Timer = ui8Timer / 1000000;
+                        ui8Timer = ui8Timer - 1;
+                    }
+
+                    // Use 64 Hz
+                    else if (iPeriod <= 16384000)
+                    {
+                        ui8TFS = 1;
+                        ui8Timer = (iPeriod * 64);
+                        ui8Timer /= 1000000;
+                        ui8Timer = ui8Timer - 1;
+                    }
+
+                    // Else, use 1 Hz.
+                    else
+                    {
+                        ui8TFS = 2;
+                        ui8Timer = iPeriod / 1000000;
+                        ui8Timer = ui8Timer - 1;
+                    }
+                }
+                else
+                {
+                    // RC Mode.
+                    // Use 128 Hz.
+                    if (iPeriod <= 2000000)
+                    {
+                        ui8TFS = 0;
+                        ui8Timer = (iPeriod * 128);
+                        ui8Timer /= 1000000;
+                        ui8Timer = ui8Timer - 1;
+                    }
+
+                    // Use 64 Hz.
+                    else if (iPeriod <= 4000000)
+                    {
+                        ui8TFS = 1;
+                        ui8Timer = (iPeriod * 64);
+                        ui8Timer /= 1000000;
+                        ui8Timer = ui8Timer - 1;
+                    }
+
+                    // Else, use 1 Hz.
+                    else
+                    {
+                        ui8TFS = 2;
+                        ui8Timer = iPeriod / 1000000;
+                        ui8Timer = ui8Timer - 1;
+                    }
+                }
+            }
+            else
+            {
+                // Seconds
+                if (iPeriod <= 256)
+                {
+                    // Use 1 Hz.
+                    ui8TFS = 2;
+                    ui8Timer = iPeriod - 1;
+                }
+                else
+                {
+                    // Use 1/60 Hz.
+                    ui8TFS = 3;
+                    ui8Timer = iPeriod / 60;
+                    ui8Timer = ui8Timer - 1;
+                }
+            }
+        }
+        else
+        {
+            // Pulse interrupts.
+            // Set up ui8Repeat.
+            ui8TM = 0;
+            ui8TRPT = ui8Repeat & 0x01;
+            if (ui8Repeat < 3)
+            {
+                ui8TFS = 0;
+                if (ui8OMODE == 0)
+                {
+                    ui8Timer = (iPeriod * 4096);
+                    ui8Timer /= 1000000;
+                    ui8Timer = ui8Timer - 1;
+                }
+                else
+                {
+                    ui8Timer = (iPeriod * 128);
+                    ui8Timer /= 1000000;
+                    ui8Timer = ui8Timer - 1;
+                }
+            }
+            else if (ui8Repeat < 5)
+            {
+                ui8TFS = 1;
+                ui8Timer = (iPeriod * 128);
+                ui8Timer /= 1000000;
+                ui8Timer = ui8Timer - 1;
+            }
+            else if (iPeriod <= 256)
+            {
+                // Use 1 Hz.
+                ui8TFS = 2;
+                ui8Timer = iPeriod - 1;
+            }
+            else
+            {
+                // Use 1/60 Hz.
+                ui8TFS = 3;
+                ui8Timer = iPeriod / 60;
+                ui8Timer = ui8Timer - 1;
+            }
+        }
+    }
+
+    // Get TCTRL, keep RPT, clear TE.
+    ui8TCTRL = am1805_reg_read(AM1805_TIMER_CTRL) & 0x1C;
+    am1805_reg_write(AM1805_TIMER_CTRL, ui8TCTRL);
+
+    // Merge the fields.
+    ui8TCTRL = ui8TCTRL | (ui8TE * 0x80) | (ui8TM * 0x40) |
+        (ui8TRPT * 0x20) | ui8TFS;
+
+    // Generate nTIRQ interrupt on FOUT/nIRQ (asserted low).
+    if (ui8Pin == 2)
+    {
+        // Clear OUT1S.
+        am1805_reg_clear(AM1805_CONTROL_2, 0x3);
+    }
+
+    // Generate nTIRQ interrupt on PSW/nIRQ2 (asserted low).
+    if (ui8Pin == 3)
+    {
+        // Get OUT2S.
+        ui8Temp = am1805_reg_read(AM1805_CONTROL_2);
+
+        // If OUT2S != 0, set OUT2S to 5.
+        if ((ui8Temp & 0x1C) != 0)
+        {
+            ui8Temp = (ui8Temp & 0xE3) | 0x14;
+        }
+
+        // Write back.
+        am1805_reg_write(AM1805_CONTROL_2, ui8Temp);
+    }
+
+    // Generate TIRQ interrupt on CLKOUT/nIRQ3 (asserted low).
+    if (ui8Pin == 4)
+    {
+        // Setup SQFS field and enable SQWE.
+        am1805_reg_write(AM1805_SQW, 0x9B);
+    }
+
+    // Generate TIRQ interrupt on CLKOUT/nIRQ3 (asserted high).
+    if (ui8Pin == 5)
+    {
+        // Setup SQFS field and enable SQWE.
+        am1805_reg_write(AM1805_SQW, 0x9A);
+    }
+
+    if (ui8Pin != 0)
+    {
+        // Clear TIM.
+        // Set TIE.
+        // Initialize the timer.
+        // Initialize the timer repeat.
+        // Start the timer.
+        am1805_reg_clear(AM1805_STATUS, 0x08);
+        am1805_reg_set(AM1805_INT_MASK, 0x08);
+        am1805_reg_write(AM1805_TIMER, ui8Timer);
+        am1805_reg_write(AM1805_TIMER_INITIAL, ui8Timer);
+        am1805_reg_write(AM1805_TIMER_CTRL, ui8TCTRL);
+    }
+}
+
+//*****************************************************************************
 //
-//    //
-//    // Read and return the data.
-//    //
-//    return am1805_reg_read(psDevice, (ui8Address & 0x3F) | 0x40);
-//}
+//! @brief Select an oscillator mode.
+//!
+//! @param ui8OSC - the oscillator to select
+//!        0 => 32 KHz XT oscillator, no automatic oscillator switching
+//!        1 => 32 KHz XT oscillator, automatic oscillator switching to RC on
+//!        switch to battery power
+//!        2 => 128 Hz RC oscillator
+//!
+//! This function sets the desired oscillator.
+//!
+//! @return 1 for error
 //
-////*****************************************************************************
-////
-////! @brief Wrtie a byte to the local AMX8X5 RAM.
-////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
-////! @param ui8Address - RTC RAM address.
-////! @param ui8Val - Value to be written.
-////!
-////! This function writes a byte to the local AMX8X5 RAM.
-////!
-////! @return None
-////
-////*****************************************************************************
-//void
-//am1805_ram_write(am1805_t *psDevice, uint8_t ui8Address,
-//                            uint8_t ui8Data)
-//{
-//    uint8_t ui8Xadd;
+//*****************************************************************************
+uint32_t am1805_osc_sel(uint8_t ui8OSC)
+{
+    uint8_t i;
+    uint8_t ui8Temp;
+
+    // Read Oscillator Control register.
+    ui8Temp = am1805_reg_read(AM1805_OSC_CONTROL);
+    ui8Temp = ui8Temp & 0x67;
+
+    // Enable Oscillator Register writes.
+    // Write the Key register.
+    am1805_reg_write(AM1805_CONFIG_KEY, AM1805_CONFIG_KEY_VAL);
+
+    switch (ui8OSC)
+    {
+        // Do nothing, clear Key register.
+        case 0:
+        am1805_reg_write(AM1805_OSC_CONTROL, ui8Temp);
+        break;
+
+        // Set AOS.
+        case 1:
+        ui8Temp = ui8Temp | 0x10;
+        am1805_reg_write(AM1805_OSC_CONTROL, ui8Temp);
+        break;
+
+        // Set OSEL
+        default:
+        ui8Temp = ui8Temp | 0x80;
+        am1805_reg_write(AM1805_OSC_CONTROL, ui8Temp);
+        break;
+    }
+
+    // Wait to make sure switch occurred by testing OMODE.
+    for (i = 0; i < 100; i++)
+    {
+        // Wait 100 ms.
+        // Read OMODE.
+        HAL_Delay(100);
+        ui8Temp = am1805_reg_read(AM1805_OSC_STATUS);
+        ui8Temp = (ui8Temp & 0x10) >> 4;
+
+        if (ui8Temp == (ui8OSC >> 1))
+        {
+            // Successful switch.
+            return 0;
+        }
+    }
+
+    // Return Error.
+    return 1;
+}
+
+//*****************************************************************************
 //
-//    //
-//    // Calc XADDR value from address.
-//    //
-//    ui8Xadd = am1805_ext_address_get(psDevice, ui8Address);
+//! @brief Configure and enable the square wave output.
+//!
+//! @param psDevice is a pointer to a device structure describing the AMx8x5.
+//! @param ui8SQFS - square wave output select (0 to 31)
+//! @param ui8Pin - output pin for SQW (may be ORed) in addition to CLKOUT
+//!        0 => disable SQW
+//!        1 => FOUT
+//!        2 => PSW/nIRQ2
+//!
+//! This function configures and enables the square wave output.
+//!
+//! @return None
 //
-//    //
-//    // Load the XADDR register.
-//    //
-//    am1805_reg_write(psDevice, AM1805_EXTENDED_ADDR,
-//                                ui8Xadd);
+//*****************************************************************************
+void am1805_sqw_set(uint8_t ui8SQFS, uint8_t ui8Pin)
+{
+    uint8_t ui8Temp;
+
+    // Set up SQW multiplexor:
+    // Read the SQW register.
+    // Load ui8SQFS, set SQWE.
+    ui8Temp = am1805_reg_read(AM1805_SQW);
+    ui8Temp = (ui8Temp & 0x70) | ui8SQFS | 0x80;
+
+    if (ui8Pin == 0)
+    {
+        // Clear SQWE.
+        ui8Temp &= 0x7F;
+    }
+
+    if (ui8Pin & 0x1)
+    {
+        // Enable FOUT:
+        // Clear OUT1S.
+        // Load OUT1S with 1.
+        am1805_reg_clear(AM1805_CONTROL_2, 0x03);
+        am1805_reg_set(AM1805_CONTROL_2, 0x01);
+    }
+    if (ui8Pin & 0x2)
+    {
+        // Enable PSW/nIRQ2:
+        // Clear OUT2S.
+        // Load OUT2S with 1.
+        am1805_reg_clear(AM1805_CONTROL_2, 0x1C);
+        am1805_reg_set(AM1805_CONTROL_2, 0x04);
+    }
+
+    // Write the SQW register.
+    am1805_reg_write(AM1805_SQW, ui8Temp);
+}
+
+//*****************************************************************************
 //
-//    //
-//    // Write the value.
-//    //
-//    am1805_reg_write(psDevice, (ui8Address & 0x3F) | 0x40, ui8Data);
-//}
+//! @brief Set up sleep mode (AM18x5 only).
+//!
+//! @param ui8Timeout - minimum timeout period in 7.8 ms periods (0 to 7)
+//! @param ui8Mode - sleep mode (nRST modes not available in AM08xx)
+//!        0 => nRST is pulled low in sleep mode
+//!        1 => PSW/nIRQ2 is pulled high on a sleep
+//!        2 => nRST pulled low and PSW/nIRQ2 pulled high on sleep
+//!
+//! This function sets up sleep mode. This is available on the AM18x5 only.
+//!
+//! @return returned value of the attempted sleep command:
+//!        0 => sleep request accepted, sleep mode will be initiated in
+//!        ui8Timeout seconds
+//!        1 => illegal input values
+//!        2 => sleep request declined, interrupt is currently pending
+//!        3 => sleep request declined, no sleep trigger interrupt enabled
+//
+//*****************************************************************************
+uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
+{
+    uint8_t ui8SLRES;
+    uint8_t ui8Temp0, ui8Temp1;
+
+    if (ui8Mode > 0)
+    {
+        // Sleep to PSW/nIRQ2.
+        // Read OUT2S.
+        // MUST NOT WRITE OUT2S WITH 000.
+        // Write value to OUT2S.
+        ui8Temp0 = am1805_reg_read(AM1805_CONTROL_2);
+        ui8Temp0 = (ui8Temp0 & 0xE3) | 0x18;
+        am1805_reg_write(AM1805_CONTROL_2, ui8Temp0);
+        ui8SLRES = 0;
+    }
+
+    if (ui8Mode != 1)
+    {
+        // Sleep to nRST.
+        ui8SLRES = 1;
+    }
+
+    // Assemble SLEEP register value.
+    // Write to the register.
+    ui8Temp0 = ui8Timeout | (ui8SLRES << 6) | 0x80;
+    am1805_reg_write(AM1805_SLEEP_CTRL, ui8Temp0);
+
+    // Determine if SLEEP was accepted:
+    // Get SLP bit.
+    ui8Temp0 = am1805_reg_read(AM1805_SLEEP_CTRL) & 0x80;
+
+    if (ui8Temp0 == 0)
+    {
+        // SLEEP did not happen. Determine why and return reason:
+        // Get status register interrupt enables.
+        // Get WDT register.
+        ui8Temp0 = am1805_reg_read(AM1805_INT_MASK) & 0x0F;
+        ui8Temp1 = am1805_reg_read(AM1805_WDT);
+
+        if ((ui8Temp0 == 0) & (((ui8Temp1 & 0x7C) == 0) ||
+                               ((ui8Temp1 & 0x80) == 0x80)))
+        {
+            // No trigger interrupts enabled.
+            return 3;
+        }
+        else
+        {
+            // Interrupt pending.
+            return 2;
+        }
+    }
+    else
+    {
+        // SLEEP request successful.
+        return 0;
+    }
+}
+
+//*****************************************************************************
+//
+//! @brief Set up the watchdog timer.
+//!
+//! @param ui8Period - timeout period in ms (65 to 124,000)
+//! @param ui8Pin - pin to generate the watchdog signal
+//!        0 => disable WDT
+//!        1 => generate an interrupt on FOUT/nIRQ
+//!        2 => generate an interrupt on PSW/nIRQ2
+//!        3 => generate a reset on nRST (AM18xx only)
+//!
+//! This function sets up sleep mode. This is available on the AM18x5 only.
+//!
+//! @return None
+//
+//*****************************************************************************
+void am1805_watchdog_set(uint32_t ui8Period, uint8_t ui8Pin)
+{
+    uint8_t ui8WDTreg;
+    uint8_t ui8WDS;
+    uint8_t ui8BMB;
+    uint8_t ui8WRB;
+
+    // Disable the WDT with BMB = 0.
+    // Clear the WDT flag.
+    am1805_reg_write(AM1805_WDT, 0x00);
+    am1805_reg_clear(AM1805_STATUS, 0x20);
+
+    // Use the shortest clock interval which will allow the selected period.
+    if (ui8Period < (31000 / 16))
+    {
+        // Use 16 Hz.
+        ui8WRB = 0;
+        ui8BMB = (ui8Period * 16) / 1000;
+    }
+    else if (ui8Period < (31000 / 4))
+    {
+        // Use 4 Hz.
+        ui8WRB = 1;
+        ui8BMB = (ui8Period * 4) / 1000;
+    }
+    else if (ui8Period < 31000)
+    {
+        // Use 1 Hz.
+        ui8WRB = 2;
+        ui8BMB = ui8Period / 1000;
+    }
+    else
+    {
+        // Use 1/4 Hz.
+        ui8WRB = 3;
+        ui8BMB = ui8Period / 4000;
+    }
+
+    switch (ui8Pin)
+    {
+        // Disable WDT.
+        case 0:
+        ui8WDS = 0;
+        ui8BMB = 0;
+        break;
+
+        // Interrupt on FOUT/nIRQ.
+        case 1:
+        // Select interrupt.
+        // Clear the OUT1S field
+        ui8WDS = 0;
+        am1805_reg_clear(AM1805_CONTROL_2, 0x03);
+        break;
+
+        // Interrupt on PSW/nIRQ2.
+        case 2:
+        // Select interrupt.
+        // Clear the OUT2S field.
+        ui8WDS = 0;
+        am1805_reg_clear(AM1805_CONTROL_2, 0x1C);
+        break;
+
+        // Interrupt on nRST.
+        case 3:
+        default:
+        // Select reset out.
+        ui8WDS = 1;
+        break;
+    }
+
+    // Create the correct value.
+    // Write the register.
+    ui8WDTreg = (ui8WDS * 0x80) + (ui8BMB * 0x4) + ui8WRB;
+    am1805_reg_write(AM1805_WDT, ui8WDTreg);
+}
+
+//*****************************************************************************
+//
+//! @brief Set up autocalibration.
+//!
+//! @param ui8Period - the repeat period for autocalibration.
+//!        0 => disable autocalibration
+//!        1 => execute a single autocalibration cycle
+//!        2 => execute a cycle every 1024 seconds (~17 minutes)
+//!        3 => execute a cycle every 512 seconds (~8.5 minutes)
+//!
+//! This function sets up autocalibration.
+//!
+//! @return None
+//
+//*****************************************************************************
+void am1805_autocal_set(uint8_t ui8Period)
+{
+    uint8_t ui8Temp;
+
+    // Read Oscillator Control, mask ACAL.
+    ui8Temp = am1805_reg_read(AM1805_OSC_CONTROL);
+    ui8Temp &= 0x9F;
+
+    // Write the Key register.
+    am1805_reg_write(AM1805_CONFIG_KEY, AM1805_CONFIG_KEY_VAL);
+
+    switch (ui8Period)
+    {
+        case 0:
+        // Set ACAL to 0.
+        am1805_reg_write(AM1805_OSC_CONTROL, ui8Temp);
+        break;
+
+        case 1:
+        // Set ACAL to 2
+        ui8Temp |= 0x40;
+        am1805_reg_write(AM1805_OSC_CONTROL, ui8Temp);
+
+        // Wait for initiation of autocal (10 ms).
+        HAL_Delay(10);
+
+        // Write the Key register.
+        am1805_reg_write(AM1805_CONFIG_KEY, AM1805_CONFIG_KEY_VAL);
+
+        // Mask ACAL.
+        // Set ACAL to 0
+        ui8Temp = ui8Temp & 0x9F;
+        am1805_reg_write(AM1805_OSC_CONTROL, ui8Temp);
+        break;
+
+        case 2:
+
+        // Set ACAL to 2.
+        ui8Temp = ui8Temp | 0x40;
+        am1805_reg_write(AM1805_OSC_CONTROL, ui8Temp);
+        break;
+
+        case 3:
+        // Set ACAL to 3.
+        ui8Temp = ui8Temp | 0x60;
+        am1805_reg_write(AM1805_OSC_CONTROL, ui8Temp);
+        break;
+    }
+}
+
+//*****************************************************************************
+//
+//! @brief Gets the extension address for the AMx8x5..
+//!
+//! @param ui8Address is the address.
+//!
+//! This function returns the extension address.
+//!
+//! @return the externsion address
+//
+//*****************************************************************************
+uint8_t am1805_ext_address_get(uint8_t ui8Address)
+{
+    uint8_t ui8Xadd, ui8Temp;
+
+    ui8Temp = am1805_reg_read(AM1805_EXTENDED_ADDR) & 0xC0;
+
+    if (ui8Address < 64)
+    {
+        ui8Xadd = 0x8;
+    }
+    else if (ui8Address < 128)
+    {
+        ui8Xadd = 0x9;
+    }
+    else if (ui8Address < 192)
+    {
+        ui8Xadd = 0xA;
+    }
+    else
+    {
+        ui8Xadd = 0xB;
+    }
+
+    // Return the address.
+    return (ui8Xadd | ui8Temp);
+}
+
+//*****************************************************************************
+
+
+//*****************************************************************************
+//
+//! @brief Read a byte from the local AMX8X5 RAM.
+//!
+//! @param ui8Address - RTC RAM address.
+//!
+//! This function reads a byte from the local AMX8X5 RAM.
+//!
+//! @return the Value at the desired address.
+//
+//*****************************************************************************
+uint8_t am1805_ram_read(uint8_t ui8Address)
+{
+    uint8_t ui8Xadd;
+
+    // Calc XADDR value from address.
+    ui8Xadd = am1805_ext_address_get(ui8Address);
+
+    // Load the XADDR register.
+    am1805_reg_write(AM1805_EXTENDED_ADDR, ui8Xadd);
+
+    // Read and return the data.
+    return am1805_reg_read((ui8Address & 0x3F) | 0x40);
+}
+
+//*****************************************************************************
+//
+//! @brief Write a byte to the local AMX8X5 RAM.
+//!
+//! @param ui8Address - RTC RAM address.
+//! @param ui8Val - Value to be written.
+//!
+//! This function writes a byte to the local AMX8X5 RAM.
+//!
+//! @return None
+//
+//*****************************************************************************
+void am1805_ram_write(uint8_t ui8Address, uint8_t ui8Data)
+{
+    uint8_t ui8Xadd;
+
+    // Calc XADDR value from address.
+    ui8Xadd = am1805_ext_address_get(ui8Address);
+
+    // Load the XADDR register.
+    am1805_reg_write(AM1805_EXTENDED_ADDR, ui8Xadd);
+
+    // Write the value.
+    am1805_reg_write((ui8Address & 0x3F) | 0x40, ui8Data);
+}
