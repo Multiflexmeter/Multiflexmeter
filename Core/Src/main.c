@@ -91,7 +91,8 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  g_psTimeRegs.ui8Year = 1999;
+  g_psTimeRegs.ui8Century = 19;
+  g_psTimeRegs.ui8Year = 99;
   g_psTimeRegs.ui8Month = 11;
   g_psTimeRegs.ui8Date = 11;
   g_psTimeRegs.ui8Hour = 20;
@@ -126,6 +127,7 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   uartInit_Config();
+  am1805_time_set(0);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -134,7 +136,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
     MX_LoRaWAN_Process();
-    am1805_time_set(0);
+    am1805_time_get();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

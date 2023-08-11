@@ -57,7 +57,7 @@ am1805_time_t g_psTimeRegs;
 // Converts a Binary Coded Decimal (BCD) byte to its Decimal form.
 //
 //*****************************************************************************
-uint8_t bcd_to_dec(uint8_t ui8BCDByte)
+static uint8_t bcd_to_dec(uint8_t ui8BCDByte)
 {
   return (((ui8BCDByte & 0xF0) >> 4) * 10) + (ui8BCDByte & 0x0F);
 }
@@ -169,7 +169,7 @@ static void am1805_reg_clear(uint8_t ui8Address, uint8_t ui8Mask)
 //
 //*****************************************************************************
 static void am1805_reg_block_read(const uint8_t ui8StartRegister, uint8_t *pui8Values,
-                                const uint8_t ui8NumBytes)
+                                    const uint8_t ui8NumBytes)
 {
   uint8_t ui8Offset = ui8StartRegister;
 
@@ -192,7 +192,7 @@ static void am1805_reg_block_read(const uint8_t ui8StartRegister, uint8_t *pui8V
 //
 //*****************************************************************************
 static void am1805_reg_block_write(const uint8_t ui8StartRegister, uint8_t *pui8Values,
-                                 const uint8_t ui8NumBytes)
+                                     const uint8_t ui8NumBytes)
 {
     uint8_t ui8Offset = ui8StartRegister;
 
@@ -216,73 +216,68 @@ void am1805_reset(void)
   am1805_reg_write(AM1805_CONFIG_KEY, 0x3C);
 }
 
-////*****************************************************************************
-////
-////! @brief Get the time.
-////!
-////! @param psDevice is a pointer to a device structure describing the AMx8x5.
-////!
-////! This function loads the g_psTimeRegs structure with the time from the
-////! AMX8XX.
-////!
-////! @return None.
-////
-////*****************************************************************************
-//void
-//am1805_time_get(am1805_t *psDevice)
-//{
-//    am_hal_iom_buffer(8) psTempBuff;
-//
-//    //
-//    // Read the counters.
-//    //
-//    am1805_reg_block_read(psDevice, AM1805_HUNDREDTHS,
-//                                     psTempBuff.words, 8,
-//                                     NULL);
-//
-//    g_psTimeRegs.ui8Hundredth = bcd_to_dec(psTempBuff.bytes[0]);
-//    g_psTimeRegs.ui8Second = bcd_to_dec(psTempBuff.bytes[1]);
-//    g_psTimeRegs.ui8Minute = bcd_to_dec(psTempBuff.bytes[2]);
-//    g_psTimeRegs.ui8Hour = psTempBuff.bytes[3];
-//    g_psTimeRegs.ui8Date = bcd_to_dec(psTempBuff.bytes[4]);
-//    g_psTimeRegs.ui8Month = bcd_to_dec(psTempBuff.bytes[5]);
-//    g_psTimeRegs.ui8Year = bcd_to_dec(psTempBuff.bytes[6]);
-//    g_psTimeRegs.ui8Weekday = bcd_to_dec(psTempBuff.bytes[7]);
-//
-//    //
-//    // Get the current hours format mode 12:24.
-//    //
-//    psTempBuff.bytes[0] = am1805_reg_read(psDevice,
-//                                                 AM1805_CONTROL_1);
-//    if ((psTempBuff.bytes[0] & 0x40) == 0)
-//    {
-//        //
-//        // 24-hour mode.
-//        //
-//        g_psTimeRegs.ui8Mode = 2;
-//        g_psTimeRegs.ui8Hour = g_psTimeRegs.ui8Hour & 0x3F;
-//    }
-//    else
-//    {
-//        //
-//        // 12-hour mode.  Get PM:AM.
-//        //
-//        g_psTimeRegs.ui8Mode = (g_psTimeRegs.ui8Hour & 0x20) ? 1 : 0;
-//        g_psTimeRegs.ui8Hour &= 0x1F;
-//    }
-//
-//    g_psTimeRegs.ui8Hour = bcd_to_dec(g_psTimeRegs.ui8Hour);
-//
-//    //
-//    // Get the century bit.
-//    //
-//    psTempBuff.bytes[0] = am1805_reg_read(psDevice,
-//                                                 AM1805_STATUS);
-//    g_psTimeRegs.ui8Century = (psTempBuff.bytes[0] & 0x80) ? 1 : 0;
-//}
-//
 //*****************************************************************************
 //
+//! @brief Get the time.
+//!
+//! @param psDevice is a pointer to a device structure describing the AMx8x5.
+//!
+//! This function loads the g_psTimeRegs structure with the time from the
+//! AMX8XX.
+//!
+//! @return None.
+//
+//*****************************************************************************
+void
+am1805_time_get(void)
+{
+    uint8_t psTempBuff[8];
+
+    //
+    // Read the counters.
+    //
+    am1805_reg_block_read(AM1805_HUNDREDTHS, psTempBuff, 8);
+
+    g_psTimeRegs.ui8Hundredth = bcd_to_dec(psTempBuff[0]);
+    g_psTimeRegs.ui8Second    = bcd_to_dec(psTempBuff[1]);
+    g_psTimeRegs.ui8Minute    = bcd_to_dec(psTempBuff[2]);
+    g_psTimeRegs.ui8Hour      = psTempBuff[3];
+    g_psTimeRegs.ui8Date      = bcd_to_dec(psTempBuff[4]);
+    g_psTimeRegs.ui8Month     = bcd_to_dec(psTempBuff[5]);
+    g_psTimeRegs.ui8Year      = bcd_to_dec(psTempBuff[6]);
+    g_psTimeRegs.ui8Weekday   = bcd_to_dec(psTempBuff[7]);
+
+    //
+    // Get the current hours format mode 12:24.
+    //
+    psTempBuff[0] = am1805_reg_read(AM1805_CONTROL_1);
+    if ((psTempBuff[0] & 0x40) == 0)
+    {
+        //
+        // 24-hour mode.
+        //
+        g_psTimeRegs.ui8Mode = 2;
+        g_psTimeRegs.ui8Hour = g_psTimeRegs.ui8Hour & 0x3F;
+    }
+    else
+    {
+        //
+        // 12-hour mode.  Get PM:AM.
+        //
+        g_psTimeRegs.ui8Mode = (g_psTimeRegs.ui8Hour & 0x20) ? 1 : 0;
+        g_psTimeRegs.ui8Hour &= 0x1F;
+    }
+
+    g_psTimeRegs.ui8Hour = bcd_to_dec(g_psTimeRegs.ui8Hour);
+
+    //
+    // Get the century bit.
+    //
+    psTempBuff[0] = am1805_reg_read(AM1805_STATUS);
+    g_psTimeRegs.ui8Century = (psTempBuff[0] & 0x80) ? 1 : 0;
+}
+
+//*****************************************************************************
 //! @brief Set the time in the counters.
 //!
 //! @param ui8Protect:  0 => leave counters writable

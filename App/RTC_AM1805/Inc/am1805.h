@@ -137,7 +137,7 @@ extern I2C_HandleTypeDef hi2c1;
 //*****************************************************************************
 
 void am1805_reset(void);
-//extern void am1805_time_get(am1805_t *psDevice);
+void am1805_time_get(void);
 void am1805_time_set(uint8_t ui8Protect);
 //
 //extern void am1805_cal_set(am1805_t *psDevice,
