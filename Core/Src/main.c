@@ -91,6 +91,7 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+  g_psTimeRegs.ui8Hundredth = 100;
   g_psTimeRegs.ui8Century = 19;
   g_psTimeRegs.ui8Year = 99;
   g_psTimeRegs.ui8Month = 11;
@@ -127,7 +128,8 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   uartInit_Config();
-  am1805_time_set(0);
+  am1805_time_set(1);
+  am1805_sqw_set(6, 2);
   /* USER CODE END 2 */
 
   /* Infinite loop */

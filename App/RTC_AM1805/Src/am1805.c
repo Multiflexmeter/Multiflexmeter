@@ -1022,7 +1022,6 @@ uint32_t am1805_osc_sel(uint8_t ui8OSC)
 //
 //! @brief Configure and enable the square wave output.
 //!
-//! @param psDevice is a pointer to a device structure describing the AMx8x5.
 //! @param ui8SQFS - square wave output select (0 to 31)
 //! @param ui8Pin - output pin for SQW (may be ORed) in addition to CLKOUT
 //!        0 => disable SQW
