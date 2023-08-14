@@ -46,12 +46,6 @@
 
 #include "../Inc/am1805.h"
 
-//*****************************************************************************
-//
-// Globals
-//
-//*****************************************************************************
-am1805_time_t g_psTimeRegs;
 
 //*****************************************************************************
 //
@@ -558,37 +552,38 @@ void am1805_cal_set(uint8_t ui8Mode, int32_t iAdjust)
 //! @return None
 //
 //*****************************************************************************
-void am1805_alarm_set(uint8_t ui8Repeat, uint8_t ui8IntMode, uint8_t ui8Pin)
+void am1805_alarm_set(am1805_time_t alarm, uint8_t ui8Repeat, uint8_t ui8IntMode, uint8_t ui8Pin)
 {
     volatile uint8_t ui8Temp;
+    am1805_time_t setAlarm;
     uint8_t psTempBuff[8];
 
     // Convert decimal to binary-coded decimal.
-    g_psTimeRegs.ui8Hundredth = dec_to_bcd(g_psTimeRegs.ui8Hundredth);
-    g_psTimeRegs.ui8Second = dec_to_bcd(g_psTimeRegs.ui8Second);
-    g_psTimeRegs.ui8Minute = dec_to_bcd(g_psTimeRegs.ui8Minute);
-    g_psTimeRegs.ui8Hour = dec_to_bcd(g_psTimeRegs.ui8Hour);
-    g_psTimeRegs.ui8Date = dec_to_bcd(g_psTimeRegs.ui8Date);
-    g_psTimeRegs.ui8Weekday = dec_to_bcd(g_psTimeRegs.ui8Weekday);
-    g_psTimeRegs.ui8Month = dec_to_bcd(g_psTimeRegs.ui8Month);
+    setAlarm.ui8Hundredth = dec_to_bcd(alarm.ui8Hundredth);
+    setAlarm.ui8Second = dec_to_bcd(alarm.ui8Second);
+    setAlarm.ui8Minute = dec_to_bcd(alarm.ui8Minute);
+    setAlarm.ui8Hour = dec_to_bcd(alarm.ui8Hour);
+    setAlarm.ui8Date = dec_to_bcd(alarm.ui8Date);
+    setAlarm.ui8Weekday = dec_to_bcd(alarm.ui8Weekday);
+    setAlarm.ui8Month = dec_to_bcd(alarm.ui8Month);
 
     // Determine whether a 12-hour or a 24-hour time keeping mode is being
     // used.
-    if (g_psTimeRegs.ui8Mode == 1)
+    if (alarm.ui8Mode == 1)
     {
         // A 12-hour day PM.
         // Set AM/PM.
-        g_psTimeRegs.ui8Hour = g_psTimeRegs.ui8Hour | 0x20;
+        alarm.ui8Hour = alarm.ui8Hour | 0x20;
     }
 
     // Write all of the time counters.
-    psTempBuff[0] = g_psTimeRegs.ui8Hundredth;
-    psTempBuff[1] = g_psTimeRegs.ui8Second;
-    psTempBuff[2] = g_psTimeRegs.ui8Minute;
-    psTempBuff[3] = g_psTimeRegs.ui8Hour;
-    psTempBuff[4] = g_psTimeRegs.ui8Date;
-    psTempBuff[5] = g_psTimeRegs.ui8Month;
-    psTempBuff[6] = g_psTimeRegs.ui8Weekday;
+    psTempBuff[0] = setAlarm.ui8Hundredth;
+    psTempBuff[1] = setAlarm.ui8Second;
+    psTempBuff[2] = setAlarm.ui8Minute;
+    psTempBuff[3] = setAlarm.ui8Hour;
+    psTempBuff[4] = setAlarm.ui8Date;
+    psTempBuff[5] = setAlarm.ui8Month;
+    psTempBuff[6] = setAlarm.ui8Weekday;
 
     // Clear the RPT field.
     // Clear the AIE bit IM field.

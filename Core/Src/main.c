@@ -92,6 +92,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   am1805_time_t setTime;
+  am1805_time_t setAlarm;
 
   setTime.ui8Hundredth = 0;
   setTime.ui8Century = 0;
@@ -103,6 +104,11 @@ int main(void)
   setTime.ui8Second = 0;
   setTime.ui8Weekday = 3;
   setTime.ui8Mode = AM1805_24HR_MODE;
+
+  setAlarm.ui8Minute = 1;
+  setAlarm.ui8Second = 20;
+  setAlarm.ui8Hundredth = 1;
+  setAlarm.ui8Mode = AM1805_24HR_MODE;
 
 
   /* USER CODE END 1 */
@@ -134,7 +140,7 @@ int main(void)
   am1805_reset();
   am1805_osc_sel(0);
   am1805_time_set(setTime, 1);
-  am1805_alarm_set(6, 2, 1);
+  am1805_alarm_set(setAlarm, 6, 2, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
