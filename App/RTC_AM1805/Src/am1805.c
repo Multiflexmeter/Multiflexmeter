@@ -77,12 +77,12 @@ static uint8_t dec_to_bcd(uint8_t ui8DecimalByte)
 //
 //! @brief Writes an internal register in the AM1805.
 //!
-//! @param ui8Register is the address of the register to write.
+//! @param
 //! @param ui8Value is the value to write to the register.
 //!
 //! This function performs a write to an AM1805 register over the I2C bus.
 //!
-//! @return
+//! @return None
 //
 //*****************************************************************************
 static void am1805_reg_write(const uint8_t ui8Register, const uint8_t ui8Value)
@@ -157,6 +157,8 @@ static void am1805_reg_clear(uint8_t ui8Address, uint8_t ui8Mask)
   am1805_reg_write(ui8Address, ui8Temp);
 }
 
+//*****************************************************************************
+//
 //! @brief Reads a block of internal registers in the AM1805.
 //!
 //! @param ui8StartRegister is the address of the first register to read.
@@ -225,52 +227,42 @@ void am1805_reset(void)
 //! @return None.
 //
 //*****************************************************************************
-void am1805_time_get(void)
+void am1805_time_get(am1805_time_t *time)
 {
   uint8_t psTempBuff[8];
 
-  //
   // Read the counters.
-  //
   am1805_reg_block_read(AM1805_HUNDREDTHS, psTempBuff, 8);
 
-  g_psTimeRegs.ui8Hundredth = bcd_to_dec(psTempBuff[0]);
-  g_psTimeRegs.ui8Second = bcd_to_dec(psTempBuff[1]);
-  g_psTimeRegs.ui8Minute = bcd_to_dec(psTempBuff[2]);
-  g_psTimeRegs.ui8Hour = psTempBuff[3];
-  g_psTimeRegs.ui8Date = bcd_to_dec(psTempBuff[4]);
-  g_psTimeRegs.ui8Month = bcd_to_dec(psTempBuff[5]);
-  g_psTimeRegs.ui8Year = bcd_to_dec(psTempBuff[6]);
-  g_psTimeRegs.ui8Weekday = bcd_to_dec(psTempBuff[7]);
+  time->ui8Hundredth = bcd_to_dec(psTempBuff[0]);
+  time->ui8Second = bcd_to_dec(psTempBuff[1]);
+  time->ui8Minute = bcd_to_dec(psTempBuff[2]);
+  time->ui8Hour = psTempBuff[3];
+  time->ui8Date = bcd_to_dec(psTempBuff[4]);
+  time->ui8Month = bcd_to_dec(psTempBuff[5]);
+  time->ui8Year = bcd_to_dec(psTempBuff[6]);
+  time->ui8Weekday = bcd_to_dec(psTempBuff[7]);
 
-  //
   // Get the current hours format mode 12:24.
-  //
   psTempBuff[0] = am1805_reg_read(AM1805_CONTROL_1);
   if ((psTempBuff[0] & 0x40) == 0)
   {
-    //
     // 24-hour mode.
-    //
-    g_psTimeRegs.ui8Mode = 2;
-    g_psTimeRegs.ui8Hour = g_psTimeRegs.ui8Hour & 0x3F;
+    time->ui8Mode = 2;
+    time->ui8Hour = time->ui8Hour & 0x3F;
   }
   else
   {
-    //
     // 12-hour mode.  Get PM:AM.
-    //
-    g_psTimeRegs.ui8Mode = (g_psTimeRegs.ui8Hour & 0x20) ? 1 : 0;
-    g_psTimeRegs.ui8Hour &= 0x1F;
+    time->ui8Mode = (time->ui8Hour & 0x20) ? 1 : 0;
+    time->ui8Hour &= 0x1F;
   }
 
-  g_psTimeRegs.ui8Hour = bcd_to_dec(g_psTimeRegs.ui8Hour);
+  time->ui8Hour = bcd_to_dec(time->ui8Hour);
 
-  //
   // Get the century bit.
-  //
   psTempBuff[0] = am1805_reg_read(AM1805_STATUS);
-  g_psTimeRegs.ui8Century = (psTempBuff[0] & 0x80) ? 1 : 0;
+  time->ui8Century = (psTempBuff[0] & 0x80) ? 1 : 0;
 }
 
 //*****************************************************************************
@@ -285,61 +277,48 @@ void am1805_time_get(void)
 //! @return None
 //
 //*****************************************************************************
-void am1805_time_set(uint8_t ui8Protect)
+void am1805_time_set(am1805_time_t time, uint8_t ui8Protect)
 {
+  am1805_time_t setTime;
   uint8_t psTempBuff[8];
 
-  //
   // Convert decimal to binary-coded decimal.
-  //
-  g_psTimeRegs.ui8Hundredth = dec_to_bcd(g_psTimeRegs.ui8Hundredth);
-  g_psTimeRegs.ui8Second = dec_to_bcd(g_psTimeRegs.ui8Second);
-  g_psTimeRegs.ui8Minute = dec_to_bcd(g_psTimeRegs.ui8Minute);
-  g_psTimeRegs.ui8Hour = dec_to_bcd(g_psTimeRegs.ui8Hour);
-  g_psTimeRegs.ui8Date = dec_to_bcd(g_psTimeRegs.ui8Date);
-  g_psTimeRegs.ui8Weekday = dec_to_bcd(g_psTimeRegs.ui8Weekday);
-  g_psTimeRegs.ui8Month = dec_to_bcd(g_psTimeRegs.ui8Month);
-  g_psTimeRegs.ui8Year = dec_to_bcd(g_psTimeRegs.ui8Year);
+  setTime.ui8Hundredth = dec_to_bcd(time.ui8Hundredth);
+  setTime.ui8Second = dec_to_bcd(time.ui8Second);
+  setTime.ui8Minute = dec_to_bcd(time.ui8Minute);
+  setTime.ui8Hour = dec_to_bcd(time.ui8Hour);
+  setTime.ui8Date = dec_to_bcd(time.ui8Date);
+  setTime.ui8Weekday = dec_to_bcd(time.ui8Weekday);
+  setTime.ui8Month = dec_to_bcd(time.ui8Month);
+  setTime.ui8Year = dec_to_bcd(time.ui8Year);
 
-  //
   // Determine whether 12 or 24-hour timekeeping mode is being used and set
   // the 1224 bit appropriately.
   // 24-hour day.
-  //
-  if (g_psTimeRegs.ui8Mode == AM1805_24HR_MODE)
+  if (time.ui8Mode == AM1805_24HR_MODE)
   {
     am1805_reg_clear(AM1805_CONTROL_1, 0x40);
   }
 
-  //
   // 12-hour day PM.
-  //
-  else if (g_psTimeRegs.ui8Mode == AM1805_12HR_MODE)
+  else if (time.ui8Mode == AM1805_12HR_MODE)
   {
-    //
     // Set AM/PM.
-    //
-    g_psTimeRegs.ui8Hour |= 0x20;
+    time.ui8Hour |= 0x20;
     am1805_reg_set(AM1805_CONTROL_1, 0x40);
   }
 
-  //
   // 12-hour day AM.
-  //
   else
   {
     am1805_reg_set(AM1805_CONTROL_1, 0x40);
   }
 
-  //
   // Set the WRTC bit to enable counter writes.
-  //
   am1805_reg_set(AM1805_CONTROL_1, 0x01);
 
-  //
   // Set the correct century.
-  //
-  if (g_psTimeRegs.ui8Century == 0)
+  if (time.ui8Century == 0)
   {
     am1805_reg_clear(AM1805_STATUS, 0x80);
   }
@@ -348,28 +327,22 @@ void am1805_time_set(uint8_t ui8Protect)
     am1805_reg_set(AM1805_STATUS, 0x80);
   }
 
-  //
   // Write all of the time counters.
-  //
-  psTempBuff[0] = g_psTimeRegs.ui8Hundredth;
-  psTempBuff[1] = g_psTimeRegs.ui8Second;
-  psTempBuff[2] = g_psTimeRegs.ui8Minute;
-  psTempBuff[3] = g_psTimeRegs.ui8Hour;
-  psTempBuff[4] = g_psTimeRegs.ui8Date;
-  psTempBuff[5] = g_psTimeRegs.ui8Month;
-  psTempBuff[6] = g_psTimeRegs.ui8Year;
-  psTempBuff[7] = g_psTimeRegs.ui8Weekday;
+  psTempBuff[0] = setTime.ui8Hundredth;
+  psTempBuff[1] = setTime.ui8Second;
+  psTempBuff[2] = setTime.ui8Minute;
+  psTempBuff[3] = setTime.ui8Hour;
+  psTempBuff[4] = setTime.ui8Date;
+  psTempBuff[5] = setTime.ui8Month;
+  psTempBuff[6] = setTime.ui8Year;
+  psTempBuff[7] = setTime.ui8Weekday;
 
-  //
   // Write the values to the AM1805.
-  //
   am1805_reg_block_write(AM1805_HUNDREDTHS, psTempBuff, 8);
 
-  //
   // Load the final value of the WRTC bit based on the value of ui8Protect.
   // Clear the WRTC bit and the STOP bit.
   // Invert the protect bit and update WRTC.
-  //
   psTempBuff[0] = am1805_reg_read(AM1805_CONTROL_1);
   psTempBuff[0] &= 0x7E;
   psTempBuff[0] |= (0x01 & (~ui8Protect));
@@ -587,7 +560,7 @@ void am1805_cal_set(uint8_t ui8Mode, int32_t iAdjust)
 //*****************************************************************************
 void am1805_alarm_set(uint8_t ui8Repeat, uint8_t ui8IntMode, uint8_t ui8Pin)
 {
-    uint8_t ui8Temp;
+    volatile uint8_t ui8Temp;
     uint8_t psTempBuff[8];
 
     // Convert decimal to binary-coded decimal.
@@ -634,7 +607,7 @@ void am1805_alarm_set(uint8_t ui8Repeat, uint8_t ui8IntMode, uint8_t ui8Pin)
         ui8Temp = (ui8Temp & 0x03);
 
         // Not already selecting nIRQ.
-        if (ui8Temp != 0)
+        if (!ui8Temp)
         {
             // Set OUT1S to 3.
             am1805_reg_set(AM1805_CONTROL_2, 0x03);
@@ -667,30 +640,22 @@ void am1805_alarm_set(uint8_t ui8Repeat, uint8_t ui8IntMode, uint8_t ui8Pin)
     }
     if (ui8Repeat == 9)
     {
-        //
         // 100ths interrupt.
         // Select correct RPT value.
-        //
         psTempBuff[0] = 0xFF;
         ui8Repeat = 7;
     }
 
-    //
     // Don't initiate if ui8Repeat = 0.
-    //
     if (ui8Repeat != 0)
     {
-        //
         // Set the RPT field to the value of ui8Repeat.
-        //
         ui8Temp = (ui8Repeat << 2);
 
-        //
         // Was previously cleared.
         // Set the alarm interrupt mode.
         // Execute the burst write.
         // Set the AIE bit.
-        //
         am1805_reg_set(AM1805_TIMER_CTRL, ui8Temp);
         am1805_reg_set(AM1805_INT_MASK, (ui8IntMode << 5));
         am1805_reg_block_write(AM1805_ALARM_HUNDRS, psTempBuff, 7);
@@ -698,9 +663,7 @@ void am1805_alarm_set(uint8_t ui8Repeat, uint8_t ui8IntMode, uint8_t ui8Pin)
     }
     else
     {
-        //
         // Set IM field to 0x3 (reset value) to minimize current draw.
-        //
         am1805_reg_set(AM1805_INT_MASK, 0x60);
     }
 }

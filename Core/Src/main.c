@@ -81,7 +81,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+am1805_time_t currentTime;
 /* USER CODE END 0 */
 
 /**
@@ -91,16 +91,18 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  g_psTimeRegs.ui8Hundredth = 100;
-  g_psTimeRegs.ui8Century = 19;
-  g_psTimeRegs.ui8Year = 99;
-  g_psTimeRegs.ui8Month = 11;
-  g_psTimeRegs.ui8Date = 11;
-  g_psTimeRegs.ui8Hour = 20;
-  g_psTimeRegs.ui8Minute = 56;
-  g_psTimeRegs.ui8Second = 0;
-  g_psTimeRegs.ui8Weekday = 3;
-  g_psTimeRegs.ui8Mode = AM1805_24HR_MODE;
+  am1805_time_t setTime;
+
+  setTime.ui8Hundredth = 0;
+  setTime.ui8Century = 0;
+  setTime.ui8Year = 99;
+  setTime.ui8Month = 11;
+  setTime.ui8Date = 11;
+  setTime.ui8Hour = 20;
+  setTime.ui8Minute = 56;
+  setTime.ui8Second = 0;
+  setTime.ui8Weekday = 3;
+  setTime.ui8Mode = AM1805_24HR_MODE;
 
 
   /* USER CODE END 1 */
@@ -128,8 +130,11 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   uartInit_Config();
-  am1805_time_set(1);
-  am1805_sqw_set(6, 2);
+
+  am1805_reset();
+  am1805_osc_sel(0);
+  am1805_time_set(setTime, 1);
+  am1805_alarm_set(6, 2, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -138,7 +143,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
     MX_LoRaWAN_Process();
-    am1805_time_get();
+    am1805_time_get(&currentTime);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
