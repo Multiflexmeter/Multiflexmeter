@@ -108,6 +108,8 @@ extern "C"
 #define AM1805_MODE_SPI                   true
 #define AM1805_MODE_I2C                   false
 
+// Define the i2c handle to use for the AM1805
+#define I2CHANDLE                         hi2c1
 //*****************************************************************************
 //
 // Structure used for time keeping.
@@ -126,8 +128,6 @@ typedef struct
   uint8_t ui8Weekday;
   uint8_t ui8Mode;
 } am1805_time_t;
-
-extern I2C_HandleTypeDef hi2c1;
 
 //*****************************************************************************
 //

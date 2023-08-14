@@ -141,8 +141,6 @@ int main(void)
   am1805_osc_sel(0);
   am1805_time_set(setTime, 1);
 
-  am1805_ram_write(0x80, 0xDE);
-  volatile uint8_t ramValue = am1805_ram_read(0x80);
   /* USER CODE END 2 */
 
   /* Infinite loop */

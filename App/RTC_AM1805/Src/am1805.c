@@ -83,7 +83,7 @@ static void am1805_reg_write(const uint8_t ui8Register, const uint8_t ui8Value)
 {
   uint8_t ui8Data = ui8Value;
 
-  HAL_I2C_Mem_Write(&hi2c1, AM1805_ADDRESS, ui8Register, 1, &ui8Data, 1, 100);
+  HAL_I2C_Mem_Write(&I2CHANDLE, AM1805_ADDRESS, ui8Register, 1, &ui8Data, 1, 100);
 }
 
 //*****************************************************************************
@@ -102,7 +102,7 @@ static uint8_t am1805_reg_read(const uint8_t ui8Register)
   uint8_t data;
 
   // Read a single i2c register
-  HAL_I2C_Mem_Read(&hi2c1, AM1805_ADDRESS, ui8Register, 1, &data, 1, 100);
+  HAL_I2C_Mem_Read(&I2CHANDLE, AM1805_ADDRESS, ui8Register, 1, &data, 1, 100);
 
   return data;
 }
@@ -169,7 +169,7 @@ static void am1805_reg_block_read(const uint8_t ui8StartRegister, uint8_t *pui8V
 {
   uint8_t ui8Offset = ui8StartRegister;
 
-  HAL_I2C_Mem_Read(&hi2c1, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
+  HAL_I2C_Mem_Read(&I2CHANDLE, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
 
 }
 
@@ -191,7 +191,7 @@ static void am1805_reg_block_write(const uint8_t ui8StartRegister, uint8_t *pui8
 {
   uint8_t ui8Offset = ui8StartRegister;
 
-  HAL_I2C_Mem_Write(&hi2c1, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
+  HAL_I2C_Mem_Write(&I2CHANDLE, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
 }
 
 //*****************************************************************************
@@ -1309,7 +1309,7 @@ uint8_t am1805_ext_address_get(uint8_t ui8Address)
 //
 //! @brief Read a byte from the local AM1805 RAM.
 //!
-//! @param ui8Address - RTC RAM address.
+//! @param ui8Address - RTC RAM address(0x40 - 0xFF).
 //!
 //! This function reads a byte from the local AM1805 RAM.
 //!
@@ -1334,7 +1334,7 @@ uint8_t am1805_ram_read(uint8_t ui8Address)
 //
 //! @brief Write a byte to the local AM1805 RAM.
 //!
-//! @param ui8Address - RTC RAM address.
+//! @param ui8Address - RTC RAM address(0x40 - 0xFF).
 //! @param ui8Val - Value to be written.
 //!
 //! This function writes a byte to the local AM1805 RAM.
