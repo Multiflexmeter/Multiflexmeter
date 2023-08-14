@@ -75,7 +75,7 @@ static uint8_t dec_to_bcd(uint8_t ui8DecimalByte)
 
 //*****************************************************************************
 //
-//! @brief Writes an internal register in the AMx8x5.
+//! @brief Writes an internal register in the AM1805.
 //!
 //! @param ui8Register is the address of the register to write.
 //! @param ui8Value is the value to write to the register.
@@ -163,7 +163,7 @@ static void am1805_reg_clear(uint8_t ui8Address, uint8_t ui8Mask)
 //! @param pui8Values is the byte-packed array where the read data will go.
 //! @param ui8NumBytes is the total number of registers to read.
 //!
-//! This function performs a read to a block of AMx8x5 registers over the
+//! This function performs a read to a block of AM1805 registers over the
 //! I2C bus.
 //!
 //! @return None
@@ -179,7 +179,7 @@ static void am1805_reg_block_read(const uint8_t ui8StartRegister, uint8_t *pui8V
 
 //*****************************************************************************
 
-//! @brief Writes a block of internal registers in the AMx8x5.
+//! @brief Writes a block of internal registers in the AM1805.
 //!
 //! @param ui8StartRegister is the address of the first register to write.
 //! @param pui8Values is the byte-packed array of data to write.
@@ -200,11 +200,11 @@ static void am1805_reg_block_write(const uint8_t ui8StartRegister, uint8_t *pui8
 
 //*****************************************************************************
 //
-//! @brief Reset the AMx8x5.
+//! @brief Reset the AM1805.
 //!
-//! @param psDevice is a pointer to a device structure describing the AMx8x5.
+//! @param psDevice is a pointer to a device structure describing the AM1805.
 //!
-//! This function performs a reset to AMx8x5.
+//! This function performs a reset to AM1805.
 //!
 //! @return None
 //
@@ -361,7 +361,7 @@ void am1805_time_set(uint8_t ui8Protect)
   psTempBuff[7] = g_psTimeRegs.ui8Weekday;
 
   //
-  // Write the values to the AMX8X5.
+  // Write the values to the AM1805.
   //
   am1805_reg_block_write(AM1805_HUNDREDTHS, psTempBuff, 8);
 
@@ -1072,7 +1072,7 @@ void am1805_sqw_set(uint8_t ui8SQFS, uint8_t ui8Pin)
 
 //*****************************************************************************
 //
-//! @brief Set up sleep mode (AM18x5 only).
+//! @brief Set up sleep mode (AM1805 only).
 //!
 //! @param ui8Timeout - minimum timeout period in 7.8 ms periods (0 to 7)
 //! @param ui8Mode - sleep mode (nRST modes not available in AM08xx)
@@ -1080,7 +1080,7 @@ void am1805_sqw_set(uint8_t ui8SQFS, uint8_t ui8Pin)
 //!        1 => PSW/nIRQ2 is pulled high on a sleep
 //!        2 => nRST pulled low and PSW/nIRQ2 pulled high on sleep
 //!
-//! This function sets up sleep mode. This is available on the AM18x5 only.
+//! This function sets up sleep mode. This is available on the AM1805 only.
 //!
 //! @return returned value of the attempted sleep command:
 //!        0 => sleep request accepted, sleep mode will be initiated in
@@ -1160,7 +1160,7 @@ uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
 //!        2 => generate an interrupt on PSW/nIRQ2
 //!        3 => generate a reset on nRST (AM18xx only)
 //!
-//! This function sets up sleep mode. This is available on the AM18x5 only.
+//! This function sets up sleep mode. This is available on the AM1805 only.
 //!
 //! @return None
 //
@@ -1308,7 +1308,7 @@ void am1805_autocal_set(uint8_t ui8Period)
 
 //*****************************************************************************
 //
-//! @brief Gets the extension address for the AMx8x5..
+//! @brief Gets the extension address for the AM1805..
 //!
 //! @param ui8Address is the address.
 //!
@@ -1349,11 +1349,11 @@ uint8_t am1805_ext_address_get(uint8_t ui8Address)
 
 //*****************************************************************************
 //
-//! @brief Read a byte from the local AMX8X5 RAM.
+//! @brief Read a byte from the local AM1805 RAM.
 //!
 //! @param ui8Address - RTC RAM address.
 //!
-//! This function reads a byte from the local AMX8X5 RAM.
+//! This function reads a byte from the local AM1805 RAM.
 //!
 //! @return the Value at the desired address.
 //
@@ -1374,12 +1374,12 @@ uint8_t am1805_ram_read(uint8_t ui8Address)
 
 //*****************************************************************************
 //
-//! @brief Write a byte to the local AMX8X5 RAM.
+//! @brief Write a byte to the local AM1805 RAM.
 //!
 //! @param ui8Address - RTC RAM address.
 //! @param ui8Val - Value to be written.
 //!
-//! This function writes a byte to the local AMX8X5 RAM.
+//! This function writes a byte to the local AM1805 RAM.
 //!
 //! @return None
 //
