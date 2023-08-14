@@ -140,7 +140,7 @@ void am1805_time_get(am1805_time_t *time);
 void am1805_time_set(am1805_time_t time,uint8_t ui8Protect);
 void am1805_cal_set(uint8_t ui8Mode, int32_t iAdjust);
 void am1805_alarm_set(am1805_time_t alarm, uint8_t ui8Repeat, uint8_t ui8IntMode, uint8_t ui8Pin);
-//void am1805_countdown_set(uint8_t ui8Range, int32_t iPeriod, uint8_t ui8Repeat, uint8_t ui8Pin);
+void am1805_countdown_set(uint8_t ui8Range, int32_t iPeriod, uint8_t ui8Repeat, uint8_t ui8Pin);
 uint32_t am1805_osc_sel(uint8_t ui8OSC);
 void am1805_sqw_set(uint8_t ui8SQFS, uint8_t ui8Pin);
 //uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode);
