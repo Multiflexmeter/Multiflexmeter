@@ -147,8 +147,8 @@ void am1805_sqw_set(uint8_t ui8SQFS, uint8_t ui8Pin);
 //void am1805_watchdog_set(uint32_t ui8Period, uint8_t ui8Pin);
 //void am1805_autocal_set(uint8_t ui8Period);
 //uint8_t am1805_ext_address_get(uint8_t ui8Address);
-//uint8_t am1805_ram_read(uint8_t ui8Address);
-//void am1805_ram_write(uint8_t ui8Address, uint8_t ui8Data);
+uint8_t am1805_ram_read(uint8_t ui8Address);
+void am1805_ram_write(uint8_t ui8Address, uint8_t ui8Data);
 
 #ifdef __cplusplus
 }
