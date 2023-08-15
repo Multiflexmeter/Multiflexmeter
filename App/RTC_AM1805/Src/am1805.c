@@ -67,18 +67,16 @@ static uint8_t dec_to_bcd(uint8_t ui8DecimalByte)
   return (((ui8DecimalByte / 10) << 4) | (ui8DecimalByte % 10));
 }
 
-//*****************************************************************************
-//
-//! @brief Writes an internal register in the AM1805.
-//!
-//! @param
-//! @param ui8Value is the value to write to the register.
-//!
-//! This function performs a write to an AM1805 register over the I2C bus.
-//!
-//! @return None
-//
-//*****************************************************************************
+/**
+ * @brief Writes an internal register in the AM1805.
+ *
+ * @param ui8Register is the register to write to.
+ * @param ui8Value is the value to write to the register.
+ *
+ * This function performs a write to an AM1805 register over the I2C bus.
+ *
+ * @return None
+ */
 static void am1805_reg_write(const uint8_t ui8Register, const uint8_t ui8Value)
 {
   uint8_t ui8Data = ui8Value;
@@ -86,17 +84,15 @@ static void am1805_reg_write(const uint8_t ui8Register, const uint8_t ui8Value)
   HAL_I2C_Mem_Write(&I2CHANDLE, AM1805_ADDRESS, ui8Register, 1, &ui8Data, 1, 100);
 }
 
-//*****************************************************************************
-//
-//! @brief Reads an internal register in the AM1805.
-//!
-//! @param ui8Register is the address of the register to read.
-//!
-//! This function performs a read to an AM1805 register over the I2C bus.
-//!
-//! @return
-//
-//*****************************************************************************
+/**
+ * @brief Reads an internal register in the AM1805.
+ *
+ * @param ui8Register is the address of the register to read.
+ *
+ * This function performs a read to an AM1805 register over the I2C bus.
+ *
+ * @return Data from the register
+ */
 static uint8_t am1805_reg_read(const uint8_t ui8Register)
 {
   uint8_t data;
@@ -107,19 +103,17 @@ static uint8_t am1805_reg_read(const uint8_t ui8Register)
   return data;
 }
 
-//*****************************************************************************
-//
-//! @brief Set one or more bits.
-//!
-//! @param ui8Address - RTC address.
-//! @param ui8Mask - Bits to set.
-//!
-//! This function sets one or more bits in the selected register, selected by
-//! 1's in the mask.
-//!
-//! @return None.
-//
-//*****************************************************************************
+/**
+ * @brief Set one or more bits.
+ *
+ * @param ui8Address - RTC address.
+ * @param ui8Mask - Bits to set.
+ *
+ * This function sets one or more bits in the selected register, selected by
+ * 1's in the mask.
+ *
+ * @return None
+ */
 static void am1805_reg_set(uint8_t ui8Address, uint8_t ui8Mask)
 {
   uint8_t ui8Temp;
@@ -129,19 +123,18 @@ static void am1805_reg_set(uint8_t ui8Address, uint8_t ui8Mask)
   am1805_reg_write(ui8Address, ui8Temp);
 }
 
-//*****************************************************************************
-//
-//! @brief Clear one or more bits.
-//!
-//! @param ui8Address - RTC address.
-//! @param ui8Mask - Bits to clear.
-//!
-//! This function clears one or more bits in the selected register, selected by
-//! 1's in the mask.
-//!
-//! @return None.
-//
-//*****************************************************************************
+
+/**
+ * @brief Clear one or more bits.
+ *
+ * @param ui8Address - RTC address.
+ * @param ui8Mask - Bits to clear.
+ *
+ * This function clears one or more bits in the selected register, selected by
+ * 1's in the mask.
+ *
+ * @return None
+ */
 static void am1805_reg_clear(uint8_t ui8Address, uint8_t ui8Mask)
 {
   uint8_t ui8Temp;
@@ -151,20 +144,18 @@ static void am1805_reg_clear(uint8_t ui8Address, uint8_t ui8Mask)
   am1805_reg_write(ui8Address, ui8Temp);
 }
 
-//*****************************************************************************
-//
-//! @brief Reads a block of internal registers in the AM1805.
-//!
-//! @param ui8StartRegister is the address of the first register to read.
-//! @param pui8Values is the byte-packed array where the read data will go.
-//! @param ui8NumBytes is the total number of registers to read.
-//!
-//! This function performs a read to a block of AM1805 registers over the
-//! I2C bus.
-//!
-//! @return None
-//
-//*****************************************************************************
+/**
+ * @brief Reads a block of internal registers in the AM1805.
+ *
+ * @param ui8StartRegister is the address of the first register to read.
+ * @param pui8Values is the byte-packed array where the read data will go.
+ * @param ui8NumBytes is the total number of registers to read.
+ *
+ * This function performs a read to a block of AM1805 registers over the
+ * I2C bus.
+ *
+ * @return None
+ */
 static void am1805_reg_block_read(const uint8_t ui8StartRegister, uint8_t *pui8Values, const uint8_t ui8NumBytes)
 {
   uint8_t ui8Offset = ui8StartRegister;
@@ -173,20 +164,18 @@ static void am1805_reg_block_read(const uint8_t ui8StartRegister, uint8_t *pui8V
 
 }
 
-//*****************************************************************************
-
-//! @brief Writes a block of internal registers in the AM1805.
-//!
-//! @param ui8StartRegister is the address of the first register to write.
-//! @param pui8Values is the byte-packed array of data to write.
-//! @param ui8NumBytes is the total number of registers to write.
-//!
-//! This function performs a write to a block of AM1805 registers over the
-//! I2C bus.
-//!
-//! @return None
-//
-//*****************************************************************************
+/**
+ * @brief Writes a block of internal registers in the AM1805.
+ *
+ * @param ui8StartRegister is the address of the first register to write.
+ * @param pui8Values is the byte-packed array of data to write.
+ * @param ui8NumBytes is the total number of registers to write.
+ *
+ * This function performs a write to a block of AM1805 registers over the
+ * I2C bus.
+ *
+ * @return None
+ */
 static void am1805_reg_block_write(const uint8_t ui8StartRegister, uint8_t *pui8Values, const uint8_t ui8NumBytes)
 {
   uint8_t ui8Offset = ui8StartRegister;
@@ -194,33 +183,29 @@ static void am1805_reg_block_write(const uint8_t ui8StartRegister, uint8_t *pui8
   HAL_I2C_Mem_Write(&I2CHANDLE, AM1805_ADDRESS, ui8Offset, 1, pui8Values, ui8NumBytes, 100);
 }
 
-//*****************************************************************************
-//
-//! @brief Reset the AM1805.
-//!
-//! @param psDevice is a pointer to a device structure describing the AM1805.
-//!
-//! This function performs a reset to AM1805.
-//!
-//! @return None
-//
-//*****************************************************************************
+/**
+ * @brief Reset the AM1805.
+ *
+ * This function performs a reset to AM1805.
+ *
+ * return None
+ */
 void am1805_reset(void)
 {
   // Software reset
   am1805_reg_write(AM1805_CONFIG_KEY, 0x3C);
 }
 
-//*****************************************************************************
-//
-//! @brief Get the time.
-//!
-//! This function loads the g_psTimeRegs structure with the time from the
-//! AM1805.
-//!
-//! @return None.
-//
-//*****************************************************************************
+/**
+ * @brief Get the time.
+ *
+ * @param time is a pointer to store the time to.
+ *
+ * This function loads the am1805_time_t structure with the time from the
+ * AM1805.
+ *
+ * @return None.
+ */
 void am1805_time_get(am1805_time_t *time)
 {
   uint8_t psTempBuff[8];
@@ -259,18 +244,18 @@ void am1805_time_get(am1805_time_t *time)
   time->ui8Century = (psTempBuff[0] & 0x80) ? 1 : 0;
 }
 
-//*****************************************************************************
-//! @brief Set the time in the counters.
-//!
-//! @param ui8Protect:  0 => leave counters writable
-//!                     1 => leave counters unwritable
-//!
-//! This function loads the AM1805 counter registers with the current
-//! g_psTimeRegs structure values.
-//!
-//! @return None
-//
-//*****************************************************************************
+/**
+ * @brief Set the time in the counters.
+ *
+ * @param time is the time to sync the RTC with.
+ * @param ui8Protect:  0 => leave counters writable
+ *                     1 => leave counters unwritable
+ *
+ * This function loads the AM1805 counter registers with the provided
+ * am1805_time_t structure values.
+ *
+ * @return None
+ */
 void am1805_time_set(am1805_time_t time, uint8_t ui8Protect)
 {
   am1805_time_t setTime;
@@ -343,27 +328,24 @@ void am1805_time_set(am1805_time_t time, uint8_t ui8Protect)
   am1805_reg_write(AM1805_CONTROL_1, psTempBuff[0]);
 }
 
-//*****************************************************************************
-//
-//! @brief Set the calibration.
-//!
-//! @param  ui8Mode:
-//!        0 => calibrate the XT oscillator
-//!        1 => calibrate the RC oscillator
-//! @param   iAdjust: Adjustment in ppm.
-//!
-//!  Adjustment limits are:
-//!         ui8Mode = 0 => (-610 to +242)
-//!         ui8Mode = 1 => (-65536 to +65520)
-//!         An iAdjust value of zero resets the selected oscillator calibration
-//!         value to 0.
-//!
-//! This function loads the AM1805 counter registers with the current
-//! g_psTimeRegs structure values.
-//!
-//! @return None
-//
-//*****************************************************************************
+/**
+ * @brief Set the calibration.
+ *
+ * @param  ui8Mode:
+ *        0 => calibrate the XT oscillator
+ *        1 => calibrate the RC oscillator
+ * @param   iAdjust: Adjustment in ppm.
+ *
+ *  Adjustment limits are:
+ *          ui8Mode = 0 => (-610 to +242)
+ *          ui8Mode = 1 => (-65536 to +65520)
+ *          An iAdjust value of zero resets the selected oscillator calibration
+ *          value to 0.
+ *
+ * This function calibrates the selected oscillator by the provided adjust parameter.
+ *
+ * @return None
+ */
 void am1805_cal_set(uint8_t ui8Mode, int32_t iAdjust)
 {
     int32_t iAdjint;
@@ -519,39 +501,37 @@ void am1805_cal_set(uint8_t ui8Mode, int32_t iAdjust)
     }
 }
 
-//*****************************************************************************
-//
-//! @brief Set the alarm value.
-//!
-//! @param ui8Repeat - the alarm repeat interval
-//!        0 => disable alarm
-//!        1 => once per year
-//!        2 => once per month
-//!        3 => once per week
-//!        4 => once per day
-//!        5 => once per hour
-//!        6 => once per minute
-//!        7 => once per second
-//!        8 => once per 10th of a second
-//!        9 => once per 100th of a second
-//!        NOTE: year and century are not used
-//!        NOTE: mode must match current 12/24 selection
-//! @param ui8IntMode - define the interrupt mode
-//!        0 => level interrupt
-//!        1 => pulse of 1/8192s (XT) or 1/128 s (RC)
-//!        2 => pulse of 1/64 s
-//!        3 => pulse of 1/4 s
-//! @param ui8Pin - pin on which to generate the interrupt
-//!        0 => internal flag only
-//!        1 => FOUT/nIRQ
-//!        2 => PSW/nIRQ2
-//!
-//! This function sets the alarm value and configures the correct pin (if
-//! necessary).
-//!
-//! @return None
-//
-//*****************************************************************************
+/**
+ * @brief Set the alarm value.
+ *
+ * @param alarm is the time to set the alarm to.
+ * @param ui8Repeat - the alarm repeat interval
+ *         0 => disable alarm
+ *         1 => once per year
+ *         2 => once per month
+ *         3 => once per week
+ *         4 => once per day
+ *         5 => once per hour
+ *         6 => once per minute
+ *         7 => once per second
+ *         8 => once per 10th of a second
+ *         9 => once per 100th of a second
+ *         NOTE: year and century are not used
+ *         OTE: mode must match current 12/24 selection
+ * @param ui8IntMode - define the interrupt mode
+ *         0 => level interrupt
+ *         1 => pulse of 1/8192s (XT) or 1/128 s (RC)
+ *         2 => pulse of 1/64 s
+ *         3 => pulse of 1/4 s
+ * @param ui8Pin - pin on which to generate the interrupt
+ *         0 => internal flag only
+ *         1 => FOUT/nIRQ
+ *         2 => PSW/nIRQ2
+ *
+ * This function sets the alarm value and configures the correct pin (if necessary).
+ *
+ * @return None
+ */
 void am1805_alarm_set(am1805_time_t alarm, uint8_t ui8Repeat, uint8_t ui8IntMode, uint8_t ui8Pin)
 {
     volatile uint8_t ui8Temp;
@@ -663,39 +643,34 @@ void am1805_alarm_set(am1805_time_t alarm, uint8_t ui8Repeat, uint8_t ui8IntMode
     }
 }
 
-//*****************************************************************************
-//
-//! @brief Configure and set the countdown.
-//!
-//! @param ui8Range:    0 => iPeriod in us
-//!                     1 => iPeriod in seconds
-//! @param iPeriod - the iPeriod of the countdown timer.
-//! @param ui8Repeat - Configure the interrupt output type:
-//!        0 => generate a single level interrupt
-//!        1 => generate a repeated pulsed interrupt, 1/4096 s (XT mode), 1/128 s
-//!        (RC mode)
-//!                (ui8Range must be 0)
-//!        2 => generate a single pulsed interrupt, 1/4096 s (XT mode), 1/128 s
-//!        (RC mode)
-//!                (ui8Range must be 0)
-//!        3 => generate a repeated pulsed interrupt, 1/128 s (ui8Range must be 0)
-//!        4 => generate a single pulsed interrupt, 1/128 s (ui8Range must be 0)
-//!        5 => generate a repeated pulsed interrupt, 1/64 s (ui8Range must be 1)
-//!        6 => generate a single pulsed interrupt, 1/64 s (ui8Range must be 1)
-//! @param ui8Pin - Select the pin to generate a countdown interrupt:
-//!        0 => disable the countdown timer
-//!        1 => generate an interrupt on nTIRQ only, asserted low
-//!        2 => generate an interrupt on FOUT/nIRQ and nTIRQ, both asserted low
-//!        3 => generate an interrupt on PSW/nIRQ2 and nTIRQ, both asserted low
-//!        4 => generate an interrupt on CLKOUT/nIRQ3 and nTIRQ, both asserted low
-//!        5 => generate an interrupt on CLKOUT/nIRQ3 (asserted high) and nTIRQ
-//!        (asserted low)
-//!
-//! This function configures and sets the countdown.
-//!
-//! @return None
-//
-//*****************************************************************************
+/**
+ * @brief Configure and set the countdown.
+ *
+ * @param ui8Range:    0 => iPeriod in us
+ *                     1 => iPeriod in seconds
+ * @param iPeriod - the iPeriod of the countdown timer.
+ * @param ui8Repeat - Configure the interrupt output type:
+ *         0 => generate a single level interrupt
+ *         1 => generate a repeated pulsed interrupt, 1/4096 s (XT mode), 1/128 s
+ *         (RC mode) (ui8Range must be 0)
+ *         2 => generate a single pulsed interrupt, 1/4096 s (XT mode), 1/128 s
+ *         (RC mode) (ui8Range must be 0)
+ *         3 => generate a repeated pulsed interrupt, 1/128 s (ui8Range must be 0)
+ *         4 => generate a single pulsed interrupt, 1/128 s (ui8Range must be 0)
+ *         5 => generate a repeated pulsed interrupt, 1/64 s (ui8Range must be 1)
+ *         6 => generate a single pulsed interrupt, 1/64 s (ui8Range must be 1)
+ * @param ui8Pin - Select the pin to generate a countdown interrupt:
+ *         0 => disable the countdown timer
+ *         1 => generate an interrupt on nTIRQ only, asserted low
+ *         2 => generate an interrupt on FOUT/nIRQ and nTIRQ, both asserted low
+ *         3 => generate an interrupt on PSW/nIRQ2 and nTIRQ, both asserted low
+ *         4 => generate an interrupt on CLKOUT/nIRQ3 and nTIRQ, both asserted low
+ *         5 => generate an interrupt on CLKOUT/nIRQ3 (asserted high) and nTIRQ (asserted low)
+ *
+ * This function configures and sets the countdown.
+ *
+ * @return None
+ */
 void am1805_countdown_set(uint8_t ui8Range, int32_t iPeriod, uint8_t ui8Repeat, uint8_t ui8Pin)
 {
     uint8_t ui8TM = 0;
@@ -908,21 +883,18 @@ void am1805_countdown_set(uint8_t ui8Range, int32_t iPeriod, uint8_t ui8Repeat, 
     }
 }
 
-//*****************************************************************************
-//
-//! @brief Select an oscillator mode.
-//!
-//! @param ui8OSC - the oscillator to select
-//!        0 => 32 KHz XT oscillator, no automatic oscillator switching
-//!        1 => 32 KHz XT oscillator, automatic oscillator switching to RC on
-//!        switch to battery power
-//!        2 => 128 Hz RC oscillator
-//!
-//! This function sets the desired oscillator.
-//!
-//! @return 1 for error
-//
-//*****************************************************************************
+/**
+ * @brief Select an oscillator mode.
+ *
+ * @param ui8OSC - the oscillator to select
+ *         0 => 32 KHz XT oscillator, no automatic oscillator switching
+ *         1 => 32 KHz XT oscillator, automatic oscillator switching to RC on switch to battery power
+ *         2 => 128 Hz RC oscillator
+ *
+ * This function sets the desired oscillator.
+ *
+ * @return 1 for error
+ */
 uint32_t am1805_osc_sel(uint8_t ui8OSC)
 {
     uint8_t i;
@@ -976,21 +948,19 @@ uint32_t am1805_osc_sel(uint8_t ui8OSC)
     return 1;
 }
 
-//*****************************************************************************
-//
-//! @brief Configure and enable the square wave output.
-//!
-//! @param ui8SQFS - square wave output select (0 to 31)
-//! @param ui8Pin - output pin for SQW (may be ORed) in addition to CLKOUT
-//!        0 => disable SQW
-//!        1 => FOUT
-//!        2 => PSW/nIRQ2
-//!
-//! This function configures and enables the square wave output.
-//!
-//! @return None
-//
-//*****************************************************************************
+/**
+ * @brief Configure and enable the square wave output.
+ *
+ * @param ui8SQFS - square wave output select (0 to 31)
+ * @param ui8Pin - output pin for SQW (may be ORed) in addition to CLKOUT
+ *         0 => disable SQW
+ *         1 => FOUT
+ *         2 => PSW/nIRQ2
+ *
+ * This function configures and enables the square wave output.
+ *
+ * @return None
+ */
 void am1805_sqw_set(uint8_t ui8SQFS, uint8_t ui8Pin)
 {
     uint8_t ui8Temp;
@@ -1028,26 +998,23 @@ void am1805_sqw_set(uint8_t ui8SQFS, uint8_t ui8Pin)
     am1805_reg_write(AM1805_SQW, ui8Temp);
 }
 
-//*****************************************************************************
-//
-//! @brief Set up sleep mode (AM1805 only).
-//!
-//! @param ui8Timeout - minimum timeout period in 7.8 ms periods (0 to 7)
-//! @param ui8Mode - sleep mode (nRST modes not available in AM08xx)
-//!        0 => nRST is pulled low in sleep mode
-//!        1 => PSW/nIRQ2 is pulled high on a sleep
-//!        2 => nRST pulled low and PSW/nIRQ2 pulled high on sleep
-//!
-//! This function sets up sleep mode. This is available on the AM1805 only.
-//!
-//! @return returned value of the attempted sleep command:
-//!        0 => sleep request accepted, sleep mode will be initiated in
-//!        ui8Timeout seconds
-//!        1 => illegal input values
-//!        2 => sleep request declined, interrupt is currently pending
-//!        3 => sleep request declined, no sleep trigger interrupt enabled
-//
-//*****************************************************************************
+/**
+ * @brief Set up sleep mode (AM1805 only).
+ *
+ * @param ui8Timeout - minimum timeout period in 7.8 ms periods (0 to 7)
+ * @param ui8Mode - sleep mode (nRST modes not available in AM08xx)
+ *         0 => nRST is pulled low in sleep mode
+ *         1 => PSW/nIRQ2 is pulled high on a sleep
+ *         2 => nRST pulled low and PSW/nIRQ2 pulled high on sleep
+ *
+ * This function sets up sleep mode. This is available on the AM1805 only.
+ *
+ * @return returned value of the attempted sleep command:
+ *         0 => sleep request accepted, sleep mode will be initiated in ui8Timeout seconds
+ *         1 => illegal input values
+ *         2 => sleep request declined, interrupt is currently pending
+ *         3 => sleep request declined, no sleep trigger interrupt enabled
+ */
 uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
 {
     uint8_t ui8SLRES;
@@ -1107,22 +1074,20 @@ uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
     }
 }
 
-//*****************************************************************************
-//
-//! @brief Set up the watchdog timer.
-//!
-//! @param ui8Period - timeout period in ms (65 to 124,000)
-//! @param ui8Pin - pin to generate the watchdog signal
-//!        0 => disable WDT
-//!        1 => generate an interrupt on FOUT/nIRQ
-//!        2 => generate an interrupt on PSW/nIRQ2
-//!        3 => generate a reset on nRST (AM18xx only)
-//!
-//! This function sets up sleep mode. This is available on the AM1805 only.
-//!
-//! @return None
-//
-//*****************************************************************************
+/**
+ * @brief Set up the watchdog timer.
+ *
+ * @param ui8Period - timeout period in ms (65 to 124,000)
+ * @param ui8Pin - pin to generate the watchdog signal
+ *         0 => disable WDT
+ *         1 => generate an interrupt on FOUT/nIRQ
+ *         2 => generate an interrupt on PSW/nIRQ2
+ *         3 => generate a reset on nRST (AM18xx only)
+ *
+ * This function sets up sleep mode. This is available on the AM1805 only.
+ *
+ * @return None
+ */
 void am1805_watchdog_set(uint32_t ui8Period, uint8_t ui8Pin)
 {
     uint8_t ui8WDTreg;
@@ -1199,21 +1164,19 @@ void am1805_watchdog_set(uint32_t ui8Period, uint8_t ui8Pin)
     am1805_reg_write(AM1805_WDT, ui8WDTreg);
 }
 
-//*****************************************************************************
-//
-//! @brief Set up autocalibration.
-//!
-//! @param ui8Period - the repeat period for autocalibration.
-//!        0 => disable autocalibration
-//!        1 => execute a single autocalibration cycle
-//!        2 => execute a cycle every 1024 seconds (~17 minutes)
-//!        3 => execute a cycle every 512 seconds (~8.5 minutes)
-//!
-//! This function sets up autocalibration.
-//!
-//! @return None
-//
-//*****************************************************************************
+/**
+ * @brief Set up autocalibration.
+ *
+ * @param ui8Period - the repeat period for autocalibration.
+ *         0 => disable autocalibration
+ *         1 => execute a single autocalibration cycle
+ *         2 => execute a cycle every 1024 seconds (~17 minutes)
+ *         3 => execute a cycle every 512 seconds (~8.5 minutes)
+ *
+ * This function sets up autocalibration.
+ *
+ * @return None
+ */
 void am1805_autocal_set(uint8_t ui8Period)
 {
     uint8_t ui8Temp;
@@ -1264,17 +1227,15 @@ void am1805_autocal_set(uint8_t ui8Period)
     }
 }
 
-//*****************************************************************************
-//
-//! @brief Gets the extension address for the AM1805..
-//!
-//! @param ui8Address is the address.
-//!
-//! This function returns the extension address.
-//!
-//! @return the externsion address
-//
-//*****************************************************************************
+/**
+ * @brief Gets the extension address for the AM1805..
+ *
+ * @param ui8Address is the address.
+ *
+ * This function returns the extension address.
+ *
+ * @return the extension address
+ */
 uint8_t am1805_ext_address_get(uint8_t ui8Address)
 {
     uint8_t ui8Xadd, ui8Temp;
@@ -1302,20 +1263,15 @@ uint8_t am1805_ext_address_get(uint8_t ui8Address)
     return (ui8Xadd | ui8Temp);
 }
 
-//*****************************************************************************
-
-
-//*****************************************************************************
-//
-//! @brief Read a byte from the local AM1805 RAM.
-//!
-//! @param ui8Address - RTC RAM address(0x40 - 0xFF).
-//!
-//! This function reads a byte from the local AM1805 RAM.
-//!
-//! @return the Value at the desired address.
-//
-//*****************************************************************************
+/**
+ * @brief Read a byte from the local AM1805 RAM.
+ *
+ * @param ui8Address - RTC RAM address(0x40 - 0xFF).
+ *
+ * This function reads a byte from the local AM1805 RAM.
+ *
+ * @return The value at the desired address.
+ */
 uint8_t am1805_ram_read(uint8_t ui8Address)
 {
     uint8_t ui8Xadd;
@@ -1330,18 +1286,16 @@ uint8_t am1805_ram_read(uint8_t ui8Address)
     return am1805_reg_read((ui8Address & 0x3F) | 0x40);
 }
 
-//*****************************************************************************
-//
-//! @brief Write a byte to the local AM1805 RAM.
-//!
-//! @param ui8Address - RTC RAM address(0x40 - 0xFF).
-//! @param ui8Val - Value to be written.
-//!
-//! This function writes a byte to the local AM1805 RAM.
-//!
-//! @return None
-//
-//*****************************************************************************
+/**
+ * @brief Write a byte to the local AM1805 RAM.
+ *
+ * @param ui8Address - RTC RAM address(0x40 - 0xFF).
+ * @param ui8Data - Value to be written.
+ *
+ * This function writes a byte to the local AM1805 RAM.
+ *
+ * @return None
+ */
 void am1805_ram_write(uint8_t ui8Address, uint8_t ui8Data)
 {
     uint8_t ui8Xadd;
