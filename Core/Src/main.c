@@ -47,7 +47,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../../App/CommConfig.h"
-#include "../../App/RTC_AM1805/Inc/am1805.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -81,7 +80,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-am1805_time_t currentTime;
+
 /* USER CODE END 0 */
 
 /**
@@ -91,25 +90,6 @@ am1805_time_t currentTime;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  am1805_time_t setTime;
-  am1805_time_t setAlarm;
-
-  setTime.ui8Hundredth = 0;
-  setTime.ui8Century = 0;
-  setTime.ui8Year = 99;
-  setTime.ui8Month = 11;
-  setTime.ui8Date = 11;
-  setTime.ui8Hour = 20;
-  setTime.ui8Minute = 56;
-  setTime.ui8Second = 0;
-  setTime.ui8Weekday = 3;
-  setTime.ui8Mode = AM1805_24HR_MODE;
-
-  setAlarm.ui8Minute = 1;
-  setAlarm.ui8Second = 20;
-  setAlarm.ui8Hundredth = 1;
-  setAlarm.ui8Mode = AM1805_24HR_MODE;
-
 
   /* USER CODE END 1 */
 
@@ -136,11 +116,6 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   uartInit_Config();
-
-  am1805_reset();
-  am1805_osc_sel(0);
-  am1805_time_set(setTime, 1);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -149,7 +124,6 @@ int main(void)
   {
     /* USER CODE END WHILE */
     MX_LoRaWAN_Process();
-    am1805_time_get(&currentTime);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
