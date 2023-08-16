@@ -416,6 +416,16 @@ void LoRaWAN_Init(void)
   /* USER CODE BEGIN LoRaWAN_Init_2 */
   UTIL_TIMER_Start(&JoinLedTimer);
 
+  if( LmHandlerSetAdrEnable(false) == LORAMAC_HANDLER_ERROR )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "###### FAIL init adrEnable\r\n");
+  }
+
+  if( LmHandlerSetTxDatarate(DR_2) == LORAMAC_HANDLER_ERROR )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "###### FAIL init datarate\r\n");
+  }
+
   /* USER CODE END LoRaWAN_Init_2 */
 
   LmHandlerJoin(ActivationType, ForceRejoin);
@@ -763,10 +773,51 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
       {
         APP_LOG(TS_OFF, VLEVEL_M, "OTAA =====================\r\n");
       }
+
+      //always enable ADR after join
+      LmHandlerSetAdrEnable(true);
+
     }
     else
     {
+      bool currentAdrEnable;
       APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### = JOIN FAILED\r\n");
+
+      //read current adrEnable state, if true then disable it.
+      if( LmHandlerGetAdrEnable(&currentAdrEnable) == LORAMAC_HANDLER_SUCCESS )
+      {
+        if( currentAdrEnable == true ) //check if ADR is enabled
+        {
+          LmHandlerSetAdrEnable(false); //disable ADR
+        }
+      }
+
+      // check datarate, then lower the datarate for next attempt.
+      if (joinParams->Datarate)
+      {
+        if( LmHandlerSetTxDatarate(joinParams->Datarate - 1) == LORAMAC_HANDLER_ERROR)
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "###### FAIL increase datarate\r\n");
+        }
+        else
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "###### OKAY datarate increased\r\n");
+        }
+      }
+
+      // check power, increase next attempt. Lower "TxPower" is higher power.
+      if (joinParams->TxPower)
+      {
+        if( LmHandlerSetTxPower(joinParams->TxPower - 1) == LORAMAC_HANDLER_ERROR)
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "###### FAIL increase power\r\n");
+        }
+        else
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "###### OKAY power increased\r\n");
+        }
+      }
+
     }
 
     APP_LOG(TS_OFF, VLEVEL_H, "###### U/L FRAME:JOIN | DR:%d | PWR:%d\r\n", joinParams->Datarate, joinParams->TxPower);
