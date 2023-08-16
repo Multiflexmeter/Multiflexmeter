@@ -78,7 +78,7 @@ void bq35100_init(I2C_HandleTypeDef *i2cHandle);
 int16_t bq35100_readVoltage(void);
 int16_t bq35100_readCurrent(void);
 float bq35100_readTemp(void);
-//void bq35100_startGauge(void);
-//void bq35100_stopGauge(void);
+//void bq35100_enableGauge(void);
+//void bq35100_disableGauge(void);
 
 #endif /* BATTERY_GAUGE_BQ35100_H_ */

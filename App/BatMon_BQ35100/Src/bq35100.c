@@ -7,11 +7,11 @@
 
 #include "../Inc/bq35100.h"
 
-static I2C_HandleTypeDef bq35100Handle;
+static I2C_HandleTypeDef *bq35100Handle;
 
 void bq35100_init(I2C_HandleTypeDef *i2cHandle)
 {
-  bq35100Handle = *i2cHandle;
+  bq35100Handle = i2cHandle;
 }
 
 /**
@@ -43,7 +43,7 @@ int16_t bq35100_readCurrent(void)
   uint8_t data[2] = {0xFF, 0xFF};
   uint8_t command = BQ35100_REG_CURRENT;
 
-  HAL_I2C_Mem_Read(&bq35100Handle, BQ35100_ADDRESS, command, 1, data, 2, 100);
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, command, 1, data, 2, 100);
 
   current = (data[1]<<8 & 0xFF00) | (data[0] & 0x00FF);
 
@@ -61,7 +61,7 @@ float bq35100_readTemp(void)
   uint8_t data[2] = {0xFF, 0xFF};
   uint8_t command = BQ35100_REG_TEMPERATURE;
 
-  HAL_I2C_Mem_Read(&bq35100Handle, BQ35100_ADDRESS, command, 1, data, 2, 100);
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, command, 1, data, 2, 100);
 
   temperature = ((data[1]<<8 & 0xFF00) | (data[0] & 0x00FF))/10 - 273;
 
