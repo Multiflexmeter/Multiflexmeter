@@ -14,6 +14,11 @@ void bq35100_init(I2C_HandleTypeDef *i2cHandle)
   bq35100Handle = *i2cHandle;
 }
 
+/**
+ * @brief Reads the battery voltage form the BQ35100
+ *
+ * @return The battery voltage in mV.
+ */
 int16_t bq35100_readVoltage(void)
 {
   int16_t voltage;
@@ -27,6 +32,11 @@ int16_t bq35100_readVoltage(void)
   return voltage;
 }
 
+/**
+ * @brief Reads the battery current form the BQ35100
+ *
+ * @return The battery current in mA.
+ */
 int16_t bq35100_readCurrent(void)
 {
   int16_t current;
@@ -40,6 +50,11 @@ int16_t bq35100_readCurrent(void)
   return current;
 }
 
+/**
+ * @brief Reads the temperature form the BQ35100
+ *
+ * @return The temperature in degrees celsius.
+ */
 float bq35100_readTemp(void)
 {
   float temperature;
