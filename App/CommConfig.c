@@ -27,7 +27,7 @@
 
 #include "secure-element.h"
 
-#define NO_SLEEP
+//#define NO_SLEEP
 
 /*!
  * App key size in characters
