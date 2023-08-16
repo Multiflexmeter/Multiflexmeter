@@ -47,6 +47,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../../App/CommConfig.h"
+#include "../../App/BatMon_BQ35100/Inc/bq35100.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -116,6 +117,7 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   uartInit_Config();
+  bq35100_init(&hi2c1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -124,6 +126,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
     MX_LoRaWAN_Process();
+    bq35100_readVoltage();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

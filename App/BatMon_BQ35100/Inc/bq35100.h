@@ -14,7 +14,7 @@
 /* Registers */
 #define BQ35100_REG_CONTROL                     0x00
 #define BQ35100_REG_ACCUMULATED_CAPACITY        0x02
-#define BQ35100_REG_CONTROL                     0x06
+#define BQ35100_REG_TEMPERATURE                 0x06
 #define BQ35100_REG_VOLTAGE                     0x08
 #define BQ35100_REG_BATTERY_STATUS              0x0A
 #define BQ35100_REG_BATTERY_ALERT               0x0B
@@ -24,8 +24,10 @@
 #define BQ35100_REG_INTERNAL_TEMP               0x28
 #define BQ35100_REG_STATE_OF_HEALTH             0x2E
 #define BQ35100_REG_DESIGN_CAPACITY             0x3C
-#define BQ35100_REG_DESIGN_CAPACITY             0x3C
 #define BQ35100_MANUFACTURER_ACCES_CONTROL      0x3E
+#define BQ35100_MAC_DATA                        0x40
+#define BQ35100_MAC_DATA_SUM                    0x60
+#define BQ35100_MAC_DATA_LEN                    0x61
 #define BQ35100_REG_CAL_COUNT                   0x79
 #define BQ35100_REG_CAL_CURRENT                 0x7A
 #define BQ35100_REG_CAL_VOLTAGE                 0x7C
@@ -52,7 +54,7 @@
 
 
 /* Device I2C address. */
-#define BATTERY_GAUGE_BQ35100_ADDRESS 0x55 << 1
+#define BQ35100_ADDRESS 0x55 << 1
 
 /* Settling time after gaugeEnable is set high */
 #define GAUGE_ENABLE_SETTLING_TIME_MS 10
@@ -73,5 +75,10 @@ typedef enum
 } SecurityMode;
 
 void bq35100_init(I2C_HandleTypeDef *i2cHandle);
+int16_t bq35100_readVoltage(void);
+//void bq35100_readCurrent(void);
+//void bq35100_readTemp(void);
+//void bq35100_startGauge(void);
+//void bq35100_stopGauge(void);
 
 #endif /* BATTERY_GAUGE_BQ35100_H_ */
