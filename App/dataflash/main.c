@@ -42,7 +42,7 @@
 // Project file includes.
 #include "test.h"
 
-int main()
+int test_main()
 {
 	// Configures the board. Modify when porting to a new board.
 	USER_CONFIG_BoardInit();

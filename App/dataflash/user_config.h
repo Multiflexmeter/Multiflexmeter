@@ -68,13 +68,17 @@
  */
 
 // Included for board initialization (see USER_CONFIG_BoardInit()).
-#include "board.h"
+//#include "board.h"
 // Included for board initialization (see USER_CONFIG_BoardInit()).
-#include "peripherals.h"
+//#include "peripherals.h"
 // Included for board initialization (see USER_CONFIG_BoardInit()).
-#include "pin_mux.h"
+//#include "pin_mux.h"
 // Included for GPIO library function calls (see USER_CONFIG_BoardInit()).
-#include "fsl_gpio.h"
+//#include "fsl_gpio.h"
+
+#include "main.h"
+#include "spi.h"
+#include "gpio.h"
 
 /*
  * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -83,8 +87,8 @@
  */
 
 /*! Definition of part number. */
-#define PARTNO ATxxxx /* <- Replace with the device being used. */
-#define ALL 1 /* <- Replace with 0 if selecting a part above. */
+#define PARTNO AT25QF641 /* <- Replace with the device being used. */
+#define ALL 0 /* <- Replace with 0 if selecting a part above. */
 
 /*
  * List of supported parts:
@@ -139,54 +143,54 @@
  * -------------------- Ports and Pins -------------------
  * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  */
-
 /*!
  * @brief Base register used for CSb control.
  */
-#define USER_CONFIG_CSB_PORT  GPIO3_BASE
+#define USER_CONFIG_CSB_PORT  ((uint32_t)GPIOA)
+
 /*!
  * @brief Base register used for TRIGGER control.
  */
-#define USER_CONFIG_TRIGGER_PORT  GPIO3_BASE
+#define USER_CONFIG_TRIGGER_PORT  ((uint32_t)GPIOA)
 /*!
  * @brief Base register used for SCK control.
  */
-#define USER_CONFIG_SCK_PORT  GPIO3_BASE
+#define USER_CONFIG_SCK_PORT  ((uint32_t)GPIOA)
 /*!
  * @brief Base register used for MOSI control.
  */
-#define USER_CONFIG_MOSI_PORT GPIO3_BASE
+#define USER_CONFIG_MOSI_PORT ((uint32_t)GPIOA)
 /*!
  * @brief Base register used for MISO control.
  */
-#define USER_CONFIG_MISO_PORT GPIO3_BASE
+#define USER_CONFIG_MISO_PORT ((uint32_t)GPIOA)
 /*!
  * @brief Base register used for IO2 control.
  */
-#define USER_CONFIG_IO2_PORT  GPIO3_BASE
+#define USER_CONFIG_IO2_PORT  ((uint32_t)GPIOA)
 /*!
  * @brief Base register used for IO3 control.
  */
-#define USER_CONFIG_IO3_PORT GPIO3_BASE
+#define USER_CONFIG_IO3_PORT ((uint32_t)GPIOA)
 
 //! Pin number for CSb
 //! @warning Don't forget to update USER_CONFIG_BoardInit()
 //! called from main! As is, both CSb pins are configured as outputs
 //! so the changes above and below in this file are the only things
 //! needed (pin and port numbers for CSb).
-#define USER_CONFIG_CSB_PIN  6U
+#define USER_CONFIG_CSB_PIN  GPIO_PIN_4 //todo with I/O expander
 //! Pin number for TRIGGER
 #define USER_CONFIG_TRIGGER_PIN  2U
 //! Pin number for SCK
-#define USER_CONFIG_SCK_PIN  7U
+#define USER_CONFIG_SCK_PIN  GPIO_PIN_5
 //! Pin number for MOSI
-#define USER_CONFIG_MOSI_PIN 8U
+#define USER_CONFIG_MOSI_PIN GPIO_PIN_7
 //! Pin number for MISO
-#define USER_CONFIG_MISO_PIN 9U
+#define USER_CONFIG_MISO_PIN GPIO_PIN_6
 //! Pin number for IO2
-#define USER_CONFIG_IO2_PIN 10U
+#define USER_CONFIG_IO2_PIN 0U //not used
 //! Pin number for IO3
-#define USER_CONFIG_IO3_PIN 11U
+#define USER_CONFIG_IO3_PIN 0U //not used
 //! Half clock period delay interval
 #define DELAY 5U
 

@@ -39,7 +39,7 @@
  * @brief   Definition of Standardflash functions.
  */
 	
-#include <standardflash.h>
+#include "standardflash.h"
 
 #if (PARTNO == AT25SF641) 	|| \
 	(PARTNO == AT25SF321)	|| \

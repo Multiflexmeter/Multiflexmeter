@@ -45,29 +45,29 @@ void USER_CONFIG_PinInit(uint32_t port, uint32_t pin, enum directionIO direction
 {
 	if(direction == OUTPUT)
 	{
-		gpio_pin_config_t spi_config_out = {kGPIO_DigitalOutput, 0U};
-		GPIO_PinInit((GPIO_Type *)port, pin, &spi_config_out);
+//		gpio_pin_config_t spi_config_out = {kGPIO_DigitalOutput, 0U};
+//		GPIO_PinInit((GPIO_Type *)port, pin, &spi_config_out);
 	}
 	else if(direction == INPUT)
 	{
-		gpio_pin_config_t spi_config_in = {kGPIO_DigitalInput, 0U};
-		GPIO_PinInit((GPIO_Type *)port, pin, &spi_config_in);
+//		gpio_pin_config_t spi_config_in = {kGPIO_DigitalInput, 0U};
+//		GPIO_PinInit((GPIO_Type *)port, pin, &spi_config_in);
 	}
 }
 
 void USER_CONFIG_PinClear(uint32_t port, uint32_t pin)
 {
-	GPIO_PinWrite((GPIO_Type *)port, pin, 0);
+//	GPIO_PinWrite((GPIO_Type *)port, pin, 0);
 }
 
 void USER_CONFIG_PinSet(uint32_t port, uint32_t pin)
 {
-	GPIO_PinWrite((GPIO_Type *)port, pin, 1);
+//	GPIO_PinWrite((GPIO_Type *)port, pin, 1);
 }
 
 uint8_t USER_CONFIG_PinRead(uint32_t port, uint32_t pin)
 {
-	return (uint8_t) GPIO_PinRead((GPIO_Type *)port, pin);
+//	return (uint8_t) GPIO_PinRead((GPIO_Type *)port, pin);
 }
 
 void USER_CONFIG_BoardInit()
