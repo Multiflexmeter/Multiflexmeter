@@ -71,6 +71,26 @@ uint8_t USER_CONFIG_PinRead(uint32_t port, uint32_t pin)
 	return (uint8_t) HAL_GPIO_ReadPin((GPIO_TypeDef*)port, pin);
 }
 
+void BOARD_InitBootPins(void)
+{
+
+}
+
+void BOARD_InitBootClocks(void)
+{
+
+}
+
+void BOARD_InitBootPeripherals(void)
+{
+
+}
+
+void BOARD_InitDebugConsole(void)
+{
+
+}
+
 void USER_CONFIG_BoardInit()
 {
   	/* Init board hardware. */
