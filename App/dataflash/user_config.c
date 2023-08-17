@@ -43,31 +43,32 @@
 
 void USER_CONFIG_PinInit(uint32_t port, uint32_t pin, enum directionIO direction)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  GPIO_InitStruct.Pin = pin;
 	if(direction == OUTPUT)
 	{
-//		gpio_pin_config_t spi_config_out = {kGPIO_DigitalOutput, 0U};
-//		GPIO_PinInit((GPIO_Type *)port, pin, &spi_config_out);
+	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	}
 	else if(direction == INPUT)
 	{
-//		gpio_pin_config_t spi_config_in = {kGPIO_DigitalInput, 0U};
-//		GPIO_PinInit((GPIO_Type *)port, pin, &spi_config_in);
+	  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 	}
+	HAL_GPIO_Init((GPIO_TypeDef*)port, &GPIO_InitStruct);
 }
 
 void USER_CONFIG_PinClear(uint32_t port, uint32_t pin)
 {
-//	GPIO_PinWrite((GPIO_Type *)port, pin, 0);
+  HAL_GPIO_WritePin((GPIO_TypeDef*)port, pin, GPIO_PIN_RESET);
 }
 
 void USER_CONFIG_PinSet(uint32_t port, uint32_t pin)
 {
-//	GPIO_PinWrite((GPIO_Type *)port, pin, 1);
+  HAL_GPIO_WritePin((GPIO_TypeDef*)port, pin, GPIO_PIN_SET);
 }
 
 uint8_t USER_CONFIG_PinRead(uint32_t port, uint32_t pin)
 {
-//	return (uint8_t) GPIO_PinRead((GPIO_Type *)port, pin);
+	return (uint8_t) HAL_GPIO_ReadPin((GPIO_TypeDef*)port, pin);
 }
 
 void USER_CONFIG_BoardInit()
