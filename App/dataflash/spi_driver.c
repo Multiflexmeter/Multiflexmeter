@@ -70,16 +70,32 @@ void SPI_ConfigureSingleSPIIOs()
 	SPI_PinInit(SPI_MOSI_PORT, SPI_MOSI_PIN, OUTPUT);
 	// MISO - PTD3
 	SPI_PinInit(SPI_MISO_PORT, SPI_MISO_PIN, INPUT);
+
+#if SPI_HOLDB_PORT > 0
 	// HOLDb - PTD4
 	SPI_PinInit(SPI_HOLDB_PORT, SPI_HOLDB_PIN, OUTPUT);
+#endif
+
+#if SPI_WPB_PORT > 0
 	// WPb - PTC5
 	SPI_PinInit(SPI_WPB_PORT, SPI_WPB_PIN, OUTPUT);
+#endif
+
+#if SPI_TRIGGER_PORT > 0
 	// Trigger - PTC2
 	SPI_PinInit(SPI_TRIGGER_PORT, SPI_TRIGGER_PIN, OUTPUT);
 	SPI_PinSet(SPI_TRIGGER_PORT, SPI_TRIGGER_PIN);
+#endif
+
 	// Set both WPb and HOLDb to high.
+#if SPI_HOLDB_PORT > 0
 	SPI_PinSet(SPI_HOLDB_PORT, SPI_HOLDB_PIN);
+#endif
+
+#if SPI_WPB_PORT > 0
 	SPI_PinSet(SPI_WPB_PORT, SPI_WPB_PIN);
+#endif
+
 }
 
 void SPI_ReturnToSingleSPIIOs()
@@ -88,14 +104,26 @@ void SPI_ReturnToSingleSPIIOs()
 	SPI_PinInit(SPI_MOSI_PORT, SPI_MOSI_PIN, OUTPUT);
 	// MISO - PTD3
 	SPI_PinInit(SPI_MISO_PORT, SPI_MISO_PIN, INPUT);
+
+#if SPI_HOLDB_PORT > 0
 	// HOLDb - PTD4
 	SPI_PinInit(SPI_HOLDB_PORT, SPI_HOLDB_PIN, OUTPUT);
+#endif
+
+#if SPI_WPB_PORT > 0
 	// WPb - PTC5
 	SPI_PinInit(SPI_WPB_PORT, SPI_WPB_PIN, OUTPUT);
+#endif
 
 	// Set both WPb and HOLDb to high.
+#if SPI_HOLDB_PORT > 0
 	SPI_PinSet(SPI_HOLDB_PORT, SPI_HOLDB_PIN);
+#endif
+
+#if SPI_WPB_PORT > 0
 	SPI_PinSet(SPI_WPB_PORT, SPI_WPB_PIN);
+#endif
+
 }
 
 void SPI_ConfigureDualSPIIOsInput()
@@ -105,6 +133,7 @@ void SPI_ConfigureDualSPIIOsInput()
 	SPI_PinInit(SPI_MISO_PORT, SPI_MISO_PIN, INPUT);
 }
 
+#if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 void SPI_ConfigureQuadSPIIOsInput()
 {
 	// MOSI - PTD2
@@ -112,11 +141,14 @@ void SPI_ConfigureQuadSPIIOsInput()
 	SPI_PinInit(SPI_MISO_PORT, SPI_MISO_PIN, INPUT);
 	// MOSI - PTD2
 	SPI_PinInit(SPI_MOSI_PORT, SPI_MOSI_PIN, INPUT);
+
 	// HOLDb - PTD4
 	SPI_PinInit(SPI_HOLDB_PORT, SPI_HOLDB_PIN, INPUT);
+
 	// WPb - PTC5
 	SPI_PinInit(SPI_WPB_PORT, SPI_WPB_PIN, INPUT);
 }
+#endif
 
 void SPI_ConfigureDualSPIIOsOutput()
 {
@@ -125,17 +157,21 @@ void SPI_ConfigureDualSPIIOsOutput()
 	SPI_PinInit(SPI_MOSI_PORT, SPI_MOSI_PIN, OUTPUT);
 }
 
+#if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 void SPI_ConfigureQuadSPIIOsOutput()
 {
 	// MISO - PTD3
 	SPI_PinInit(SPI_MISO_PORT, SPI_MISO_PIN, OUTPUT);
 	// MOSI - PTD2
 	SPI_PinInit(SPI_MOSI_PORT, SPI_MOSI_PIN, OUTPUT);
+
 	// HOLDb - PTD4
 	SPI_PinInit(SPI_HOLDB_PORT, SPI_HOLDB_PIN, OUTPUT);
+
 	// WPb - PTC5
 	SPI_PinInit(SPI_WPB_PORT, SPI_WPB_PIN, OUTPUT);
 }
+#endif
 
 void SPI_Delay(uint32_t delayTime)
 {
@@ -208,6 +244,7 @@ void SPI_DualSendByte(uint8_t transmittedByte)
 	}
 }
 
+#if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 void SPI_QuadSendByte(uint8_t transmittedByte)
 {
 	int32_t i = 0;
@@ -247,6 +284,7 @@ void SPI_QuadSendByte(uint8_t transmittedByte)
 		SPI_ClockTick(DELAY);
 	}
 }
+#endif
 
 uint8_t SPI_ReceiveByte()
 {
@@ -289,6 +327,7 @@ uint8_t SPI_DualReceiveByte()
 	return input;
 }
 
+#if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 uint8_t SPI_QuadReceiveByte()
 {
 	int32_t i = 0;
@@ -321,6 +360,7 @@ uint8_t SPI_QuadReceiveByte()
 	}
 	return input;
 }
+#endif
 
 void SPI_Exchange(uint8_t *txBuffer,
 				  uint32_t txNumBytes,
@@ -410,6 +450,7 @@ void SPI_QuadExchange(uint8_t standardSPINumBytes,
 					  uint32_t rxNumBytes,
 					  uint32_t dummyNumBytes)
 {
+#if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 	uint32_t i = 0;
 	// Determines if dummy bytes should be sent in standard SPI, or another mode.
 	uint8_t dummyBytesSSPI = 1;
@@ -480,14 +521,18 @@ void SPI_QuadExchange(uint8_t standardSPINumBytes,
 	SPI_PinSet(SPI_CSB_PORT, SPI_CSB_PIN);
 	// Reconfigure device for standard SPI operation
 	SPI_ReturnToSingleSPIIOs();
+#endif
 }
 
+
+#if SPI_TRIGGER_PORT > 0
 void SPI_Trigger()
 {
 	SPI_PinSet(SPI_TRIGGER_PORT, SPI_TRIGGER_PIN);
 	SPI_Delay(DELAY);
 	SPI_PinClear(SPI_TRIGGER_PORT, SPI_TRIGGER_PIN);
 }
+#endif
 
 void SPI_JEDECReset()
 {

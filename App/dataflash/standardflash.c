@@ -69,8 +69,8 @@ static uint8_t MCU_SPI_MODE = 0;
 
 static bool DISPLAY_OUTPUT = 0;
 
-static void debugOn() {DISPLAY_OUTPUT = 1;};
-static void debugOff() {DISPLAY_OUTPUT = 0;};
+void debugOn() {DISPLAY_OUTPUT = 1;};
+void debugOff() {DISPLAY_OUTPUT = 0;};
 
 uint8_t txStandardflashInternalBuffer[MAXIMUM_TX_BYTES];
 
@@ -781,6 +781,7 @@ void standardflashEraseProgramResume()
 	(PARTNO == AT25QF641)	|| \
 	(ALL == 1)
 
+#if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 void standardflashEnableQPI()
 {
 	txStandardflashInternalBuffer[0] = (uint8_t) CMD_STANDARDFLASH_ENABLE_QPI;
@@ -792,6 +793,7 @@ void standardflashEnableQPI()
 	// Set the MCU_SPI_MODE byte to QPI.
 	MCU_SPI_MODE = QPI;
 }
+#endif
 
 void standardflashDisableQPI()
 {

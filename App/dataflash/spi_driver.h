@@ -46,6 +46,9 @@
  * SPI_ConfigureSingleSPIIOs() function which should be called after
  * the pins have been set as GPIOs but before adesto layer commands
  * are run.
+ *
+ * This driver is modified by Dekimo Goes
+ * - Make Quad functional conditional (not uesed)
  */
 #ifndef SPI_DRIVER_H_
 #define SPI_DRIVER_H_
@@ -108,7 +111,9 @@
 #define DELAY 5U
 
 #define SPI 0
+#if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 #define QPI 1
+#endif
 
 /*!
  * @brief Initializes a given pin as either an input or output.
@@ -320,6 +325,7 @@ void SPI_ConfigureDualSPIIOsInput();
  */
 void SPI_ConfigureDualSPIIOsOutput();
 
+#if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 /*!
  * @brief Configures SPIO IOs for quad input. This changes the
  * MOSI, WPb, and HOLDb pins to inputs so that the slave can
@@ -358,13 +364,16 @@ void SPI_QuadSendByte(uint8_t transmittedByte);
  * @retval uint8_t The byte received in Little Endian format.
  */
 uint8_t SPI_QuadReceiveByte();
+#endif
 
+#if SPI_TRIGGER_PORT > 0
 /*!
  * @brief Triggers a falling edge on the SPI_TRIGGER_PORT/PIN output.
  *
  * @retval void
  */
 void SPI_Trigger();
+#endif
 
 /*!
  * @brief Performs a JEDEC reset on the SPI device.
