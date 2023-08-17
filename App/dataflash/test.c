@@ -1978,7 +1978,7 @@ uint32_t standardflashTest()
 	// Test complete. Print messages and exit.
 	printf("\n\n#############################################\n\n");
 	printf("Testing complete.\n");
-	printf("Total errors detected: %d\n", errorCount);
+	printf("Total errors detected: %lu\n", errorCount);
 	printf("Terminating testbench.\n");
 	printf("\n#############################################\n\n");
 

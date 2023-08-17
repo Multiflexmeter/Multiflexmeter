@@ -73,7 +73,7 @@ bool compareByteArrays(uint8_t *arr1, uint8_t *arr2, uint32_t arrLength)
 			numErrors++;
 		}
 	}
-	printf("Byte comparison total mismatches: %d\n", numErrors);
+	printf("Byte comparison total mismatches: %lu\n", numErrors);
 	return (numErrors == 0) ? 1 : 0;
 }
 
