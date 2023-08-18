@@ -126,8 +126,9 @@ int main(void)
   {
     /* USER CODE END WHILE */
     MX_LoRaWAN_Process();
-    bq35100_getVoltage();
-    bq35100_getSecurityMode();
+    bq35100_getDesignCapacity();
+    bq35100_getUsedCapacity();
+    bq35100_getRemainingCapacity();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
