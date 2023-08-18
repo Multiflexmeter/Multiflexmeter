@@ -75,9 +75,10 @@ typedef enum
 } SecurityMode;
 
 void bq35100_init(I2C_HandleTypeDef *i2cHandle);
-int16_t bq35100_readVoltage(void);
-int16_t bq35100_readCurrent(void);
-float bq35100_readTemp(void);
+int16_t bq35100_getVoltage(void);
+int16_t bq35100_getCurrent(void);
+float bq35100_getTemp(void);
+SecurityMode bq35100_getSecurityMode(void);
 //void bq35100_enableGauge(void);
 //void bq35100_disableGauge(void);
 
