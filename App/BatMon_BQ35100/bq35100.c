@@ -5,7 +5,7 @@
  *
  */
 
-#include "../Inc/bq35100.h"
+#include "bq35100.h"
 
 static I2C_HandleTypeDef *bq35100Handle;
 

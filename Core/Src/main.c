@@ -47,7 +47,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../../App/CommConfig.h"
-#include "../../App/BatMon_BQ35100/Inc/bq35100.h"
+#include "../../App/BatMon_BQ35100/bq35100.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
