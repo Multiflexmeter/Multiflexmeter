@@ -151,7 +151,7 @@
 /*!
  * @brief Base register used for TRIGGER control.
  */
-#define USER_CONFIG_TRIGGER_PORT  ((uint32_t)GPIOA)
+#define USER_CONFIG_TRIGGER_PORT  (0)
 /*!
  * @brief Base register used for SCK control.
  */
@@ -167,11 +167,11 @@
 /*!
  * @brief Base register used for IO2 control.
  */
-#define USER_CONFIG_IO2_PORT  ((uint32_t)GPIOA)
+#define USER_CONFIG_IO2_PORT  (0)
 /*!
  * @brief Base register used for IO3 control.
  */
-#define USER_CONFIG_IO3_PORT ((uint32_t)GPIOA)
+#define USER_CONFIG_IO3_PORT (0)
 
 //! Pin number for CSb
 //! @warning Don't forget to update USER_CONFIG_BoardInit()
