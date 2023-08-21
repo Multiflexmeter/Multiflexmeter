@@ -77,6 +77,7 @@ typedef enum
   SECURITY_MODE_SEALED = 0x60       // Normal operating mode, prevents accidental writes.
 } SecurityMode;
 
+/* Functions */
 void bq35100_init(I2C_HandleTypeDef *i2cHandle);
 int16_t bq35100_getVoltage(void);
 int16_t bq35100_getCurrent(void);

@@ -9,6 +9,11 @@
 
 static I2C_HandleTypeDef *bq35100Handle;
 
+/**
+ * @brief Initialize the bq35100
+ *
+ * @param i2cHandle is the i2c handle of the peripheral on which the BQ35100 is connected.
+ */
 void bq35100_init(I2C_HandleTypeDef *i2cHandle)
 {
   bq35100Handle = i2cHandle;
