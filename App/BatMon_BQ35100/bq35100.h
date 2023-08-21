@@ -13,22 +13,22 @@
 #include "i2c.h"
 
 /* Registers */
-#define BQ35100_REG_CONTROL                     0x00
-#define BQ35100_REG_ACCUMULATED_CAPACITY        0x02
-#define BQ35100_REG_TEMPERATURE                 0x06
-#define BQ35100_REG_VOLTAGE                     0x08
-#define BQ35100_REG_BATTERY_STATUS              0x0A
-#define BQ35100_REG_BATTERY_ALERT               0x0B
-#define BQ35100_REG_CURRENT                     0x0C
-#define BQ35100_REG_SCALED_R                    0x16
-#define BQ35100_REG_MEASURED_Z                  0x22
-#define BQ35100_REG_INTERNAL_TEMP               0x28
-#define BQ35100_REG_STATE_OF_HEALTH             0x2E
-#define BQ35100_REG_DESIGN_CAPACITY             0x3C
-#define BQ35100_REG_CAL_COUNT                   0x79
-#define BQ35100_REG_CAL_CURRENT                 0x7A
-#define BQ35100_REG_CAL_VOLTAGE                 0x7C
-#define BQ35100_REG_CAL_TEMP                    0x7E
+#define REG_CONTROL                             0x00
+#define REG_ACCUMULATED_CAPACITY                0x02
+#define REG_TEMPERATURE                         0x06
+#define REG_VOLTAGE                             0x08
+#define REG_BATTERY_STATUS                      0x0A
+#define REG_BATTERY_ALERT                       0x0B
+#define REG_CURRENT                             0x0C
+#define REG_SCALED_R                            0x16
+#define REG_MEASURED_Z                          0x22
+#define REG_INTERNAL_TEMP                       0x28
+#define REG_STATE_OF_HEALTH                     0x2E
+#define REG_DESIGN_CAPACITY                     0x3C
+#define REG_CAL_COUNT                           0x79
+#define REG_CAL_CURRENT                         0x7A
+#define REG_CAL_VOLTAGE                         0x7C
+#define REG_CAL_TEMP                            0x7E
 
 /* Commands */
 #define CMD_DATA_CLASS                          0x3E
@@ -37,23 +37,23 @@
 #define CMD_FLAGS                               0x06
 
 /* Subcommands */
-#define BQ35100_CONTROL_STATUS                  0x0000
-#define BQ35100_DEVICE_TYPE                     0x0001
-#define BQ35100_FW_VERSION                      0x0002
-#define BQ35100_HW_VERSION                      0x0003
-#define BQ35100_STATIC_CHEM_DF_CHKSUM           0x0005
-#define BQ35100_CHEM_ID                         0x0006
-#define BQ35100_PREV_MACWRITE                   0x0007
-#define BQ35100_BOARD_OFFSET                    0x0009
-#define BQ35100_CC_OFFSET                       0x000A
-#define BQ35100_CC_OFFSET_SAVE                  0x000B
-#define BQ35100_GAUGE_START                     0x0011
-#define BQ35100_GAUGE_STOP                      0x0012
-#define BQ35100_SEALED                          0x0020
-#define BQ35100_CAL_ENABLE                      0x002D
-#define BQ35100_LT_ENABLE                       0x002E
-#define BQ35100_RESET                           0x0041
-#define BQ35100_NEW_BATTERY                     0xA613
+#define SUB_CMD_CONTROL_STATUS                  0x0000
+#define SUB_CMD_DEVICE_TYPE                     0x0001
+#define SUB_CMD_FW_VERSION                      0x0002
+#define SUB_CMD_HW_VERSION                      0x0003
+#define SUB_CMD_STATIC_CHEM_DF_CHKSUM           0x0005
+#define SUB_CMD_CHEM_ID                         0x0006
+#define SUB_CMD_PREV_MACWRITE                   0x0007
+#define SUB_CMD_BOARD_OFFSET                    0x0009
+#define SUB_CMD_CC_OFFSET                       0x000A
+#define SUB_CMD_CC_OFFSET_SAVE                  0x000B
+#define SUB_CMD_GAUGE_START                     0x0011
+#define SUB_CMD_GAUGE_STOP                      0x0012
+#define SUB_CMD_SEALED                          0x0020
+#define SUB_CMD_CAL_ENABLE                      0x002D
+#define SUB_CMD_LT_ENABLE                       0x002E
+#define SUB_CMD_RESET                           0x0041
+#define SUB_CMD_NEW_BATTERY                     0xA613
 
 
 /* Device I2C address. */
@@ -84,7 +84,7 @@ float bq35100_getTemp(void);
 uint16_t bq35100_getDesignCapacity(void);
 uint32_t bq35100_getRemainingCapacity(void);
 uint32_t bq35100_getUsedCapacity(void);
-SecurityMode bq35100_getSecurityMode(void);
+//SecurityMode bq35100_getSecurityMode(void);
 bool bq35100_isGaugeEnabled(void);
 bool bq35100_enableGauge(void);
 bool bq35100_disableGauge(bool ignoreCheck);

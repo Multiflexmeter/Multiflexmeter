@@ -24,7 +24,7 @@ int16_t bq35100_getVoltage(void)
   int16_t voltage;
   uint8_t data[2] = {0xFF, 0xFF};
 
-  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, BQ35100_REG_VOLTAGE, 1, data, 2, 100);
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_VOLTAGE, 1, data, 2, 100);
 
   voltage = (data[1]<<8 & 0xFF00) | (data[0] & 0x00FF);
 
@@ -41,7 +41,7 @@ int16_t bq35100_getCurrent(void)
   int16_t current;
   uint8_t data[2] = {0xFF, 0xFF};
 
-  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, BQ35100_REG_CURRENT, 1, data, 2, 100);
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_CURRENT, 1, data, 2, 100);
 
   current = (data[1]<<8 & 0xFF00) | (data[0] & 0x00FF);
 
@@ -58,7 +58,7 @@ float bq35100_getTemp(void)
   float temperature;
   uint8_t data[2] = {0xFF, 0xFF};
 
-  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, BQ35100_REG_TEMPERATURE, 1, data, 2, 100);
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_TEMPERATURE, 1, data, 2, 100);
 
   temperature = ((data[1]<<8 & 0xFF00) | (data[0] & 0x00FF))/10 - 273;
 
@@ -75,7 +75,7 @@ uint16_t bq35100_getDesignCapacity(void)
   uint16_t designCapacity;
   uint8_t data[2];
 
-  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, BQ35100_REG_DESIGN_CAPACITY, 1, data, 2, 100);
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_DESIGN_CAPACITY, 1, data, 2, 100);
 
   designCapacity = (data[1]<<8 & 0xFF00) | (data[0] & 0x00FF);
 
@@ -92,7 +92,7 @@ uint32_t bq35100_getUsedCapacity(void)
   uint32_t usedCapacity;
   uint8_t data[4];
 
-  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, BQ35100_REG_ACCUMULATED_CAPACITY, 1, data, 4, 100);
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_ACCUMULATED_CAPACITY, 1, data, 4, 100);
 
   usedCapacity = (((uint32_t) data[3]) << 24) + (((uint32_t) data[2]) << 16) + (((uint32_t) data[1]) << 8) + data[0];
 
@@ -127,7 +127,7 @@ SecurityMode bq35100_getSecurityMode(void)
   SecurityMode securityMode;
   uint8_t data[2];
 
-  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, BQ35100_REG_CONTROL, 1, data, 2, 100);
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_CONTROL, 1, data, 2, 100);
 
   //todo always results in 0 even though the formula is correct
   const uint8_t test = ((data[1]>>5) & 0x3);
@@ -145,11 +145,9 @@ bool bq35100_isGaugeEnabled(void)
 {
   uint8_t controlStatus[2];
 
-  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, BQ35100_REG_CONTROL, 1, controlStatus, 2, 100);
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_CONTROL, 1, controlStatus, 2, 100);
 
-  bool status = (controlStatus[0] & 0x01) == 0x01;
-
-  return status;
+  return (controlStatus[0] & 0x01) == 0x01;
 }
 
 /**
@@ -162,8 +160,8 @@ bool bq35100_enableGauge(void)
   uint8_t data[3];
 
   data[0] = 0x3e;                     // Set address to ManufacturerAccessControl
-  data[1] = BQ35100_GAUGE_START;      // First byte of GAUGE_START sub-command (0x11)
-  data[2] = BQ35100_GAUGE_START>>8;   // Second byte of GAUGE_START sub-command (0x00) (register address will auto-increment)
+  data[1] = SUB_CMD_GAUGE_START;      // First byte of GAUGE_START sub-command (0x11)
+  data[2] = SUB_CMD_GAUGE_START>>8;   // Second byte of GAUGE_START sub-command (0x00) (register address will auto-increment)
 
   HAL_I2C_Master_Transmit(bq35100Handle, BQ35100_ADDRESS, data, 3, 100);
 
@@ -183,8 +181,8 @@ bool bq35100_disableGauge(bool ignoreCheck)
   uint8_t controlStatus[2];
 
   data[0] = 0x3e;                     // Set address to ManufacturerAccessControl
-  data[1] = BQ35100_GAUGE_STOP;       // First byte of GAUGE_STOP sub-command (0x12)
-  data[2] = BQ35100_GAUGE_STOP>>8;    // Second byte of GAUGE_START sub-command (0x00) (register address will auto-increment)
+  data[1] = SUB_CMD_GAUGE_STOP;       // First byte of GAUGE_STOP sub-command (0x12)
+  data[2] = SUB_CMD_GAUGE_STOP>>8;    // Second byte of GAUGE_START sub-command (0x00) (register address will auto-increment)
 
   HAL_I2C_Master_Transmit(bq35100Handle, BQ35100_ADDRESS, data, 3, 100);
 
@@ -196,7 +194,7 @@ bool bq35100_disableGauge(bool ignoreCheck)
   for(uint8_t i=0; i<10; i++)
   {
     HAL_Delay(200);
-    HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, BQ35100_REG_CONTROL, 1, controlStatus, 2, 100);
+    HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_CONTROL, 1, controlStatus, 2, 100);
 
     if((controlStatus[0] & 0x41) == 0x40)
       return !bq35100_isGaugeEnabled();
