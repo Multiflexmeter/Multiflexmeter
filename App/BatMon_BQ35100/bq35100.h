@@ -72,9 +72,9 @@
 typedef enum
 {
   SECURITY_MODE_UNKNOWN = 0x00,
-  SECURITY_MODE_FULL_ACCESS = 0x01, // Allows writes to all of memory.
-  SECURITY_MODE_UNSEALED = 0x02, // Allows writes to all of memory apart from the security codes area.
-  SECURITY_MODE_SEALED = 0x03 // Normal operating mode, prevents accidental writes.
+  SECURITY_MODE_FULL_ACCESS = 0x20, // Allows writes to all of memory.
+  SECURITY_MODE_UNSEALED = 0x40,    // Allows writes to all of memory apart from the security codes area.
+  SECURITY_MODE_SEALED = 0x60       // Normal operating mode, prevents accidental writes.
 } SecurityMode;
 
 void bq35100_init(I2C_HandleTypeDef *i2cHandle);
@@ -84,7 +84,7 @@ float bq35100_getTemp(void);
 uint16_t bq35100_getDesignCapacity(void);
 uint32_t bq35100_getRemainingCapacity(void);
 uint32_t bq35100_getUsedCapacity(void);
-//SecurityMode bq35100_getSecurityMode(void);
+SecurityMode bq35100_getSecurityMode(void);
 bool bq35100_isGaugeEnabled(void);
 bool bq35100_enableGauge(void);
 bool bq35100_disableGauge(bool ignoreCheck);

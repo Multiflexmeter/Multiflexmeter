@@ -124,16 +124,11 @@ uint32_t bq35100_getRemainingCapacity(void)
  */
 SecurityMode bq35100_getSecurityMode(void)
 {
-  SecurityMode securityMode;
   uint8_t data[2];
 
   HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_CONTROL, 1, data, 2, 100);
 
-  //todo always results in 0 even though the formula is correct
-  const uint8_t test = ((data[1]>>5) & 0x3);
-  securityMode = test;
-
-  return securityMode;
+  return data[1] & 0x60;
 }
 
 /**
