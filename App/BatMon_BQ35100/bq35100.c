@@ -183,7 +183,7 @@ bool bq35100_enableGauge(void)
  *
  * @return true if successful, otherwise false.
  */
-bool bq35100_disableGauge(void)
+bool bq35100_disableGauge(bool ignoreCheck)
 {
   uint8_t data[3];
   uint8_t controlStatus[2];
@@ -194,6 +194,11 @@ bool bq35100_disableGauge(void)
 
   HAL_I2C_Master_Transmit(bq35100Handle, BQ35100_ADDRESS, data, 3, 100);
 
+  // returns true to skip the check function to save time.
+  if(ignoreCheck)
+    return true;
+
+  // Check if the device is done all its tasks and is turn off.
   for(uint8_t i=0; i<10; i++)
   {
     HAL_Delay(200);
@@ -203,5 +208,6 @@ bool bq35100_disableGauge(void)
       return !bq35100_isGaugeEnabled();
   }
 
+  // returns false if the device is not turned of after 2 seconds
   return false;
 }
