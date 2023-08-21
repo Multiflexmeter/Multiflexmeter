@@ -126,10 +126,12 @@ int main(void)
   {
     /* USER CODE END WHILE */
     MX_LoRaWAN_Process();
-    bq35100_getDesignCapacity();
-    bq35100_getUsedCapacity();
-    bq35100_getRemainingCapacity();
+
     /* USER CODE BEGIN 3 */
+    bq35100_enableGauge();
+    HAL_Delay(1000);
+    bq35100_disableGauge();
+    HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }

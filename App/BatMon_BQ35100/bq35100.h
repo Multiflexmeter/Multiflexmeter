@@ -9,6 +9,7 @@
 #define BATTERY_GAUGE_BQ35100_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "i2c.h"
 
 /* Registers */
@@ -24,14 +25,16 @@
 #define BQ35100_REG_INTERNAL_TEMP               0x28
 #define BQ35100_REG_STATE_OF_HEALTH             0x2E
 #define BQ35100_REG_DESIGN_CAPACITY             0x3C
-#define BQ35100_MANUFACTURER_ACCES_CONTROL      0x3E
-#define BQ35100_MAC_DATA                        0x40
-#define BQ35100_MAC_DATA_SUM                    0x60
-#define BQ35100_MAC_DATA_LEN                    0x61
 #define BQ35100_REG_CAL_COUNT                   0x79
 #define BQ35100_REG_CAL_CURRENT                 0x7A
 #define BQ35100_REG_CAL_VOLTAGE                 0x7C
 #define BQ35100_REG_CAL_TEMP                    0x7E
+
+/* Commands */
+#define CMD_DATA_CLASS                          0x3E
+#define CMD_BLOCK_DATA                          0x40
+#define CMD_CHECK_SUM                           0x60
+#define CMD_FLAGS                               0x06
 
 /* Subcommands */
 #define BQ35100_CONTROL_STATUS                  0x0000
@@ -82,7 +85,7 @@ uint16_t bq35100_getDesignCapacity(void);
 uint32_t bq35100_getRemainingCapacity(void);
 uint32_t bq35100_getUsedCapacity(void);
 SecurityMode bq35100_getSecurityMode(void);
-//void bq35100_enableGauge(void);
-//void bq35100_disableGauge(void);
+bool bq35100_enableGauge(void);
+bool bq35100_disableGauge(void);
 
 #endif /* BATTERY_GAUGE_BQ35100_H_ */
