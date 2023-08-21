@@ -85,6 +85,7 @@ uint16_t bq35100_getDesignCapacity(void);
 uint32_t bq35100_getRemainingCapacity(void);
 uint32_t bq35100_getUsedCapacity(void);
 SecurityMode bq35100_getSecurityMode(void);
+bool bq35100_isGaugeEnabled(void);
 bool bq35100_enableGauge(void);
 bool bq35100_disableGauge(bool ignoreCheck);
 
