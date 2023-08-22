@@ -82,6 +82,10 @@ void bq35100_init(I2C_HandleTypeDef *i2cHandle);
 int16_t bq35100_getVoltage(void);
 int16_t bq35100_getCurrent(void);
 float bq35100_getTemp(void);
+uint16_t bq35100_getScaledR(void);
+uint16_t bq35100_getMeasuredZ(void);
+uint16_t bq35100_getStateOfHealth(void);
+//todo accumulated capacity testen
 uint16_t bq35100_getDesignCapacity(void);
 uint32_t bq35100_getRemainingCapacity(void);
 uint32_t bq35100_getUsedCapacity(void);

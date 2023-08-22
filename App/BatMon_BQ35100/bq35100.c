@@ -71,6 +71,57 @@ float bq35100_getTemp(void)
 }
 
 /**
+ * @brief Gets the scaled resistance from the battery. Only in EOS mode.
+ *
+ * @return The scaled resistance in mOhms
+ */
+uint16_t bq35100_getScaledR(void)
+{
+  uint16_t scaledR;
+  uint8_t data[2];
+
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_SCALED_R, 1, data, 2, 100);
+
+  scaledR = (data[1]<<8 & 0xFF00) | (data[0] & 0x00FF);
+
+  return scaledR;
+}
+
+/**
+ * @brief Gets the measured impedance from the battery. Only in EOS mode.
+ *
+ * @return The measured impedance in mOhms
+ */
+uint16_t bq35100_getMeasuredZ(void)
+{
+  uint16_t measuredZ;
+  uint8_t data[2];
+
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_MEASURED_Z, 1, data, 2, 100);
+
+  measuredZ = (data[1]<<8 & 0xFF00) | (data[0] & 0x00FF);
+
+  return measuredZ;
+}
+
+/**
+ * @brief Gets the state of health of the battery in EOS and SOH mode
+ *
+ * @return The state of health in a percentage.
+ */
+uint16_t bq35100_getStateOfHealth(void)
+{
+  uint16_t stateOfHealth;
+  uint8_t data[2];
+
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_STATE_OF_HEALTH, 1, data, 2, 100);
+
+  stateOfHealth = (data[1]<<8 & 0xFF00) | (data[0] & 0x00FF);
+
+  return stateOfHealth;
+}
+
+/**
  * @brief Reads the design capacity of the battery
  *
  * @return The design capacity in mAh.

@@ -128,7 +128,12 @@ int main(void)
     MX_LoRaWAN_Process();
 
     /* USER CODE BEGIN 3 */
-    bq35100_getSecurityMode();
+    bq35100_enableGauge();
+    HAL_Delay(1000);
+    bq35100_disableGauge(false);
+    bq35100_getScaledR();
+    bq35100_getMeasuredZ();
+    HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
