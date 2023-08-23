@@ -48,7 +48,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../../App/CommConfig.h"
-#include "../../App/dataflash/spi_driver.h"
+#include "../../App/dataflash/dataflash_functions.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -82,7 +82,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+static int8_t resultInitDataflash;
 /* USER CODE END 0 */
 
 /**
@@ -119,7 +119,7 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   uartInit_Config();
-  SPI_ConfigureSingleSPIIOs();
+  resultInitDataflash = init_dataflash();
 
   /* USER CODE END 2 */
 
