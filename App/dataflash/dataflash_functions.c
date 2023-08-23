@@ -31,11 +31,11 @@ int8_t init_dataflash(void)
   //check MID is okay
   if (compareByteArrays(dataRead, MID, 3))
   {
-    printf("ReadMID Success.\n");
+    printf("Dataflash: ReadMID Success.\n");
   }
   else
   {
-    printf("ReadMID fail.\n");
+    printf("Dataflash: ReadMID fail.\n");
     return -1;
   }
 
