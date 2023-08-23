@@ -48,6 +48,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../../App/CommConfig.h"
+#include "../../App/dataflash/spi_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -118,6 +119,8 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   uartInit_Config();
+  SPI_ConfigureSingleSPIIOs();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
