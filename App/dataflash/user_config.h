@@ -87,7 +87,7 @@
  */
 
 /*! Definition of part number. */
-#define PARTNO AT25QF641 /* <- Replace with the device being used. */
+#define PARTNO AT25QF641B /* <- Replace with the device being used. */
 #define ALL 0 /* <- Replace with 0 if selecting a part above. */
 
 /*
@@ -136,6 +136,7 @@
  * AT25QL641
  * AT25QL128A
  * AT25QF641
+ * AT25QF641B added by Dekimo
  */
 
 /*

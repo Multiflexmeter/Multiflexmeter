@@ -1450,6 +1450,11 @@ uint32_t standardflashTest()
 	uint8_t modeByteValue = 0xA0;
 	// Store the manufacturer ID for later comparison
 	uint8_t MID[3] = {0x1F, 0x32, 0x17};
+#elif PARTNO == AT25QF641B
+	// The hex value is determined by the datasheet. Certain bits in the byte need to be set/cleared.
+  uint8_t modeByteValue = 0xA0;
+  // Store the manufacturer ID for later comparison
+  uint8_t MID[3] = {0x1F, 0x88, 0x01};
 #endif
 
     // Sets the various pins as inputs and output
@@ -1566,6 +1571,7 @@ uint32_t standardflashTest()
  	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)	|| \
+	(PARTNO == AT25QF641B)   || \
 	(ALL == 1)
 
 	/********************************************************************
@@ -1773,6 +1779,7 @@ uint32_t standardflashTest()
  	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)	|| \
+	(PARTNO == AT25QF641B)   || \
 	(ALL == 1)
 
 	printf("\n\nThis device has Quad IO Capabilities.\n");

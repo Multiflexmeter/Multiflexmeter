@@ -58,6 +58,7 @@
  	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)	|| \
+	(PARTNO == AT25QF641B)   || \
 	(ALL == 1)
 /*!
  * @brief Communication mode byte. This byte is changed when various commands are executed.
@@ -367,6 +368,7 @@ void standardflashReadMID(uint8_t *rxBuffer)
 	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)   || \
+	(PARTNO == AT25QF641B)   || \
 	(ALL == 1)
 
 void standardflashWriteSR(uint8_t *txBuffer, uint8_t txNumBytes)
@@ -396,6 +398,7 @@ void standardflashWriteSR(uint8_t *txBuffer, uint8_t txNumBytes)
  	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)   || \
+	(PARTNO == AT25QF641B)   || \
 	(PARTNO == AT25DL081) 	|| \
 	(PARTNO == AT25DL161) 	|| \
 	(PARTNO == AT25DF081A)  || \
@@ -444,6 +447,7 @@ void standardflashWriteSRB2(uint8_t regVal)
  	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)	|| \
+	(PARTNO == AT25QF641B)   || \
 	(ALL == 1)
 void standardflashWriteEnableVolatileSR()
 {
@@ -740,6 +744,7 @@ void standardflashQuadPageProgram(uint32_t address, uint8_t *txBuffer, uint32_t 
  	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)	|| \
+	(PARTNO == AT25QF641B)   || \
 	(ALL == 1)
 
 void standardflashEraseProgramSuspend()
@@ -779,6 +784,7 @@ void standardflashEraseProgramResume()
  	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)	|| \
+	(PARTNO == AT25QF641B)   || \
 	(ALL == 1)
 
 #if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0

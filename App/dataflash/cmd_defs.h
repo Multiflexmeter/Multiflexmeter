@@ -91,6 +91,7 @@
 #define AT25QL641 	42
 #define AT25QL128A 	43
 #define AT25QF641 	44
+#define AT25QF641B  45 //added by Dekimo
 
 // Moneta commands
 #if (PARTNO == RM331x)|| \
@@ -317,6 +318,7 @@
  * AT25QL641
  * AT25QL128A
  * AT25QF641
+ * AT25QF641B added by Dekimo
  */
 #if (PARTNO == AT25SF641) 	|| \
 	(PARTNO == AT25SF321)	|| \
@@ -335,6 +337,7 @@
  	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)   || \
+	(PARTNO == AT25QF641B)   || \
 	(ALL == 1)
 #define CMD_STANDARDFLASH_WRITE_ENABLE				0x06
 #define CMD_STANDARDFLASH_WRITE_DISABLE				0x04
@@ -371,6 +374,7 @@
  	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)   || \
+	(PARTNO == AT25QF641B)   || \
 	(ALL == 1)
 #define CMD_STANDARDFLASH_WRITE_SRB1				0x01
 #define CMD_STANDARDFLASH_WRITE_SRB2				0x31
@@ -387,6 +391,7 @@
  	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)   || \
+	(PARTNO == AT25QF641B)   || \
 	(ALL == 1)
 #define CMD_STANDARDFLASH_WE_FOR_VOLATILE_SR			0x50
 #define CMD_STANDARDFLASH_WRITE_SR						0x01
@@ -414,6 +419,7 @@
  	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)   || \
+	(PARTNO == AT25QF641B)   || \
 	(ALL == 1)
 #define CMD_STANDARDFLASH_ERASE_PROGRAM_SUSPEND		0x75
 #define CMD_STANDARDFLASH_ERASE_PROGRAM_RESUME		0x7A
@@ -426,6 +432,7 @@
  	(PARTNO == AT25QL641) 	|| \
 	(PARTNO == AT25QL321) 	|| \
 	(PARTNO == AT25QF641)   || \
+	(PARTNO == AT25QF641B)   || \
 	(ALL == 1)
 #define CMD_STANDARDFLASH_ENABLE_QPI				0x38
 #define CMD_STANDARDFLASH_DISABLE_QPI				0xFF
@@ -460,7 +467,7 @@
 #define FUSION_DEVICE
 #elif (PARTNO < 28)
 #define DATAFLASH_DEVICE
-#elif (PARTNO < 45)
+#elif (PARTNO < 46)
 #define STANDARDFLASH_DEVICE
 #else
 #error Part number not defined.
