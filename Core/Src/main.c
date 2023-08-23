@@ -47,6 +47,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "sys_app.h"
 #include "../../App/CommConfig.h"
 #include "../../App/dataflash/dataflash_functions.h"
 /* USER CODE END Includes */
@@ -202,6 +203,10 @@ void Error_Handler(void)
 }
 
 #ifdef  USE_FULL_ASSERT
+//#define DEBUG_BREAKPOINT
+//#define DEBUG_SEMIHOSTING
+//#define DEBUG_LOG
+
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
@@ -231,7 +236,9 @@ void assert_failed(uint8_t *file, uint32_t line)
   __BKPT(0);
 #endif
 
-
+#ifdef DEBUG_LOG
+  APP_LOG(TS_OFF, VLEVEL_H, "Wrong parameters value: file %s on line %d\r\n", file, line);
+#endif
 
   /* USER CODE END 6 */
 }
