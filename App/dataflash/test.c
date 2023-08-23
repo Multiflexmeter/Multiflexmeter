@@ -1787,7 +1787,11 @@ uint32_t standardflashTest()
 	standardflashSetQEBit();
 	standardflashWaitOnReady();
 	standardflashWriteEnable();
+
+#if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 	standardflashEnableQPI();
+#endif
+
 	// Part A: Test that the MID can be read.
 	// Read the manufacturing ID and store the returned data in dataRead.
 	standardflashReadMID(dataRead);
@@ -1834,7 +1838,10 @@ uint32_t standardflashTest()
 	standardflashSetQEBit();
 	standardflashWaitOnReady();
 	standardflashWriteEnable();
+
+#if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 	standardflashEnableQPI();
+#endif
 
 	printf("\n\nTesting Write and Read Quad IO Commands --------------\n\n");
 
@@ -1879,7 +1886,7 @@ uint32_t standardflashTest()
 		printf("Write and ReadHF success.\n");
 	}
 
-
+#if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 
 	/********************************************************************
 	 *		    			3. Quad read commands						*
@@ -1938,6 +1945,7 @@ uint32_t standardflashTest()
 	standardflashClearQEBit();
 	standardflashWaitOnReady();
 
+#endif
 #endif
 
 #if (PARTNO == AT25DL081) 	|| \

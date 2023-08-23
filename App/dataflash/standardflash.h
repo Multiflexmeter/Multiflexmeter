@@ -549,6 +549,7 @@ void standardflashEraseProgramResume();
 	(PARTNO == AT25QF641)	|| \
 	(ALL == 1)
 
+#if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 /*!
  * @brief OPCODE: 0x38 <br>
  * Switches the device from SPI mode to QPI mode, and sets a variable to quad mode.
@@ -558,6 +559,7 @@ void standardflashEraseProgramResume();
  * @retval void
  */
 void standardflashEnableQPI();
+#endif
 
 /*!
  * @brief OPCODE: 0xFF <br>
