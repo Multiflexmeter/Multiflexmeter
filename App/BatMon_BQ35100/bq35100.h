@@ -81,7 +81,8 @@ typedef enum
 void bq35100_init(I2C_HandleTypeDef *i2cHandle);
 int16_t bq35100_getVoltage(void);
 int16_t bq35100_getCurrent(void);
-float bq35100_getTemp(void);
+int16_t bq35100_getExternalTemp(void);
+int16_t bq35100_getInternalTemp(void);
 uint16_t bq35100_getScaledR(void);
 uint16_t bq35100_getMeasuredZ(void);
 uint16_t bq35100_getStateOfHealth(void);

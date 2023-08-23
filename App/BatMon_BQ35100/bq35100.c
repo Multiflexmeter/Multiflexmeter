@@ -54,18 +54,35 @@ int16_t bq35100_getCurrent(void)
 }
 
 /**
- * @brief Reads the temperature form the BQ35100
+ * @brief Reads the external temperature form the BQ35100
  *
- * @return The temperature in degrees celsius.
+ * @return The external temperature in degrees celsius *10 to display the decimal without a float.
  */
-float bq35100_getTemp(void)
+int16_t bq35100_getExternalTemp(void)
 {
-  float temperature;
+  int16_t temperature;
   uint8_t data[2] = {0xFF, 0xFF};
 
   HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_TEMPERATURE, 1, data, 2, 100);
 
-  temperature = ((data[1]<<8 & 0xFF00) | (data[0] & 0x00FF))/10 - 273;
+  temperature = ((int16_t) (data[1]<<8 & 0xFF00) | (data[0] & 0x00FF)) - 2730;
+
+  return temperature;
+}
+
+/**
+ * @brief Reads the internal temperature form the BQ35100
+ *
+ * @return The internal temperature in degrees celsius *10 to display the decimal without a float.
+ */
+int16_t bq35100_getInternalTemp(void)
+{
+  int16_t temperature;
+  uint8_t data[2] = {0xFF, 0xFF};
+
+  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_INTERNAL_TEMP, 1, data, 2, 100);
+
+  temperature = ((int16_t) (data[1]<<8 & 0xFF00) | (data[0] & 0x00FF)) - 2730;
 
   return temperature;
 }
