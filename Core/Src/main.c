@@ -84,6 +84,7 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 static int8_t resultInitDataflash;
+static uint8_t dataTest[256];
 /* USER CODE END 0 */
 
 /**
@@ -121,6 +122,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uartInit_Config();
   resultInitDataflash = init_dataflash();
+
+  writeLogInDataflash(0, dataTest, sizeof(dataTest)); //test normal condition.
+  writeLogInDataflash(0, 0, 256); //test pointer is zero
+  writeLogInDataflash(0, dataTest, 0); //test length is zero
+  writeLogInDataflash(0, dataTest, 257); //test length too large
 
   /* USER CODE END 2 */
 
