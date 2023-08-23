@@ -41,9 +41,7 @@
 
 #include "test.h"
 
-#include "sys_app.h"
-
-#define printf(...) APP_LOG(TS_OFF, VLEVEL_H, __VA_ARGS__)
+#include "helper_functions.h"
 
 
 #if defined(MONETA_DEVICE)

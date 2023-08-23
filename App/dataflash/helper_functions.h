@@ -46,6 +46,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "sys_app.h"
+
+#define printf(...) APP_LOG(TS_OFF, VLEVEL_H, __VA_ARGS__)
+
 /*!
  * @brief Helper function to display a byte array/buffer. This function uses the
  * printSPIExchange() function internally, but only displays one byte array.
