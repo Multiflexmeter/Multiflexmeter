@@ -27,6 +27,21 @@
 #define RESERVED_MEMORY   (PAGE_SIZE_DATAFLASH * 32)
 #define MAX_LOG_ADDRESS_OF_DATAFLASH  (MAX_ADDRESS_OF_DATAFLASH - RESERVED_MEMORY)
 
+typedef struct __attribute__((packed)){
+    uint32_t measurementId;
+    uint32_t timestamp;
+    uint8_t sensorModuleType;
+    uint8_t sensorModuleDatasize;
+    uint8_t sensorModuleData[40];
+    uint16_t crc;
+    uint8_t spare[204];
+}STRUCT_logdata;
+
+typedef union{
+    uint8_t logdata[PAGE_SIZE_DATAFLASH];
+    STRUCT_logdata log;
+}UNION_logdata;
+
 int8_t init_dataflash(void);
 int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length);
 int8_t readLogFromDataflash(uint32_t logId, uint8_t * data, uint32_t length);
