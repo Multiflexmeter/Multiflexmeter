@@ -85,7 +85,6 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 static int8_t resultInitDataflash;
 static uint8_t dataTest[256];
-static uint8_t dataReadTest[256];
 /* USER CODE END 0 */
 
 /**
@@ -124,41 +123,10 @@ int main(void)
   uartInit_Config();
   resultInitDataflash = init_dataflash();
 
-  memset(dataTest, 0xff, sizeof(dataTest));
-  readLogFromDataflash(0, dataReadTest, sizeof(dataReadTest));
-  if( memcmp(dataTest, dataReadTest, sizeof(dataTest)) == 0 )
-  {
-    APP_LOG(TS_OFF, VLEVEL_H, "Page is empty.\r\n");
-  }
-  else
-  {
-    APP_LOG(TS_OFF, VLEVEL_H, "Page is not empty.\r\n");
-  }
-
-
-  int i = 0;
-  for(i=0; i<sizeof(dataTest); i++)
-  {
-    dataTest[i]=i;//set testdata.
-  }
-
   writeLogInDataflash(0, dataTest, sizeof(dataTest)); //test normal condition.
-  readLogFromDataflash(0, dataReadTest, sizeof(dataReadTest));
-
-  if (memcmp(dataTest, dataReadTest, sizeof(dataTest)) == 0)
-  {
-    APP_LOG(TS_OFF, VLEVEL_H, "Page is written okay.\r\n");
-  }
-  else
-  {
-    APP_LOG(TS_OFF, VLEVEL_H, "Error in written page.\r\n");
-  }
-
-  testDataflash(false);
-
-//  writeLogInDataflash(0, 0, 256); //test pointer is zero
-//  writeLogInDataflash(0, dataTest, 0); //test length is zero
-//  writeLogInDataflash(0, dataTest, 257); //test length too large
+  writeLogInDataflash(0, 0, 256); //test pointer is zero
+  writeLogInDataflash(0, dataTest, 0); //test length is zero
+  writeLogInDataflash(0, dataTest, 257); //test length too large
 
   /* USER CODE END 2 */
 
