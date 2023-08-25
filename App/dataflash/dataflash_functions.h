@@ -22,10 +22,11 @@
 #define NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH  ( BLOCK_32K_SIZE_DATAFLASH / PAGE_SIZE_DATAFLASH )
 #define NUMBER_OF_PAGES_IN_62K_BLOCK_DATAFLASH  ( BLOCK_62K_SIZE_DATAFLASH / PAGE_SIZE_DATAFLASH )
 
-
-#define MAX_ADDRESS_OF_DATAFLASH  0xFFFFFF
-#define RESERVED_MEMORY   (PAGE_SIZE_DATAFLASH * 32)
-#define MAX_LOG_ADDRESS_OF_DATAFLASH  (MAX_ADDRESS_OF_DATAFLASH - RESERVED_MEMORY)
+#define MAX_ADDRESS_OF_DATAFLASH      ( 0x7FFFFFUL )
+#define NUMBER_PAGES_FOR_LOGGING      ( NUMBER_PAGES_DATAFLASH - NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH )
+#define NUMBER_OF_RESERVED_PAGES      ( NUMBER_PAGES_DATAFLASH - NUMBER_PAGES_FOR_LOGGING )
+#define LOG_MEMEORY_SIZE              ( PAGE_SIZE_DATAFLASH * NUMBER_PAGES_FOR_LOGGING )
+#define RESERVED_MEMORY               ( PAGE_SIZE_DATAFLASH * NUMBER_OF_RESERVED_PAGES )
 
 typedef struct __attribute__((packed)){
     uint32_t measurementId;
@@ -45,7 +46,8 @@ typedef union{
 int8_t init_dataflash(void);
 int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length);
 int8_t readLogFromDataflash(uint32_t logId, uint8_t * data, uint32_t length);
-
+int8_t chipEraseDataflash(void);
+int8_t searchLatestLogInDataflash( uint32_t * logId );
 int8_t testDataflash(bool restoreOrinalData );
 
 #endif /* DATAFLASH_DATAFLASH_FUNCTIONS_H_ */
