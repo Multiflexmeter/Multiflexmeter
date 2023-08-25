@@ -658,6 +658,12 @@ static void SendTxData(void)
 #endif
     }
 
+    //check the current time is smaller then 1.000.000.000, this means a powerup without real time.
+    if( SysTimeGet().Seconds < 1000000000L )
+    {
+      LmHandlerDeviceTimeReq(); //request the time
+    }
+
     status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
     if (LORAMAC_HANDLER_SUCCESS == status)
     {
