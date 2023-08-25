@@ -84,6 +84,9 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 static int8_t resultInitDataflash;
+static UNION_logdata newLog;
+bool chipErase = false;
+bool enableTestDataFlash = false;
 /* USER CODE END 0 */
 
 /**
@@ -93,7 +96,8 @@ static int8_t resultInitDataflash;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  uint32_t foundLogId = 0;
+  int8_t statusFoundLogId;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -121,6 +125,39 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uartInit_Config();
   resultInitDataflash = init_dataflash();
+
+  if( chipErase )
+  {
+    chipEraseDataflash();
+  }
+
+  if( enableTestDataFlash )
+  {
+    testDataflash(false);
+  }
+
+
+  statusFoundLogId = searchLatestLogInDataflash( &foundLogId );
+
+  APP_LOG(TS_OFF, VLEVEL_M, "Log %u found.\r\n", foundLogId);
+
+  if( statusFoundLogId == 0 )
+  {
+    newLog.log.measurementId = foundLogId + 1;
+  }
+  else
+  {
+    newLog.log.measurementId = foundLogId;
+  }
+  srand(newLog.log.measurementId);
+
+  for(int i=0; i< (500 + (rand() % 200)); i++ )
+  {
+    writeLogInDataflash( newLog.log.measurementId, &newLog.logdata[0], sizeof(newLog));
+    newLog.log.measurementId++;
+  }
+
+  APP_LOG(TS_OFF, VLEVEL_M, "New log %u.\r\n", newLog.log.measurementId);
 
   /* USER CODE END 2 */
 
