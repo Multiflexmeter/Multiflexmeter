@@ -89,6 +89,8 @@ typedef enum TxEventType_e
 
 /* USER CODE BEGIN PD */
 static const char *slotStrings[] = { "1", "2", "C", "C_MC", "P", "P_MC" };
+static bool requestTime = 0;
+static uint32_t nextRequestTime = 0;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -666,8 +668,15 @@ static void SendTxData(void)
 #endif
     }
 
-    //check the current time is smaller then 1.000.000.000, this means a powerup without real time.
-    if( SysTimeGet().Seconds < 1000000000L )
+    //Sync every day the time with the server time
+    if( nextRequestTime < SysTimeGet().Seconds )
+    {
+      nextRequestTime = SysTimeGet().Seconds + TM_SECONDS_IN_1DAY;
+      requestTime = true;
+    }
+
+    //check the requestTime is true
+    if( requestTime == true )
     {
       LmHandlerDeviceTimeReq(); //request the time
     }
@@ -791,6 +800,8 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
       //always enable ADR after join
       LmHandlerSetAdrEnable(true);
 
+      requestTime = true; //set true, to call "LmHandlerDeviceTimeReq()" until time message is received.
+
     }
     else
     {
@@ -877,7 +888,8 @@ static void OnBeaconStatusChange(LmHandlerBeaconParams_t *params)
 static void OnSysTimeUpdate(void)
 {
   /* USER CODE BEGIN OnSysTimeUpdate_1 */
-
+  requestTime = false; //set false when time message is received
+  nextRequestTime = SysTimeGet().Seconds + TM_SECONDS_IN_1DAY;
   /* USER CODE END OnSysTimeUpdate_1 */
 }
 
