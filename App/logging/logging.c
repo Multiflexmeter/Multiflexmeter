@@ -173,6 +173,7 @@ int8_t writeNewLog( uint8_t sensorModuleType, uint8_t * sensorData, uint8_t data
   //check result
   if( result == 0 ) //success
   {
+    APP_LOG(TS_OFF, VLEVEL_H, "Log ID %u written to dataflash\r\n", newLogId );
     newLogId++;
   }
 
