@@ -50,6 +50,7 @@
 #include "sys_app.h"
 #include "../../App/CommConfig.h"
 #include "../../App/dataflash/dataflash_functions.h"
+#include "../../App/logging/logging.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -121,6 +122,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uartInit_Config();
   resultInitDataflash = init_dataflash();
+
+  restoreLatestLogId();
+  restoreLatestTimeFromLog();
 
   /* USER CODE END 2 */
 
