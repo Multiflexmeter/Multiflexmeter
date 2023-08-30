@@ -180,7 +180,7 @@ uint32_t bq35100_getUsedCapacity(void)
 uint32_t bq35100_getRemainingCapacity(void)
 {
   uint32_t usedCapacityUAh = bq35100_getUsedCapacity();
-  uint32_t designCapacityUAh = (uint32_t) bq35100_getDesignCapacity * 1000;
+  uint32_t designCapacityUAh = (uint32_t) bq35100_getDesignCapacity() * 1000;
 
   if(usedCapacityUAh > designCapacityUAh)
     usedCapacityUAh = designCapacityUAh;
@@ -233,9 +233,14 @@ bool bq35100_enableGauge(void)
 
   HAL_I2C_Master_Transmit(bq35100Handle, BQ35100_ADDRESS, data, 3, 100);
 
-  HAL_Delay(10);
+  for(uint8_t i=0; i<10; i++)
+  {
+    HAL_Delay(10);
+    if(bq35100_isGaugeEnabled())
+      return true;
+  }
 
-  return bq35100_isGaugeEnabled();
+  return false;
 }
 
 /**
