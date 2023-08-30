@@ -36,7 +36,7 @@
 #include "flash_if.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "../../../App/logging/logging.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -574,6 +574,7 @@ static void SendTxData(void)
   uint8_t batteryLevel = GetBatteryLevel();
   sensor_t sensor_data;
   UTIL_TIMER_Time_t nextTxIn = 0;
+  uint8_t data[3];
 
   if (LmHandlerIsBusy() == false)
   {
@@ -595,6 +596,13 @@ static void SendTxData(void)
     APP_LOG(TS_ON, VLEVEL_M, "temp: %d\r\n", (int16_t)(sensor_data.temperature));
 
     AppData.Port = LORAWAN_USER_APP_PORT;
+
+    //fill in log data
+    data[0] = batteryLevel;
+    data[1] = (int16_t)(sensor_data.temperature) & 0xFF;
+    data[2] = ((int16_t)(sensor_data.temperature)>>8 ) & 0xFF;
+
+    writeNewLog(0, data, sizeof(data)); //write log data to dataflash.
 
 #ifdef CAYENNE_LPP
     CayenneLppReset();
