@@ -85,6 +85,7 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 static int8_t resultInitDataflash;
+bool chipErase = false;
 /* USER CODE END 0 */
 
 /**
@@ -122,6 +123,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uartInit_Config();
   resultInitDataflash = init_dataflash();
+
+  if( chipErase )
+  {
+    chipEraseDataflash();
+  }
 
   restoreLatestLogId();
   restoreLatestTimeFromLog();
