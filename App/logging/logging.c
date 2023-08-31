@@ -11,6 +11,8 @@
   ******************************************************************************
   */
 
+#include <stdio.h>
+
 #include "main.h"
 #include "sys_app.h"
 #include "timer_if.h"
@@ -331,8 +333,6 @@ int8_t readLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength )
   assert_param( buffer == 0);
   assert_param( bufferLength == 0);
 
-  uint32_t pageAddress = logId;
-
   if (buffer == 0)
   {
     return -1;
@@ -343,7 +343,50 @@ int8_t readLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength )
     return -2;
   }
 
-  return readPageFromDataflash(pageAddress, buffer, bufferLength);
+  return readLogFromDataflash(logId, buffer, bufferLength);
+}
+
+/**
+ * @fn int32_t printLog(uint32_t, uint8_t*, uint32_t)
+ * @brief function to print a log to a given buffer
+ *
+ * @param logId
+ * @param buffer
+ * @param bufferLength
+ * @return
+ */
+int32_t printLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength )
+{
+  readLog(logId, (uint8_t*)&logdata, sizeof(logdata));
+
+  int length = 0;
+
+  length += snprintf((char*) buffer + length, bufferLength - length, "%lu;%lu;%u;", logdata.measurementId, logdata.timestamp, logdata.sensorModuleType);
+
+  if( length >= bufferLength )
+    return -1;
+
+  for (int i = 0; i < logdata.sensorModuleDatasize; i++)
+  {
+    length += snprintf((char*) buffer + length, bufferLength - length, "0x%02x", logdata.sensorModuleData[i]);
+
+    if( length >= bufferLength )
+        return -1;
+
+    if (i < (logdata.sensorModuleDatasize - 1))
+    {
+      length += snprintf((char*) buffer + length, bufferLength, ",");
+    }
+
+    if( length >= bufferLength )
+        return -1;
+  }
+  length += snprintf((char*) buffer + length, bufferLength - length, "\r\n");
+
+  if( length >= bufferLength )
+      return -1;
+
+  return length;
 }
 
 /**
