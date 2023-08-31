@@ -358,6 +358,25 @@ uint32_t getLatestLogId(void)
 }
 
 /**
+ * @fn uint32_t getOldestLogId(void)
+ * @brief function to return the oldest Log ID
+ *
+ * @return Oldest log ID.
+ */
+uint32_t getOldestLogId(void)
+{
+  if( newLogId < NUMBER_PAGES_FOR_LOGGING )
+  {
+    return 0;
+  }
+  else
+  {
+    //todo return real logging items, skip erased block,
+    return NUMBER_PAGES_FOR_LOGGING;
+  }
+}
+
+/**
  * @fn const uint16_t getNumberOfMeasures(void)
  * @brief override function to return the number of log items
  * todo skip erased remaining block which is empty.
