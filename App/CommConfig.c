@@ -466,7 +466,7 @@ void uartSendReady_Config(UART_HandleTypeDef *huart)
  */
 void uartListen(void)
 {
-  uartSendReady_Config(uartSendReady_Config);
+  uartSendReady_Config( &config_uart );
 }
 
 /**
