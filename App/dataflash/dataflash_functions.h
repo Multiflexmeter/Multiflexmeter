@@ -46,7 +46,7 @@ typedef union{
 int8_t init_dataflash(void);
 int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length);
 int8_t readLogFromDataflash(uint32_t logId, uint8_t * data, uint32_t length);
-int8_t chipEraseDataflash(void);
+const int8_t chipEraseDataflash(void);
 int8_t searchLatestLogInDataflash( uint32_t * logId );
 int8_t testDataflash(bool restoreOrinalData );
 

@@ -223,7 +223,7 @@ int8_t blockEraseDataflash( uint32_t address )
  *
  * @return 0 = successful
  */
-int8_t chipEraseDataflash(void)
+const int8_t chipEraseDataflash(void)
 {
   //enable write
   standardflashWriteEnable();

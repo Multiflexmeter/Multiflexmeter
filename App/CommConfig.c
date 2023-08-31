@@ -253,6 +253,15 @@ __weak const uint8_t getAlwaysOn(void)
   return 0;
 }
 
+/**
+ * @brief weak function eraseCompleteLog(), can be override in application code.
+ *
+ * @return erase status
+ */
+__weak const int8_t eraseCompleteLog(void)
+{
+  return 0;
+}
 
 
 void sendError(int arguments, const char * format, ... );
@@ -1082,13 +1091,10 @@ void rcvAlwaysOnState(int arguments, const char * format, ...)
  */
 void rcvErase(int arguments, const char * format, ...)
 {
-
-
-  //todo erase memory
-
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s\r\n", cmdErase );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
+  eraseCompleteLog();  //erase complete log memory
   //todo send progress every 1 sec, not in IRQ
   //todo send "Wissen:OK", not in IRQ
 

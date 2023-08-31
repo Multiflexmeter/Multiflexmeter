@@ -207,7 +207,7 @@ uint32_t getLatestLogId(void)
  */
 const uint16_t getNumberOfMeasures(void)
 {
-  uint32_t latestId = newLogId - 1;
+  uint32_t latestId = newLogId; //newLogId is the next ID, start with 0, so when newLogId = 1, there is 1 log item.
 
   if( latestId > NUMBER_PAGES_FOR_LOGGING )
   {
@@ -217,4 +217,19 @@ const uint16_t getNumberOfMeasures(void)
   {
     return latestId;
   }
+}
+
+/**
+ * @fn const uint8_t eraseCompleteLog(void)
+ * @brief override function to erase complete log
+ * todo only erase the log memory blocks
+ *
+ * @return
+ */
+const uint8_t eraseCompleteLog(void)
+{
+  chipEraseDataflash(); //erase chip
+  newLogId = 0; //reset LogId.
+
+  return 0;
 }
