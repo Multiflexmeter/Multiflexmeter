@@ -37,6 +37,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "../../../App/logging/logging.h"
+#include "../../../App/CommConfig.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -577,6 +578,8 @@ static void SendTxData(void)
   sensor_t sensor_data;
   UTIL_TIMER_Time_t nextTxIn = 0;
   uint8_t data[3];
+
+  uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
 
   if (LmHandlerIsBusy() == false)
   {
