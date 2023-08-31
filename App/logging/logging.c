@@ -318,6 +318,35 @@ int8_t writeNewLog( uint8_t sensorModuleType, uint8_t * sensorData, uint8_t data
 }
 
 /**
+ * @fn int8_t readLog(uint32_t, uint8_t*, uint32_t)
+ * @brief function to read log from dataflash
+ *
+ * @param logId
+ * @param buffer
+ * @param bufferLength
+ * @return
+ */
+int8_t readLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength )
+{
+  assert_param( buffer == 0);
+  assert_param( bufferLength == 0);
+
+  uint32_t pageAddress = logId;
+
+  if (buffer == 0)
+  {
+    return -1;
+  }
+
+  if (bufferLength == 0 )
+  {
+    return -2;
+  }
+
+  return readPageFromDataflash(pageAddress, buffer, bufferLength);
+}
+
+/**
  * @fn uint32_t getLatestLogId(void)
  * @brief function to return the latest Log ID
  *
