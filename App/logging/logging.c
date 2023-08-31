@@ -197,3 +197,24 @@ uint32_t getLatestLogId(void)
 {
   return newLogId;
 }
+
+/**
+ * @fn const uint16_t getNumberOfMeasures(void)
+ * @brief override function to return the number of log items
+ * todo skip erased remaining block which is empty.
+ *
+ * @return  number of log items
+ */
+const uint16_t getNumberOfMeasures(void)
+{
+  uint32_t latestId = newLogId - 1;
+
+  if( latestId > NUMBER_PAGES_FOR_LOGGING )
+  {
+    return NUMBER_PAGES_FOR_LOGGING;
+  }
+  else
+  {
+    return latestId;
+  }
+}
