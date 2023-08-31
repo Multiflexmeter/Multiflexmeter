@@ -16,11 +16,141 @@
 #include "timer_if.h"
 #include "../common/crc16.h"
 #include "../dataflash/dataflash_functions.h"
+#include "logging.h"
 
 static STRUCT_logdata logdata;
 static bool logReady = 0;
 
 static uint32_t newLogId = 0;
+
+/**
+ * @fn int8_t searchLatestLogInDataflash(uint32_t*)
+ * @brief function to search the latest log record.
+ * a derivative of binary search algorithm is used.
+ * Based on the first item in dataflash and latest item is filled the algorithm start searching for the highest.
+ * When the item is found a check is done to make sure the next item is smaller or empty.
+ *
+ * @param logId destionation of found log record
+ * @return 0 = succesfull found, 1 = empty dataflash
+ */
+int8_t searchLatestLogInDataflash( uint32_t * logId )
+{
+  uint32_t boundaryStart = 0;
+  uint32_t boundaryEnd = NUMBER_PAGES_FOR_LOGGING;
+
+  uint32_t highestMeasurementId;
+  uint32_t firstRecordMeasurementId;
+  uint32_t lastRecordMeasurementId;
+  uint32_t newReadingId;
+
+  UNION_logdata * pLog = (UNION_logdata *)&logdata;
+
+  //read first record
+  readLogFromDataflash(0, (uint8_t *) &logdata, sizeof(logdata));
+  firstRecordMeasurementId = pLog->log.measurementId;
+
+  //read latest record
+  readLogFromDataflash(NUMBER_PAGES_FOR_LOGGING - 1, (uint8_t *) &logdata, sizeof(logdata));
+  lastRecordMeasurementId = pLog->log.measurementId;
+
+  //determine ringbuffer is in overflow
+  if( firstRecordMeasurementId == 0xFFFFFFFFUL && lastRecordMeasurementId == 0xFFFFFFFFUL )
+  {
+    //empty dataflash
+    *logId = 0;
+
+    APP_LOG(TS_OFF, VLEVEL_H, "Empty dataflash.\r\n");
+
+    return 1;
+  }
+
+  else if ( lastRecordMeasurementId == 0xFFFFFFFFUL )
+  {
+    //no overflow first line filled, last not yet
+    highestMeasurementId = firstRecordMeasurementId;
+
+    APP_LOG(TS_OFF, VLEVEL_H, "No overflow in dataflash.\r\n");
+  }
+
+  else if ( firstRecordMeasurementId == 0xFFFFFFFFUL )
+  {
+    //overflow, first line empty
+    *logId = lastRecordMeasurementId;
+
+    APP_LOG(TS_OFF, VLEVEL_H, "First line empty in dataflash, last line %u with ID %u.\r\n", NUMBER_PAGES_FOR_LOGGING - 1, lastRecordMeasurementId);
+
+    return 0;
+  }
+
+  else
+  {
+    //overflow, first and last line filled.
+    highestMeasurementId = firstRecordMeasurementId;
+
+    APP_LOG(TS_OFF, VLEVEL_H, "Overflow in dataflash.\r\n");
+  }
+
+  while( boundaryStart <= boundaryEnd )
+  {
+    newReadingId = (boundaryStart + boundaryEnd) >> 1;
+
+    //read page
+    readLogFromDataflash(newReadingId, (uint8_t *) &logdata, sizeof(logdata));
+
+    if( pLog->log.measurementId != 0xFFFFFFFF )
+    {
+      //page contain log, new value is further
+      if (pLog->log.measurementId < highestMeasurementId)
+      {
+        //value on newReadingId is smaller, then decrease the end boundary
+        boundaryEnd = newReadingId - 1;
+      }
+
+      else if (pLog->log.measurementId > highestMeasurementId)
+      {
+        //value larger then previous, then increase the start boundary.
+        highestMeasurementId = pLog->log.measurementId;
+        boundaryStart = newReadingId + 1;
+      }
+
+      else
+      { //no change, item found
+        int8_t timeout = NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH; //max of one block can be erased in between.
+
+        //verify next item is not higher
+        do
+        {
+          readLogFromDataflash(newReadingId + 1, (uint8_t *) &logdata, sizeof(logdata));
+          if (pLog->log.measurementId != 0xFFFFFFFF && pLog->log.measurementId > highestMeasurementId)
+          {
+            //value larger then previous, then take over this value
+            highestMeasurementId = pLog->log.measurementId;
+            newReadingId++;
+          }
+          timeout--;
+        } while( pLog->log.measurementId != 0xFFFFFFFF && pLog->log.measurementId >= highestMeasurementId && timeout >=0);
+
+
+        *logId = highestMeasurementId;
+        return 0;
+      }
+    }
+
+    else
+    {
+      //page contain no data, new value is in upper half, decrease the end boundary
+      boundaryEnd = newReadingId - 1;
+    }
+
+
+    APP_LOG(TS_OFF, VLEVEL_H, "Search between address %u and address %u, highest found ID %u, last read ID %u.\r\n", boundaryStart, boundaryEnd, highestMeasurementId, pLog->log.measurementId );
+  }
+
+  *logId = highestMeasurementId;
+
+  return 0;
+
+}
 
 /**
  * @fn int8_t restoreLatestLogId(void)
@@ -36,7 +166,7 @@ int8_t restoreLatestLogId(void)
 
   //todo read from backup register
 
-  result = searchLatestLogInDataflash( & readLatestId );
+  result = searchLatestLogInDataflash( &readLatestId );
 
   if( result < 0 ) //check on error
   {
