@@ -460,6 +460,16 @@ void uartSendReady_Config(UART_HandleTypeDef *huart)
 }
 
 /**
+ * @fn void uartListen(void)
+ * @brief function to activate uart listening until timeout
+ *
+ */
+void uartListen(void)
+{
+  uartSendReady_Config(uartSendReady_Config);
+}
+
+/**
  * @brief initialization function for the uart config command handling
  *  - configure a task for the scheduler with low priority and trigger it.
  *  - register TX complete callback
