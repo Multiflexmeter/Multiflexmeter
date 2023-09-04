@@ -139,28 +139,34 @@ void charachterMatch_IRQHandler(UART_HandleTypeDef *huart)
 		__HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_CMF);
 
 		/*
-		 * get number of characters
+		 * check pointer is not zero.
 		 */
-		uint32_t nrCharsAvailable = huart->RxXferSize - __HAL_DMA_GET_COUNTER(huart->hdmarx);
-
-		/*
-		 * for 9 bits or more check FLAG CHARACTER here manually
-		 */
-		if ( huart->Init.WordLength == UART_WORDLENGTH_9B)
+		if( huart->hdmarx != 0x00 )
 		{
-			uint16_t * pRxBuffPtr_16bit = (uint16_t*) huart->pRxBuffPtr; //cast to 16 bit buffer
-			if( pRxBuffPtr_16bit[nrCharsAvailable-1] == getCharachterMatch(huart))
-			{
-				user_characterMatchDetect_Callback(huart, nrCharsAvailable);
-			}
-		}
+      /*
+       * get number of characters
+       */
+      uint32_t nrCharsAvailable = huart->RxXferSize - __HAL_DMA_GET_COUNTER(huart->hdmarx);
 
-		/*
-		 * for 8 bits and less, just trust the interrupt flag
-		 */
-		else
-		{
-			user_characterMatchDetect_Callback(huart, nrCharsAvailable);
+      /*
+       * for 9 bits or more check FLAG CHARACTER here manually
+       */
+      if ( huart->Init.WordLength == UART_WORDLENGTH_9B)
+      {
+        uint16_t * pRxBuffPtr_16bit = (uint16_t*) huart->pRxBuffPtr; //cast to 16 bit buffer
+        if( pRxBuffPtr_16bit[nrCharsAvailable-1] == getCharachterMatch(huart))
+        {
+          user_characterMatchDetect_Callback(huart, nrCharsAvailable);
+        }
+      }
+
+      /*
+       * for 8 bits and less, just trust the interrupt flag
+       */
+      else
+      {
+        user_characterMatchDetect_Callback(huart, nrCharsAvailable);
+      }
 		}
 	}
 }
