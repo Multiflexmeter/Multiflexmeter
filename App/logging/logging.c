@@ -17,6 +17,7 @@
 #include "sys_app.h"
 #include "timer_if.h"
 #include "../common/crc16.h"
+#include "../common/common.h"
 #include "../dataflash/dataflash_functions.h"
 #include "logging.h"
 
@@ -156,18 +157,52 @@ int8_t searchLatestLogInDataflash( uint32_t * logId )
 
 /**
  * @fn int8_t restoreLatestLogId(void)
- * @brief unction to read the latest log ID from backup memory or dataflash
+ * @brief function to read the latest log ID from backup memory or dataflash
  * result is stored locally in "logging.c"
  *
- * @return 0 = successful, -1 failed
+ * @return 1= successful from backup register, 0 = successful from dataflash search, -1 failed
  */
 int8_t restoreLatestLogId(void)
 {
   uint32_t readLatestId = 0;
+  uint32_t readLatestIdFromBackupRegister = 0;
   int8_t result;
 
-  //todo read from backup register
+  UNION_logdata * pLog = (UNION_logdata *)&logdata;
 
+  APP_LOG(TS_OFF, VLEVEL_H, "Reset cause: %x\r\n", getResetSource());
+
+  //check no power on reset
+  if( powerOnReset() == false )
+  {
+    readLatestIdFromBackupRegister = readBackupRegister( BACKUP_REGISTER_LATEST_LOG ); //get value from backup register
+
+    //verify dataflash read
+    readLogFromDataflash(readLatestIdFromBackupRegister - 1, (uint8_t *) &logdata, sizeof(logdata));
+    if( pLog->log.measurementId == readLatestIdFromBackupRegister - 1)
+    {
+      newLogId = readLatestIdFromBackupRegister;
+      logReady = true;
+
+      APP_LOG(TS_OFF, VLEVEL_H, "New logging ID from backup register: %u\r\n", newLogId);
+
+      return 1;
+    }
+
+    else
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, "Mismatch in backup register\r\n" );
+    }
+  }
+
+  else
+  {
+    //nothing
+    APP_LOG(TS_OFF, VLEVEL_H, "PowerOnReset\r\n" );
+  }
+
+
+  //Power on reset or backup register corrupted
   result = searchLatestLogInDataflash( &readLatestId );
 
   if( result < 0 ) //check on error
@@ -189,7 +224,9 @@ int8_t restoreLatestLogId(void)
     logReady = true;
   }
 
-  APP_LOG(TS_OFF, VLEVEL_H, "New logging ID: %u\r\n", newLogId);
+  writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newLogId); //save new value in backup register
+
+  APP_LOG(TS_OFF, VLEVEL_H, "New logging ID by searching: %u\r\n", newLogId);
 
   return 0;
 }
@@ -307,6 +344,7 @@ int8_t writeNewLog( uint8_t sensorModuleType, uint8_t * sensorData, uint8_t data
   {
     APP_LOG(TS_OFF, VLEVEL_H, "Log ID %u written to dataflash\r\n", newLogId );
     newLogId++;
+    writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newLogId);
   }
 
   else //failed
