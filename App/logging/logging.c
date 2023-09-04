@@ -170,6 +170,9 @@ int8_t restoreLatestLogId(void)
 
   UNION_logdata * pLog = (UNION_logdata *)&logdata;
 
+  uint32_t test = 100000000;
+  while(test--);
+
   APP_LOG(TS_OFF, VLEVEL_H, "Reset cause: %x\r\n", getResetSource());
 
   //check no power on reset
