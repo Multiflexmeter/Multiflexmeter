@@ -293,7 +293,7 @@ void sendJoinID(int arguments, const char * format, ...);
 void sendDeviceID(int arguments, const char * format, ...);
 void sendAppKey(int arguments, const char * format, ...);
 void sendSensor(int arguments, const char * format, ...);
-void sendReadInterval(int arguments, const char * format, ...);
+void sendLoraInterval(int arguments, const char * format, ...);
 void sendMeasureTime(int arguments, const char * format, ...);
 void sendAlwaysOnState(int arguments, const char * format, ...);
 void sendDataDump(int arguments, const char * format, ...);
@@ -305,7 +305,7 @@ void rcvJoinId(int arguments, const char * format, ...);
 void rcvDeviceID(int arguments, const char * format, ...);
 void rcvAppKey(int arguments, const char * format, ...);
 void rcvSensor(int arguments, const char * format, ...);
-void rcvReadInterval(int arguments, const char * format, ...);
+void rcvLoraInterval(int arguments, const char * format, ...);
 void rcvMeasureTime(int arguments, const char * format, ...);
 void rcvAlwaysOnState(int arguments, const char * format, ...);
 void rcvErase(int arguments, const char * format, ...);
@@ -355,7 +355,7 @@ struct_commands stCommandsGet[] =
     {
         cmdLoraInterval,
         sizeof(cmdLoraInterval) - 1,
-        sendReadInterval,
+        sendLoraInterval,
         0,
     },
     {
@@ -423,7 +423,7 @@ struct_commands stCommandsSet[] =
     {
         cmdLoraInterval,
         sizeof(cmdLoraInterval) - 1,
-        rcvReadInterval,
+        rcvLoraInterval,
         1,
     },
     {
@@ -961,7 +961,7 @@ void rcvSensor(int arguments, const char * format, ...)
  *
  * @param arguments not used
  */
-void sendReadInterval(int arguments, const char * format, ...)
+void sendLoraInterval(int arguments, const char * format, ...)
 {
 
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLoraInterval, getLeesInterval() );
@@ -975,7 +975,7 @@ void sendReadInterval(int arguments, const char * format, ...)
  * @param argument: 1: <Interval>
  *
  */
-void rcvReadInterval(int arguments, const char * format, ...)
+void rcvLoraInterval(int arguments, const char * format, ...)
 {
   char *ptr; //dummy pointer
   int interval = 0;
