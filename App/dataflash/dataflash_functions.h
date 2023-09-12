@@ -33,6 +33,9 @@ int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length);
 bool checkLogTurnoverAndErase(uint32_t logId);
 int8_t readPageFromDataflash(uint32_t pageAddress, uint8_t * data, uint32_t length);
 int8_t readLogFromDataflash(uint32_t logId, uint8_t * data, uint32_t length);
+int8_t blockErase4kDataflash( uint32_t address );
+int8_t blockErase32kDataflash( uint32_t address );
+int8_t blockErase64kDataflash( uint32_t address );
 const int8_t chipEraseDataflash(void);
 int8_t testDataflash(bool restoreOrinalData );
 
