@@ -474,10 +474,18 @@ uint32_t getOldestLogId(void)
 const uint16_t getNumberOfMeasures(void)
 {
   uint32_t latestId = newLogId; //newLogId is the next ID, start with 0, so when newLogId = 1, there is 1 log item.
-
+  uint32_t oldestId = readBackupRegister(BACKUP_REGISTER_OLDEST_LOG);
   if( latestId > NUMBER_PAGES_FOR_LOGGING )
   {
-    return NUMBER_PAGES_FOR_LOGGING;
+    if( latestId >= oldestId)
+    {
+      return latestId - oldestId;
+    }
+    else
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, "latestId is smaller then oldest, not possible!\r\n" );
+      return NUMBER_PAGES_FOR_LOGGING;
+    }
   }
   else
   {
