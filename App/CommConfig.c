@@ -186,22 +186,45 @@ __weak const void setAppKey(const uint8_t *key)
 
 
 /**
- * @brief weak function getLeesInterval(), can be override in application code.
+ * @brief weak function getLoraInterval(), can be override in application code.
  *
  * @return Interval time in minutes
  */
-__weak const uint16_t getLeesInterval(void)
+__weak const uint16_t getLoraInterval(void)
 {
 
   return 5;
 }
 
 /**
- * @brief weak function getMeetTijd(), can be override in application code.
+ * @brief weak function setLoraInterval(), can be override in application code.
  *
+ * @return Interval time in minutes
+ */
+__weak const int32_t setLoraInterval(uint16_t interval)
+{
+  return 0;
+}
+
+/**
+ * @brief weak function getMeasureTime(), can be override in application code.
+ *
+ * @param sensorId
  * @return Measure time in milliseconds
  */
-__weak const uint16_t getMeetTijd(void)
+__weak const uint16_t getMeasureTime(int32_t sensorId)
+{
+
+  return 100;
+}
+
+/**
+ * @brief weak function setMeasureTime(), can be override in application code.
+ *
+ * @param sensorId
+ * @return Measure time in milliseconds
+ */
+__weak const int32_t setMeasureTime(int32_t sensorId, uint16_t measureTime)
 {
 
   return 100;
@@ -248,10 +271,21 @@ __weak const uint16_t getVbusSupply(void)
  *
  * @return always on status
  */
-__weak const uint8_t getAlwaysOn(void)
+__weak const bool getAlwaysOn(void)
 {
 
   return 0;
+}
+
+/**
+ * @brief weak function setAlwaysOn(), can be override in application code.
+ *
+ * @return always on status
+ */
+__weak const void setAlwaysOn(bool state)
+{
+
+  return;
 }
 
 /**
@@ -270,7 +304,7 @@ __weak const int8_t eraseCompleteLog(void)
  *
  * @return
  */
-__weak uint32_t getLatestLogId(void)
+__weak const uint32_t getLatestLogId(void)
 {
   return 0;
 }
@@ -281,10 +315,50 @@ __weak uint32_t getLatestLogId(void)
  *
  * @return
  */
-__weak uint32_t getOldestLogId(void)
+__weak const uint32_t getOldestLogId(void)
 {
   return 0;
 }
+
+/**
+ * @fn int32_t getSensorStatus(int32_t)
+ * @brief weak function getSensorStatus(), can be override in application code
+ *
+ * @param sensorId
+ * @return
+ */
+__weak const int32_t getSensorStatus(int32_t sensorId)
+{
+  return 0;
+}
+
+/**
+ * @fn int32_t setSensorStatus(int32_t, bool)
+ * @brief weak function setSensorStatus(), can be override in application code
+ *
+ * @param sensorId
+ * @param status
+ * @return
+ */
+__weak const int32_t setSensorStatus(int32_t sensorId, bool status)
+{
+  return 0;
+}
+
+/**
+ * @fn int32_t getSensorType(int32_t)
+ * @brief weak function getSensorType(), can be override in application code
+ *
+ * @param sensorId
+ * @return
+ */
+__weak const int32_t getSensorType(int32_t sensorId)
+{
+  return 0;
+}
+
+
+
 
 void sendError(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -901,18 +975,20 @@ void rcvAppKey(int arguments, const char * format, ...)
 void sendSensor(int arguments, const char * format, ...)
 {
   int sensorId = 0;
-  int sensorStatus = 0;
-  int sensorType = 0;
+  int32_t sensorStatus = 0;
+  int32_t sensorType = 0;
   if( format[0] == '=' && format[2] == '\r' && format[3] == '\n')
   {
     sensorId = atoi(&format[1]);
   }
 
+  sensorStatus = getSensorStatus(sensorId); //get sensor status, value < 0 is error
+  sensorType = getSensorType(sensorId); //get sensor type, value < 0 is error
 
   //check sensor range
-  if( sensorId >= 1 && sensorId <= 6 && sensorStatus >= 0 && sensorStatus <= 1)
+  if( sensorStatus >= 0 && sensorType >=0 ) //only check value >= zero, check on sensorId not needed indirect with getSensStatus() and getSensorTyp()
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdSensor, sensorId, sensorStatus, sensorType); //todo get sensor status, get sensor type
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdSensor, sensorId, (int)sensorStatus, (int)sensorType);
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -930,22 +1006,24 @@ void sendSensor(int arguments, const char * format, ...)
 void rcvSensor(int arguments, const char * format, ...)
 {
   char *ptr; //dummy pointer
-  int sensorId = 0;
-  int sensorStatus = 0;
-  int sensorType = 0;
+  int sensorId = -1;
+  int32_t sensorStatus = -1;
+  int32_t sensorType = 0;
+  int32_t resultProcessed = -1;
 
   if( format[0] == '=' && format[2] == ',' && format[4] == '\r' && format[5] == '\n')
   {
     sensorId = strtol(&format[1], &ptr, 10);
     sensorStatus = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
-
+    resultProcessed = setSensorStatus(sensorId, sensorStatus);//set new value and verify if accepted.
   }
 
-  //todo set sensorStatus
+  sensorStatus = getSensorStatus(sensorId); //get sensor status, value < 0 is error
+  sensorType = getSensorType(sensorId); //get sensor type, value < 0 is error
 
-  if( sensorId >= 1 && sensorId <= 6 && sensorStatus >= 0 && sensorStatus <= 1)
+  if( sensorStatus >= 0 && sensorType >= 0 && resultProcessed >= 0 ) //only check value >= zero and resultProcessed >= zero, check on sensorId not needed indirect with getSensStatus() and getSensorTyp()
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdSensor, sensorId, sensorStatus, sensorType); //todo get sensor type
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdSensor, sensorId, (int)sensorStatus, (int)sensorType);
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -964,7 +1042,7 @@ void rcvSensor(int arguments, const char * format, ...)
 void sendLoraInterval(int arguments, const char * format, ...)
 {
 
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLoraInterval, getLeesInterval() );
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLoraInterval, getLoraInterval() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
@@ -979,20 +1057,19 @@ void rcvLoraInterval(int arguments, const char * format, ...)
 {
   char *ptr; //dummy pointer
   int interval = 0;
+  int32_t resultProcessed = -1;
 
 
-  if( format[0] == '=' )
+  if( format[0] == '=' ) //check index 0 is "="
   {
-    interval = strtol(&format[1], &ptr, 10);
+    interval = strtol(&format[1], &ptr, 10); //convert string to number
   }
 
-  //todo set sensorStatus
+  resultProcessed = setLoraInterval((uint16_t)interval);//set lora interval
 
-  if( interval >= 5 && interval <= 1440 )
+  if( resultProcessed >= 0 )
   {
-    //todo set interval
-
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLoraInterval, interval );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLoraInterval, getLoraInterval() );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -1009,9 +1086,26 @@ void rcvLoraInterval(int arguments, const char * format, ...)
  */
 void sendMeasureTime(int arguments, const char * format, ...)
 {
+  char *ptr; //dummy pointer
+  int sensorId = -1;
+  int32_t measureTime = -1;
 
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getMeetTijd() );
-  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  if( format[0] == '=' && format[2] == '\r' && format[3] == '\n') //check index 0 is "=" and index 2 is "\r" and index 3 is "\n"
+  {
+    sensorId = strtol(&format[1], &ptr, 10); //convert string to number
+  }
+
+  measureTime = getMeasureTime(sensorId);
+
+  if( measureTime >= 0 )
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getMeasureTime(sensorId) );
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
 
 }
 
@@ -1024,21 +1118,23 @@ void sendMeasureTime(int arguments, const char * format, ...)
 void rcvMeasureTime(int arguments, const char * format, ...)
 {
   char *ptr; //dummy pointer
-  int interval = 0;
 
+  int sensorId = -1;
+  int32_t measureTime = -1;
+  int32_t resultProcessed = -1;
 
-  if( format[0] == '=' )
+  if( format[0] == '=' && format[2] == ',' ) //check index 0 is "=" and index 2 is ","
   {
-    interval = strtol(&format[1], &ptr, 10);
+    sensorId = strtol(&format[1], &ptr, 10); //convert string to number
+    measureTime = strtol(ptr+1, &ptr, 10); //convert string to number, skip <comma>, increment ptr.
+
+    resultProcessed = setMeasureTime(sensorId, measureTime); //save value
+
   }
 
-  //todo set sensorStatus
-
-  if( interval >= 0 && interval <= 60000 )
+  if( resultProcessed >= 0 ) //verify saving result is zero or larger
   {
-    //todo set meetTijd
-
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, interval );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getMeasureTime(sensorId) );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -1140,7 +1236,7 @@ void sendAlwaysOnState(int arguments, const char * format, ...)
 void rcvAlwaysOnState(int arguments, const char * format, ...)
 {
   char *ptr; //dummy pointer
-  int status = 0;
+  int status = -1;
 
 
   if( format[0] == '=' )
@@ -1148,13 +1244,11 @@ void rcvAlwaysOnState(int arguments, const char * format, ...)
     status = strtol(&format[1], &ptr, 10);
   }
 
-  //todo set sensorStatus
-
   if( status >= 0 && status <= 1 )
   {
-    //todo set AlwaysOn status
+    setAlwaysOn(status); //set alwaysOnState
 
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdAlwaysOn, status );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdAlwaysOn, getAlwaysOn() );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
