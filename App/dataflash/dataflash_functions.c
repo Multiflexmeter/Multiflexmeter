@@ -123,6 +123,21 @@ int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length)
   uint64_t pageAddress = (logId * PAGE_SIZE_DATAFLASH);
   pageAddress %= LOG_MEMEORY_SIZE;
 
+  return writePageInDataflash((uint32_t)pageAddress, data, length);
+}
+
+/**
+ * @fn bool checkLogTurnoverAndErase(uint32_t)
+ * @brief function to check log is turnover and next block needs to be erased
+ *
+ * @param logId
+ * @return true if block is erased.
+ */
+bool checkLogTurnoverAndErase(uint32_t logId)
+{
+  uint64_t pageAddress = (logId * PAGE_SIZE_DATAFLASH);
+  pageAddress %= LOG_MEMEORY_SIZE;
+
   //check logging in turnover
   if( logId >= NUMBER_PAGES_FOR_LOGGING )
   {
@@ -130,11 +145,10 @@ int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length)
     if( (pageAddress % 0x1000) == 0)
     {
       //first erase next block
-      blockEraseDataflash(pageAddress);
+      return (blockEraseDataflash(pageAddress) == 0);
     }
   }
-
-  return writePageInDataflash((uint32_t)pageAddress, data, length);
+  return false;
 }
 
 /**

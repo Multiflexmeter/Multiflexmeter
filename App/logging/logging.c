@@ -298,6 +298,7 @@ int8_t restoreLatestTimeFromLog(void)
 int8_t writeNewLog( uint8_t sensorModuleType, uint8_t * sensorData, uint8_t dataLength )
 {
   int8_t result;
+  bool turnoverAndErased = false;
 
   assert_param( logReady == false ); //check logging is possible
   assert_param( sensorData == 0 ); //check pointer is not zero
@@ -336,6 +337,12 @@ int8_t writeNewLog( uint8_t sensorModuleType, uint8_t * sensorData, uint8_t data
   logdata.crc = calculateCRC_CCITT(logdata.sensorModuleData, logdata.sensorModuleDatasize); //calculate CRC on sensordata
 
   memset( logdata.spare, 0xFF, sizeof(logdata.spare)); //set 0xFF (blank) in spare array
+
+  turnoverAndErased = checkLogTurnoverAndErase(logdata.measurementId); //check dataflash ringbuffer is turnover and a block of 4k is erased.
+  if( turnoverAndErased == true )
+  {
+    writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, readBackupRegister(BACKUP_REGISTER_OLDEST_LOG) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer
+  }
 
   result = writeLogInDataflash(logdata.measurementId, (uint8_t*)&logdata, sizeof(logdata)); //write new log to dataflash
 
