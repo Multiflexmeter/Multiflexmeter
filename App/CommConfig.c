@@ -50,6 +50,7 @@ static DMA_BUFFER uint8_t bufferTxConfig[SIZE_TX_BUFFER_CONFIG];
 static DMA_BUFFER uint8_t bufferRxConfig[SIZE_RX_BUFFER_CONFIG];
 
 static volatile uint32_t uartConfigActiveTime;
+static uint8_t dataDump;
 
 static const char cmdError[]="ERROR";
 static const char cmdOkay[]="OK";
@@ -253,7 +254,37 @@ __weak const uint8_t getAlwaysOn(void)
   return 0;
 }
 
+/**
+ * @brief weak function eraseCompleteLog(), can be override in application code.
+ *
+ * @return erase status
+ */
+__weak const int8_t eraseCompleteLog(void)
+{
+  return 0;
+}
 
+/**
+ * @fn uint32_t getLatestLogId(void)
+ * @brief weak function getLatestLogId(), can be override in application code
+ *
+ * @return
+ */
+__weak uint32_t getLatestLogId(void)
+{
+  return 0;
+}
+
+/**
+ * @fn uint32_t getOldestLogId(void)
+ * @brief weak function getOldestLogId(), can be override in application code
+ *
+ * @return
+ */
+__weak uint32_t getOldestLogId(void)
+{
+  return 0;
+}
 
 void sendError(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -266,6 +297,7 @@ void sendReadInterval(int arguments, const char * format, ...);
 void sendMeasureTime(int arguments, const char * format, ...);
 void sendAlwaysOnState(int arguments, const char * format, ...);
 void sendDataDump(int arguments, const char * format, ...);
+void sendDataLine( uint32_t );
 void sendBatterijStatus(int arguments, const char * format, ...);
 void sendVbusStatus(int arguments, const char * format, ...);
 
@@ -460,6 +492,16 @@ void uartSendReady_Config(UART_HandleTypeDef *huart)
 }
 
 /**
+ * @fn void uartListen(void)
+ * @brief function to activate uart listening until timeout
+ *
+ */
+void uartListen(void)
+{
+  uartSendReady_Config( &config_uart );
+}
+
+/**
  * @brief initialization function for the uart config command handling
  *  - configure a task for the scheduler with low priority and trigger it.
  *  - register TX complete callback
@@ -484,6 +526,7 @@ void uartInit_Config( void )
  */
 HAL_StatusTypeDef uartSend_Config( const uint8_t *pData, const uint16_t Size)
 {
+  uartConfigActiveTime = UART_RX_TASK_ACTIVE_TIME;
 	return uartSend(&config_uart, pData, Size);
 }
 
@@ -516,6 +559,10 @@ void uartStartReceive_Config( uint8_t *pData, const uint16_t Size, const uint32_
 void testConfigUartSend(void)
 {
   static int testStep = 0;
+  static uint16_t numberOfMeasures;
+  static uint32_t latestLog;
+  static uint32_t currentLog;
+
 
   switch (testStep)
   {
@@ -539,6 +586,33 @@ void testConfigUartSend(void)
       {
         uartStartReceive_Config(bufferRxConfig, sizeof(bufferRxConfig), 10*config_uart.Init.BaudRate);
       }
+
+      if( dataDump ) // data command received
+      {
+        testStep = 3;
+        numberOfMeasures = getNumberOfMeasures(); //get number of log items
+        latestLog = getLatestLogId(); //get latest log ID
+        currentLog = getOldestLogId(); //get oldest log ID
+      }
+
+      break;
+
+    case 3: //process dataDump
+
+      if( numberOfMeasures ) //check items need to print
+      {
+        if (uartTxReady(&config_uart)) //check uart is ready
+        {
+          sendDataLine(currentLog++); //print current log item
+          numberOfMeasures--;         //decrement
+        }
+      }
+      else
+      { //ready
+        dataDump = false; //reset
+        testStep = 2; //back to wait
+      }
+
       break;
 
     default:
@@ -985,11 +1059,37 @@ void sendDataDump(int arguments, const char * format, ...)
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdDataDump, getNumberOfMeasures() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
+
+  dataDump = true;
+
   //todo "sendMeasureTime()" send data line by other functions, not in IRQ
 
   //todo snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:OK\r\n", cmdDataDump );
   //todo uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
+}
+
+__weak int32_t printLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength )
+{
+  return 0;
+}
+
+/**
+ * @brief send data line to config uart.
+ *
+ * @param arguments not used
+ */
+void sendDataLine( uint32_t logId  )
+{
+  int length = 0;
+
+  //get data from log ID
+  length = printLog( logId, bufferTxConfig, sizeof(bufferTxConfig) );
+
+  if( length > 0 )
+  {
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
 }
 
 /**
@@ -1072,13 +1172,10 @@ void rcvAlwaysOnState(int arguments, const char * format, ...)
  */
 void rcvErase(int arguments, const char * format, ...)
 {
-
-
-  //todo erase memory
-
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s\r\n", cmdErase );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
+  eraseCompleteLog();  //erase complete log memory
   //todo send progress every 1 sec, not in IRQ
   //todo send "Wissen:OK", not in IRQ
 

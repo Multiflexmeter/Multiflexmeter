@@ -36,7 +36,8 @@
 #include "flash_if.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "../../../App/logging/logging.h"
+#include "../../../App/CommConfig.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -89,6 +90,8 @@ typedef enum TxEventType_e
 
 /* USER CODE BEGIN PD */
 static const char *slotStrings[] = { "1", "2", "C", "C_MC", "P", "P_MC" };
+static bool requestTime = 0;
+static uint32_t nextRequestTime = 0;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -574,6 +577,9 @@ static void SendTxData(void)
   uint8_t batteryLevel = GetBatteryLevel();
   sensor_t sensor_data;
   UTIL_TIMER_Time_t nextTxIn = 0;
+  uint8_t data[3];
+
+  uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
 
   if (LmHandlerIsBusy() == false)
   {
@@ -595,6 +601,13 @@ static void SendTxData(void)
     APP_LOG(TS_ON, VLEVEL_M, "temp: %d\r\n", (int16_t)(sensor_data.temperature));
 
     AppData.Port = LORAWAN_USER_APP_PORT;
+
+    //fill in log data
+    data[0] = batteryLevel;
+    data[1] = (int16_t)(sensor_data.temperature) & 0xFF;
+    data[2] = ((int16_t)(sensor_data.temperature)>>8 ) & 0xFF;
+
+    writeNewLog(0, data, sizeof(data)); //write log data to dataflash.
 
 #ifdef CAYENNE_LPP
     CayenneLppReset();
@@ -656,6 +669,19 @@ static void SendTxData(void)
 #ifdef USE_LORA_APP_LED3
       HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET); /* LED_RED */
 #endif
+    }
+
+    //Sync every day the time with the server time
+    if( nextRequestTime < SysTimeGet().Seconds )
+    {
+      nextRequestTime = SysTimeGet().Seconds + TM_SECONDS_IN_1DAY;
+      requestTime = true;
+    }
+
+    //check the requestTime is true
+    if( requestTime == true )
+    {
+      LmHandlerDeviceTimeReq(); //request the time
     }
 
     status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
@@ -777,6 +803,8 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
       //always enable ADR after join
       LmHandlerSetAdrEnable(true);
 
+      requestTime = true; //set true, to call "LmHandlerDeviceTimeReq()" until time message is received.
+
     }
     else
     {
@@ -863,7 +891,8 @@ static void OnBeaconStatusChange(LmHandlerBeaconParams_t *params)
 static void OnSysTimeUpdate(void)
 {
   /* USER CODE BEGIN OnSysTimeUpdate_1 */
-
+  requestTime = false; //set false when time message is received
+  nextRequestTime = SysTimeGet().Seconds + TM_SECONDS_IN_1DAY;
   /* USER CODE END OnSysTimeUpdate_1 */
 }
 

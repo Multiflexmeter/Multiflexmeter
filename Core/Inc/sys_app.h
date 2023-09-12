@@ -31,7 +31,8 @@ extern "C" {
 #include "sys_conf.h"
 #include "stm32_adv_trace.h"
 /* USER CODE BEGIN Includes */
-
+#include "stdbool.h"
+#include "stdlib.h"
 /* USER CODE END Includes */
 
 /* Exported defines ----------------------------------------------------------*/
