@@ -989,7 +989,7 @@ void sendSensor(int arguments, const char * format, ...)
   //check sensor range
   if( sensorStatus >= 0 && sensorType >=0 ) //only check value >= zero, check on sensorId not needed indirect with getSensStatus() and getSensorTyp()
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdSensor, sensorId, (int)sensorStatus, (int)sensorType);
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdSensor, sensorId, (bool)sensorStatus, (int16_t)sensorType);
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -1024,7 +1024,7 @@ void rcvSensor(int arguments, const char * format, ...)
 
   if( sensorStatus >= 0 && sensorType >= 0 && resultProcessed >= 0 ) //only check value >= zero and resultProcessed >= zero, check on sensorId not needed indirect with getSensStatus() and getSensorTyp()
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdSensor, sensorId, (int)sensorStatus, (int)sensorType);
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%u\r\n", cmdSensor, sensorId, (bool)sensorStatus, (uint16_t)sensorType);
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
