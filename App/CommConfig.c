@@ -535,9 +535,9 @@ struct_commands stCommandsSet[] =
 void UartConfigHandlerProcess(void)
 {
   /*
-   * call test uart function
+   * call uart handler function
    */
-  testConfigUartSend();
+  configUartHandler();
 
   /*
    * check uart needs to be active
@@ -628,10 +628,10 @@ void uartStartReceive_Config( uint8_t *pData, const uint16_t Size, const uint32_
 }
 
 /**
- * @brief test function for uart Config functionality.
+ * @brief config uart handler for timeout and special long commands.
  *
  */
-void testConfigUartSend(void)
+void configUartHandler(void)
 {
   static int testStep = 0;
   static uint16_t numberOfMeasures;

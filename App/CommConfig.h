@@ -19,6 +19,6 @@ void uartInit_Config( void );
 void uartListen(void);
 HAL_StatusTypeDef uartSend_Config( const uint8_t *pData, uint16_t Size);
 void uartStartReceive_Config( uint8_t *pData, const uint16_t Size, const uint32_t timeout );
-void testConfigUartSend(void);
+void configUartHandler(void);
 
 #endif /* COMMCONFIG_H_ */
