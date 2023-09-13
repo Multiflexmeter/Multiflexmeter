@@ -1052,17 +1052,33 @@ void rcvAppKey(int arguments, const char * format, ...)
   int i = SE_KEY_SIZE - 1; //start at last element.
   uint64_t AppKeyMsb = 0;
   uint64_t AppKeyLsb = 0;
+  int length = strcspn (&format[3], "\r\n");
 
-  if( format[0] == '=' && format[1] == '0' && format[2] == 'x')
+  if( format[0] == '=' && format[1] == '0' && format[2] == 'x' && length > 0 && length <=32 )
   {
-    memcpy(halfKey, &format[19], APP_KEY_CHARACTERS>>1 );
-    AppKeyLsb = strtoull(&halfKey[0], &ptr, APP_KEY_CHARACTERS>>1);  // convert string ## to uint64_t
+
+
+    if( length > APP_KEY_CHARACTERS>>1 )
+    {
+      memcpy(halfKey, &format[19], APP_KEY_CHARACTERS>>1 );
+      AppKeyLsb = strtoull(&halfKey[0], &ptr, APP_KEY_CHARACTERS>>1);  // convert string ## to uint64_t
                                                   // <endptr> : not used
                                                   // <base> = 16 : hexadecimal
-    memcpy(halfKey, &format[3], APP_KEY_CHARACTERS>>1 );
-    AppKeyMsb = strtoull(&halfKey[0], &ptr, APP_KEY_CHARACTERS>>1);  // convert string 0x## to uint64_t
-                                                  // <endptr> : not used
-                                                  // <base> = 16 : hexadecimal
+
+      memcpy(halfKey, &format[3], APP_KEY_CHARACTERS>>1 );
+      AppKeyMsb = strtoull(&halfKey[0], &ptr, APP_KEY_CHARACTERS>>1);  // convert string 0x## to uint64_t
+                                                        // <endptr> : not used
+                                                        // <base> = 16 : hexadecimal
+
+    }
+    else
+    {
+      memcpy(halfKey, &format[3], APP_KEY_CHARACTERS>>1 );
+      AppKeyLsb = strtoull(&halfKey[0], &ptr, APP_KEY_CHARACTERS>>1);  // convert string 0x## to uint64_t
+                                                        // <endptr> : not used
+                                                        // <base> = 16 : hexadecimal
+
+    }
 
     //save each byte in uint8_t array.
     do{
@@ -1076,17 +1092,21 @@ void rcvAppKey(int arguments, const char * format, ...)
       {
         newKey.KeyValue[i] = AppKeyMsb & 0xFF; //save one byte, start at end element.
         AppKeyMsb>>=8; //shift one byte (8bits) to right to get next byte.
-      }
 
+      }
 
     }while(i--); //untill all elements are done
 
 
     setAppKey((uint8_t*)&newKey.KeyValue[0]); //set new AppKey.
-  }
 
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdAppKey, HEX16( getAppKey() ) );
-  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdAppKey, HEX16( getAppKey() ) );
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
 }
 
 /**
