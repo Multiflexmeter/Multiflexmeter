@@ -12,5 +12,7 @@
 
 
 const char * getSoftwareVersionMFM(void);
+const char * getProtocolVersionConfig(void);
+const char * getProtocolVersionSensor(void);
 
 #endif /* COMMON_SOFTWAREVERSION_H_ */
