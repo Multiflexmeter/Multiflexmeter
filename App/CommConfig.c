@@ -26,6 +26,7 @@
 #include "CommConfig.h"
 
 #include "secure-element.h"
+#include "../Core/Inc/sys_app.h"
 
 //#define NO_SLEEP
 
@@ -991,7 +992,7 @@ void rcvDeviceID(int arguments, const char * format, ...)
 {
 
   char *ptr; //dummy pointer
-
+  bool notZero = false;
     uint8_t joinEui[SE_EUI_SIZE]={0}; //set all elements to zero
     int i = SE_EUI_SIZE - 1; //start at last element.
     uint64_t JoinId = 0;
@@ -1007,7 +1008,16 @@ void rcvDeviceID(int arguments, const char * format, ...)
       do{
         joinEui[i] = JoinId & 0xFF; //save one byte, start at end element.
         JoinId>>=8; //shift one byte (8bits) to right to get next byte.
+        if( joinEui[i] != 0x00 )
+        {
+          notZero=true;
+        }
       }while(i--); //untill all elements are done
+
+      if( notZero == false )
+      {
+        GetUniqueId(joinEui); //read unique serial when 0 is set.
+      }
 
       setDeviceId(joinEui); //set new JoinId.
     }
