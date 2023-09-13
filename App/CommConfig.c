@@ -361,6 +361,7 @@ __weak const int32_t getSensorType(int32_t sensorId)
 
 
 void sendError(int arguments, const char * format, ... );
+void sendOkay(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
 void sendSensorInfo(int arguments, const char * format, ...);
 void sendJoinID(int arguments, const char * format, ...);
@@ -1332,6 +1333,17 @@ void rcvTest(int arguments, const char * format, ...)
 void sendError(int arguments, const char * format, ... )
 {
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s\r\n", cmdError);
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+}
+
+/**
+ * @brief function to send Okay command
+ *
+ * @param arguments not used
+ */
+void sendOkay(int arguments, const char * format, ... )
+{
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s\r\n", format, cmdOkay);
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
