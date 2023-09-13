@@ -93,7 +93,7 @@ typedef struct{
  *
  * @return
  */
-__weak const char * getProtocol1(void)
+__weak const char * getProtocolVersionConfig(void)
 {
   return defaultProtocol1;
 }
@@ -103,7 +103,7 @@ __weak const char * getProtocol1(void)
  *
  * @return
  */
-__weak const char * getProtocol2(void)
+__weak const char * getProtocolVersionSensor(void)
 {
   return defaultProtocol2;
 }
@@ -896,7 +896,7 @@ void user_uart1_characterMatchDetect_Callback(UART_HandleTypeDef *huart, uint32_
  */
 void sendModuleInfo(int arguments, const char * format, ...)
 {
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s,%s,%s\r\n", cmdModuleInfo, getProtocol1(), getProtocol2(), getSoftwareVersionMFM());
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s,%s,%s\r\n", cmdModuleInfo, getProtocolVersionConfig(), getProtocolVersionSensor(), getSoftwareVersionMFM());
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
@@ -915,7 +915,7 @@ void sendSensorInfo(int arguments, const char * format, ...)
   //check sensor range
   if( sensorId >= 1 && sensorId <= 6 )
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%s,%s\r\n", cmdSensorInfo, sensorId, getProtocol2(), getSoftwareVersionMFM()); //todo get protocol sensor module
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%s,%s\r\n", cmdSensorInfo, sensorId, getProtocolVersionSensor(), getSoftwareVersionMFM()); //todo get protocol sensor module
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
