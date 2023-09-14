@@ -39,6 +39,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "crc.h"
 #include "i2c.h"
 #include "app_lorawan.h"
 #include "spi.h"
@@ -120,6 +121,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   MX_SPI1_Init();
+  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
   uartInit_Config();
   resultInitDataflash = init_dataflash();
