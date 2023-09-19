@@ -333,7 +333,7 @@ uint32_t HAL_GetTick(void)
     /* Note: when TIMER_IF is based on RTC, stm32wlxx_hal_rtc.c calls this function before TimeServer is functional */
     /* RTC TIMEOUT will not expire, i.e. if RTC has an hw problem it will keep looping in the RTC_Init function */
     /* USER CODE BEGIN HAL_GetTick_EarlyCall */
-
+    return uwTick;
     /* USER CODE END HAL_GetTick_EarlyCall */
   }
   else
