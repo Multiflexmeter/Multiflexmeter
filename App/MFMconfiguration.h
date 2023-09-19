@@ -81,6 +81,7 @@ typedef struct {
     void* pointerToItem;                                //pointer to element
 }struct_virtual_EEPROM_item;
 
+const int eraseVirtualEEPROM(void);
 const int saveSettingsToVirtualEEPROM(void);
 const int reloadSettingsFromVirtualEEPROM(void);
 

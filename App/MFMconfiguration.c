@@ -54,6 +54,33 @@ struct_virtual_EEPROM_item stVirtualEEPROM[] =
 };
 
 /**
+ * @fn const int eraseVirtualEEPROM(void)
+ * @brief function to erase Virtual Eemprom memory in flash
+ *
+ * @return 0 = successful, -1 = error
+ */
+const int eraseVirtualEEPROM(void)
+{
+  EE_Status status;
+  /* Unlock the Flash Program Erase controller */
+  HAL_FLASH_Unlock();
+
+  status = EE_Format(EE_FORCED_ERASE);
+
+  /* lock the Flash Program Erase controller */
+  HAL_FLASH_Lock();
+
+  if(status == EE_OK )
+  {
+    return 0;
+  }
+  else
+  {
+    return -1;
+  }
+}
+
+/**
  * @fn const uint16_t calculateCrcSettings(void)
  * @brief function to calculate the CRC of MFM_settings struct
  *
