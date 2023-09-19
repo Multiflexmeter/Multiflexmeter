@@ -167,13 +167,6 @@ int main(void)
     SystemClock_Config_MSI_RC();                        //init clock MSI RC, should always work
   }
 
-
-  /* Enable and set FLASH Interrupt priority */
-  /* FLASH interrupt is used for the purpose of pages clean up under interrupt */
-  HAL_NVIC_SetPriority(FLASH_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(FLASH_IRQn);
-
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
