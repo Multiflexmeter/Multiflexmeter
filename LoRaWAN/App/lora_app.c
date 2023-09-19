@@ -482,6 +482,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 /* Private functions ---------------------------------------------------------*/
 /* USER CODE BEGIN PrFD */
 
+__weak const uint16_t getLoraInterval(void)
+{
+  return 5;
+}
 /* USER CODE END PrFD */
 
 static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
@@ -697,6 +701,10 @@ static void SendTxData(void)
         APP_LOG(TS_ON, VLEVEL_L, "Next Tx in  : ~%d second(s)\r\n", (nextTxIn / 1000));
       }
     }
+
+    //get lora Interval from config.
+    OnTxPeriodicityChanged( getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000); //new lora interval in ms
+
   }
 
   if (EventType == TX_ON_TIMER)
