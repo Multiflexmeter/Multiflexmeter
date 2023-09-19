@@ -76,6 +76,7 @@ static const char cmdErase[]="Erase";
 static const char cmdTest[]="Test";
 static const char cmdBat[]="Bat";
 static const char cmdVbus[]="Vbus";
+static const char cmdSave[]="Save";
 
 
 static const char defaultProtocol1[] = "0.0";
@@ -387,6 +388,10 @@ __weak const uint getProgressFromAddress( uint32_t address )
   return 0;
 }
 
+__weak const int saveSettingsToVirtualEEPROM(void)
+{
+  return -1;
+}
 
 void sendError(int arguments, const char * format, ... );
 void sendOkay(int arguments, const char * format, ... );
@@ -414,6 +419,7 @@ void rcvAlwaysOnState(int arguments, const char * format, ...);
 void rcvErase(int arguments, const char * format, ...);
 void sendProgressLine( uint8_t percent, const char * command  );
 void rcvTest(int arguments, const char * format, ...);
+void rcvSave(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -552,6 +558,12 @@ struct_commands stCommandsSet[] =
         cmdTest,
         sizeof(cmdTest) - 1,
         rcvTest,
+        0,
+    },
+    {
+        cmdSave,
+        sizeof(cmdSave) - 1,
+        rcvSave,
         0,
     },
     //todo complete all SET commands
@@ -1483,6 +1495,22 @@ void rcvTest(int arguments, const char * format, ...)
   //todo send "Wissen:OK", not in IRQ
 
 }
+
+void rcvSave(int arguments, const char * format, ...)
+{
+  int result = saveSettingsToVirtualEEPROM();
+
+  if( result == 0 )
+  {
+    sendOkay(1,cmdSave);
+  }
+
+  else
+  {
+    sendError(0,0);
+  }
+}
+
 
 /**
  * @brief function to send ERROR command
