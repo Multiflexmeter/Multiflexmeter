@@ -34,4 +34,54 @@ typedef struct __attribute__((__packed__))
     uint16_t crc;               //CRC for validate the data
 }struct_MFMSettings;
 
+
+typedef enum {
+
+  //IDX_RESERVED = 0,  //(0x0000 corresponds to an EEPROM element invalidated by the driver
+
+  IDX_INTERVAL_LORA = 100,
+  IDX_ALWAYS_ON_SUPPLY_ENABLED,
+
+  IDX_SENSOR1_MODULETYPE = 200,
+  IDX_SENSOR2_MODULETYPE,
+  IDX_SENSOR3_MODULETYPE,
+  IDX_SENSOR4_MODULETYPE,
+  IDX_SENSOR5_MODULETYPE,
+  IDX_SENSOR6_MODULETYPE,
+
+  IDX_SENSOR1_MEASURETIME = 300,
+  IDX_SENSOR2_MEASURETIME,
+  IDX_SENSOR3_MEASURETIME,
+  IDX_SENSOR4_MEASURETIME,
+  IDX_SENSOR5_MEASURETIME,
+  IDX_SENSOR6_MEASURETIME,
+
+  IDX_SENSOR1_ENABLED = 400,
+  IDX_SENSOR2_ENABLED,
+  IDX_SENSOR3_ENABLED,
+  IDX_SENSOR4_ENABLED,
+  IDX_SENSOR5_ENABLED,
+  IDX_SENSOR6_ENABLED,
+
+  IDX_CRC = 999,
+  IDX_LAST = UINT16_MAX,
+
+}ENUM_virtualAddress;
+
+
+typedef enum {
+  VIRTUAL_ELEMENT_SIZE_8bits = 1,                       // 8 bits element
+  VIRTUAL_ELEMENT_SIZE_16bits,                          //16 bits element
+  VIRTUAL_ELEMENT_SIZE_32bits,                          //32 bits element
+}ENUM_virtualElementSize;
+
+typedef struct {
+    ENUM_virtualAddress virtualAddress;                 //virtual address from 1 to 65534, 0 and 65535 are reserved and may not used
+    ENUM_virtualElementSize virtualElementSize;         //element size type 8bits, 16bits or 32bits
+    void* pointerToItem;                                //pointer to element
+}struct_virtual_EEPROM_item;
+
+const int saveSettingsToVirtualEEPROM(void);
+const int reloadSettingsFromVirtualEEPROM(void);
+
 #endif /* MFMCONFIGURATION_H_ */
