@@ -52,6 +52,7 @@
 #include "../../App/CommConfig.h"
 #include "../../App/dataflash/dataflash_functions.h"
 #include "../../App/logging/logging.h"
+#include "../../App/MFMconfiguration.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -186,6 +187,8 @@ int main(void)
 
   restoreLatestLogId();
   restoreLatestTimeFromLog();
+
+  reloadSettingsFromVirtualEEPROM();
 
   /* USER CODE END 2 */
 
