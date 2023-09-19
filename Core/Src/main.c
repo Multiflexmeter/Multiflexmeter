@@ -51,7 +51,10 @@
 #include "sys_app.h"
 #include "../../App/CommConfig.h"
 #include "../../App/dataflash/dataflash_functions.h"
-#include "../../App/logging/logging.h"
+//#include "../../App/logging/logging.h"
+#include "fatfs_sd.h"
+#include "string.h"
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -85,7 +88,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-static int8_t resultInitDataflash;
+//static int8_t resultInitDataflash;
 bool chipErase = false;
 /* USER CODE END 0 */
 
@@ -125,15 +128,30 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uartInit_Config();
   resultInitDataflash = init_dataflash();
+//
+//  if( chipErase )
+//  {
+//    chipEraseDataflash();
+//  }
+//
+//  restoreLatestLogId();
+//  restoreLatestTimeFromLog();
 
-  if( chipErase )
+  FATFS fs;
+  FIL fil;
+  FRESULT fres; //Result after operations
+
+
+  fres = f_mount(&fs, "", 1);
+  if (fres != FR_OK)
   {
-    chipEraseDataflash();
+    while(1);
   }
 
-  restoreLatestLogId();
-  restoreLatestTimeFromLog();
-
+  fres= f_open(&fil, "write.txt", FA_WRITE | FA_CREATE_ALWAYS);
+  f_puts("Hello from Danny\n", &fil);
+  f_close(&fil);
+  fres = f_mount(NULL, "", 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
