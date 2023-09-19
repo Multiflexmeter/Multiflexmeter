@@ -67,7 +67,7 @@
 #define CHECK_ON_CRYSTAL     //enable for Dekimo board
 #define CHECK_ON_TCXO        //enable for Dekimo board
 
-#define ERASE_VIRTUAL_EEPROM  //enable for erasing virtual EEPROM
+//#define ERASE_VIRTUAL_EEPROM  //enable for erasing virtual EEPROM
 
 /* USER CODE END PD */
 
