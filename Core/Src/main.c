@@ -67,6 +67,8 @@
 #define CHECK_ON_CRYSTAL     //enable for Dekimo board
 #define CHECK_ON_TCXO        //enable for Dekimo board
 
+#define ERASE_VIRTUAL_EEPROM  //enable for erasing virtual EEPROM
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -106,6 +108,11 @@ int SystemClock_Config_HSI_TCXO(void);
 /* USER CODE BEGIN 0 */
 static int8_t resultInitDataflash;
 bool chipErase = false;
+
+#ifdef ERASE_VIRTUAL_EEPROM
+bool eraseVirtualEeprom = true;
+#endif
+
 /* USER CODE END 0 */
 
 /**
@@ -187,6 +194,13 @@ int main(void)
 
   restoreLatestLogId();
   restoreLatestTimeFromLog();
+
+#ifdef ERASE_VIRTUAL_EEPROM
+  if (eraseVirtualEeprom == true)
+  {
+    eraseVirtualEEPROM();
+  }
+#endif
 
   reloadSettingsFromVirtualEEPROM();
 
