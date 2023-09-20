@@ -64,12 +64,15 @@ void SPI_ConfigureSingleSPIIOs()
 	// CSb - PTD4 for Moneta shield, PTC1 for Dataflash shield
 	SPI_PinInit(SPI_CSB_PORT, SPI_CSB_PIN, OUTPUT);
 	SPI_PinSet(SPI_CSB_PORT, SPI_CSB_PIN);
+
+#ifndef USE_HAL_SPI
 	// SCK - PTD1
 	SPI_PinInit(SPI_SCK_PORT, SPI_SCK_PIN, OUTPUT);
 	// MOSI - PTD2
 	SPI_PinInit(SPI_MOSI_PORT, SPI_MOSI_PIN, OUTPUT);
 	// MISO - PTD3
 	SPI_PinInit(SPI_MISO_PORT, SPI_MISO_PIN, INPUT);
+#endif
 
 #if SPI_HOLDB_PORT > 0
 	// HOLDb - PTD4
@@ -98,6 +101,7 @@ void SPI_ConfigureSingleSPIIOs()
 
 }
 
+#ifndef USE_HAL_SPI
 void SPI_ReturnToSingleSPIIOs()
 {
 	// MOSI - PTD2
@@ -125,13 +129,16 @@ void SPI_ReturnToSingleSPIIOs()
 #endif
 
 }
+#endif
 
+#ifndef USE_HAL_SPI
 void SPI_ConfigureDualSPIIOsInput()
 {
 	// MOSI - PTD2
 	SPI_PinInit(SPI_MOSI_PORT, SPI_MOSI_PIN, INPUT);
 	SPI_PinInit(SPI_MISO_PORT, SPI_MISO_PIN, INPUT);
 }
+#endif
 
 #if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 void SPI_ConfigureQuadSPIIOsInput()
@@ -150,12 +157,14 @@ void SPI_ConfigureQuadSPIIOsInput()
 }
 #endif
 
+#ifndef USE_HAL_SPI
 void SPI_ConfigureDualSPIIOsOutput()
 {
 	// MISO - PTD3
 	SPI_PinInit(SPI_MISO_PORT, SPI_MISO_PIN, OUTPUT);
 	SPI_PinInit(SPI_MOSI_PORT, SPI_MOSI_PIN, OUTPUT);
 }
+#endif
 
 #if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 void SPI_ConfigureQuadSPIIOsOutput()
@@ -181,7 +190,7 @@ void SPI_Delay(uint32_t delayTime)
         __asm("NOP"); /* delay */
     }
 }
-
+#ifndef USE_HAL_SPI
 void SPI_ClockTick()
 {
 	SPI_Delay(DELAY);
@@ -202,17 +211,27 @@ void SPI_SendBit(uint8_t transmittedBit)
 	// Toggle clock
 	SPI_ClockTick(DELAY);
 }
+#endif
 
+#ifdef USE_HAL_SPI
 void SPI_SendByte(uint8_t transmittedByte)
 {
-	int32_t i = 0;
 	// Send byte
-	for(i = 7; i >= 0; i--)
-	{
-		SPI_SendBit((transmittedByte >> i) & 1);
-	}
+	HAL_SPI_Transmit(HSPI_DATAFLASH, &transmittedByte, 1, 100);
 }
+#else
+void SPI_SendByte(uint8_t transmittedByte)
+{
+  int32_t i = 0;
+  // Send byte
+  for(i = 7; i >= 0; i--)
+  {
+    SPI_SendBit((transmittedByte >> i) & 1);
+  }
+}
+#endif
 
+#ifndef USE_HAL_SPI
 void SPI_DualSendByte(uint8_t transmittedByte)
 {
 	int32_t i = 0;
@@ -243,6 +262,7 @@ void SPI_DualSendByte(uint8_t transmittedByte)
 		SPI_ClockTick(DELAY);
 	}
 }
+#endif
 
 #if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 void SPI_QuadSendByte(uint8_t transmittedByte)
@@ -286,23 +306,36 @@ void SPI_QuadSendByte(uint8_t transmittedByte)
 }
 #endif
 
+#ifdef USE_HAL_SPI
 uint8_t SPI_ReceiveByte()
 {
-	int32_t i = 0;
-	uint8_t input = 0;
+  uint8_t input = 0;
 
-	// Receive byte
-	for(i = 7; i >= 0; i--)
-	{
-		if(SPI_PinRead(SPI_MISO_PORT, SPI_MISO_PIN))
-			input |= (1 << i);
-		else
-			input &= ~(1 << i);
-		SPI_ClockTick(DELAY);
-	}
-	return input;
+  // Receive byte
+  HAL_SPI_Receive(HSPI_DATAFLASH, &input, 1, 100);
+
+  return input;
 }
+#else
+uint8_t SPI_ReceiveByte()
+{
+  int32_t i = 0;
+  uint8_t input = 0;
 
+  // Receive byte
+  for(i = 7; i >= 0; i--)
+  {
+    if(SPI_PinRead(SPI_MISO_PORT, SPI_MISO_PIN))
+      input |= (1 << i);
+    else
+      input &= ~(1 << i);
+    SPI_ClockTick(DELAY);
+  }
+  return input;
+}
+#endif
+
+#ifndef USE_HAL_SPI
 uint8_t SPI_DualReceiveByte()
 {
 	int32_t i = 0;
@@ -326,6 +359,7 @@ uint8_t SPI_DualReceiveByte()
 	}
 	return input;
 }
+#endif
 
 #if SPI_HOLDB_PORT > 0 && SPI_WPB_PORT > 0
 uint8_t SPI_QuadReceiveByte()
@@ -362,6 +396,7 @@ uint8_t SPI_QuadReceiveByte()
 }
 #endif
 
+#ifdef USE_HAL_SPI
 void SPI_Exchange(uint8_t *txBuffer,
 				  uint32_t txNumBytes,
 				  uint8_t *rxBuffer,
@@ -370,8 +405,6 @@ void SPI_Exchange(uint8_t *txBuffer,
 {
 	uint32_t i = 0;
 	// Begin data exchange
-	// Set clock to low
-	SPI_PinClear(SPI_SCK_PORT, SPI_SCK_PIN);
 	// Select chip
 	SPI_PinClear(SPI_CSB_PORT, SPI_CSB_PIN);
 
@@ -386,11 +419,40 @@ void SPI_Exchange(uint8_t *txBuffer,
 		rxBuffer[i] = SPI_ReceiveByte();
 
 	// End data exchange
-	// Set clock to low
-	SPI_PinClear(SPI_SCK_PORT, SPI_SCK_PIN);
 	// Deselect chip
 	SPI_PinSet(SPI_CSB_PORT, SPI_CSB_PIN);
 }
+#else
+void SPI_Exchange(uint8_t *txBuffer,
+          uint32_t txNumBytes,
+          uint8_t *rxBuffer,
+          uint32_t rxNumBytes,
+          uint32_t dummyNumBytes)
+{
+  uint32_t i = 0;
+  // Begin data exchange
+  // Set clock to low
+  SPI_PinClear(SPI_SCK_PORT, SPI_SCK_PIN);
+  // Select chip
+  SPI_PinClear(SPI_CSB_PORT, SPI_CSB_PIN);
+
+  // Send each byte
+  for(i = 0; i < txNumBytes; i = i+1)
+    SPI_SendByte(txBuffer[i]);
+  // Receive each byte
+  for(i = 0; i < dummyNumBytes; i = i+1)
+    SPI_ReceiveByte();
+  // Receive each byte
+  for(i = 0; i < rxNumBytes; i = i+1)
+    rxBuffer[i] = SPI_ReceiveByte();
+
+  // End data exchange
+  // Set clock to low
+  SPI_PinClear(SPI_SCK_PORT, SPI_SCK_PIN);
+  // Deselect chip
+  SPI_PinSet(SPI_CSB_PORT, SPI_CSB_PIN);
+}
+#endif
 
 void SPI_DualExchange(uint8_t standardSPINumBytes,
 					  uint8_t *txBuffer,
@@ -399,6 +461,7 @@ void SPI_DualExchange(uint8_t standardSPINumBytes,
 					  uint32_t rxNumBytes,
 					  uint32_t dummyNumBytes)
 {
+#ifndef USE_HAL_SPI
 	uint32_t i = 0;
 	// Begin data exchange
 	// Set clock to low
@@ -441,6 +504,7 @@ void SPI_DualExchange(uint8_t standardSPINumBytes,
 	SPI_PinSet(SPI_CSB_PORT, SPI_CSB_PIN);
 	// Reconfigure device for standard SPI operation
 	SPI_ReturnToSingleSPIIOs();
+#endif
 }
 
 void SPI_QuadExchange(uint8_t standardSPINumBytes,
@@ -534,6 +598,7 @@ void SPI_Trigger()
 }
 #endif
 
+#ifndef USE_HAL_SPI
 void SPI_JEDECReset()
 {
 	// Clear CSb
@@ -576,3 +641,4 @@ void SPI_JEDECReset()
 	SPI_PinSet(SPI_CSB_PORT, SPI_CSB_PIN);
 	SPI_Delay(DELAY);
 }
+#endif
