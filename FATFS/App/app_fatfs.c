@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -114,6 +114,11 @@ void clear_buffer (void)
   for (int i=0; i<BUFFER_SIZE; i++) buffer[i] = '\0';
 }
 
+/**
+ * @brief SD Card test function
+ *
+ * @return 0 = success, 0 > = failed, 0 < = failed
+ */
 int8_t SD_TEST(void)
 {
   FATFS fs;
