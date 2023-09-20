@@ -38,7 +38,7 @@ typedef enum {
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BUFFER_SIZE 32
+#define BUFFER_SIZE 16
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -52,7 +52,7 @@ FIL USERFile;       /* File  object for USER */
 char USERPath[4];   /* USER logical drive path */
 /* USER CODE BEGIN PV */
 FS_FileOperationsTypeDef Appli_state = APPLICATION_IDLE;
-char buffer[32];  // to store strings..
+char buffer[BUFFER_SIZE];  // to store strings
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -120,7 +120,6 @@ int8_t SD_TEST(void)
   FIL file;
   FRESULT fres; //Result after operations
   char teststring[BUFFER_SIZE] = "Test string";
-  char buffer[BUFFER_SIZE];  // to store strings..
 
   // Mount the filesystem
   fres = f_mount(&fs, "/", 1);
