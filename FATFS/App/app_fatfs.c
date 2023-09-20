@@ -143,7 +143,7 @@ int8_t SD_TEST(void)
   f_puts(teststring, &file);
   f_close(&file);
 
-  // read the test string from the file
+  // Read the test string from the file
   fres= f_open(&file, "write.txt", FA_READ);
   if (fres != FR_OK)
   {
@@ -153,10 +153,10 @@ int8_t SD_TEST(void)
   clear_buffer();
   f_read(&file, buffer, f_size(&file), NULL);
 
-  // compare the content of the file to the test string
+  // Compare the content of the file to the test string
   uint8_t result = strcmp(buffer, teststring);
 
-  // close file and remove it
+  // Close file and remove it
   f_close(&file);
   f_unlink("/write.txt");
   f_mount(NULL, "/", 0);
