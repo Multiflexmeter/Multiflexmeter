@@ -39,6 +39,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "app_fatfs.h"
 #include "i2c.h"
 #include "app_lorawan.h"
 #include "spi.h"
@@ -50,7 +51,10 @@
 #include "sys_app.h"
 #include "../../App/CommConfig.h"
 #include "../../App/dataflash/dataflash_functions.h"
-#include "../../App/logging/logging.h"
+//#include "../../App/logging/logging.h"
+#include "fatfs_sd.h"
+#include "string.h"
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -84,7 +88,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-static int8_t resultInitDataflash;
+//static int8_t resultInitDataflash;
 bool chipErase = false;
 /* USER CODE END 0 */
 
@@ -120,18 +124,19 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   MX_SPI1_Init();
+  MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
   uartInit_Config();
-  resultInitDataflash = init_dataflash();
-
-  if( chipErase )
-  {
-    chipEraseDataflash();
-  }
-
-  restoreLatestLogId();
-  restoreLatestTimeFromLog();
-
+  //resultInitDataflash = init_dataflash();
+//
+//  if( chipErase )
+//  {
+//    chipEraseDataflash();
+//  }
+//
+//  restoreLatestLogId();
+//  restoreLatestTimeFromLog();
+  SD_TEST();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -140,6 +145,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
     MX_LoRaWAN_Process();
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -213,10 +219,6 @@ void Error_Handler(void)
 }
 
 #ifdef  USE_FULL_ASSERT
-//#define DEBUG_BREAKPOINT
-//#define DEBUG_SEMIHOSTING
-//#define DEBUG_LOG
-
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
