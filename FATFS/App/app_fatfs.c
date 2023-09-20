@@ -38,7 +38,7 @@ typedef enum {
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define BUFFER_SIZE 32
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -52,6 +52,7 @@ FIL USERFile;       /* File  object for USER */
 char USERPath[4];   /* USER logical drive path */
 /* USER CODE BEGIN PV */
 FS_FileOperationsTypeDef Appli_state = APPLICATION_IDLE;
+char buffer[32];  // to store strings..
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,5 +109,54 @@ DWORD get_fattime(void)
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN Application */
+void clear_buffer (void)
+{
+  for (int i=0; i<BUFFER_SIZE; i++) buffer[i] = '\0';
+}
 
+int8_t SD_TEST(void)
+{
+  FATFS fs;
+  FIL file;
+  FRESULT fres; //Result after operations
+  char teststring[BUFFER_SIZE] = "Test string";
+  char buffer[BUFFER_SIZE];  // to store strings..
+
+  // Mount the filesystem
+  fres = f_mount(&fs, "/", 1);
+  if (fres != FR_OK)
+  {
+    return -1;
+  }
+
+  // Write the test string to the file
+  fres= f_open(&file, "write.txt", FA_WRITE | FA_CREATE_ALWAYS);
+  if (fres != FR_OK)
+  {
+    return -1;
+  }
+
+  f_puts(teststring, &file);
+  f_close(&file);
+
+  // read the test string from the file
+  fres= f_open(&file, "write.txt", FA_READ);
+  if (fres != FR_OK)
+  {
+    return -1;
+  }
+
+  clear_buffer();
+  f_read(&file, buffer, f_size(&file), NULL);
+
+  // compare the content of the file to the test string
+  uint8_t result = strcmp(buffer, teststring);
+
+  // close file and remove it
+  f_close(&file);
+  f_unlink("/write.txt");
+  f_mount(NULL, "/", 0);
+
+  return result;
+}
 /* USER CODE END Application */

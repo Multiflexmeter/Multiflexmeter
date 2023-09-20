@@ -127,7 +127,7 @@ int main(void)
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
   uartInit_Config();
-  resultInitDataflash = init_dataflash();
+  //resultInitDataflash = init_dataflash();
 //
 //  if( chipErase )
 //  {
@@ -136,22 +136,7 @@ int main(void)
 //
 //  restoreLatestLogId();
 //  restoreLatestTimeFromLog();
-
-  FATFS fs;
-  FIL fil;
-  FRESULT fres; //Result after operations
-
-
-  fres = f_mount(&fs, "", 1);
-  if (fres != FR_OK)
-  {
-    while(1);
-  }
-
-  fres= f_open(&fil, "write.txt", FA_WRITE | FA_CREATE_ALWAYS);
-  f_puts("Hello from Danny\n", &fil);
-  f_close(&fil);
-  fres = f_mount(NULL, "", 1);
+  SD_TEST();
   /* USER CODE END 2 */
 
   /* Infinite loop */

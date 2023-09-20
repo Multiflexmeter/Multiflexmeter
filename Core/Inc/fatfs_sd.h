@@ -28,6 +28,13 @@
 #define CMD55    (0x40+55)    /* APP_CMD */
 #define CMD58    (0x40+58)    /* READ_OCR */
 
+/* MMC card type flags (MMC_GET_TYPE) */
+#define CT_MMC    0x01    /* MMC ver 3 */
+#define CT_SD1    0x02    /* SD ver 1 */
+#define CT_SD2    0x04    /* SD ver 2 */
+#define CT_SDC    0x06    /* SD */
+#define CT_BLOCK  0x08    /* Block addressing */
+
 DSTATUS SD_disk_initialize (BYTE pdrv);
 DSTATUS SD_disk_status (BYTE pdrv);
 DRESULT SD_disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count);
