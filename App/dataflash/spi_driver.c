@@ -213,13 +213,7 @@ void SPI_SendBit(uint8_t transmittedBit)
 }
 #endif
 
-#ifdef USE_HAL_SPI
-void SPI_SendByte(uint8_t transmittedByte)
-{
-	// Send byte
-	HAL_SPI_Transmit(HSPI_DATAFLASH, &transmittedByte, 1, 100);
-}
-#else
+#ifndef USE_HAL_SPI
 void SPI_SendByte(uint8_t transmittedByte)
 {
   int32_t i = 0;
@@ -306,17 +300,7 @@ void SPI_QuadSendByte(uint8_t transmittedByte)
 }
 #endif
 
-#ifdef USE_HAL_SPI
-uint8_t SPI_ReceiveByte()
-{
-  uint8_t input = 0;
-
-  // Receive byte
-  HAL_SPI_Receive(HSPI_DATAFLASH, &input, 1, 100);
-
-  return input;
-}
-#else
+#ifndef USE_HAL_SPI
 uint8_t SPI_ReceiveByte()
 {
   int32_t i = 0;
@@ -403,20 +387,21 @@ void SPI_Exchange(uint8_t *txBuffer,
 				  uint32_t rxNumBytes,
 				  uint32_t dummyNumBytes)
 {
-	uint32_t i = 0;
 	// Begin data exchange
 	// Select chip
 	SPI_PinClear(SPI_CSB_PORT, SPI_CSB_PIN);
 
 	// Send each byte
-	for(i = 0; i < txNumBytes; i = i+1)
-		SPI_SendByte(txBuffer[i]);
+	if(txNumBytes > 0)
+	  HAL_SPI_Transmit(HSPI_DATAFLASH, txBuffer, txNumBytes, 100);
+
 	// Receive each byte
-	for(i = 0; i < dummyNumBytes; i = i+1)
-		SPI_ReceiveByte();
+	if(dummyNumBytes > 0)
+	  HAL_SPI_Receive(HSPI_DATAFLASH, NULL, dummyNumBytes, 100);
+
 	// Receive each byte
-	for(i = 0; i < rxNumBytes; i = i+1)
-		rxBuffer[i] = SPI_ReceiveByte();
+	if(rxNumBytes > 0)
+	  HAL_SPI_Receive(HSPI_DATAFLASH, rxBuffer, rxNumBytes, 100);
 
 	// End data exchange
 	// Deselect chip
