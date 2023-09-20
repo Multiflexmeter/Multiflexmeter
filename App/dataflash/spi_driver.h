@@ -55,7 +55,7 @@
 
 #include "user_config.h"
 
-#define USE_HAL_SPI
+//#define USE_HAL_SPI
 
 #ifdef USE_HAL_SPI
 extern SPI_HandleTypeDef hspi1;
