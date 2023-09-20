@@ -51,10 +51,7 @@
 #include "sys_app.h"
 #include "../../App/CommConfig.h"
 #include "../../App/dataflash/dataflash_functions.h"
-//#include "../../App/logging/logging.h"
-#include "fatfs_sd.h"
-#include "string.h"
-#include "stdio.h"
+#include "../../App/logging/logging.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,7 +85,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-//static int8_t resultInitDataflash;
+static int8_t resultInitDataflash;
 bool chipErase = false;
 /* USER CODE END 0 */
 
@@ -127,16 +124,15 @@ int main(void)
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
   uartInit_Config();
-  //resultInitDataflash = init_dataflash();
-//
-//  if( chipErase )
-//  {
-//    chipEraseDataflash();
-//  }
-//
-//  restoreLatestLogId();
-//  restoreLatestTimeFromLog();
-  SD_TEST();
+  resultInitDataflash = init_dataflash();
+
+  if( chipErase )
+  {
+    chipEraseDataflash();
+  }
+
+  restoreLatestLogId();
+  restoreLatestTimeFromLog();
   /* USER CODE END 2 */
 
   /* Infinite loop */
