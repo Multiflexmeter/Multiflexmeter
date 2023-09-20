@@ -55,6 +55,12 @@
 
 #include "user_config.h"
 
+#define USE_HAL_SPI
+
+#ifdef USE_HAL_SPI
+extern SPI_HandleTypeDef hspi1;
+#define HSPI_DATAFLASH   &hspi1
+#endif
 /*!
  * @brief Base register used for CSb control.
  * @warning Use port D for Moneta shield, port C for Dataflash/AT25 shield.
