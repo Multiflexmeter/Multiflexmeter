@@ -26,6 +26,7 @@
 #include "CommConfig.h"
 
 #include "secure-element.h"
+#include "../Core/Inc/sys_app.h"
 
 //#define NO_SLEEP
 
@@ -46,11 +47,16 @@
 #define RECEIVE_TIMEOUT_COMMAND  (5 * config_uart.Init.BaudRate) //5 seconds
 #define UART_RX_TASK_ACTIVE_TIME  (1000000L)
 
+#define DUMP_ALL  UINT32_MAX
+
 static DMA_BUFFER uint8_t bufferTxConfig[SIZE_TX_BUFFER_CONFIG];
 static DMA_BUFFER uint8_t bufferRxConfig[SIZE_RX_BUFFER_CONFIG];
 
-static volatile uint32_t uartConfigActiveTime;
-static uint8_t dataDump;
+volatile uint32_t uartConfigActiveTime;
+static bool dataDump;
+static bool dataErase;
+
+static uint32_t numberOffDumpRecords;
 
 static const char cmdError[]="ERROR";
 static const char cmdOkay[]="OK";
@@ -88,7 +94,7 @@ typedef struct{
  *
  * @return
  */
-__weak const char * getProtocol1(void)
+__weak const char * getProtocolVersionConfig(void)
 {
   return defaultProtocol1;
 }
@@ -98,17 +104,17 @@ __weak const char * getProtocol1(void)
  *
  * @return
  */
-__weak const char * getProtocol2(void)
+__weak const char * getProtocolVersionSensor(void)
 {
   return defaultProtocol2;
 }
 
 /**
- * @brief weak function getVersion(), needs to be override by real functions
+ * @brief weak function getSoftwareVersionMFM(), needs to be override by real functions
  *
  * @return
  */
-__weak const char * getVersion(void)
+__weak const char * getSoftwareVersionMFM(void)
 {
   return defaultVersion;
 }
@@ -186,22 +192,45 @@ __weak const void setAppKey(const uint8_t *key)
 
 
 /**
- * @brief weak function getLeesInterval(), can be override in application code.
+ * @brief weak function getLoraInterval(), can be override in application code.
  *
  * @return Interval time in minutes
  */
-__weak const uint16_t getLeesInterval(void)
+__weak const uint16_t getLoraInterval(void)
 {
 
   return 5;
 }
 
 /**
- * @brief weak function getMeetTijd(), can be override in application code.
+ * @brief weak function setLoraInterval(), can be override in application code.
  *
+ * @return Interval time in minutes
+ */
+__weak const int32_t setLoraInterval(uint16_t interval)
+{
+  return 0;
+}
+
+/**
+ * @brief weak function getMeasureTime(), can be override in application code.
+ *
+ * @param sensorId
  * @return Measure time in milliseconds
  */
-__weak const uint16_t getMeetTijd(void)
+__weak const uint16_t getMeasureTime(int32_t sensorId)
+{
+
+  return 100;
+}
+
+/**
+ * @brief weak function setMeasureTime(), can be override in application code.
+ *
+ * @param sensorId
+ * @return Measure time in milliseconds
+ */
+__weak const int32_t setMeasureTime(int32_t sensorId, uint16_t measureTime)
 {
 
   return 100;
@@ -248,10 +277,21 @@ __weak const uint16_t getVbusSupply(void)
  *
  * @return always on status
  */
-__weak const uint8_t getAlwaysOn(void)
+__weak const bool getAlwaysOn(void)
 {
 
   return 0;
+}
+
+/**
+ * @brief weak function setAlwaysOn(), can be override in application code.
+ *
+ * @return always on status
+ */
+__weak const void setAlwaysOn(bool state)
+{
+
+  return;
 }
 
 /**
@@ -265,12 +305,24 @@ __weak const int8_t eraseCompleteLog(void)
 }
 
 /**
+ * @fn const uint8_t eraseCompleteLogBlockByBlock(uint32_t*)
+ * @brief weak function eraseCompleteLogBlockByBlock(), can must override in application
+ *
+ * @param startAddress
+ * @return
+ */
+__weak const int8_t eraseCompleteLogBlockByBlock( uint32_t * startAddress )
+{
+  return 0;
+}
+
+/**
  * @fn uint32_t getLatestLogId(void)
  * @brief weak function getLatestLogId(), can be override in application code
  *
  * @return
  */
-__weak uint32_t getLatestLogId(void)
+__weak const uint32_t getLatestLogId(void)
 {
   return 0;
 }
@@ -281,19 +333,70 @@ __weak uint32_t getLatestLogId(void)
  *
  * @return
  */
-__weak uint32_t getOldestLogId(void)
+__weak const uint32_t getOldestLogId(void)
 {
   return 0;
 }
 
+/**
+ * @fn int32_t getSensorStatus(int32_t)
+ * @brief weak function getSensorStatus(), can be override in application code
+ *
+ * @param sensorId
+ * @return
+ */
+__weak const int32_t getSensorStatus(int32_t sensorId)
+{
+  return 0;
+}
+
+/**
+ * @fn int32_t setSensorStatus(int32_t, bool)
+ * @brief weak function setSensorStatus(), can be override in application code
+ *
+ * @param sensorId
+ * @param status
+ * @return
+ */
+__weak const int32_t setSensorStatus(int32_t sensorId, bool status)
+{
+  return 0;
+}
+
+/**
+ * @fn int32_t getSensorType(int32_t)
+ * @brief weak function getSensorType(), can be override in application code
+ *
+ * @param sensorId
+ * @return
+ */
+__weak const int32_t getSensorType(int32_t sensorId)
+{
+  return 0;
+}
+
+/**
+ * @fn const uint getProgressFromAddress(uint32_t)
+ * @brief weak function getProgressFromAddress(), can be override in application
+ *
+ * @param address
+ * @return
+ */
+__weak const uint getProgressFromAddress( uint32_t address )
+{
+  return 0;
+}
+
+
 void sendError(int arguments, const char * format, ... );
+void sendOkay(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
 void sendSensorInfo(int arguments, const char * format, ...);
 void sendJoinID(int arguments, const char * format, ...);
 void sendDeviceID(int arguments, const char * format, ...);
 void sendAppKey(int arguments, const char * format, ...);
 void sendSensor(int arguments, const char * format, ...);
-void sendReadInterval(int arguments, const char * format, ...);
+void sendLoraInterval(int arguments, const char * format, ...);
 void sendMeasureTime(int arguments, const char * format, ...);
 void sendAlwaysOnState(int arguments, const char * format, ...);
 void sendDataDump(int arguments, const char * format, ...);
@@ -305,10 +408,11 @@ void rcvJoinId(int arguments, const char * format, ...);
 void rcvDeviceID(int arguments, const char * format, ...);
 void rcvAppKey(int arguments, const char * format, ...);
 void rcvSensor(int arguments, const char * format, ...);
-void rcvReadInterval(int arguments, const char * format, ...);
+void rcvLoraInterval(int arguments, const char * format, ...);
 void rcvMeasureTime(int arguments, const char * format, ...);
 void rcvAlwaysOnState(int arguments, const char * format, ...);
 void rcvErase(int arguments, const char * format, ...);
+void sendProgressLine( uint8_t percent, const char * command  );
 void rcvTest(int arguments, const char * format, ...);
 
 /**
@@ -355,7 +459,7 @@ struct_commands stCommandsGet[] =
     {
         cmdLoraInterval,
         sizeof(cmdLoraInterval) - 1,
-        sendReadInterval,
+        sendLoraInterval,
         0,
     },
     {
@@ -423,7 +527,7 @@ struct_commands stCommandsSet[] =
     {
         cmdLoraInterval,
         sizeof(cmdLoraInterval) - 1,
-        rcvReadInterval,
+        rcvLoraInterval,
         1,
     },
     {
@@ -460,9 +564,9 @@ struct_commands stCommandsSet[] =
 void UartConfigHandlerProcess(void)
 {
   /*
-   * call test uart function
+   * call uart handler function
    */
-  testConfigUartSend();
+  configUartHandler();
 
   /*
    * check uart needs to be active
@@ -553,72 +657,155 @@ void uartStartReceive_Config( uint8_t *pData, const uint16_t Size, const uint32_
 }
 
 /**
- * @brief test function for uart Config functionality.
+ * @brief config uart handler for timeout and special long commands.
  *
  */
-void testConfigUartSend(void)
+void configUartHandler(void)
 {
-  static int testStep = 0;
-  static uint16_t numberOfMeasures;
-  static uint32_t latestLog;
-  static uint32_t currentLog;
+  static int step = 0;
+  int8_t result;
+  static uint16_t numberOfMeasures = 0;
+  static uint32_t latestLog = 0;
+  static uint32_t currentLog = 0;
+  static uint32_t previousTimeMs = 0;
+  uint32_t currentTimeMs;
+  bool updateRate = false;
 
+  currentTimeMs = SysTimeToMs(SysTimeGet()); //get current time in milliseconds
 
-  switch (testStep)
+  if( currentTimeMs > previousTimeMs + 200 )  //detect time passed, 200ms
   {
+    previousTimeMs = currentTimeMs;
+    updateRate = true;  //set updateRate flag
+  }
 
-    case 0: //start receive data
-      uartStartReceive_Config(bufferRxConfig, sizeof(bufferRxConfig), RECEIVE_TIMEOUT_COMMAND );
-      testStep++;
-      break;
+  if (uartTxReady(&config_uart)) //check uart is ready
+  {
+    //state machine
+    switch ( step )
+    {
 
-    case 1: //send test data
-      if (uartTxReady(&config_uart))
-      {
+      case 0: //start receive data
+
+        uartStartReceive_Config(bufferRxConfig, sizeof(bufferRxConfig), RECEIVE_TIMEOUT_COMMAND );
+        step++;
+
+        break;
+
+      case 1: //send test data
+
         sendModuleInfo(0,0);
-        testStep++;
-      }
-      break;
+        step++;
 
-    case 2:
-      // catch Receive timeout flag
-      if( HAL_UART_GetError(&config_uart) & HAL_UART_ERROR_RTO )
-      {
-        uartStartReceive_Config(bufferRxConfig, sizeof(bufferRxConfig), 10*config_uart.Init.BaudRate);
-      }
+        break;
 
-      if( dataDump ) // data command received
-      {
-        testStep = 3;
-        numberOfMeasures = getNumberOfMeasures(); //get number of log items
-        latestLog = getLatestLogId(); //get latest log ID
-        currentLog = getOldestLogId(); //get oldest log ID
-      }
+      case 2: //wait, on special command
 
-      break;
+        //handling special commands
+        if( dataDump ) // data command received
+        {
+          numberOfMeasures = getNumberOfMeasures(); //get number of log items
+          latestLog = getLatestLogId(); //get latest log ID
+          currentLog = getOldestLogId(); //get oldest log ID
 
-    case 3: //process dataDump
+          snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:count: %d, oldest: %lu, latest: %lu\r\n", cmdDataDump, numberOfMeasures, currentLog, latestLog);
+          uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
-      if( numberOfMeasures ) //check items need to print
-      {
-        if (uartTxReady(&config_uart)) //check uart is ready
+          //check command is not dump  ALL
+          if( numberOffDumpRecords != DUMP_ALL )
+          {
+            if( numberOffDumpRecords < numberOfMeasures ) //check if number of measures needs to be limit by input parameter
+            {
+              numberOfMeasures = numberOffDumpRecords;
+              currentLog = latestLog - numberOfMeasures; //calculate new start offset
+            }
+          }
+
+          step = 3; //go to process
+        }
+
+        else if( dataErase ) //data erase command received
+        {
+          dataErase = false;
+          currentLog = 0; //set address to 0 (use currentLog variable)
+          step = 10;
+        }
+
+        break;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /// process dataDump command
+    ////////////////////////////////////////////////////////////////////////////////////////////
+
+      case 3:
+
+        if( numberOfMeasures ) //check items need to print
         {
           sendDataLine(currentLog++); //print current log item
           numberOfMeasures--;         //decrement
+
         }
-      }
-      else
-      { //ready
-        dataDump = false; //reset
-        testStep = 2; //back to wait
-      }
+        else
+        { //ready
 
-      break;
+          dataDump = false; //reset
+          sendOkay(1, cmdDataDump); //send ready
+          step = 2; //back to wait
 
-    default:
-      break;
+        }
 
+        break;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /// Process dataErase command
+    ////////////////////////////////////////////////////////////////////////////////////////////
+
+      case 10:
+
+        result = eraseCompleteLogBlockByBlock(&currentLog); //erase one block
+
+        if( result < 0 )
+        { //error
+          sendError(0,0);
+          step = 2; //back to wait
+        }
+        else if( result == 0 )
+        { //busy
+          if( updateRate) //check update rate flag is active
+          {
+            sendProgressLine(getProgressFromAddress(currentLog), cmdErase); //send progress line
+          }
+        }
+        else
+        { //ready
+          sendProgressLine(getProgressFromAddress(currentLog), cmdErase);//send 100%
+          step = 11; //got to send ready
+        }
+
+        break;
+
+      case 11:
+
+        sendOkay(1,cmdErase); //send ready
+        step = 2; //back to wait
+
+        break;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////
+
+      default:
+        break;
+
+    }
   }
+
+  // catch Receive timeout flag
+  if( HAL_UART_GetError(&config_uart) & HAL_UART_ERROR_RTO )
+  {
+    uartStartReceive_Config(bufferRxConfig, sizeof(bufferRxConfig), 10*config_uart.Init.BaudRate);
+  }
+
 }
 
 /**
@@ -710,7 +897,7 @@ void user_uart1_characterMatchDetect_Callback(UART_HandleTypeDef *huart, uint32_
  */
 void sendModuleInfo(int arguments, const char * format, ...)
 {
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s,%s,%s\r\n", cmdModuleInfo, getProtocol1(), getProtocol2(), getVersion());
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s,%s,%s\r\n", cmdModuleInfo, getProtocolVersionConfig(), getProtocolVersionSensor(), getSoftwareVersionMFM());
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
@@ -729,7 +916,7 @@ void sendSensorInfo(int arguments, const char * format, ...)
   //check sensor range
   if( sensorId >= 1 && sensorId <= 6 )
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%s,%s\r\n", cmdSensorInfo, sensorId, getProtocol2(), getVersion()); //todo get protocol sensor module
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%s,%s\r\n", cmdSensorInfo, sensorId, getProtocolVersionSensor(), getSoftwareVersionMFM()); //todo get protocol sensor module
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -805,7 +992,7 @@ void rcvDeviceID(int arguments, const char * format, ...)
 {
 
   char *ptr; //dummy pointer
-
+  bool notZero = false;
     uint8_t joinEui[SE_EUI_SIZE]={0}; //set all elements to zero
     int i = SE_EUI_SIZE - 1; //start at last element.
     uint64_t JoinId = 0;
@@ -821,7 +1008,16 @@ void rcvDeviceID(int arguments, const char * format, ...)
       do{
         joinEui[i] = JoinId & 0xFF; //save one byte, start at end element.
         JoinId>>=8; //shift one byte (8bits) to right to get next byte.
+        if( joinEui[i] != 0x00 )
+        {
+          notZero=true;
+        }
       }while(i--); //untill all elements are done
+
+      if( notZero == false )
+      {
+        GetUniqueId(joinEui); //read unique serial when 0 is set.
+      }
 
       setDeviceId(joinEui); //set new JoinId.
     }
@@ -856,17 +1052,33 @@ void rcvAppKey(int arguments, const char * format, ...)
   int i = SE_KEY_SIZE - 1; //start at last element.
   uint64_t AppKeyMsb = 0;
   uint64_t AppKeyLsb = 0;
+  int length = strcspn (&format[3], "\r\n");
 
-  if( format[0] == '=' && format[1] == '0' && format[2] == 'x')
+  if( format[0] == '=' && format[1] == '0' && format[2] == 'x' && length > 0 && length <=32 )
   {
-    memcpy(halfKey, &format[19], APP_KEY_CHARACTERS>>1 );
-    AppKeyLsb = strtoull(&halfKey[0], &ptr, APP_KEY_CHARACTERS>>1);  // convert string ## to uint64_t
+
+
+    if( length > APP_KEY_CHARACTERS>>1 )
+    {
+      memcpy(halfKey, &format[19], APP_KEY_CHARACTERS>>1 );
+      AppKeyLsb = strtoull(&halfKey[0], &ptr, APP_KEY_CHARACTERS>>1);  // convert string ## to uint64_t
                                                   // <endptr> : not used
                                                   // <base> = 16 : hexadecimal
-    memcpy(halfKey, &format[3], APP_KEY_CHARACTERS>>1 );
-    AppKeyMsb = strtoull(&halfKey[0], &ptr, APP_KEY_CHARACTERS>>1);  // convert string 0x## to uint64_t
-                                                  // <endptr> : not used
-                                                  // <base> = 16 : hexadecimal
+
+      memcpy(halfKey, &format[3], APP_KEY_CHARACTERS>>1 );
+      AppKeyMsb = strtoull(&halfKey[0], &ptr, APP_KEY_CHARACTERS>>1);  // convert string 0x## to uint64_t
+                                                        // <endptr> : not used
+                                                        // <base> = 16 : hexadecimal
+
+    }
+    else
+    {
+      memcpy(halfKey, &format[3], APP_KEY_CHARACTERS>>1 );
+      AppKeyLsb = strtoull(&halfKey[0], &ptr, APP_KEY_CHARACTERS>>1);  // convert string 0x## to uint64_t
+                                                        // <endptr> : not used
+                                                        // <base> = 16 : hexadecimal
+
+    }
 
     //save each byte in uint8_t array.
     do{
@@ -880,17 +1092,21 @@ void rcvAppKey(int arguments, const char * format, ...)
       {
         newKey.KeyValue[i] = AppKeyMsb & 0xFF; //save one byte, start at end element.
         AppKeyMsb>>=8; //shift one byte (8bits) to right to get next byte.
-      }
 
+      }
 
     }while(i--); //untill all elements are done
 
 
     setAppKey((uint8_t*)&newKey.KeyValue[0]); //set new AppKey.
-  }
 
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdAppKey, HEX16( getAppKey() ) );
-  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdAppKey, HEX16( getAppKey() ) );
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
 }
 
 /**
@@ -901,18 +1117,20 @@ void rcvAppKey(int arguments, const char * format, ...)
 void sendSensor(int arguments, const char * format, ...)
 {
   int sensorId = 0;
-  int sensorStatus = 0;
-  int sensorType = 0;
+  int32_t sensorStatus = 0;
+  int32_t sensorType = 0;
   if( format[0] == '=' && format[2] == '\r' && format[3] == '\n')
   {
     sensorId = atoi(&format[1]);
   }
 
+  sensorStatus = getSensorStatus(sensorId); //get sensor status, value < 0 is error
+  sensorType = getSensorType(sensorId); //get sensor type, value < 0 is error
 
   //check sensor range
-  if( sensorId >= 1 && sensorId <= 6 && sensorStatus >= 0 && sensorStatus <= 1)
+  if( sensorStatus >= 0 && sensorType >=0 ) //only check value >= zero, check on sensorId not needed indirect with getSensStatus() and getSensorTyp()
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdSensor, sensorId, sensorStatus, sensorType); //todo get sensor status, get sensor type
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdSensor, sensorId, (bool)sensorStatus, (int16_t)sensorType);
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -930,22 +1148,24 @@ void sendSensor(int arguments, const char * format, ...)
 void rcvSensor(int arguments, const char * format, ...)
 {
   char *ptr; //dummy pointer
-  int sensorId = 0;
-  int sensorStatus = 0;
-  int sensorType = 0;
+  int sensorId = -1;
+  int32_t sensorStatus = -1;
+  int32_t sensorType = 0;
+  int32_t resultProcessed = -1;
 
   if( format[0] == '=' && format[2] == ',' && format[4] == '\r' && format[5] == '\n')
   {
     sensorId = strtol(&format[1], &ptr, 10);
     sensorStatus = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
-
+    resultProcessed = setSensorStatus(sensorId, sensorStatus);//set new value and verify if accepted.
   }
 
-  //todo set sensorStatus
+  sensorStatus = getSensorStatus(sensorId); //get sensor status, value < 0 is error
+  sensorType = getSensorType(sensorId); //get sensor type, value < 0 is error
 
-  if( sensorId >= 1 && sensorId <= 6 && sensorStatus >= 0 && sensorStatus <= 1)
+  if( sensorStatus >= 0 && sensorType >= 0 && resultProcessed >= 0 ) //only check value >= zero and resultProcessed >= zero, check on sensorId not needed indirect with getSensStatus() and getSensorTyp()
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdSensor, sensorId, sensorStatus, sensorType); //todo get sensor type
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%u\r\n", cmdSensor, sensorId, (bool)sensorStatus, (uint16_t)sensorType);
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -961,10 +1181,10 @@ void rcvSensor(int arguments, const char * format, ...)
  *
  * @param arguments not used
  */
-void sendReadInterval(int arguments, const char * format, ...)
+void sendLoraInterval(int arguments, const char * format, ...)
 {
 
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLoraInterval, getLeesInterval() );
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLoraInterval, getLoraInterval() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
@@ -975,24 +1195,23 @@ void sendReadInterval(int arguments, const char * format, ...)
  * @param argument: 1: <Interval>
  *
  */
-void rcvReadInterval(int arguments, const char * format, ...)
+void rcvLoraInterval(int arguments, const char * format, ...)
 {
   char *ptr; //dummy pointer
   int interval = 0;
+  int32_t resultProcessed = -1;
 
 
-  if( format[0] == '=' )
+  if( format[0] == '=' ) //check index 0 is "="
   {
-    interval = strtol(&format[1], &ptr, 10);
+    interval = strtol(&format[1], &ptr, 10); //convert string to number
   }
 
-  //todo set sensorStatus
+  resultProcessed = setLoraInterval((uint16_t)interval);//set lora interval
 
-  if( interval >= 5 && interval <= 1440 )
+  if( resultProcessed >= 0 )
   {
-    //todo set interval
-
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLoraInterval, interval );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdLoraInterval, getLoraInterval() );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -1009,9 +1228,26 @@ void rcvReadInterval(int arguments, const char * format, ...)
  */
 void sendMeasureTime(int arguments, const char * format, ...)
 {
+  char *ptr; //dummy pointer
+  int sensorId = -1;
+  int32_t measureTime = -1;
 
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getMeetTijd() );
-  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  if( format[0] == '=' && format[2] == '\r' && format[3] == '\n') //check index 0 is "=" and index 2 is "\r" and index 3 is "\n"
+  {
+    sensorId = strtol(&format[1], &ptr, 10); //convert string to number
+  }
+
+  measureTime = getMeasureTime(sensorId);
+
+  if( measureTime >= 0 )
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getMeasureTime(sensorId) );
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
 
 }
 
@@ -1024,21 +1260,23 @@ void sendMeasureTime(int arguments, const char * format, ...)
 void rcvMeasureTime(int arguments, const char * format, ...)
 {
   char *ptr; //dummy pointer
-  int interval = 0;
 
+  int sensorId = -1;
+  int32_t measureTime = -1;
+  int32_t resultProcessed = -1;
 
-  if( format[0] == '=' )
+  if( format[0] == '=' && format[2] == ',' ) //check index 0 is "=" and index 2 is ","
   {
-    interval = strtol(&format[1], &ptr, 10);
+    sensorId = strtol(&format[1], &ptr, 10); //convert string to number
+    measureTime = strtol(ptr+1, &ptr, 10); //convert string to number, skip <comma>, increment ptr.
+
+    resultProcessed = setMeasureTime(sensorId, measureTime); //save value
+
   }
 
-  //todo set sensorStatus
-
-  if( interval >= 0 && interval <= 60000 )
+  if( resultProcessed >= 0 ) //verify saving result is zero or larger
   {
-    //todo set meetTijd
-
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, interval );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getMeasureTime(sensorId) );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -1055,18 +1293,22 @@ void rcvMeasureTime(int arguments, const char * format, ...)
  */
 void sendDataDump(int arguments, const char * format, ...)
 {
+  char *ptr; //dummy pointer
+
+  //check command has a extra argument
+  if( format[0] == '=')
+  {
+    numberOffDumpRecords = strtol(&format[1], &ptr, 10); //convert string to number
+  }
+  else //no argument, just dump all
+  {
+    numberOffDumpRecords = DUMP_ALL;
+  }
 
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdDataDump, getNumberOfMeasures() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
-
-  dataDump = true;
-
-  //todo "sendMeasureTime()" send data line by other functions, not in IRQ
-
-  //todo snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:OK\r\n", cmdDataDump );
-  //todo uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
-
+  dataDump = true;  //trigger dataDump in handler
 }
 
 __weak int32_t printLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength )
@@ -1140,7 +1382,7 @@ void sendAlwaysOnState(int arguments, const char * format, ...)
 void rcvAlwaysOnState(int arguments, const char * format, ...)
 {
   char *ptr; //dummy pointer
-  int status = 0;
+  int status = -1;
 
 
   if( format[0] == '=' )
@@ -1148,13 +1390,11 @@ void rcvAlwaysOnState(int arguments, const char * format, ...)
     status = strtol(&format[1], &ptr, 10);
   }
 
-  //todo set sensorStatus
-
   if( status >= 0 && status <= 1 )
   {
-    //todo set AlwaysOn status
+    setAlwaysOn(status); //set alwaysOnState
 
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdAlwaysOn, status );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdAlwaysOn, getAlwaysOn() );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -1172,13 +1412,27 @@ void rcvAlwaysOnState(int arguments, const char * format, ...)
  */
 void rcvErase(int arguments, const char * format, ...)
 {
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s\r\n", cmdErase );
-  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  sendProgressLine(0, cmdErase); //send progress line
 
-  eraseCompleteLog();  //erase complete log memory
-  //todo send progress every 1 sec, not in IRQ
-  //todo send "Wissen:OK", not in IRQ
+  dataErase = true; //trigger dataErase in handler
+}
 
+/**
+ * @brief send progress line to config uart.
+ *
+ * @param arguments not used
+ */
+void sendProgressLine( uint8_t percent, const char * command  )
+{
+  int length = 0;
+
+  //get data from log ID
+  length = snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s=%d%%\r\n", command, percent );
+
+  if( length > 0 )
+  {
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
 }
 
 /**
@@ -1238,6 +1492,17 @@ void rcvTest(int arguments, const char * format, ...)
 void sendError(int arguments, const char * format, ... )
 {
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s\r\n", cmdError);
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+}
+
+/**
+ * @brief function to send Okay command
+ *
+ * @param arguments not used
+ */
+void sendOkay(int arguments, const char * format, ... )
+{
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s\r\n", format, cmdOkay);
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 

@@ -474,10 +474,18 @@ uint32_t getOldestLogId(void)
 const uint16_t getNumberOfMeasures(void)
 {
   uint32_t latestId = newLogId; //newLogId is the next ID, start with 0, so when newLogId = 1, there is 1 log item.
-
+  uint32_t oldestId = readBackupRegister(BACKUP_REGISTER_OLDEST_LOG);
   if( latestId > NUMBER_PAGES_FOR_LOGGING )
   {
-    return NUMBER_PAGES_FOR_LOGGING;
+    if( latestId >= oldestId)
+    {
+      return latestId - oldestId;
+    }
+    else
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, "latestId is smaller then oldest, not possible!\r\n" );
+      return NUMBER_PAGES_FOR_LOGGING;
+    }
   }
   else
   {
@@ -486,16 +494,125 @@ const uint16_t getNumberOfMeasures(void)
 }
 
 /**
- * @fn const uint8_t eraseCompleteLog(void)
- * @brief override function to erase complete log
- * todo only erase the log memory blocks
+ * @fn int8_t eraseCompleteLog(void)
+ * @brief function to erase all logs depending on reserverd memory of logs it choose the right block size to erase.
  *
- * @return
+ * @return >= 0 okay, < 0 error not erased.
  */
-const uint8_t eraseCompleteLog(void)
+const uint8_t eraseCompleteLog( void )
 {
-  chipEraseDataflash(); //erase chip
-  newLogId = 0; //reset LogId.
+  int returnValue = -1;
 
-  return 0;
+  if( NUMBER_PAGES_FOR_LOGGING == NUMBER_PAGES_DATAFLASH ) //complete flash is used, chip erase can be executed
+  {
+    chipEraseDataflash();
+    returnValue = 0;
+  }
+  else if( (NUMBER_PAGES_FOR_LOGGING % NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH) == 0 )
+  {
+    for(int i = 0; i< NUMBER_PAGES_FOR_LOGGING/NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH; i++)
+    {
+      blockErase64kDataflash( i * PAGE_SIZE_DATAFLASH * NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH );
+    }
+    returnValue = 0;
+  }
+  else if( (NUMBER_PAGES_FOR_LOGGING % NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH) == 0 )
+  {
+    for(int i = 0; i< NUMBER_PAGES_FOR_LOGGING/NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH; i++)
+    {
+      blockErase32kDataflash( i * PAGE_SIZE_DATAFLASH * NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH );
+    }
+    returnValue = 0;
+  }
+  else if( (NUMBER_PAGES_FOR_LOGGING % NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) == 0 )
+  {
+    for(int i = 0; i< NUMBER_PAGES_FOR_LOGGING/NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH; i++)
+    {
+      blockErase4kDataflash( i * PAGE_SIZE_DATAFLASH * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH );
+    }
+    returnValue = 0;
+  }
+  else
+  {
+    //error
+    APP_LOG(TS_OFF, VLEVEL_L, "Log erase not possible\r\n");
+    returnValue = -1;
+  }
+
+  if( returnValue >= 0 )
+  {
+    writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, 0);
+    writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, 0);
+    newLogId = 0;
+  }
+
+  return returnValue;
+
+}
+
+/**
+ * @fn int8_t eraseCompleteLog(void)
+ * @brief function to erase all logs depending on reserverd memory of logs it choose the right block size to erase.
+ *
+ * @return >= 0 okay, < 0 error not erased.
+ */
+const int8_t eraseCompleteLogBlockByBlock( uint32_t * startAddress )
+{
+  int returnValue = -1;
+
+  if( NUMBER_PAGES_FOR_LOGGING == NUMBER_PAGES_DATAFLASH ) //complete flash is used, chip erase can be executed
+  {
+    chipEraseDataflash();
+    *startAddress += NUMBER_PAGES_DATAFLASH * PAGE_SIZE_DATAFLASH;
+    returnValue = 0;
+  }
+  else if( (NUMBER_PAGES_FOR_LOGGING % NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH) == 0 )
+  {
+
+    blockErase64kDataflash( *startAddress );
+    *startAddress += NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH * PAGE_SIZE_DATAFLASH;
+
+    returnValue = 0;
+  }
+  else if( (NUMBER_PAGES_FOR_LOGGING % NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH) == 0 )
+  {
+
+    blockErase32kDataflash( *startAddress );
+    *startAddress += NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH  * PAGE_SIZE_DATAFLASH;
+
+    returnValue = 0;
+  }
+  else if( (NUMBER_PAGES_FOR_LOGGING % NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) == 0 )
+  {
+
+    blockErase4kDataflash( *startAddress );
+    *startAddress += NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH  * PAGE_SIZE_DATAFLASH;
+
+    returnValue = 0;
+  }
+  else
+  {
+    //error
+    APP_LOG(TS_OFF, VLEVEL_L, "Log erase not possible\r\n");
+    returnValue = -1;
+  }
+
+  if( returnValue >= 0 )
+  {
+    if( *startAddress >= NUMBER_PAGES_FOR_LOGGING * PAGE_SIZE_DATAFLASH )
+    {
+      writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, 0);
+      writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, 0);
+      newLogId = 0;
+      returnValue = 1;
+    }
+  }
+
+
+  return returnValue;
+}
+
+const uint getProgressFromAddress( uint32_t address )
+{
+  return (address * 100) / (NUMBER_PAGES_FOR_LOGGING * PAGE_SIZE_DATAFLASH);
 }

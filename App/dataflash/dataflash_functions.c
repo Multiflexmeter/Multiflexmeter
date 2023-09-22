@@ -18,7 +18,6 @@ static uint8_t writePageBuffer[PAGE_SIZE_DATAFLASH];
 static uint8_t readPageBuffer[PAGE_SIZE_DATAFLASH];
 static uint8_t block4kBuffer[BLOCK_4K_SIZE_DATAFLASH];
 
-int8_t blockEraseDataflash( uint32_t address );
 
 /**
  * @fn int init_dataflash(void)
@@ -145,7 +144,7 @@ bool checkLogTurnoverAndErase(uint32_t logId)
     if( (pageAddress % 0x1000) == 0)
     {
       //first erase next block
-      return (blockEraseDataflash(pageAddress) == 0);
+      return (blockErase4kDataflash(pageAddress) == 0);
     }
   }
   return false;
@@ -217,13 +216,55 @@ int8_t readLogFromDataflash(uint32_t logId, uint8_t * data, uint32_t length)
  * @param address of memory in block
  * @return 0 is successful
  */
-int8_t blockEraseDataflash( uint32_t address )
+int8_t blockErase4kDataflash( uint32_t address )
 {
   //enable write
   standardflashWriteEnable();
 
   //block erase
   standardflashBlockErase4K( address );
+
+  //wait ready
+  standardflashWaitOnReady();
+
+  return 0;
+}
+
+/**
+ * @fn int8_t blockErase32kDataflash(uint32_t)
+ * @brief function to erase a block of 32k
+ *
+ * @param address of memory in block
+ * @return 0 is successful
+ */
+int8_t blockErase32kDataflash( uint32_t address )
+{
+  //enable write
+  standardflashWriteEnable();
+
+  //block erase
+  standardflashBlockErase32K( address );
+
+  //wait ready
+  standardflashWaitOnReady();
+
+  return 0;
+}
+
+/**
+ * @fn int8_t blockErase64kDataflash(uint32_t)
+ * @brief function to erase a block of 64k
+ *
+ * @param address of memory in block
+ * @return 0 is successful
+ */
+int8_t blockErase64kDataflash( uint32_t address )
+{
+  //enable write
+  standardflashWriteEnable();
+
+  //block erase
+  standardflashBlockErase64K( address );
 
   //wait ready
   standardflashWaitOnReady();
@@ -263,10 +304,11 @@ int8_t clearLogInDataflash(uint32_t logId)
   uint64_t pageAddress = (logId * PAGE_SIZE_DATAFLASH);
   pageAddress %= LOG_MEMEORY_SIZE;
 
-  blockEraseDataflash((uint32_t)pageAddress);
+  blockErase4kDataflash((uint32_t)pageAddress);
 
   return 0;
 }
+
 
 /**
  * @fn int8_t testDataflash(bool)
@@ -319,7 +361,7 @@ int8_t testDataflash(bool restoreOrinalData )
       APP_LOG(TS_OFF, VLEVEL_M, "Block %d is not empty.\r\n", blockNumber);
 
       //block erase
-      blockEraseDataflash((uint32_t)blockNumber*BLOCK_4K_SIZE_DATAFLASH);
+      blockErase4kDataflash((uint32_t)blockNumber*BLOCK_4K_SIZE_DATAFLASH);
     }
 
     //set a test value
@@ -349,7 +391,7 @@ int8_t testDataflash(bool restoreOrinalData )
     APP_LOG(TS_OFF, VLEVEL_M, "Testing block %d\r\n", blockNumber );
 
     //block erase
-    blockEraseDataflash((uint32_t)blockNumber*BLOCK_4K_SIZE_DATAFLASH);
+    blockErase4kDataflash((uint32_t)blockNumber*BLOCK_4K_SIZE_DATAFLASH);
 
     APP_LOG(TS_OFF, VLEVEL_H, "Test page %d is okay.\r\n", (blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i );
 

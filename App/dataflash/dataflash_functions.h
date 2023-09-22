@@ -20,7 +20,7 @@
 
 #define NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH  ( BLOCK_4K_SIZE_DATAFLASH / PAGE_SIZE_DATAFLASH )
 #define NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH  ( BLOCK_32K_SIZE_DATAFLASH / PAGE_SIZE_DATAFLASH )
-#define NUMBER_OF_PAGES_IN_62K_BLOCK_DATAFLASH  ( BLOCK_62K_SIZE_DATAFLASH / PAGE_SIZE_DATAFLASH )
+#define NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH  ( BLOCK_64K_SIZE_DATAFLASH / PAGE_SIZE_DATAFLASH )
 
 #define MAX_ADDRESS_OF_DATAFLASH      ( 0x7FFFFFUL )
 #define NUMBER_PAGES_FOR_LOGGING      ( NUMBER_PAGES_DATAFLASH - NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH )
@@ -33,6 +33,9 @@ int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length);
 bool checkLogTurnoverAndErase(uint32_t logId);
 int8_t readPageFromDataflash(uint32_t pageAddress, uint8_t * data, uint32_t length);
 int8_t readLogFromDataflash(uint32_t logId, uint8_t * data, uint32_t length);
+int8_t blockErase4kDataflash( uint32_t address );
+int8_t blockErase32kDataflash( uint32_t address );
+int8_t blockErase64kDataflash( uint32_t address );
 const int8_t chipEraseDataflash(void);
 int8_t testDataflash(bool restoreOrinalData );
 
