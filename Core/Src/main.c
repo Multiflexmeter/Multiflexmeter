@@ -144,6 +144,7 @@ int main(void)
 #ifdef CHECK_ON_CRYSTAL
   if( clockInit < 0 )                                   //check if clock init is not ready
   {
+    HAL_RCC_DeInit();
     clockInit = SystemClock_Config_HSI_Crystal();       //init clock HSI crystal, if failed try other
   }
 #endif
@@ -151,6 +152,7 @@ int main(void)
 #ifdef CHECK_ON_TCXO
   if( clockInit < 0 )                                   //check if clock init is not ready
   {
+    HAL_RCC_DeInit();
     clockInit = SystemClock_Config_HSI_TCXO();          //init clock HSI TCXO, if failed try other
   }
 #endif
@@ -158,12 +160,14 @@ int main(void)
 #ifdef CHECK_ON_TCXO_32MHZ
   if( clockInit < 0 )                                   //check if clock init is not ready
   {
+    HAL_RCC_DeInit();
     clockInit = SystemClock_Config_HSI_TXCO_32Mhz();    //init clock HSI TCXO 32Mhz (only for evaluation board Nucleo), if failed try other
   }
 #endif
 
   if( clockInit < 0 )                                   //check if clock init is not ready
   {
+    HAL_RCC_DeInit();
     SystemClock_Config_MSI_RC();                        //init clock MSI RC, should always work
   }
 
