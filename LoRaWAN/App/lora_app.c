@@ -92,6 +92,8 @@ typedef enum TxEventType_e
 static const char *slotStrings[] = { "1", "2", "C", "C_MC", "P", "P_MC" };
 static bool requestTime = 0;
 static uint32_t nextRequestTime = 0;
+static uint32_t countTimeRequestActive;
+static uint32_t countTimeReceived;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -685,6 +687,7 @@ static void SendTxData(void)
     //check the requestTime is true
     if( requestTime == true )
     {
+      countTimeRequestActive++;
       LmHandlerDeviceTimeReq(); //request the time
     }
 
@@ -900,6 +903,7 @@ static void OnSysTimeUpdate(void)
 {
   /* USER CODE BEGIN OnSysTimeUpdate_1 */
   requestTime = false; //set false when time message is received
+  countTimeReceived++;
   nextRequestTime = SysTimeGet().Seconds + TM_SECONDS_IN_1DAY;
   /* USER CODE END OnSysTimeUpdate_1 */
 }
