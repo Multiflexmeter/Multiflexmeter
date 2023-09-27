@@ -176,6 +176,11 @@ uint16_t SYS_GetBatteryLevel(void)
 /* Private Functions Definition -----------------------------------------------*/
 /* USER CODE BEGIN PrFD */
 
+uint32_t user_ADC_ReadChannels(uint32_t channel)
+{
+  return ADC_ReadChannels(channel);
+}
+
 /* USER CODE END PrFD */
 
 static uint32_t ADC_ReadChannels(uint32_t channel)

@@ -55,6 +55,9 @@ static DMA_BUFFER uint8_t bufferRxConfig[SIZE_RX_BUFFER_CONFIG];
 volatile uint32_t uartConfigActiveTime;
 static bool dataDump;
 static bool dataErase;
+static bool dataTest;
+static int currentTest;
+static int currentSubTest;
 
 static uint32_t numberOffDumpRecords;
 
@@ -393,6 +396,37 @@ __weak const int saveSettingsToVirtualEEPROM(void)
   return -1;
 }
 
+/**
+ * @fn int32_t SYS_GetAdc(int)
+ * @brief weak function SYS_GetAdc(), can be override in application code
+ *
+ * @param sensorId
+ * @return
+ */
+__weak const uint32_t SYS_GetAdc(int channel)
+{
+  return 0;
+}
+
+
+/**
+ * @fn uint16_t_t SYS_GetVoltage(uint32_t)
+ * @brief weak function SYS_GetVoltage(), can be override in application code
+ *
+ * @param sensorId
+ * @return
+ */
+__weak const uint16_t SYS_GetVoltage(int channel, uint32_t adcValue)
+{
+  return 0;
+}
+
+
+__weak int8_t SD_TEST(void)
+{
+  return -1;
+}
+
 void sendError(int arguments, const char * format, ... );
 void sendOkay(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -408,6 +442,8 @@ void sendDataDump(int arguments, const char * format, ...);
 void sendDataLine( uint32_t );
 void sendBatterijStatus(int arguments, const char * format, ...);
 void sendVbusStatus(int arguments, const char * format, ...);
+void sendAdc( int subTest );
+void sendTestSD( int test );
 
 void rcvJoinId(int arguments, const char * format, ...);
 void rcvDeviceID(int arguments, const char * format, ...);
@@ -668,6 +704,46 @@ void uartStartReceive_Config( uint8_t *pData, const uint16_t Size, const uint32_
 	assert_param( halRes == HAL_OK);
 }
 
+
+/**
+ * @fn void executeTest(int, int)
+ * @brief function to select test
+ *
+ * @param test
+ * @param subTest
+ */
+void executeTest(int test, int subTest)
+{
+
+  switch( test )
+  {
+    case 1: //request of software version
+
+      sendModuleInfo(0, 0); //send software versions
+
+      break;
+
+    case 2: //request of ADC measure
+
+      sendAdc(subTest); //get ADC
+
+      break;
+
+    case 6: //SD card test
+
+      sendTestSD(test);
+
+      break;
+
+    default:
+
+      sendError(0, 0);  //unknwon command, send error.
+
+      break;
+  }
+
+}
+
 /**
  * @brief config uart handler for timeout and special long commands.
  *
@@ -743,6 +819,12 @@ void configUartHandler(void)
           step = 10;
         }
 
+        else if(dataTest)
+        {
+          dataTest = false;
+          step = 20;
+        }
+
         break;
 
     ////////////////////////////////////////////////////////////////////////////////////////////
@@ -799,6 +881,17 @@ void configUartHandler(void)
       case 11:
 
         sendOkay(1,cmdErase); //send ready
+        step = 2; //back to wait
+
+        break;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /// Process test command
+    ////////////////////////////////////////////////////////////////////////////////////////////
+
+      case 20:
+
+        executeTest(currentTest, currentSubTest);
         step = 2; //back to wait
 
         break;
@@ -1373,6 +1466,41 @@ void sendVbusStatus(int arguments, const char * format, ...)
 }
 
 /**
+ * @fn void sendAdc(int)
+ * @brief function to send result of ADC test
+ *
+ * @param subTest : channel of ADC 0 until 22
+ */
+void sendAdc( int subTest )
+{
+  char unit[2] = "mV";
+
+  if( subTest == 19 )
+  {
+    unit[0] = 176;
+    unit[1] = 'C';
+  }
+
+  uint32_t adcValue = SYS_GetAdc(subTest);
+  snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,0x%lx,%u%s\r\n", "ADC", subTest, adcValue, SYS_GetVoltage(subTest, adcValue), unit );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+}
+
+
+/**
+ * @fn void sendTestSD(int)
+ * @brief
+ *
+ * @param test
+ */
+void sendTestSD( int test )
+{
+  snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test, SD_TEST() == 0 ? 1 : 0 );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+}
+
+
+/**
  * @brief send alwaysOn supply setting to config uart
  *
  * @param arguments not used
@@ -1470,9 +1598,11 @@ void rcvTest(int arguments, const char * format, ...)
 
   //todo set sensorStatus
 
-  if( test >= 0 && test <= 5 )
+  if( test >= 0 && test <= 9 )
   {
-    //todo set TEST
+    dataTest = true;
+    currentTest = test;
+    currentSubTest = subtest;
 
     if( subtest>=0)
     {
@@ -1489,11 +1619,6 @@ void rcvTest(int arguments, const char * format, ...)
   {
     sendError(0,0);
   }
-
-
-  //todo send progress every 1 sec, not in IRQ
-  //todo send "Wissen:OK", not in IRQ
-
 }
 
 void rcvSave(int arguments, const char * format, ...)
