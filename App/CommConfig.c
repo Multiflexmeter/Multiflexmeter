@@ -422,6 +422,11 @@ __weak const uint16_t SYS_GetVoltage(int channel, uint32_t adcValue)
 }
 
 
+__weak int8_t SD_TEST(void)
+{
+  return -1;
+}
+
 void sendError(int arguments, const char * format, ... );
 void sendOkay(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -438,6 +443,7 @@ void sendDataLine( uint32_t );
 void sendBatterijStatus(int arguments, const char * format, ...);
 void sendVbusStatus(int arguments, const char * format, ...);
 void sendAdc( int subTest );
+void sendTestSD( int test );
 
 void rcvJoinId(int arguments, const char * format, ...);
 void rcvDeviceID(int arguments, const char * format, ...);
@@ -711,16 +717,21 @@ void executeTest(int test, int subTest)
 
   switch( test )
   {
-    case 1:
+    case 1: //request of software version
 
       sendModuleInfo(0, 0); //send software versions
 
       break;
 
-    case 2:
-
+    case 2: //request of ADC measure
 
       sendAdc(subTest); //get ADC
+
+      break;
+
+    case 6: //SD card test
+
+      sendTestSD(test);
 
       break;
 
@@ -1475,6 +1486,20 @@ void sendAdc( int subTest )
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
+
+/**
+ * @fn void sendTestSD(int)
+ * @brief
+ *
+ * @param test
+ */
+void sendTestSD( int test )
+{
+  snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test, SD_TEST() == 0 ? 1 : 0 );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+}
+
+
 /**
  * @brief send alwaysOn supply setting to config uart
  *
@@ -1573,7 +1598,7 @@ void rcvTest(int arguments, const char * format, ...)
 
   //todo set sensorStatus
 
-  if( test >= 0 && test <= 5 )
+  if( test >= 0 && test <= 9 )
   {
     dataTest = true;
     currentTest = test;
