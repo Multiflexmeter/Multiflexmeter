@@ -24,11 +24,13 @@
 #define CMD58 (58)    /* READ_OCR */
 
 /* MMC card type flags (MMC_GET_TYPE) */
-#define CT_MMC    0x01    /* MMC ver 3 */
-#define CT_SD1    0x02    /* SD ver 1 */
-#define CT_SD2    0x04    /* SD ver 2 */
-#define CT_SDC    0x06    /* SD */
-#define CT_BLOCK  0x08    /* Block addressing */
+#define CT_MMC3   0x01    /* MMC ver 3 */
+#define CT_MMC4   0x02    /* MMC ver 4+ */
+#define CT_MMC    0x03    /* MMC */
+#define CT_SDC1   0x02    /* SDC ver 1 */
+#define CT_SDC2   0x04    /* SDC ver 2+ */
+#define CT_SDC    0x0C    /* SDC */
+#define CT_BLOCK  0x10    /* Block addressing */
 
 #if FF_FS_EXFAT
 #if FF_INTDEF != 2
@@ -62,16 +64,6 @@ extern SPI_HandleTypeDef  hspi1;
 #define HSPI_SDCARD     &hspi1
 #define SD_CS_PORT      GPIOB
 #define SD_CS_PIN     GPIO_PIN_4
-
-
-/* MMC card type flags (MMC_GET_TYPE) */
-#define CT_MMC3   0x01    /* MMC ver 3 */
-#define CT_MMC4   0x02    /* MMC ver 4+ */
-#define CT_MMC    0x03    /* MMC */
-#define CT_SDC1   0x02    /* SDC ver 1 */
-#define CT_SDC2   0x04    /* SDC ver 2+ */
-#define CT_SDC    0x0C    /* SDC */
-#define CT_BLOCK  0x10    /* Block addressing */
 
 
 #endif
