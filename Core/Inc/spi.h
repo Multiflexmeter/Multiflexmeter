@@ -42,6 +42,9 @@ void MX_SPI1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
+void MX_SPI1_lowSpeed(void);
+void MX_SPI1_highSpeed(void);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

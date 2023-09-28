@@ -258,9 +258,10 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-
     FatFsCnt++;
+#ifdef FATFS_1
     if(FatFsCnt >= 10)
+#endif
     {
       FatFsCnt = 0;
       SDTimer_Handler();
