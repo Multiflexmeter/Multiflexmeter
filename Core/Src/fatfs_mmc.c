@@ -308,14 +308,14 @@ static int xmit_datablock(const uint8_t *buff, uint8_t token)
 /* Send a command packet to the MMC                                      */
 /*-----------------------------------------------------------------------*/
 /**
- * @fn uint8_t send_cmd(uint8_t, DWORD)
+ * @fn uint8_t send_cmd(uint8_t, uint32_t)
  * @brief Send a command packet to the MMC
  *
  * @param cmd : Command index
  * @param arg : Argument
  * @return Return value: R1 resp (bit7==1:Failed to send)
  */
-static uint8_t send_cmd(uint8_t cmd, DWORD arg)
+static uint8_t send_cmd(uint8_t cmd, uint32_t arg)
 {
 	uint8_t n, res;
 
@@ -460,7 +460,7 @@ DSTATUS SD_disk_status(uint8_t drv)
  */
 DRESULT SD_disk_read(uint8_t drv, uint8_t *buff, LBA_t sector, uint16_t count)
 {
-	DWORD sect = (DWORD)sector;
+	uint32_t sect = (uint32_t)sector;
 
 
 	if (drv || !count) return RES_PARERR;		/* Check parameter */
@@ -502,7 +502,7 @@ DRESULT SD_disk_read(uint8_t drv, uint8_t *buff, LBA_t sector, uint16_t count)
  */
 DRESULT SD_disk_write(uint8_t drv, const uint8_t *buff, LBA_t sector, uint16_t count)
 {
-	DWORD sect = (DWORD)sector;
+	uint32_t sect = (uint32_t)sector;
 
 
 	if (drv || !count) return RES_PARERR;		/* Check parameter */
@@ -551,7 +551,7 @@ DRESULT SD_disk_ioctl(uint8_t drv, uint8_t cmd, void *buff)
 	DRESULT res;
 	uint8_t n, csd[16];
 	uint8_t * ptr = buff;
-	DWORD st, ed, csize;
+	uint32_t st, ed, csize;
 	LBA_t *dp;
 
 	if (drv) return RES_PARERR;					/* Check parameter */
@@ -587,10 +587,10 @@ DRESULT SD_disk_ioctl(uint8_t drv, uint8_t cmd, void *buff)
 		if (select()) res = RES_OK;
 		break;
 
-	case GET_SECTOR_COUNT :	/* Get drive capacity in unit of sector (DWORD) */
+	case GET_SECTOR_COUNT :	/* Get drive capacity in unit of sector (uint32_t) */
 		if ((send_cmd(CMD9, 0) == 0) && rcvr_datablock(csd, 16)) {
 			if ((csd[0] >> 6) == 1) {	/* SDC CSD ver 2 */
-				csize = csd[9] + ((WORD)csd[8] << 8) + ((DWORD)(csd[7] & 63) << 16) + 1;
+				csize = csd[9] + ((WORD)csd[8] << 8) + ((uint32_t)(csd[7] & 63) << 16) + 1;
 				*(LBA_t*)buff = csize << 10;
 			} else {					/* SDC CSD ver 1 or MMC */
 				n = (csd[5] & 15) + ((csd[10] & 128) >> 7) + ((csd[9] & 3) << 1) + 2;
@@ -601,22 +601,22 @@ DRESULT SD_disk_ioctl(uint8_t drv, uint8_t cmd, void *buff)
 		}
 		break;
 
-	case GET_BLOCK_SIZE :	/* Get erase block size in unit of sector (DWORD) */
+	case GET_BLOCK_SIZE :	/* Get erase block size in unit of sector (uint32_t) */
 		if (CardType & CT_SDC2) {	/* SDC ver 2+ */
 			if (send_cmd(ACMD13, 0) == 0) {	/* Read SD status */
 				xchg_spi(0xFF);
 				if (rcvr_datablock(csd, 16)) {				/* Read partial block */
 					for (n = 64 - 16; n; n--) xchg_spi(0xFF);	/* Purge trailing data */
-					*(DWORD*)buff = 16UL << (csd[10] >> 4);
+					*(uint32_t*)buff = 16UL << (csd[10] >> 4);
 					res = RES_OK;
 				}
 			}
 		} else {					/* SDC ver 1 or MMC */
 			if ((send_cmd(CMD9, 0) == 0) && rcvr_datablock(csd, 16)) {	/* Read CSD */
 				if (CardType & CT_SDC1) {	/* SDC ver 1.XX */
-					*(DWORD*)buff = (((csd[10] & 63) << 1) + ((WORD)(csd[11] & 128) >> 7) + 1) << ((csd[13] >> 6) - 1);
+					*(uint32_t*)buff = (((csd[10] & 63) << 1) + ((WORD)(csd[11] & 128) >> 7) + 1) << ((csd[13] >> 6) - 1);
 				} else {					/* MMC */
-					*(DWORD*)buff = ((WORD)((csd[10] & 124) >> 2) + 1) * (((csd[11] & 3) << 3) + ((csd[11] & 224) >> 5) + 1);
+					*(uint32_t*)buff = ((WORD)((csd[10] & 124) >> 2) + 1) * (((csd[11] & 3) << 3) + ((csd[11] & 224) >> 5) + 1);
 				}
 				res = RES_OK;
 			}
@@ -627,7 +627,7 @@ DRESULT SD_disk_ioctl(uint8_t drv, uint8_t cmd, void *buff)
 		if (!(CardType & CT_SDC)) break;				/* Check if the card is SDC */
 		if (disk_ioctl(drv, MMC_GET_CSD, csd)) break;	/* Get CSD */
 		if (!(csd[10] & 0x40)) break;					/* Check if ERASE_BLK_EN = 1 */
-		dp = buff; st = (DWORD)dp[0]; ed = (DWORD)dp[1];	/* Load sector block */
+		dp = buff; st = (uint32_t)dp[0]; ed = (uint32_t)dp[1];	/* Load sector block */
 		if (!(CardType & CT_BLOCK)) {
 			st *= 512; ed *= 512;
 		}
