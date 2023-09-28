@@ -54,20 +54,16 @@ static uint8_t PowerFlag = 0;       /* Power flag */
 /* SPI controls (Platform dependent)                                     */
 /*-----------------------------------------------------------------------*/
 
-/* Initialize MMC interface */
-//static void init_spi (void)
-//{
-//	SPIxENABLE();		/* Enable SPI function */
-//	CS_HIGH();			/* Set CS# high */
-//
-//	for (Timer1 = 10; Timer1; ) ;	/* 10ms */
-//}
 
-
-/* Exchange a byte */
-static uint8_t xchg_spi (
-    uint8_t dat	/* Data to send */
-)
+/* */
+/**
+ * @fn uint8_t xchg_spi(uint8_t)
+ * @brief Exchange a byte
+ *
+ * @param dat : Data to send
+ * @return readed data byte
+ */
+static uint8_t xchg_spi ( uint8_t dat	)
 {
   uint8_t rxData;
   while (HAL_SPI_GetState(HSPI_SDCARD) != HAL_SPI_STATE_READY);
@@ -76,24 +72,27 @@ static uint8_t xchg_spi (
 }
 
 
-/* SPI receive a byte */
+/**
+ * @fn uint8_t SPI_RxByte(void)
+ * @brief SPI receive a byte
+ *
+ * @return readed byte
+ */
 static uint8_t SPI_RxByte(void)
 {
   uint8_t dummy, data;
   dummy = 0xFF;
 
-//  while(!__HAL_SPI_GET_FLAG(HSPI_SDCARD, SPI_FLAG_TXE));
-while ((HAL_SPI_GetState(HSPI_SDCARD) != HAL_SPI_STATE_READY));
+  while (HAL_SPI_GetState(HSPI_SDCARD) != HAL_SPI_STATE_READY);
   HAL_SPI_TransmitReceive(HSPI_SDCARD, &dummy, &data, 1, SPI_TIMEOUT);
 
   return data;
 }
 
 
-/* Receive multiple byte */
 /**
  * @fn void rcvr_spi_multi(uint8_t*, uint16_t)
- * @brief
+ * @brief Receive multiple byte
  *
  * @param buff Pointer to data buffer
  * @param btr Number of bytes to receive (even number)
@@ -108,34 +107,15 @@ static void rcvr_spi_multi(uint8_t *buff, uint16_t btr )
 
 
 #if FF_FS_READONLY == 0
-/* Send multiple byte */
-static void xmit_spi_multi (
-	const uint8_t *buff,	/* Pointer to the data */
-	uint16_t btx			/* Number of bytes to send (even number) */
-)
+/**
+ * @fn void xmit_spi_multi(const uint8_t*, uint16_t)
+ * @brief Send multiple byte
+ *
+ * @param buff : Pointer to the data
+ * @param btx : Number of bytes to send (even number)
+ */
+static void xmit_spi_multi(const uint8_t *buff, uint16_t btx)
 {
-//	WORD d;
-//
-//
-//	SPIx_CR1 &= ~_BV(6);
-//	SPIx_CR1 |= (_BV(6) | _BV(11));		/* Put SPI into 16-bit mode */
-//
-//	d = buff[0] << 8 | buff[1]; buff += 2;
-//	SPIx_DR = d;	/* Send the first word */
-//	btx -= 2;
-//	do {
-//		d = buff[0] << 8 | buff[1]; buff += 2;	/* Word to send next */
-//		while ((SPIx_SR & 0x83) != 0x03) ;	/* Wait for end of the SPI transaction */
-//		SPIx_DR;							/* Discard received word */
-//		SPIx_DR = d;						/* Start next transaction */
-//	} while (btx -= 2);
-//	while ((SPIx_SR & 0x83) != 0x03) ;	/* Wait for end of the SPI transaction */
-//	SPIx_DR;							/* Discard received word */
-//
-//	SPIx_CR1 &= ~(_BV(6) | _BV(11));	/* Put SPI into 8-bit mode */
-//	SPIx_CR1 |= _BV(6);
-
-
 	do
   {
 	  xchg_spi(*buff++);
@@ -146,13 +126,14 @@ static void xmit_spi_multi (
 #endif
 
 
-/*-----------------------------------------------------------------------*/
-/* Wait for card ready                                                   */
-/*-----------------------------------------------------------------------*/
-
-static int wait_ready (	/* 1:Ready, 0:Timeout */
-	uint16_t wt			/* Timeout [ms] */
-)
+/**
+ * @fn int wait_ready(uint16_t)
+ * @brief Wait for card ready
+ *
+ * @param wt : Timeout [ms]
+ * @return 1:Ready, 0:Timeout
+ */
+static int wait_ready(uint16_t wt)
 {
   uint8_t d;
 
@@ -167,24 +148,24 @@ static int wait_ready (	/* 1:Ready, 0:Timeout */
 }
 
 
-
-/*-----------------------------------------------------------------------*/
-/* Deselect card and release SPI                                         */
-/*-----------------------------------------------------------------------*/
-
+/**
+ * @fn void deselect(void)
+ * @brief Deselect card and release SPI
+ *
+ */
 static void deselect (void)
 {
 	CS_HIGH();		/* Set CS# high */
 	xchg_spi(0xFF);	/* Dummy clock (force DO hi-z for multiple slave SPI) */
-
 }
 
 
-
-/*-----------------------------------------------------------------------*/
-/* Select card and wait for ready                                        */
-/*-----------------------------------------------------------------------*/
-
+/**
+ * @fn int select(void)
+ * @brief Select card and wait for ready
+ *
+ * @return
+ */
 static int select (void)	/* 1:OK, 0:Timeout */
 {
 	CS_LOW();		/* Set CS# low */
@@ -200,7 +181,11 @@ static int select (void)	/* 1:OK, 0:Timeout */
  * SD functions
  **************************************/
 
-/* power on */
+/**
+ * @fn void SD_PowerOn(void)
+ * @brief Power on
+ *
+ */
 static void SD_PowerOn(void)
 {
   uint8_t args[6];
@@ -238,13 +223,22 @@ static void SD_PowerOn(void)
   PowerFlag = 1;
 }
 
-/* power off */
+/**
+ * @fn void SD_PowerOff(void)
+ * @brief power off
+ *
+ */
 static void SD_PowerOff(void)
 {
   PowerFlag = 0;
 }
 
-/* check power flag */
+/**
+ * @fn uint8_t SD_CheckPower(void)
+ * @brief check power flag
+ *
+ * @return
+ */
 static uint8_t SD_CheckPower(void)
 {
   return PowerFlag;
@@ -252,13 +246,17 @@ static uint8_t SD_CheckPower(void)
 
 
 /*-----------------------------------------------------------------------*/
-/* Receive a data packet from the MMC                                    */
+/*                                     */
 /*-----------------------------------------------------------------------*/
-
-static int rcvr_datablock (	/* 1:OK, 0:Error */
-  uint8_t *buff,				/* Data buffer */
-	uint16_t btr				/* Data block length (byte) */
-)
+/**
+ * @fn int rcvr_datablock(uint8_t*, uint16_t)
+ * @brief Receive a data packet from the MMC
+ *
+ * @param buff : Data buffer
+ * @param btr : Data block length (byte)
+ * @return 1:OK, 0:Error
+ */
+static int rcvr_datablock(uint8_t *buff, uint16_t btr)
 {
   uint8_t token;
 
@@ -277,16 +275,16 @@ static int rcvr_datablock (	/* 1:OK, 0:Error */
 }
 
 
-
-/*-----------------------------------------------------------------------*/
-/* Send a data packet to the MMC                                         */
-/*-----------------------------------------------------------------------*/
-
 #if FF_FS_READONLY == 0
-static int xmit_datablock (	/* 1:OK, 0:Failed */
-	const uint8_t *buff,		/* Ponter to 512 byte data to be sent */
-	uint8_t token				/* Token */
-)
+/**
+ * @fn int xmit_datablock(const uint8_t*, uint8_t)
+ * @brief Send a data packet to the MMC
+ *
+ * @param buff : Ponter to 512 byte data to be sent
+ * @param token : Token
+ * @return 1:OK, 0:Failed
+ */
+static int xmit_datablock(const uint8_t *buff, uint8_t token)
 {
   uint8_t resp;
 
@@ -309,11 +307,15 @@ static int xmit_datablock (	/* 1:OK, 0:Failed */
 /*-----------------------------------------------------------------------*/
 /* Send a command packet to the MMC                                      */
 /*-----------------------------------------------------------------------*/
-
-static uint8_t send_cmd (	/* Return value: R1 resp (bit7==1:Failed to send) */
-  uint8_t cmd,			/* Command index */
-	DWORD arg			/* Argument */
-)
+/**
+ * @fn uint8_t send_cmd(uint8_t, DWORD)
+ * @brief Send a command packet to the MMC
+ *
+ * @param cmd : Command index
+ * @param arg : Argument
+ * @return Return value: R1 resp (bit7==1:Failed to send)
+ */
+static uint8_t send_cmd(uint8_t cmd, DWORD arg)
 {
 	uint8_t n, res;
 
@@ -359,20 +361,20 @@ static uint8_t send_cmd (	/* Return value: R1 resp (bit7==1:Failed to send) */
 
 ---------------------------------------------------------------------------*/
 
-
-/*-----------------------------------------------------------------------*/
-/* Initialize disk drive                                                 */
-/*-----------------------------------------------------------------------*/
-
-DSTATUS SD_disk_initialize (
-	uint8_t drv		/* Physical drive number (0) */
-)
+/**
+ * @fn DSTATUS SD_disk_initialize(uint8_t)
+ * @brief Initialize disk drive
+ *
+ * @param drv Physical drive number (0)
+ * @return
+ */
+DSTATUS SD_disk_initialize(uint8_t drv)
 {
 	uint8_t n, cmd, ty, ocr[4];
 
 
 	if (drv) return STA_NOINIT;			/* Supports only drive 0 */
-	//init_spi();							/* Initialize SPI */
+
 
 	if (Stat & STA_NODISK) return Stat;	/* Is card existing in the soket? */
 
@@ -430,13 +432,14 @@ DSTATUS SD_disk_initialize (
 
 
 
-/*-----------------------------------------------------------------------*/
-/* Get disk status                                                       */
-/*-----------------------------------------------------------------------*/
-
-DSTATUS SD_disk_status (
-	uint8_t drv		/* Physical drive number (0) */
-)
+/**
+ * @fn DSTATUS SD_disk_status(uint8_t)
+ * @brief Get disk status
+ *
+ * @param drv : Physical drive number (0)
+ * @return
+ */
+DSTATUS SD_disk_status(uint8_t drv)
 {
 	if (drv) return STA_NOINIT;		/* Supports only drive 0 */
 
@@ -445,16 +448,17 @@ DSTATUS SD_disk_status (
 
 
 
-/*-----------------------------------------------------------------------*/
-/* Read sector(s)                                                        */
-/*-----------------------------------------------------------------------*/
-
-DRESULT SD_disk_read (
-	uint8_t drv,		/* Physical drive number (0) */
-	uint8_t *buff,		/* Pointer to the data buffer to store read data */
-	LBA_t sector,	/* Start sector number (LBA) */
-	uint16_t count		/* Number of sectors to read (1..128) */
-)
+/**
+ * @fn DRESULT SD_disk_read(uint8_t, uint8_t*, LBA_t, uint16_t)
+ * @brief Read sector(s)
+ *
+ * @param drv : Physical drive number (0)
+ * @param buff : Pointer to the data buffer to store read data
+ * @param sector : Start sector number (LBA)
+ * @param count : Number of sectors to read (1..128)
+ * @return
+ */
+DRESULT SD_disk_read(uint8_t drv, uint8_t *buff, LBA_t sector, uint16_t count)
 {
 	DWORD sect = (DWORD)sector;
 
@@ -485,18 +489,18 @@ DRESULT SD_disk_read (
 }
 
 
-
-/*-----------------------------------------------------------------------*/
-/* Write sector(s)                                                       */
-/*-----------------------------------------------------------------------*/
-
 #if FF_FS_READONLY == 0
-DRESULT SD_disk_write (
-	uint8_t drv,			/* Physical drive number (0) */
-	const uint8_t *buff,	/* Ponter to the data to write */
-	LBA_t sector,		/* Start sector number (LBA) */
-	uint16_t count			/* Number of sectors to write (1..128) */
-)
+/**
+ * @fn DRESULT SD_disk_write(uint8_t, const uint8_t*, LBA_t, uint16_t)
+ * @brief Write sector(s)
+ *
+ * @param drv : Physical drive number (0)
+ * @param buff : Ponter to the data to write
+ * @param sector : Start sector number (LBA)
+ * @param count : Number of sectors to write (1..128)
+ * @return
+ */
+DRESULT SD_disk_write(uint8_t drv, const uint8_t *buff, LBA_t sector, uint16_t count)
 {
 	DWORD sect = (DWORD)sector;
 
@@ -531,14 +535,18 @@ DRESULT SD_disk_write (
 
 
 /*-----------------------------------------------------------------------*/
-/* Miscellaneous drive controls other than data read/write               */
+/*              */
 /*-----------------------------------------------------------------------*/
-
-DRESULT SD_disk_ioctl (
-	uint8_t drv,		/* Physical drive number (0) */
-	uint8_t cmd,		/* Control command code */
-	void *buff		/* Pointer to the conrtol data */
-)
+/**
+ * @fn DRESULT SD_disk_ioctl(uint8_t, uint8_t, void*)
+ * @brief Miscellaneous drive controls other than data read/write
+ *
+ * @param drv Physical drive number (0)
+ * @param cmd : Control command code
+ * @param buff : Pointer to the conrtol data
+ * @return
+ */
+DRESULT SD_disk_ioctl(uint8_t drv, uint8_t cmd, void *buff)
 {
 	DRESULT res;
 	uint8_t n, csd[16];
@@ -671,14 +679,11 @@ DRESULT SD_disk_ioctl (
 }
 
 
-
-/*-----------------------------------------------------------------------*/
-/* Device timer function                                                 */
-/*-----------------------------------------------------------------------*/
-/* This function must be called from timer interrupt routine in period
-/  of 1 ms to generate card control timing.
-*/
-
+/**
+ * @fn void disk_timerproc(void)
+ * @brief Device timer function
+ * @note This function must be called from timer interrupt routine in period of 1 ms to generate card control timing.
+ */
 void disk_timerproc (void)
 {
 	WORD n;
