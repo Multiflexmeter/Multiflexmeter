@@ -61,7 +61,7 @@ typedef DWORD LBA_t;
 static volatile DSTATUS Stat = STA_NOINIT;	/* Physical drive status */
 static volatile uint16_t Timer1, Timer2;		/* 1kHz decrement timer stopped at zero (disk_timerproc()) */
 
-static BYTE CardType;	/* Card type flags */
+static uint8_t CardType;	/* Card type flags */
 static uint8_t PowerFlag = 0;       /* Power flag */
 
 #define CS_HIGH() HAL_GPIO_WritePin(SD_CS_PORT, SD_CS_PIN, GPIO_PIN_SET)
@@ -85,11 +85,11 @@ static uint8_t PowerFlag = 0;       /* Power flag */
 
 
 /* Exchange a byte */
-static BYTE xchg_spi (
-	BYTE dat	/* Data to send */
+static uint8_t xchg_spi (
+    uint8_t dat	/* Data to send */
 )
 {
-  BYTE rxData;
+  uint8_t rxData;
   while (HAL_SPI_GetState(HSPI_SDCARD) != HAL_SPI_STATE_READY);
   HAL_SPI_TransmitReceive(HSPI_SDCARD, &dat, &rxData, 1, SPI_TIMEOUT);
   return rxData;
@@ -112,13 +112,13 @@ while ((HAL_SPI_GetState(HSPI_SDCARD) != HAL_SPI_STATE_READY));
 
 /* Receive multiple byte */
 /**
- * @fn void rcvr_spi_multi(BYTE*, UINT)
+ * @fn void rcvr_spi_multi(uint8_t*, UINT)
  * @brief
  *
  * @param buff Pointer to data buffer
  * @param btr Number of bytes to receive (even number)
  */
-static void rcvr_spi_multi(BYTE *buff, UINT btr )
+static void rcvr_spi_multi(uint8_t *buff, UINT btr )
 {
   while (btr--)
   {
@@ -174,7 +174,7 @@ static int wait_ready (	/* 1:Ready, 0:Timeout */
 	UINT wt			/* Timeout [ms] */
 )
 {
-	BYTE d;
+  uint8_t d;
 
 
 	Timer2 = wt;
@@ -276,11 +276,11 @@ static uint8_t SD_CheckPower(void)
 /*-----------------------------------------------------------------------*/
 
 static int rcvr_datablock (	/* 1:OK, 0:Error */
-	BYTE *buff,				/* Data buffer */
+  uint8_t *buff,				/* Data buffer */
 	UINT btr				/* Data block length (byte) */
 )
 {
-	BYTE token;
+  uint8_t token;
 
 
 	Timer1 = 200;
@@ -304,11 +304,11 @@ static int rcvr_datablock (	/* 1:OK, 0:Error */
 
 #if FF_FS_READONLY == 0
 static int xmit_datablock (	/* 1:OK, 0:Failed */
-	const BYTE *buff,		/* Ponter to 512 byte data to be sent */
-	BYTE token				/* Token */
+	const uint8_t *buff,		/* Ponter to 512 byte data to be sent */
+	uint8_t token				/* Token */
 )
 {
-	BYTE resp;
+  uint8_t resp;
 
 
 	if (!wait_ready(500)) return 0;		/* Wait for card ready */
@@ -330,12 +330,12 @@ static int xmit_datablock (	/* 1:OK, 0:Failed */
 /* Send a command packet to the MMC                                      */
 /*-----------------------------------------------------------------------*/
 
-static BYTE send_cmd (	/* Return value: R1 resp (bit7==1:Failed to send) */
-	BYTE cmd,			/* Command index */
+static uint8_t send_cmd (	/* Return value: R1 resp (bit7==1:Failed to send) */
+  uint8_t cmd,			/* Command index */
 	DWORD arg			/* Argument */
 )
 {
-	BYTE n, res;
+	uint8_t n, res;
 
 
 	if (cmd & 0x80) {	/* Send a CMD55 prior to ACMD<n> */
@@ -352,10 +352,10 @@ static BYTE send_cmd (	/* Return value: R1 resp (bit7==1:Failed to send) */
 
 	/* Send command packet */
 	xchg_spi(0x40 | cmd);				/* Start + command index */
-	xchg_spi((BYTE)(arg >> 24));		/* Argument[31..24] */
-	xchg_spi((BYTE)(arg >> 16));		/* Argument[23..16] */
-	xchg_spi((BYTE)(arg >> 8));			/* Argument[15..8] */
-	xchg_spi((BYTE)arg);				/* Argument[7..0] */
+	xchg_spi((uint8_t)(arg >> 24));		/* Argument[31..24] */
+	xchg_spi((uint8_t)(arg >> 16));		/* Argument[23..16] */
+	xchg_spi((uint8_t)(arg >> 8));			/* Argument[15..8] */
+	xchg_spi((uint8_t)arg);				/* Argument[7..0] */
 	n = 0x01;							/* Dummy CRC + Stop */
 	if (cmd == CMD0) n = 0x95;			/* Valid CRC for CMD0(0) */
 	if (cmd == CMD8) n = 0x87;			/* Valid CRC for CMD8(0x1AA) */
@@ -385,10 +385,10 @@ static BYTE send_cmd (	/* Return value: R1 resp (bit7==1:Failed to send) */
 /*-----------------------------------------------------------------------*/
 
 DSTATUS SD_disk_initialize (
-	BYTE drv		/* Physical drive number (0) */
+	uint8_t drv		/* Physical drive number (0) */
 )
 {
-	BYTE n, cmd, ty, ocr[4];
+	uint8_t n, cmd, ty, ocr[4];
 
 
 	if (drv) return STA_NOINIT;			/* Supports only drive 0 */
@@ -454,7 +454,7 @@ DSTATUS SD_disk_initialize (
 /*-----------------------------------------------------------------------*/
 
 DSTATUS SD_disk_status (
-	BYTE drv		/* Physical drive number (0) */
+	uint8_t drv		/* Physical drive number (0) */
 )
 {
 	if (drv) return STA_NOINIT;		/* Supports only drive 0 */
@@ -469,8 +469,8 @@ DSTATUS SD_disk_status (
 /*-----------------------------------------------------------------------*/
 
 DRESULT SD_disk_read (
-	BYTE drv,		/* Physical drive number (0) */
-	BYTE *buff,		/* Pointer to the data buffer to store read data */
+	uint8_t drv,		/* Physical drive number (0) */
+	uint8_t *buff,		/* Pointer to the data buffer to store read data */
 	LBA_t sector,	/* Start sector number (LBA) */
 	UINT count		/* Number of sectors to read (1..128) */
 )
@@ -511,8 +511,8 @@ DRESULT SD_disk_read (
 
 #if FF_FS_READONLY == 0
 DRESULT SD_disk_write (
-	BYTE drv,			/* Physical drive number (0) */
-	const BYTE *buff,	/* Ponter to the data to write */
+	uint8_t drv,			/* Physical drive number (0) */
+	const uint8_t *buff,	/* Ponter to the data to write */
 	LBA_t sector,		/* Start sector number (LBA) */
 	UINT count			/* Number of sectors to write (1..128) */
 )
@@ -554,13 +554,13 @@ DRESULT SD_disk_write (
 /*-----------------------------------------------------------------------*/
 
 DRESULT SD_disk_ioctl (
-	BYTE drv,		/* Physical drive number (0) */
-	BYTE cmd,		/* Control command code */
+	uint8_t drv,		/* Physical drive number (0) */
+	uint8_t cmd,		/* Control command code */
 	void *buff		/* Pointer to the conrtol data */
 )
 {
 	DRESULT res;
-	BYTE n, csd[16];
+	uint8_t n, csd[16];
 	DWORD st, ed, csize;
 	LBA_t *dp;
 
@@ -626,26 +626,26 @@ DRESULT SD_disk_ioctl (
 
 	/* Following commands are never used by FatFs module */
 
-	case MMC_GET_TYPE:		/* Get MMC/SDC type (BYTE) */
-		*(BYTE*)buff = CardType;
+	case MMC_GET_TYPE:		/* Get MMC/SDC type (uint8_t) */
+		*(uint8_t*)buff = CardType;
 		res = RES_OK;
 		break;
 
 	case MMC_GET_CSD:		/* Read CSD (16 bytes) */
-		if (send_cmd(CMD9, 0) == 0 && rcvr_datablock((BYTE*)buff, 16)) {	/* READ_CSD */
+		if (send_cmd(CMD9, 0) == 0 && rcvr_datablock((uint8_t*)buff, 16)) {	/* READ_CSD */
 			res = RES_OK;
 		}
 		break;
 
 	case MMC_GET_CID:		/* Read CID (16 bytes) */
-		if (send_cmd(CMD10, 0) == 0 && rcvr_datablock((BYTE*)buff, 16)) {	/* READ_CID */
+		if (send_cmd(CMD10, 0) == 0 && rcvr_datablock((uint8_t*)buff, 16)) {	/* READ_CID */
 			res = RES_OK;
 		}
 		break;
 
 	case MMC_GET_OCR:		/* Read OCR (4 bytes) */
 		if (send_cmd(CMD58, 0) == 0) {	/* READ_OCR */
-			for (n = 0; n < 4; n++) *(((BYTE*)buff) + n) = xchg_spi(0xFF);
+			for (n = 0; n < 4; n++) *(((uint8_t*)buff) + n) = xchg_spi(0xFF);
 			res = RES_OK;
 		}
 		break;
@@ -653,7 +653,7 @@ DRESULT SD_disk_ioctl (
 	case MMC_GET_SDSTAT:	/* Read SD status (64 bytes) */
 		if (send_cmd(ACMD13, 0) == 0) {	/* SD_STATUS */
 			xchg_spi(0xFF);
-			if (rcvr_datablock((BYTE*)buff, 64)) res = RES_OK;
+			if (rcvr_datablock((uint8_t*)buff, 64)) res = RES_OK;
 		}
 		break;
 
@@ -678,7 +678,7 @@ DRESULT SD_disk_ioctl (
 void disk_timerproc (void)
 {
 	WORD n;
-	BYTE s;
+	uint8_t s;
 
 
 	n = Timer1;						/* 1kHz decrement timer stopped at 0 */
