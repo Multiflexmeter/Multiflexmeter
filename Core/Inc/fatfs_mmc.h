@@ -30,12 +30,30 @@
 #define CT_SDC    0x06    /* SD */
 #define CT_BLOCK  0x08    /* Block addressing */
 
+#if FF_FS_EXFAT
+#if FF_INTDEF != 2
+#error exFAT feature wants C99 or later
+#endif
+typedef QWORD FSIZE_t;
+#if FF_LBA64
+typedef uint64_t LBA_t;
+#else
+typedef uint64_t LBA_t;
+#endif
+#else
+#if FF_LBA64
+#error exFAT needs to be enabled when enable 64-bit LBA
+#endif
+typedef uint32_t FSIZE_t;
+typedef uint32_t LBA_t;
+#endif
+
 /* Functions */
-DSTATUS SD_disk_initialize (BYTE pdrv);
-DSTATUS SD_disk_status (BYTE pdrv);
-DRESULT SD_disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count);
-DRESULT SD_disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count);
-DRESULT SD_disk_ioctl (BYTE pdrv, BYTE cmd, void* buff);
+DSTATUS SD_disk_initialize (uint8_t pdrv);
+DSTATUS SD_disk_status (uint8_t pdrv);
+DRESULT SD_disk_read (uint8_t pdrv, uint8_t* buff, LBA_t sector, uint16_t count);
+DRESULT SD_disk_write (uint8_t pdrv, const BYTE* buff, LBA_t sector, uint16_t count);
+DRESULT SD_disk_ioctl (uint8_t pdrv, uint8_t cmd, void* buff);
 
 //#define SPI_TIMEOUT 100
 #define SPI_TIMEOUT 1000

@@ -34,28 +34,8 @@
 #include "diskio.h"
 #include "fatfs_mmc.h"
 
-
-
 #define MMC_WP    0 /* Write protected (yes:true, no:false, default:false) */
 #define MMC_CD    1 /* Card detect (yes:true, no:false, default:true) */
-
-#if FF_FS_EXFAT
-#if FF_INTDEF != 2
-#error exFAT feature wants C99 or later
-#endif
-typedef QWORD FSIZE_t;
-#if FF_LBA64
-typedef QWORD LBA_t;
-#else
-typedef DWORD LBA_t;
-#endif
-#else
-#if FF_LBA64
-#error exFAT needs to be enabled when enable 64-bit LBA
-#endif
-typedef DWORD FSIZE_t;
-typedef DWORD LBA_t;
-#endif
 
 
 static volatile DSTATUS Stat = STA_NOINIT;	/* Physical drive status */
@@ -112,13 +92,13 @@ while ((HAL_SPI_GetState(HSPI_SDCARD) != HAL_SPI_STATE_READY));
 
 /* Receive multiple byte */
 /**
- * @fn void rcvr_spi_multi(uint8_t*, UINT)
+ * @fn void rcvr_spi_multi(uint8_t*, uint16_t)
  * @brief
  *
  * @param buff Pointer to data buffer
  * @param btr Number of bytes to receive (even number)
  */
-static void rcvr_spi_multi(uint8_t *buff, UINT btr )
+static void rcvr_spi_multi(uint8_t *buff, uint16_t btr )
 {
   while (btr--)
   {
@@ -130,8 +110,8 @@ static void rcvr_spi_multi(uint8_t *buff, UINT btr )
 #if FF_FS_READONLY == 0
 /* Send multiple byte */
 static void xmit_spi_multi (
-	const BYTE *buff,	/* Pointer to the data */
-	UINT btx			/* Number of bytes to send (even number) */
+	const uint8_t *buff,	/* Pointer to the data */
+	uint16_t btx			/* Number of bytes to send (even number) */
 )
 {
 //	WORD d;
@@ -171,7 +151,7 @@ static void xmit_spi_multi (
 /*-----------------------------------------------------------------------*/
 
 static int wait_ready (	/* 1:Ready, 0:Timeout */
-	UINT wt			/* Timeout [ms] */
+	uint16_t wt			/* Timeout [ms] */
 )
 {
   uint8_t d;
@@ -277,7 +257,7 @@ static uint8_t SD_CheckPower(void)
 
 static int rcvr_datablock (	/* 1:OK, 0:Error */
   uint8_t *buff,				/* Data buffer */
-	UINT btr				/* Data block length (byte) */
+	uint16_t btr				/* Data block length (byte) */
 )
 {
   uint8_t token;
@@ -472,7 +452,7 @@ DRESULT SD_disk_read (
 	uint8_t drv,		/* Physical drive number (0) */
 	uint8_t *buff,		/* Pointer to the data buffer to store read data */
 	LBA_t sector,	/* Start sector number (LBA) */
-	UINT count		/* Number of sectors to read (1..128) */
+	uint16_t count		/* Number of sectors to read (1..128) */
 )
 {
 	DWORD sect = (DWORD)sector;
@@ -514,7 +494,7 @@ DRESULT SD_disk_write (
 	uint8_t drv,			/* Physical drive number (0) */
 	const uint8_t *buff,	/* Ponter to the data to write */
 	LBA_t sector,		/* Start sector number (LBA) */
-	UINT count			/* Number of sectors to write (1..128) */
+	uint16_t count			/* Number of sectors to write (1..128) */
 )
 {
 	DWORD sect = (DWORD)sector;
