@@ -38,17 +38,8 @@
 #include <string.h>
 #include "ff_gen_drv.h"
 
-#ifdef FATFS_1
-#include "fatfs_sd.h"
-#endif
-
-#ifdef FATFS_2
-#include "fatfs_sd_card.h"
-#endif
-
-#ifdef FATFS_C
 #include "fatfs_mmc.h"
-#endif
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 

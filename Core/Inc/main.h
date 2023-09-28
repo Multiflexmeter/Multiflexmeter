@@ -47,12 +47,6 @@ extern "C" {
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
 
-//  #define FATFS_1
-
-//  #define FATFS_2
-
-  #define FATFS_C
-
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/

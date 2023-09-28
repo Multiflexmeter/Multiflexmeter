@@ -27,9 +27,6 @@
 
 #include "main.h"
 
-
-#ifdef FATFS_C
-
 #include "spi.h"
 #include "diskio.h"
 #include "fatfs_mmc.h"
@@ -708,6 +705,3 @@ void disk_timerproc (void)
 	}
 	Stat = s;
 }
-
-
-#endif
