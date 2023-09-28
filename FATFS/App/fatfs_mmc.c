@@ -13,11 +13,9 @@
 
 /* modified by Dekimo Goes 28-09-2023
  * - use HAL SPI library
- * -
+ * - rename types
+ * - use doxygen headers
  */
-
-
-
 
 /*--------------------------------------------------------------------------
 
