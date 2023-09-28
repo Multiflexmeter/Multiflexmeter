@@ -422,6 +422,7 @@ DSTATUS SD_disk_initialize (
 		Stat &= ~STA_NOINIT;	/* Clear STA_NOINIT flag */
 	} else {			/* Failed */
 		Stat = STA_NOINIT;
+		SD_PowerOff();
 	}
 
 	return Stat;
@@ -541,11 +542,34 @@ DRESULT SD_disk_ioctl (
 {
 	DRESULT res;
 	uint8_t n, csd[16];
+	uint8_t * ptr = buff;
 	DWORD st, ed, csize;
 	LBA_t *dp;
 
-
 	if (drv) return RES_PARERR;					/* Check parameter */
+
+	if (cmd == CTRL_POWER)
+  {
+    switch (*ptr)
+    {
+      case 0:
+        SD_PowerOff(); /* Power Off */
+        res = RES_OK;
+        break;
+      case 1:
+        SD_PowerOn(); /* Power On */
+        res = RES_OK;
+        break;
+      case 2:
+        *(ptr + 1) = SD_CheckPower();
+        res = RES_OK; /* Power Check */
+        break;
+      default:
+        res = RES_PARERR;
+    }
+    return res;
+  }
+
 	if (Stat & STA_NOINIT) return RES_NOTRDY;	/* Check if drive is ready */
 
 	res = RES_ERROR;
