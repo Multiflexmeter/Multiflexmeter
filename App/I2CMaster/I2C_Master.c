@@ -1,9 +1,9 @@
 
-#include "../Inc/I2C_Master.h"
+#include "I2C_Master.h"
 
 #include <string.h>
-#include "../../common/crc16.h"
-#include "../Inc/SensorRegister.h"
+#include "../common/crc16.h"
+#include "SensorRegister.h"
 
 #define CRC_SIZE 2
 
