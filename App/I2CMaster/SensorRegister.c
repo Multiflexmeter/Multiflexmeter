@@ -1,5 +1,5 @@
 
-#include "../Inc/SensorRegister.h"
+#include "SensorRegister.h"
 
 #include <stdint.h>
 #include <string.h>
