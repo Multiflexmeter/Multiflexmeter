@@ -50,7 +50,7 @@
 int32_t MX_FATFS_Init(void);
 int32_t MX_FATFS_Process(void);
 /* USER CODE BEGIN EFP */
-int8_t SD_TEST(void);
+const int8_t SD_TEST(uint32_t * capacity, uint32_t * free);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

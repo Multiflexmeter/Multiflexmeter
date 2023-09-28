@@ -34,9 +34,12 @@
 /* USER CODE BEGIN DECL */
 
 /* Includes ------------------------------------------------------------------*/
+#include "main.h"
 #include <string.h>
 #include "ff_gen_drv.h"
-#include "fatfs_sd.h"
+
+#include "fatfs_mmc.h"
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 

@@ -486,6 +486,7 @@ int SystemClock_Config_HSI_TCXO(void)
   return 0; //successful
 }
 #endif
+
 /* USER CODE END 4 */
 
 /**

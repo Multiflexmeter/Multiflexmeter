@@ -53,6 +53,10 @@ char USERPath[4];   /* USER logical drive path */
 /* USER CODE BEGIN PV */
 FS_FileOperationsTypeDef Appli_state = APPLICATION_IDLE;
 char buffer[BUFFER_SIZE];  // to store strings
+
+static uint32_t totalSpace;
+static uint32_t freeSpace;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -119,12 +123,15 @@ void clear_buffer (void)
  *
  * @return 0 = success, 0 > = failed, 0 < = failed
  */
-int8_t SD_TEST(void)
+const int8_t SD_TEST(uint32_t * capacity, uint32_t * free)
 {
   FATFS fs;
   FIL file;
   FRESULT fres; //Result after operations
   char teststring[BUFFER_SIZE] = "Test string";
+
+  *capacity = 0;
+  *free = 0;
 
   // Mount the filesystem
   fres = f_mount(&fs, "/", 1);
@@ -132,6 +139,16 @@ int8_t SD_TEST(void)
   {
     return -1;
   }
+
+  FATFS *pfs;
+  uint32_t fre_clust;
+
+  f_getfree("", &fre_clust, &pfs);
+  totalSpace = (uint32_t)((pfs->n_fatent - 2) * pfs->csize * 0.5);
+  freeSpace = (uint32_t)(fre_clust * pfs->csize * 0.5);
+
+  *capacity = totalSpace;
+  *free = freeSpace;
 
   // Write the test string to the file
   fres= f_open(&file, "write.txt", FA_WRITE | FA_CREATE_ALWAYS);

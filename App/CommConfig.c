@@ -422,8 +422,10 @@ __weak const uint16_t SYS_GetVoltage(int channel, uint32_t adcValue)
 }
 
 
-__weak int8_t SD_TEST(void)
+__weak const int8_t SD_TEST(uint32_t * capacity, uint32_t * free)
 {
+  *capacity = 0;
+  *free = 0;
   return -1;
 }
 
@@ -1495,7 +1497,10 @@ void sendAdc( int subTest )
  */
 void sendTestSD( int test )
 {
-  snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test, SD_TEST() == 0 ? 1 : 0 );
+  uint32_t cardCapacity;
+  uint32_t cardFree;
+  int8_t result = SD_TEST(&cardCapacity, &cardFree);
+  snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%lu,%lu\r\n", cmdTest, test, result == 0 ? 1 : 0, cardCapacity, cardFree);
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
