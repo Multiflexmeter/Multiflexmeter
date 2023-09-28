@@ -50,6 +50,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "sys_app.h"
+#include "../../App/mainTask.h"
 #include "../../App/CommConfig.h"
 #include "../../App/dataflash/dataflash_functions.h"
 #include "../../App/logging/logging.h"
@@ -202,6 +203,8 @@ int main(void)
 #endif
 
   reloadSettingsFromVirtualEEPROM();
+
+  init_mainTask();
 
   /* USER CODE END 2 */
 
