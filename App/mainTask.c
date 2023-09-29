@@ -24,7 +24,7 @@ static uint32_t mainTask_tmr;
 static int mainTask_state;
 
 static UTIL_TIMER_Object_t MainTimer;
-static UTIL_TIMER_Time_t MainPeriodSleep = 10000;
+static UTIL_TIMER_Time_t MainPeriodSleep = 60000;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
 static bool enableListenUart;
 
