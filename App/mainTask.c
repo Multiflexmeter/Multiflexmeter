@@ -98,6 +98,7 @@ const void mainTask(void)
  */
 static const void trigger_mainTask_timer(void)
 {
+  mainTaskActive = true;
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_Main), CFG_SEQ_Prio_0); //trigger task for the scheduler
 }
 
@@ -108,7 +109,6 @@ static const void trigger_mainTask_timer(void)
  */
 static const void trigger_mainTask(void *context)
 {
-  mainTaskActive = true;
   trigger_mainTask_timer(); //trigger task for the scheduler
 }
 
@@ -138,6 +138,7 @@ const void stop_mainTask(bool resume)
 {
   mainTask_state = 0; //reset
   mainTaskActive = false;
+  enableListenUart = false;
 
   if( resume )
   {
@@ -167,3 +168,11 @@ const void resume_mainTask(void)
   trigger_mainTask_timer();
 }
 
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if( GPIO_Pin == WAKE_PIN_Pin )
+  {
+    trigger_mainTask_timer();
+    enableListenUart = true;
+  }
+}
