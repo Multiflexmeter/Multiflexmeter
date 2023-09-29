@@ -30,7 +30,8 @@
 
 /* External variables ---------------------------------------------------------*/
 /* USER CODE BEGIN EV */
-
+static uint32_t CLK_CR_copy;
+static uint32_t CLK_CFGR_copy;
 /* USER CODE END EV */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -92,7 +93,8 @@ void PWR_ExitOffMode(void)
 void PWR_EnterStopMode(void)
 {
   /* USER CODE BEGIN EnterStopMode_1 */
-
+  CLK_CR_copy = RCC->CR;
+  CLK_CFGR_copy = RCC->CFGR;
   /* USER CODE END EnterStopMode_1 */
   HAL_SuspendTick();
   /* Clear Status Flag before entering STOP/STANDBY Mode */
@@ -110,7 +112,8 @@ void PWR_EnterStopMode(void)
 void PWR_ExitStopMode(void)
 {
   /* USER CODE BEGIN ExitStopMode_1 */
-
+  RCC->CR = CLK_CR_copy;
+  RCC->CFGR = CLK_CFGR_copy;
   /* USER CODE END ExitStopMode_1 */
   /* Resume sysTick : work around for debugger problem in dual core */
   HAL_ResumeTick();

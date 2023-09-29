@@ -488,6 +488,12 @@ __weak const uint16_t getLoraInterval(void)
 {
   return 5;
 }
+
+__weak const void resume_mainTask(void)
+{
+
+}
+
 /* USER CODE END PrFD */
 
 static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
@@ -723,7 +729,7 @@ static void SendTxData(void)
 static void OnTxTimerEvent(void *context)
 {
   /* USER CODE BEGIN OnTxTimerEvent_1 */
-
+  resume_mainTask(); //make sure mainTask is running.
   /* USER CODE END OnTxTimerEvent_1 */
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaSendOnTxTimerOrButtonEvent), CFG_SEQ_Prio_0);
 
