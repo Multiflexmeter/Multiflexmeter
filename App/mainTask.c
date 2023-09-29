@@ -15,6 +15,8 @@
 #include "utilities_def.h"
 #include "stm32_seq.h"
 #include "stm32_timer.h"
+
+#include "CommConfig.h"
 #include "mainTask.h"
 
 static volatile bool mainTaskActive;
@@ -24,6 +26,7 @@ static int mainTask_state;
 static UTIL_TIMER_Object_t MainTimer;
 static UTIL_TIMER_Time_t MainPeriodSleep = 10000;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
+static bool enableListenUart;
 
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
@@ -53,6 +56,10 @@ const void mainTask(void)
   switch( mainTask_state )
   {
     case 0:
+      if( enableListenUart )
+      {
+        uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
+      }
       mainTask_state++;
       break;
 
