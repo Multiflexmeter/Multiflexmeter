@@ -66,7 +66,11 @@ const struct UTIL_LPM_Driver_s UTIL_PowerDriver =
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define CFGR_CLEAR_MASK_FOR_SAVE (  ( 0x1UL << 31 )   | \
+                                    ( 0x1FUL << 19)   | \
+                                    ( 0x1UL << 14 )   | \
+                                    ( RCC_CFGR_SWS )    \
+                                    )
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -103,8 +107,10 @@ void PWR_ExitOffMode(void)
 void PWR_EnterStopMode(void)
 {
   /* USER CODE BEGIN EnterStopMode_1 */
+
   CLK_CR_copy = RCC->CR;
-  CLK_CFGR_copy = RCC->CFGR;
+  CLK_CFGR_copy = RCC->CFGR & ~CFGR_CLEAR_MASK_FOR_SAVE;
+
   /* USER CODE END EnterStopMode_1 */
   HAL_SuspendTick();
   /* Clear Status Flag before entering STOP/STANDBY Mode */
