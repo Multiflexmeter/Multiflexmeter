@@ -40,8 +40,6 @@ static uint32_t GetSysClockFreq_copy1;
 static uint32_t GetSysClockFreq_copy2;
 static uint32_t GET_SYSCLK_SOURCE_copy1;
 static uint32_t GET_SYSCLK_SOURCE_copy2;
-static uint32_t time1;
-static uint32_t time2;
 /* USER CODE END EV */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -139,7 +137,6 @@ void PWR_ExitStopMode(void)
 
 
   /* Get Start Tick */
-  time1 = RTC->SSR;
   uint32_t tickstart = HAL_GetTick();
 
   HAL_ResumeTick(); //resume earlier, for check CLK timeout.
@@ -152,8 +149,6 @@ void PWR_ExitStopMode(void)
       timeout = true; //return HAL_TIMEOUT;
     }
   }
-
-  time2 = RTC->SSR;
 
   GET_SYSCLK_SOURCE_copy2 = __HAL_RCC_GET_SYSCLK_SOURCE();
   GetSysClockFreq_copy2 = HAL_RCC_GetSysClockFreq();
