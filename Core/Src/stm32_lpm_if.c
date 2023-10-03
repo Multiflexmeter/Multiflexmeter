@@ -129,7 +129,20 @@ void PWR_ExitStopMode(void)
   GetAHBPrescaler_copy1 = LL_RCC_GetAHBPrescaler();
   GetPCLK_copy1 = HAL_RCC_GetPCLK2Freq();
 
-  while( HAL_RCC_GetPCLK2Freq() != 48000000L); //wait CLK is 48Mhz
+
+  /* Get Start Tick */
+  uint32_t tickstart = HAL_GetTick();
+
+  HAL_ResumeTick(); //resume earlier, for check CLK timeout.
+
+  /* check system clock source switch status */
+  while ( __HAL_RCC_GET_SYSCLK_SOURCE() != ( (CLK_CFGR_copy & RCC_CFGR_SW) << RCC_CFGR_SWS_Pos) && timeout == false )
+  {
+    if ((HAL_GetTick() - tickstart) > (50U) )
+    {
+      timeout = true; //return HAL_TIMEOUT;
+    }
+  }
 
   GET_SYSCLK_SOURCE_copy2 = __HAL_RCC_GET_SYSCLK_SOURCE();
   GetSysClockFreq_copy2 = HAL_RCC_GetSysClockFreq();
