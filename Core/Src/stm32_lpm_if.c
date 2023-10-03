@@ -32,14 +32,6 @@
 /* USER CODE BEGIN EV */
 static uint32_t CLK_CR_copy;
 static uint32_t CLK_CFGR_copy;
-static uint32_t GetPCLK_copy1;
-static uint32_t GetPCLK_copy2;
-static uint32_t GetAHBPrescaler_copy1;
-static uint32_t GetAHBPrescaler_copy2;
-static uint32_t GetSysClockFreq_copy1;
-static uint32_t GetSysClockFreq_copy2;
-static uint32_t GET_SYSCLK_SOURCE_copy1;
-static uint32_t GET_SYSCLK_SOURCE_copy2;
 /* USER CODE END EV */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -130,12 +122,6 @@ void PWR_ExitStopMode(void)
   RCC->CR = CLK_CR_copy;
   RCC->CFGR = CLK_CFGR_copy;
 
-  GET_SYSCLK_SOURCE_copy1 = __HAL_RCC_GET_SYSCLK_SOURCE();
-  GetSysClockFreq_copy1 = HAL_RCC_GetSysClockFreq();
-  GetAHBPrescaler_copy1 = LL_RCC_GetAHBPrescaler();
-  GetPCLK_copy1 = HAL_RCC_GetPCLK2Freq();
-
-
   /* Get Start Tick */
   uint32_t tickstart = HAL_GetTick();
 
@@ -149,11 +135,6 @@ void PWR_ExitStopMode(void)
       timeout = true; //return HAL_TIMEOUT;
     }
   }
-
-  GET_SYSCLK_SOURCE_copy2 = __HAL_RCC_GET_SYSCLK_SOURCE();
-  GetSysClockFreq_copy2 = HAL_RCC_GetSysClockFreq();
-  GetAHBPrescaler_copy2 = LL_RCC_GetAHBPrescaler();
-  GetPCLK_copy2 = HAL_RCC_GetPCLK2Freq();
 
   /* USER CODE END ExitStopMode_1 */
   /* Resume sysTick : work around for debugger problem in dual core */
