@@ -3106,11 +3106,6 @@ void UART_InitCallbacksToDefault(UART_HandleTypeDef *huart)
 }
 #endif /* USE_HAL_UART_REGISTER_CALLBACKS */
 
-uint32_t pclk_copy;
-uint32_t BRR_copy;
-UART_ClockSourceTypeDef clocksource_copy;
-extern UART_HandleTypeDef huart1;
-
 /**
   * @brief Configure the UART peripheral.
   * @param huart UART handle.
@@ -3181,9 +3176,6 @@ HAL_StatusTypeDef UART_SetConfig(UART_HandleTypeDef *huart)
 
   /*-------------------------- USART BRR Configuration -----------------------*/
   UART_GETCLOCKSOURCE(huart, clocksource);
-
-  if( huart == &huart1)
-    clocksource_copy = clocksource;
 
   /* Check LPUART instance */
   if (UART_INSTANCE_LOWPOWER(huart))
@@ -3305,9 +3297,6 @@ HAL_StatusTypeDef UART_SetConfig(UART_HandleTypeDef *huart)
         break;
     }
 
-    if( huart == &huart1)
-      pclk_copy = pclk;
-
     if (pclk != 0U)
     {
       /* USARTDIV must be greater than or equal to 0d16 */
@@ -3321,8 +3310,6 @@ HAL_StatusTypeDef UART_SetConfig(UART_HandleTypeDef *huart)
         ret = HAL_ERROR;
       }
     }
-    if( huart == &huart1)
-      BRR_copy = usartdiv;
   }
 
   /* Initialize the number of data to process during RX/TX ISR execution */
