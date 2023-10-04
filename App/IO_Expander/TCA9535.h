@@ -50,16 +50,10 @@ union TCA9535_uInput{
 };
 
 
-
 union TCA9535_uBitAll{
 	unsigned char 		all;
 	struct TCA9535_sBit	bit;
 };
-/*
-union TCA9535_uOutputP1{
-	unsigned char 		all;
-	struct TCA9535_sBit	bit;
-};*/
 
 struct TCA9535_sOutput{
 	union TCA9535_uBitAll	P0;
@@ -70,17 +64,7 @@ union TCA9535_uOutput{
 	unsigned short	all;
 	struct TCA9535_sOutput	Port;
 };
-/*
-union TCA9535_uPolarityInversionP0{
-	unsigned char all;
-	struct TCA9535_sBit bit;
-};
 
-union  TCA9535_uPolarityInversionP1{
-	unsigned char	all;
-	struct TCA9535_sBit bit;
-};
-*/
 struct TCA9535_sPolarityInversion{
 	union TCA9535_uBitAll P0;
 	union TCA9535_uBitAll P1;
@@ -90,16 +74,6 @@ union TCA9535_uPolarityInversion{
 	unsigned short all;
 	struct TCA9535_sPolarityInversion Port;
 };
-/*
-union TCA9535_uConfigP0{
-	unsigned char all;
-	struct TCA9535_sBit bit;
-};
-
-union  TCA9535_uConfigP1{
-	unsigned char	all;
-	struct TCA9535_sBit bit;
-};*/
 
 struct TCA9535_sConfig{
 	union TCA9535_uBitAll P0;
@@ -109,13 +83,6 @@ struct TCA9535_sConfig{
 union TCA9535_uConfig{
 	unsigned short all;
 	struct TCA9535_sConfig Port;
-};
-
-struct sTCA9535Regs{
-	union TCA9535_uInput 				Input;
-	union TCA9535_uOutput 				Output;
-	union TCA9535_uPolarityInversion 	PolarityInversion;
-	union TCA9535_uConfig				Config;
 };
 
 typedef struct {
