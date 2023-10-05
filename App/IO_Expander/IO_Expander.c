@@ -99,6 +99,90 @@ static struct_IO_ExpanderPinConfig stIO_ExpanderPinConfig[]=
     { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT6_GPIO2, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT6_GPIO2
 };
 
+/**
+ * @fn ENUM_IO_EXPANDER get_IO_ExpanderDeviceFromItem(ENUM_IO_EXPANDER_ITEM)
+ * @brief helper function to get the device ID from the given item
+ *
+ * @param io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @return device ID \ref ENUM_IO_EXPANDER
+ */
+ENUM_IO_EXPANDER get_IO_ExpanderDeviceFromItem( ENUM_IO_EXPANDER_ITEM io_item )
+{
+  assert_param( io_item < MAX_IO_EXPANDER_ITEM );
+
+  if( io_item >= MAX_IO_EXPANDER_ITEM)
+    return NR_IO_EXPANDER;
+
+  return stIO_ExpanderPinConfig[io_item].device;
+}
+
+/**
+ * @fn uint8_t get_IO_ExpanderPinFromItem(ENUM_IO_EXPANDER_ITEM)
+ * @brief helper function to get the pin ID on the chip from the given item
+ *
+ * @param io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @return pin number on chip
+ */
+int8_t get_IO_ExpanderPinFromItem( ENUM_IO_EXPANDER_ITEM io_item )
+{
+  assert_param( io_item < MAX_IO_EXPANDER_ITEM );
+
+  if( io_item >= MAX_IO_EXPANDER_ITEM)
+    return -1;
+
+  return stIO_ExpanderPinConfig[io_item].pin;
+}
+
+/**
+ * @fn uint16_t get_IO_ExpanderPinMaskFromItem(ENUM_IO_EXPANDER_ITEM)
+ * @brief helper function to get the pin mask of the given item
+ *
+ * @param io_item io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @return pin mask for register
+ */
+uint16_t get_IO_ExpanderPinMaskFromItem( ENUM_IO_EXPANDER_ITEM io_item )
+{
+  assert_param( io_item < MAX_IO_EXPANDER_ITEM );
+
+  if( io_item >= MAX_IO_EXPANDER_ITEM)
+    return 0;
+
+  return 1UL << get_IO_ExpanderPinFromItem(io_item);
+}
+
+/**
+ * @fn ENUM_IO_Direction get_IO_ExpanderDirectionFromItem(ENUM_IO_EXPANDER_ITEM)
+ * @brief helper function to get the direction of the given item
+ *
+ * @param io_item io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @return direction of pin \ref ENUM_IO_Direction
+ */
+ENUM_IO_Direction get_IO_ExpanderDirectionFromItem( ENUM_IO_EXPANDER_ITEM io_item )
+{
+  assert_param( io_item < MAX_IO_EXPANDER_ITEM );
+
+  if( io_item >= MAX_IO_EXPANDER_ITEM)
+    return MAX_IO_DIRECTION;
+
+  return stIO_ExpanderPinConfig[io_item].direction;
+}
+
+/**
+ * @fn ENUM_IO_ACTIVE get_IO_ExpanderActiveFromItem(ENUM_IO_EXPANDER_ITEM)
+ * @brief helper function to get the active low / active high definition of the given item
+ *
+ * @param io_item io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @return active low or active high \ref ENUM_IO_ACTIVE
+ */
+ENUM_IO_ACTIVE get_IO_ExpanderActiveFromItem( ENUM_IO_EXPANDER_ITEM io_item )
+{
+  assert_param( io_item < MAX_IO_EXPANDER_ITEM );
+
+  if( io_item >= MAX_IO_EXPANDER_ITEM)
+    return MAX_IO_ACTIVE;
+
+  return stIO_ExpanderPinConfig[io_item].active;
+}
 
 /**
  * @fn void init_IO_Expander(void)
