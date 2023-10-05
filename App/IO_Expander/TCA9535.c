@@ -84,19 +84,24 @@ void TCA9535InitDefault(TCA9535Regs* Regs){
 //! TODO 		 Implement I2C return (success/failure)
 // ****************************************************************************
 unsigned char TCA9535InitI2CReg(TCA9535Regs* Regs){
-	unsigned char return_Value = I2C_OPERATION_SUCCESSFUL;
+	int8_t result;
 
-	I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_CONFIG_REG0, (unsigned char*)&Regs->Config, 0);
-	I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_OUTPUT_REG0, (unsigned char*)&Regs->Output, 0);
-	I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_POLARITY_REG0, (unsigned char*)&Regs->PolarityInversion, 0);
-	if(NACK)
-	{
-		NACK = 0;
+	result = I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_CONFIG_REG0, (unsigned char*)&Regs->Config, 0);
 
-		return_Value = I2C_OPERATION_FAIL;
-	}
+	if( result != 0 )
+	  return I2C_OPERATION_FAIL;
 
-	return return_Value;
+	result = I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_OUTPUT_REG0, (unsigned char*)&Regs->Output, 0);
+
+	if( result != 0 )
+	    return I2C_OPERATION_FAIL;
+
+	result = I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_POLARITY_REG0, (unsigned char*)&Regs->PolarityInversion, 0);
+
+	if( result != 0 )
+	    return I2C_OPERATION_FAIL;
+
+	return I2C_OPERATION_SUCCESSFUL;
 }
 
 // ****************************************************************************
