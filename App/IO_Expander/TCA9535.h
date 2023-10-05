@@ -2,9 +2,6 @@
 #ifndef TCA9535_H_
 #define TCA9535_H_
 
-extern I2C_HandleTypeDef hi2c2;
-#define HI2C_TCA9535   &hi2c2
-
 #define TCA9535_HAL_TIMEOUT ( 100 ) //ms
 
 
@@ -85,11 +82,14 @@ union TCA9535_uConfig{
 	struct TCA9535_sConfig Port;
 };
 
-typedef struct {
-	union TCA9535_uInput 				Input;
-	union TCA9535_uOutput				Output;
-	union TCA9535_uPolarityInversion	PolarityInversion;
-	union TCA9535_uConfig				Config;
+typedef struct
+{
+  I2C_HandleTypeDef * I2C_handle;
+  uint8_t deviceAddress;
+  union TCA9535_uInput Input;
+  union TCA9535_uOutput Output;
+  union TCA9535_uPolarityInversion PolarityInversion;
+  union TCA9535_uConfig Config;
 } TCA9535Regs;
 
 void TCA9535WriteConfig(TCA9535Regs * Regs);
