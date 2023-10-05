@@ -115,4 +115,7 @@ typedef struct{
     uint8_t address;
 }struct_IO_ExpanderChipConfig;
 
+void init_IO_Expander(void);
+void update_IO_Expander(void);
+
 #endif /* IO_EXPANDER_IO_EXPANDER_H_ */
