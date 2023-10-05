@@ -4,12 +4,6 @@
 #include "i2c.h"
 #include "TCA9535.h"
 
-
-enum I2C_State{
-  I2C_OPERATION_SUCCESSFUL =0,
-  I2C_OPERATION_FAIL = 1
-};
-
 extern unsigned char NACK;
 
 

@@ -18,6 +18,10 @@
 #define TCA9535_CONFIG_REG0		0x06		// Configuration register. BIT = '1' sets port to input BIT = '0' sets port to output
 #define TCA9535_CONFIG_REG1		0x07		// Configuration register. BIT = '1' sets port to input BIT = '0' sets port to output
 
+enum I2C_State{
+  I2C_OPERATION_SUCCESSFUL =0,
+  I2C_OPERATION_FAIL = 1
+};
 
 struct TCA9535_sBit{
        unsigned char B0:1;
