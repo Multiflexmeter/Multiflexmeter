@@ -23,6 +23,7 @@ extern I2C_HandleTypeDef hi2c2;
 
 
 typedef enum{
+  IO_EXPANDER_NONE,
   IO_EXPANDER_SYS,
   IO_EXPANDER_BUS_INT,
   IO_EXPANDER_BUS_EXT,
@@ -150,23 +151,23 @@ typedef enum
 
 typedef enum
 {
-  IO_INPUT,
-  IO_OUTPUT,
-  MAX_IO_DIRECTION,
-}ENUM_IO_Direction;
+  IO_EXT_INPUT,
+  IO_EXT_OUTPUT,
+  MAX_IO_EXT_DIRECTION,
+}ENUM_IO_ExtDirection;
 
 typedef enum
 {
-  IO_HIGH_ACTIVE,
-  IO_LOW_ACTIVE,
-  MAX_IO_ACTIVE,
-}ENUM_IO_ACTIVE;
+  IO_EXT_HIGH_ACTIVE,
+  IO_EXT_LOW_ACTIVE,
+  MAX_IO_EXT_ACTIVE,
+}ENUM_IO_ExtACTIVE;
 
 typedef struct{
     ENUM_IO_EXPANDER device;
     uint8_t pin;
-    ENUM_IO_Direction direction;
-    ENUM_IO_ACTIVE active;
+    ENUM_IO_ExtDirection direction;
+    ENUM_IO_ExtACTIVE active;
 }struct_IO_ExpanderPinConfig;
 
 typedef struct{

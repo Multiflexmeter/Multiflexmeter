@@ -47,56 +47,56 @@ static struct_IO_ExpanderChipConfig stIO_ExpanderChipConfig[]=
  */
 static struct_IO_ExpanderPinConfig stIO_ExpanderPinConfig[]=
 {
-    { IO_EXPANDER_SYS,  IO_EXP_FRAM_CS,         IO_OUTPUT,  IO_LOW_ACTIVE  } ,  // IO_FRAM_CS
-    { IO_EXPANDER_SYS,  IO_EXP_FLASH_SD_CS,     IO_OUTPUT,  IO_LOW_ACTIVE  } ,  // IO_FLASH_SD_CS
-    { IO_EXPANDER_SYS,  IO_EXP_FLASH_NOR_CS,    IO_OUTPUT,  IO_LOW_ACTIVE  } ,  // IO_FLASH_NOR_CS
-    { IO_EXPANDER_SYS,  IO_EXP_GE_EN,           IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_GE_EN
-    { IO_EXPANDER_SYS,  IO_EXP_BOX_OPEN,        IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_BOX_OPEN
-    { IO_EXPANDER_SYS,  IO_EXP_RST,             IO_OUTPUT,  IO_LOW_ACTIVE  } ,  // IO_RST
-    { IO_EXPANDER_SYS,  IO_EXP_USB_CONNECTED,   IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_USB_CONNECTED
-    { IO_EXPANDER_SYS,  IO_EXP_SENSOR_INTX,     IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SENSOR_INTX
-    { IO_EXPANDER_SYS,  IO_EXP_BAT_ALERT,       IO_INPUT,   IO_LOW_ACTIVE  } ,  // IO_BAT_ALERT
-    { IO_EXPANDER_SYS,  IO_EXP_VSENSOR_EN,      IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_VSENSOR_EN
-    { IO_EXPANDER_SYS,  IO_EXP_VSYS_EN,         IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_VSYS_EN
-    { IO_EXPANDER_SYS,  IO_EXP_VALWAYS_EN,      IO_OUTPUT,  IO_LOW_ACTIVE  } ,  // IO_VALWAYS_EN
-    { IO_EXPANDER_SYS,  IO_EXP_DEBUG_SW1,       IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_DEBUG_SW1
-    { IO_EXPANDER_SYS,  IO_EXP_DEBUG_SW2,       IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_DEBUG_SW2
-    { IO_EXPANDER_SYS,  IO_EXP_SC_EN,           IO_OUTPUT,  IO_LOW_ACTIVE  } ,  // IO_SC_EN
-    { IO_EXPANDER_SYS,  IO_EXP_RTC_PWR_EN,      IO_INPUT,   IO_LOW_ACTIVE  } ,  // IO_RTC_PWR_EN
+    { IO_EXPANDER_SYS,  IO_EXP_FRAM_CS,         IO_EXT_OUTPUT,  IO_EXT_LOW_ACTIVE  } ,  // IO_FRAM_CS
+    { IO_EXPANDER_SYS,  IO_EXP_FLASH_SD_CS,     IO_EXT_OUTPUT,  IO_EXT_LOW_ACTIVE  } ,  // IO_FLASH_SD_CS
+    { IO_EXPANDER_SYS,  IO_EXP_FLASH_NOR_CS,    IO_EXT_OUTPUT,  IO_EXT_LOW_ACTIVE  } ,  // IO_FLASH_NOR_CS
+    { IO_EXPANDER_SYS,  IO_EXP_GE_EN,           IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_GE_EN
+    { IO_EXPANDER_SYS,  IO_EXP_BOX_OPEN,        IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_BOX_OPEN
+    { IO_EXPANDER_SYS,  IO_EXP_RST,             IO_EXT_OUTPUT,  IO_EXT_LOW_ACTIVE  } ,  // IO_RST
+    { IO_EXPANDER_SYS,  IO_EXP_USB_CONNECTED,   IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_USB_CONNECTED
+    { IO_EXPANDER_SYS,  IO_EXP_SENSOR_INTX,     IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SENSOR_INTX
+    { IO_EXPANDER_SYS,  IO_EXP_BAT_ALERT,       IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_BAT_ALERT
+    { IO_EXPANDER_SYS,  IO_EXP_VSENSOR_EN,      IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_VSENSOR_EN
+    { IO_EXPANDER_SYS,  IO_EXP_VSYS_EN,         IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_VSYS_EN
+    { IO_EXPANDER_SYS,  IO_EXP_VALWAYS_EN,      IO_EXT_OUTPUT,  IO_EXT_LOW_ACTIVE  } ,  // IO_VALWAYS_EN
+    { IO_EXPANDER_SYS,  IO_EXP_DEBUG_SW1,       IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_DEBUG_SW1
+    { IO_EXPANDER_SYS,  IO_EXP_DEBUG_SW2,       IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_DEBUG_SW2
+    { IO_EXPANDER_SYS,  IO_EXP_SC_EN,           IO_EXT_OUTPUT,  IO_EXT_LOW_ACTIVE  } ,  // IO_SC_EN
+    { IO_EXPANDER_SYS,  IO_EXP_RTC_PWR_EN,      IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_RTC_PWR_EN
 
-    { IO_EXPANDER_BUS_INT,  IO_EXP_LOADSW1,     IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_LOADSW1
-    { IO_EXPANDER_BUS_INT,  IO_EXP_LOADSW2,     IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_LOADSW2
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT1_GPIO0, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT1_GPIO0
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT1_GPIO1, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT1_GPIO1
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT1_GPIO2, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT1_GPIO2
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT2_GPIO0, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT2_GPIO0
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT2_GPIO1, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT2_GPIO1
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT2_GPIO2, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT2_GPIO2
-    { IO_EXPANDER_BUS_INT,  IO_EXP_INT1,        IO_INPUT,   IO_LOW_ACTIVE  } ,  // IO_INT1
-    { IO_EXPANDER_BUS_INT,  IO_EXP_INT2,        IO_INPUT,   IO_LOW_ACTIVE  } ,  // IO_INT2
-    { IO_EXPANDER_BUS_INT,  IO_EXP_INT3,        IO_INPUT,   IO_LOW_ACTIVE  } ,  // IO_INT3
-    { IO_EXPANDER_BUS_INT,  IO_EXP_INT4,        IO_INPUT,   IO_LOW_ACTIVE  } ,  // IO_INT4
-    { IO_EXPANDER_BUS_INT,  IO_EXP_INT5,        IO_INPUT,   IO_LOW_ACTIVE  } ,  // IO_INT5
-    { IO_EXPANDER_BUS_INT,  IO_EXP_INT6,        IO_INPUT,   IO_LOW_ACTIVE  } ,  // IO_INT6
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SPARE1,      IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_SPARE1
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SPARE2,      IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_SPARE2
+    { IO_EXPANDER_BUS_INT,  IO_EXP_LOADSW1,     IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_LOADSW1
+    { IO_EXPANDER_BUS_INT,  IO_EXP_LOADSW2,     IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_LOADSW2
+    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT1_GPIO0, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT1_GPIO0
+    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT1_GPIO1, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT1_GPIO1
+    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT1_GPIO2, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT1_GPIO2
+    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT2_GPIO0, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT2_GPIO0
+    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT2_GPIO1, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT2_GPIO1
+    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT2_GPIO2, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT2_GPIO2
+    { IO_EXPANDER_BUS_INT,  IO_EXP_INT1,        IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_INT1
+    { IO_EXPANDER_BUS_INT,  IO_EXP_INT2,        IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_INT2
+    { IO_EXPANDER_BUS_INT,  IO_EXP_INT3,        IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_INT3
+    { IO_EXPANDER_BUS_INT,  IO_EXP_INT4,        IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_INT4
+    { IO_EXPANDER_BUS_INT,  IO_EXP_INT5,        IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_INT5
+    { IO_EXPANDER_BUS_INT,  IO_EXP_INT6,        IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_INT6
+    { IO_EXPANDER_BUS_INT,  IO_EXP_SPARE1,      IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_SPARE1
+    { IO_EXPANDER_BUS_INT,  IO_EXP_SPARE2,      IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_SPARE2
 
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_LOADSW3,     IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_LOADSW3
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_LOADSW4,     IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_LOADSW4
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_LOADSW5,     IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_LOADSW5
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_LOADSW6,     IO_OUTPUT,  IO_HIGH_ACTIVE } ,  // IO_LOADSW6
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT3_GPIO0, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT3_GPIO0
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT3_GPIO1, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT3_GPIO1
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT3_GPIO2, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT3_GPIO2
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT4_GPIO0, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT4_GPIO0
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT4_GPIO1, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT4_GPIO1
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT4_GPIO2, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT4_GPIO2
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT5_GPIO0, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT5_GPIO0
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT5_GPIO1, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT5_GPIO1
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT5_GPIO2, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT5_GPIO2
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT6_GPIO0, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT6_GPIO0
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT6_GPIO1, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT6_GPIO1
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT6_GPIO2, IO_INPUT,   IO_HIGH_ACTIVE } ,  // IO_SLOT6_GPIO2
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_LOADSW3,     IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_LOADSW3
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_LOADSW4,     IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_LOADSW4
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_LOADSW5,     IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_LOADSW5
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_LOADSW6,     IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_LOADSW6
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT3_GPIO0, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT3_GPIO0
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT3_GPIO1, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT3_GPIO1
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT3_GPIO2, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT3_GPIO2
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT4_GPIO0, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT4_GPIO0
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT4_GPIO1, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT4_GPIO1
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT4_GPIO2, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT4_GPIO2
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT5_GPIO0, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT5_GPIO0
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT5_GPIO1, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT5_GPIO1
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT5_GPIO2, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT5_GPIO2
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT6_GPIO0, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT6_GPIO0
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT6_GPIO1, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT6_GPIO1
+    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT6_GPIO2, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT6_GPIO2
 };
 
 /**
@@ -157,12 +157,12 @@ uint16_t get_IO_ExpanderPinMaskFromItem( ENUM_IO_EXPANDER_ITEM io_item )
  * @param io_item io_item item number \ref ENUM_IO_EXPANDER_ITEM
  * @return direction of pin \ref ENUM_IO_Direction
  */
-ENUM_IO_Direction get_IO_ExpanderDirectionFromItem( ENUM_IO_EXPANDER_ITEM io_item )
+ENUM_IO_ExtDirection get_IO_ExpanderDirectionFromItem( ENUM_IO_EXPANDER_ITEM io_item )
 {
   assert_param( io_item < MAX_IO_EXPANDER_ITEM );
 
   if( io_item >= MAX_IO_EXPANDER_ITEM)
-    return MAX_IO_DIRECTION;
+    return MAX_IO_EXT_DIRECTION;
 
   return stIO_ExpanderPinConfig[io_item].direction;
 }
@@ -174,12 +174,12 @@ ENUM_IO_Direction get_IO_ExpanderDirectionFromItem( ENUM_IO_EXPANDER_ITEM io_ite
  * @param io_item io_item item number \ref ENUM_IO_EXPANDER_ITEM
  * @return active low or active high \ref ENUM_IO_ACTIVE
  */
-ENUM_IO_ACTIVE get_IO_ExpanderActiveFromItem( ENUM_IO_EXPANDER_ITEM io_item )
+ENUM_IO_ExtACTIVE get_IO_ExpanderActiveFromItem( ENUM_IO_EXPANDER_ITEM io_item )
 {
   assert_param( io_item < MAX_IO_EXPANDER_ITEM );
 
   if( io_item >= MAX_IO_EXPANDER_ITEM)
-    return MAX_IO_ACTIVE;
+    return MAX_IO_EXT_ACTIVE;
 
   return stIO_ExpanderPinConfig[io_item].active;
 }
@@ -220,7 +220,7 @@ void init_IO_Expander(void)
   uint8_t result;
 
   //configure handle and device address
-  for( i=0; i<NR_IO_EXPANDER; i++ )
+  for( i=0; i<NR_IO_EXPANDER - 1; i++ )
   {
     //initialize data struct
     TCA9535InitDefault((TCA9535Regs*)& TCA9535_Reg_map[i]);
@@ -237,20 +237,20 @@ void init_IO_Expander(void)
     bool tError = false;
 
     ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(i);         //get device definition from item
-    ENUM_IO_Direction direction = get_IO_ExpanderDirectionFromItem(i);  //get direction definition from item
+    ENUM_IO_ExtDirection direction = get_IO_ExpanderDirectionFromItem(i);  //get direction definition from item
     int8_t pin = get_IO_ExpanderPinFromItem(i);                         //get pin number definition from item
-    ENUM_IO_ACTIVE active = get_IO_ExpanderActiveFromItem(i);           //get active definition from item
+    ENUM_IO_ExtACTIVE active = get_IO_ExpanderActiveFromItem(i);           //get active definition from item
 
 
     //check device definition is not valid
-    if( device >= NR_IO_EXPANDER )
+    if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER )
     {
       tError = true;
       APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: device out of range of item %d\r\n", i );
     }
 
     //check direction definition is not valid
-    if( direction >= MAX_IO_DIRECTION )
+    if( direction >= MAX_IO_EXT_DIRECTION )
     {
       tError = true;
       APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: direction out of range of item %d\r\n", i );
@@ -264,7 +264,7 @@ void init_IO_Expander(void)
     }
 
     //check active definition is not valid
-    if( active >= MAX_IO_ACTIVE )
+    if( active >= MAX_IO_EXT_ACTIVE )
     {
       tError = true;
       APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: pinmask out of range of item %d\r\n", i );
@@ -275,20 +275,20 @@ void init_IO_Expander(void)
     {
       switch( direction )
       {
-        case IO_INPUT: //direction is IO_INPUT
+        case IO_EXT_INPUT: //direction is IO_INPUT
 
           //set input
           set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Config.all, pin); //set pin corresponding pin in CONFIG to 1 = INPUT
 
           switch( active )
           {
-            case IO_LOW_ACTIVE: //active is LOW_ACTIVE
+            case IO_EXT_LOW_ACTIVE: //active is LOW_ACTIVE
 
               set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].PolarityInversion.all, pin); //set pin corresponding pin in POLARITY to 1 is LOW_ACTIVE INPUT
 
               break;
 
-            case IO_HIGH_ACTIVE: //active is HIGH_ACTIVE
+            case IO_EXT_HIGH_ACTIVE: //active is HIGH_ACTIVE
 
               reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].PolarityInversion.all, pin); //reset pin corresponding pin in POLARITY to 0 is HIGH_ACTIVE INPUT
 
@@ -305,19 +305,19 @@ void init_IO_Expander(void)
 
           break;
 
-        case IO_OUTPUT: //direction is IO_OUTPUT
+        case IO_EXT_OUTPUT: //direction is IO_OUTPUT
 
           reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Config.all, pin); //reset pin corresponding pin in CONFIG to 0 = OUTPUT
 
           switch( active )
           {
-            case IO_LOW_ACTIVE: //active is LOW_ACTIVE
+            case IO_EXT_LOW_ACTIVE: //active is LOW_ACTIVE
 
               set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pin); //set pin corresponding pin in OUTPUT to 1 is LOW_ACTIVE OUTPUT is off
 
               break;
 
-            case IO_HIGH_ACTIVE: //active is HIGH_ACTIVE
+            case IO_EXT_HIGH_ACTIVE: //active is HIGH_ACTIVE
 
               reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pin); //reset pin corresponding pin in OUTPUT to 0  is HIGH_ACTIVE OUTPUT is off
 
@@ -349,7 +349,7 @@ void init_IO_Expander(void)
   }
 
   //initialize device
-  for( i=0; i<NR_IO_EXPANDER; i++ )
+  for( i=0; i<NR_IO_EXPANDER -1; i++ )
   {
     result = TCA9535InitI2CReg((TCA9535Regs*)&TCA9535_Reg_map[i]); //send initial state to I/O expander.
 
@@ -372,7 +372,7 @@ void init_IO_Expander(void)
 void update_IO_Expander(void)
 {
   int i;
-  for (i = 0; i < NR_IO_EXPANDER; i++)
+  for (i = 0; i < NR_IO_EXPANDER - 1; i++)
   {
     if( stIO_ExpanderChipConfig[i].enabled == true ) //only when device is enabled
     {
@@ -398,7 +398,7 @@ int8_t setOutput(ENUM_IO_EXPANDER_ITEM io_item, bool state)
 
   ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(io_item);
 
-  if( device >= NR_IO_EXPANDER ) //check boundary device
+  if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
     return -2;
 
   if( state == true )
@@ -429,7 +429,7 @@ int8_t getInput(ENUM_IO_EXPANDER_ITEM io_item)
 
   ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(io_item);
 
-  if( device >= NR_IO_EXPANDER ) //check boundary device
+  if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER ) //check boundary device
     return -2;
 
   if( TCA9535_Reg_map[device].Input.all & get_IO_ExpanderPinMaskFromItem(io_item) ) //check input pin is high
@@ -457,7 +457,7 @@ int8_t writeIO(ENUM_IO_EXPANDER_ITEM io_item, bool state)
 
   ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(io_item);
 
-  if( device >= NR_IO_EXPANDER ) //check boundary device
+  if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER ) //check boundary device
     return -2;
 
   setOutput(io_item, state); //set output
@@ -481,7 +481,7 @@ int8_t readIO(ENUM_IO_EXPANDER_ITEM io_item)
 
   ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(io_item);
 
-  if( device >= NR_IO_EXPANDER ) //check boundary device
+  if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER ) //check boundary device
     return -2;
 
   TCA9535ReadInputReg((TCA9535Regs*)&TCA9535_Reg_map[device]); //read input
