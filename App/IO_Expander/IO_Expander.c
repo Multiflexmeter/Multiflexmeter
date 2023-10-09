@@ -185,6 +185,31 @@ ENUM_IO_ACTIVE get_IO_ExpanderActiveFromItem( ENUM_IO_EXPANDER_ITEM io_item )
 }
 
 /**
+ * @fn void set_register_IO_Expander(unsigned short*, uint8_t)
+ * @brief helper function to set pin in register
+ *
+ * @param pRegister
+ * @param pin
+ */
+void set_register_IO_Expander( unsigned short * pRegister, uint8_t pin )
+{
+  *pRegister |= (1UL<<pin);
+}
+
+/**
+ * @fn void reset_register_IO_Expander(unsigned short*, uint8_t)
+ * @brief helper function to reset pin in register
+ *
+ * @param pRegister
+ * @param pin
+ */
+void reset_register_IO_Expander( unsigned short * pRegister, uint8_t pin )
+{
+  *pRegister &= ~(1UL<<pin);
+}
+
+
+/**
  * @fn void init_IO_Expander(void)
  * @brief function to initialize PIN configuration to each defined I/O expander chip
  *
