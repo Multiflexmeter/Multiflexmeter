@@ -238,7 +238,7 @@ void init_IO_Expander(void)
 
     ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(i);         //get device definition from item
     ENUM_IO_Direction direction = get_IO_ExpanderDirectionFromItem(i);  //get direction definition from item
-    uint16_t pinmask = get_IO_ExpanderPinMaskFromItem(i);               //get pinmask definition from item
+    int8_t pin = get_IO_ExpanderPinFromItem(i);                         //get pin number definition from item
     ENUM_IO_ACTIVE active = get_IO_ExpanderActiveFromItem(i);           //get active definition from item
 
 
@@ -256,11 +256,11 @@ void init_IO_Expander(void)
       APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: direction out of range of item %d\r\n", i );
     }
 
-    //check pinmask definition is not valid
-    if( pinmask == 0 )
+    //check pin definition is not valid
+    if( pin >= 16 )
     {
       tError = true;
-      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: pinmask out of range of item %d\r\n", i );
+      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: pin out of range of item %d\r\n", i );
     }
 
     //check active definition is not valid
@@ -278,19 +278,19 @@ void init_IO_Expander(void)
         case IO_INPUT: //direction is IO_INPUT
 
           //set input
-          TCA9535_Reg_map[device].Config.all |= pinmask; //set pin corresponding pin in CONFIG to 1 = INPUT
+          set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Config.all, pin); //set pin corresponding pin in CONFIG to 1 = INPUT
 
           switch( active )
           {
             case IO_LOW_ACTIVE: //active is LOW_ACTIVE
 
-              TCA9535_Reg_map[device].PolarityInversion.all |= pinmask; //set pin corresponding pin in POLARITY to 1 is LOW_ACTIVE INPUT
+              set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].PolarityInversion.all, pin); //set pin corresponding pin in POLARITY to 1 is LOW_ACTIVE INPUT
 
               break;
 
             case IO_HIGH_ACTIVE: //active is HIGH_ACTIVE
 
-              TCA9535_Reg_map[device].PolarityInversion.all &= ~(pinmask); //set pin corresponding pin in POLARITY to 0 is HIGH_ACTIVE INPUT
+              reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].PolarityInversion.all, pin); //reset pin corresponding pin in POLARITY to 0 is HIGH_ACTIVE INPUT
 
               break;
 
@@ -307,19 +307,19 @@ void init_IO_Expander(void)
 
         case IO_OUTPUT: //direction is IO_OUTPUT
 
-          TCA9535_Reg_map[device].Config.all &= ~(pinmask); //set pin corresponding pin in CONFIG to 0 = OUTPUT
+          reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Config.all, pin); //reset pin corresponding pin in CONFIG to 0 = OUTPUT
 
           switch( active )
           {
             case IO_LOW_ACTIVE: //active is LOW_ACTIVE
 
-              TCA9535_Reg_map[device].Output.all |= pinmask; //set pin corresponding pin in OUTPUT to 1 is LOW_ACTIVE OUTPUT is off
+              set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pin); //set pin corresponding pin in OUTPUT to 1 is LOW_ACTIVE OUTPUT is off
 
               break;
 
             case IO_HIGH_ACTIVE: //active is HIGH_ACTIVE
 
-              TCA9535_Reg_map[device].Output.all &= ~(pinmask); //set pin corresponding pin in OUTPUT to 0  is HIGH_ACTIVE OUTPUT is off
+              reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pin); //reset pin corresponding pin in OUTPUT to 0  is HIGH_ACTIVE OUTPUT is off
 
               break;
 
