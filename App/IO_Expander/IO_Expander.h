@@ -177,5 +177,9 @@ typedef struct{
 
 void init_IO_Expander(void);
 void update_IO_Expander(void);
+int8_t setOutput(ENUM_IO_EXPANDER_ITEM io_item, bool state);
+int8_t getInput(ENUM_IO_EXPANDER_ITEM io_item);
+int8_t writeIO(ENUM_IO_EXPANDER_ITEM io_item, bool state);
+int8_t readIO(ENUM_IO_EXPANDER_ITEM io_item);
 
 #endif /* IO_EXPANDER_IO_EXPANDER_H_ */

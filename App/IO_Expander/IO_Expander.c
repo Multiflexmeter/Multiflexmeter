@@ -381,3 +381,110 @@ void update_IO_Expander(void)
     }
   }
 }
+
+/**
+ * @fn int8_t setOutput(ENUM_IO_EXPANDER_ITEM, bool)
+ * @brief function to set output in IO expander variable.
+ * note: no update to device.
+ *
+ * @param io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @param state
+ * @return 0 = successful, negative is error
+ */
+int8_t setOutput(ENUM_IO_EXPANDER_ITEM io_item, bool state)
+{
+  if( io_item >= MAX_IO_EXPANDER_ITEM ) //check boundary io_item
+    return -1;
+
+  ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(io_item);
+
+  if( device >= NR_IO_EXPANDER ) //check boundary device
+    return -2;
+
+  if( state == true )
+  {
+    set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, get_IO_ExpanderPinFromItem(io_item));
+  }
+
+  else
+  {
+    reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, get_IO_ExpanderPinFromItem(io_item));
+  }
+
+  return 0;
+}
+
+/**
+ * @fn int8_t getInput(ENUM_IO_EXPANDER_ITEM)
+ * @brief function to get input of IO expander variable
+ * note: not forced read from device
+ *
+ * @param io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @return 0 = low, 1 = high, negative is error
+ */
+int8_t getInput(ENUM_IO_EXPANDER_ITEM io_item)
+{
+  if( io_item >= MAX_IO_EXPANDER_ITEM ) //check boundary io_item
+     return -1;
+
+  ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(io_item);
+
+  if( device >= NR_IO_EXPANDER ) //check boundary device
+    return -2;
+
+  if( TCA9535_Reg_map[device].Input.all & get_IO_ExpanderPinMaskFromItem(io_item) ) //check input pin is high
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+/**
+ * @fn int8_t writeIO(ENUM_IO_EXPANDER_ITEM, bool, bool)
+ * @brief function to write I/O to expander
+ *
+ * @param io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @param state false = low, true = high
+ * @return 0 = successful, negative is error
+ */
+int8_t writeIO(ENUM_IO_EXPANDER_ITEM io_item, bool state)
+{
+  if( io_item >= MAX_IO_EXPANDER_ITEM ) //check boundary io_item
+    return -1;
+
+  ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(io_item);
+
+  if( device >= NR_IO_EXPANDER ) //check boundary device
+    return -2;
+
+  setOutput(io_item, state); //set output
+
+  TCA9535WriteOutput((TCA9535Regs*) &TCA9535_Reg_map[device]); //update outputs
+
+  return 0;
+}
+
+/**
+ * @fn int8_t readIO(ENUM_IO_EXPANDER_ITEM)
+ * @brief function to read an IO pin with forced read
+ *
+ * @param io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @return 0 = input is low, 1 = input is high, negative is error
+ */
+int8_t readIO(ENUM_IO_EXPANDER_ITEM io_item)
+{
+  if( io_item >= MAX_IO_EXPANDER_ITEM ) //check boundary io_item
+    return -1;
+
+  ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(io_item);
+
+  if( device >= NR_IO_EXPANDER ) //check boundary device
+    return -2;
+
+  TCA9535ReadInputReg((TCA9535Regs*)&TCA9535_Reg_map[device]); //read input
+
+  return getInput(io_item);
+}
