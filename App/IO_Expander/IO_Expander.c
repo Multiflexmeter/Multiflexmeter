@@ -236,7 +236,7 @@ int8_t init_IO_ExpanderPin(ENUM_IO_EXPANDER device, ENUM_IO_ExtDirection directi
   }
 
   //check pin definition is not valid
-  if( IS_GPIO_PIN(pinMask) )
+  if( !IS_GPIO_PIN(pinMask) )
   {
     APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: pinmask (%d) out of range.\r\n", pinMask );
     return -3;
