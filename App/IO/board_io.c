@@ -66,7 +66,7 @@
 
 static GPIO_PinState board_IO_status[MAX_IO_ITEM];
 
-struct_BoardIO_PinConfig stIO_PinConfig[]=
+static struct_BoardIO_PinConfig stIO_PinConfig[]=
 {
     { IO_INTERAL,   IO_EXPANDER_NONE, INT_IO_MCU_IRQ_DETECT_PORT, INT_IO_MCU_IRQ_DETECT_PIN,    GPIO_NOPULL,  IO_INPUT,   IO_LOW_ACTIVE},  // INT_IO_MCU_IRQ_DETECT,
     { IO_INTERAL,   IO_EXPANDER_NONE, INT_IO_DEBUG_LED2_PORT,     INT_IO_DEBUG_LED2_PIN,        GPIO_NOPULL,  IO_OUTPUT,  IO_HIGH_ACTIVE}, // INT_IO_DEBUG_LED2
@@ -221,7 +221,7 @@ void init_board_io(void)
  * @param item \ref ENUM_IO_ITEM
  * @return \ref GPIO_PinState
  */
-GPIO_PinState read_IO_internal(ENUM_IO_ITEM item)
+static GPIO_PinState read_IO_internal(ENUM_IO_ITEM item)
 {
   assert_param( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[item].GPIOx ) );
 
@@ -249,7 +249,7 @@ GPIO_PinState read_IO_internal(ENUM_IO_ITEM item)
  *
  * @param item \ref ENUM_IO_ITEM
  */
-void write_IO_internal(ENUM_IO_ITEM item, GPIO_PinState pinState)
+static void write_IO_internal(ENUM_IO_ITEM item, GPIO_PinState pinState)
 {
   assert_param( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[item].GPIOx ) );
 
@@ -269,11 +269,28 @@ void write_IO_internal(ENUM_IO_ITEM item, GPIO_PinState pinState)
 }
 
 /**
+ * @fn GPIO_PinState toggle_IO_internal(ENUM_IO_ITEM)
+ * @brief helper function to toggle an internal IO
+ *
+ * @param item \ref ENUM_IO_ITEM
+ * @return \ref GPIO_PinState
+ */
+static void toggle_IO_internal(ENUM_IO_ITEM item)
+{
+  assert_param( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[item].GPIOx ) );
+
+  if( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[item].GPIOx ) ) //check GPIO is set
+  {
+    HAL_GPIO_TogglePin(stIO_PinConfig[item].GPIOx, stIO_PinConfig[item].pin ); //toggle output
+  }
+}
+
+/**
  * @fn void update_IO_internal(void)
  * @brief helper function for update IO internal for periodically calling
  *
  */
-void update_IO_internal(void)
+static void update_IO_internal(void)
 {
   int i;
 
@@ -315,7 +332,7 @@ void update_IO_internal(void)
  * @brief helper function for update IO internal for periodically calling
  *
  */
-void update_IO_external(void)
+static void update_IO_external(void)
 {
   int i;
   int8_t inputResult;
@@ -539,4 +556,47 @@ int8_t readInput_board_io(ENUM_IO_EXPANDER item)
   }
 
     return board_IO_status[item];
+}
+
+/**
+ * @fn void toggleOutput_board_io(ENUM_IO_EXPANDER)
+ * @brief toggle function for board IO
+ *
+ * @param item \ref ENUM_IO_EXPANDER
+ */
+void toggleOutput_board_io(ENUM_IO_EXPANDER item)
+{
+  int8_t result = -10;
+
+  result = getInput_board_io(item); //only for argument checking, re-use.
+
+  if (result < 0) //check result  error
+  {
+    return;
+  }
+
+  board_IO_status[item] = !board_IO_status[item];
+  switch (stIO_PinConfig[item].io_location)
+  {
+    case IO_INTERAL:    //only for IO_INTERAL
+
+      toggle_IO_internal(item);
+
+      break;
+
+    case IO_EXTERNAL:   //only for IO_EXTERNAL
+
+      writeOutput_IO_Expander(stIO_PinConfig[item].device, stIO_PinConfig[item].pin, board_IO_status[item]); //write output
+
+      break;
+
+    default:
+
+      //nothing
+      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: location (%d) out of range of item %d.\r\n", stIO_PinConfig[item].io_location, item);
+
+      return;
+
+      break;
+  }
 }
