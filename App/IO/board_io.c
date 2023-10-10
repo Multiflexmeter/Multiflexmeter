@@ -88,6 +88,7 @@ struct_BoardIO_PinConfig stIO_PinConfig[]=
 void init_board_io(void)
 {
   int i;
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   bool externalFound = false;
 
   assert_param( IO_INPUT == IO_EXT_INPUT );   //verify enumeration is equal.
@@ -101,10 +102,33 @@ void init_board_io(void)
 
   for(i=0; i<sizeof(stIO_PinConfig)/sizeof(stIO_PinConfig[0]); i++ )
   {
+
     switch( stIO_PinConfig[i].io_location )
     {
       case IO_INTERAL:
 
+        memset(&GPIO_InitStruct, 0x00, sizeof(GPIO_InitStruct)); //set struct default value
+
+        GPIO_InitStruct.Pin = stIO_PinConfig[i].pin;      //set PIN
+        GPIO_InitStruct.Pull = stIO_PinConfig[i].pullup;  //set Pull
+        switch( stIO_PinConfig[i].direction )             //check direction
+        {
+          case IO_INPUT:
+            GPIO_InitStruct.Mode = GPIO_MODE_INPUT;       //set input
+            break;
+
+          case IO_OUTPUT:
+            GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;   //set normal output
+            break;
+
+          default:
+            GPIO_InitStruct.Mode = 0;
+            break;
+        }
+
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;      //default low speed
+
+        HAL_GPIO_Init(stIO_PinConfig[i].GPIOx, &GPIO_InitStruct); //init GPIO
 
         break;
 
