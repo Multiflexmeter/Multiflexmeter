@@ -159,26 +159,33 @@ void init_board_io(void)
 
         memset(&GPIO_InitStruct, 0x00, sizeof(GPIO_InitStruct)); //set struct default value
 
-        GPIO_InitStruct.Pin = stIO_PinConfig[i].pin;      //set PIN
-        GPIO_InitStruct.Pull = stIO_PinConfig[i].pullup;  //set Pull
-        switch( stIO_PinConfig[i].direction )             //check direction
+        if( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[i].GPIOx) ) //check GPIO is set
         {
-          case IO_INPUT:
-            GPIO_InitStruct.Mode = GPIO_MODE_INPUT;       //set input
-            break;
+          GPIO_InitStruct.Pin = stIO_PinConfig[i].pin;      //set PIN
+          GPIO_InitStruct.Pull = stIO_PinConfig[i].pullup;  //set Pull
+          switch( stIO_PinConfig[i].direction )             //check direction
+          {
+            case IO_INPUT:
+              GPIO_InitStruct.Mode = GPIO_MODE_INPUT;       //set input
+              break;
 
-          case IO_OUTPUT:
-            GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;   //set normal output
-            break;
+            case IO_OUTPUT:
+              GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;   //set normal output
+              break;
 
-          default:
-            GPIO_InitStruct.Mode = 0;
-            break;
+            default:
+              GPIO_InitStruct.Mode = 0;
+              break;
+          }
+
+          GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;      //default low speed
+
+          HAL_GPIO_Init(stIO_PinConfig[i].GPIOx, &GPIO_InitStruct); //init GPIO
         }
-
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;      //default low speed
-
-        HAL_GPIO_Init(stIO_PinConfig[i].GPIOx, &GPIO_InitStruct); //init GPIO
+        else
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: GPIOx is wrong.\r\n", i );
+        }
 
         break;
 
@@ -216,14 +223,23 @@ void init_board_io(void)
  */
 GPIO_PinState read_IO_internal(ENUM_IO_ITEM item)
 {
-  GPIO_PinState pinState = HAL_GPIO_ReadPin(stIO_PinConfig[item].GPIOx, stIO_PinConfig[item].pin ); //read input
-  if( stIO_PinConfig[item].active == IO_HIGH_ACTIVE )
+  assert_param( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[item].GPIOx ) );
+
+  if( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[item].GPIOx) ) //check GPIO is set
   {
-    return pinState;
+    GPIO_PinState pinState = HAL_GPIO_ReadPin(stIO_PinConfig[item].GPIOx, stIO_PinConfig[item].pin ); //read input
+    if( stIO_PinConfig[item].active == IO_HIGH_ACTIVE )
+    {
+      return pinState;
+    }
+    else //IO_LOW_ACTIVE
+    {
+      return !pinState; //invert
+    }
   }
-  else //IO_LOW_ACTIVE
+  else
   {
-    return !pinState; //invert
+    return 0; //force off result
   }
 }
 
@@ -235,6 +251,8 @@ GPIO_PinState read_IO_internal(ENUM_IO_ITEM item)
  */
 void write_IO_internal(ENUM_IO_ITEM item, GPIO_PinState pinState)
 {
+  assert_param( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[item].GPIOx ) );
+
   if( stIO_PinConfig[item].active == IO_HIGH_ACTIVE )
   {
     pinState = pinState;
@@ -244,7 +262,10 @@ void write_IO_internal(ENUM_IO_ITEM item, GPIO_PinState pinState)
     pinState = !pinState; //invert
   }
 
-  HAL_GPIO_WritePin(stIO_PinConfig[item].GPIOx, stIO_PinConfig[item].pin, pinState ); //write output
+  if( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[item].GPIOx ) ) //check GPIO is set
+  {
+    HAL_GPIO_WritePin(stIO_PinConfig[item].GPIOx, stIO_PinConfig[item].pin, pinState ); //write output
+  }
 }
 
 /**
