@@ -210,6 +210,121 @@ void reset_register_IO_Expander( unsigned short * pRegister, uint16_t pinMask )
 
 
 /**
+ * @fn int8_t init_IO_ExpanderPin(ENUM_IO_EXPANDER, ENUM_IO_ExtDirection, uint16_t, ENUM_IO_ExtACTIVE)
+ * @brief function to initialize one pin
+ *
+ * @param device number \ref ENUM_IO_EXPANDER (only IO_EXPANDER_SYS, IO_EXPANDER_BUS_INT, IO_EXPANDER_BUS_EXT
+ * @param direction \ref ENUM_IO_ExtDirection
+ * @param pinMask
+ * @param active \ref ENUM_IO_ExtACTIVE
+ * @return successful is 0, negative is error
+ */
+int8_t init_IO_ExpanderPin(ENUM_IO_EXPANDER device, ENUM_IO_ExtDirection direction, uint16_t pinMask, ENUM_IO_ExtACTIVE active )
+{
+  //check device definition is not valid
+  if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: device (%d) out of range.\r\n", device );
+    return -1;
+  }
+
+  //check direction definition is not valid
+  if( direction >= MAX_IO_EXT_DIRECTION )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: direction (%D) out of range.\r\n", direction );
+    return -2;
+  }
+
+  //check pin definition is not valid
+  if( IS_GPIO_PIN(pinMask) )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: pinmask (%d) out of range.\r\n", pinMask );
+    return -3;
+  }
+
+  //check active definition is not valid
+  if( active >= MAX_IO_EXT_ACTIVE )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: active (%d) out of range.\r\n", active );
+    return -4;
+  }
+
+
+  switch( direction )
+  {
+    case IO_EXT_INPUT: //direction is IO_INPUT
+
+      //set input
+      set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Config.all, pinMask); //set pinMask corresponding pin in CONFIG to 1 = INPUT
+
+      switch( active )
+      {
+        case IO_EXT_LOW_ACTIVE: //active is LOW_ACTIVE
+
+          set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].PolarityInversion.all, pinMask); //set pinMask corresponding pin in POLARITY to 1 is LOW_ACTIVE INPUT
+
+          break;
+
+        case IO_EXT_HIGH_ACTIVE: //active is HIGH_ACTIVE
+
+          reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].PolarityInversion.all, pinMask); //reset pinMask corresponding pin in POLARITY to 0 is HIGH_ACTIVE INPUT
+
+          break;
+
+        default:
+
+          //nothing should all ready been catched
+          assert_param(0);
+          return -5;
+
+          break;
+
+      }
+
+      break;
+
+    case IO_EXT_OUTPUT: //direction is IO_OUTPUT
+
+      reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Config.all, pinMask); //reset pinMask corresponding pin in CONFIG to 0 = OUTPUT
+
+      switch( active )
+      {
+        case IO_EXT_LOW_ACTIVE: //active is LOW_ACTIVE
+
+          set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pinMask); //set pin corresponding pinMask in OUTPUT to 1 is LOW_ACTIVE OUTPUT is off
+
+          break;
+
+        case IO_EXT_HIGH_ACTIVE: //active is HIGH_ACTIVE
+
+          reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pinMask); //reset pin corresponding pinMask in OUTPUT to 0  is HIGH_ACTIVE OUTPUT is off
+
+          break;
+
+        default:
+
+          //nothing should all ready been catched
+          assert_param(0);
+          return -6;
+
+          break;
+      }
+
+      break;
+
+    default:
+
+      //nothing should all ready been catched
+      assert_param(0);
+      return -7;
+
+      break;
+  }
+
+  return 0;
+}
+
+/**
  * @fn void init_IO_Expander(void)
  * @brief function to initialize PIN configuration to each defined I/O expander chip
  *
@@ -234,117 +349,15 @@ void init_IO_Expander(void)
   //configure all port registers
   for(i=0; i<sizeof(stIO_ExpanderPinConfig)/sizeof(stIO_ExpanderPinConfig[0]);i++)
   {
-    bool tError = false;
-
     ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(i);         //get device definition from item
     ENUM_IO_ExtDirection direction = get_IO_ExpanderDirectionFromItem(i);  //get direction definition from item
     uint16_t pinMask = get_IO_ExpanderPinMaskFromItem(i);                         //get pin maskchan definition from item
     ENUM_IO_ExtACTIVE active = get_IO_ExpanderActiveFromItem(i);           //get active definition from item
 
-
-    //check device definition is not valid
-    if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER )
-    {
+    if( init_IO_ExpanderPin(device, direction, pinMask, active) < 0 )
+    { //error
+      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: out of range of item %d.\r\n", i );
       tError = true;
-      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: device out of range of item %d\r\n", i );
-    }
-
-    //check direction definition is not valid
-    if( direction >= MAX_IO_EXT_DIRECTION )
-    {
-      tError = true;
-      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: direction out of range of item %d\r\n", i );
-    }
-
-    //check pin definition is not valid
-    if( IS_GPIO_PIN(pinMask) )
-    {
-      tError = true;
-      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: pin out of range of item %d\r\n", i );
-    }
-
-    //check active definition is not valid
-    if( active >= MAX_IO_EXT_ACTIVE )
-    {
-      tError = true;
-      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: pinmask out of range of item %d\r\n", i );
-    }
-
-    //check no error in definition
-    if( tError == false )
-    {
-      switch( direction )
-      {
-        case IO_EXT_INPUT: //direction is IO_INPUT
-
-          //set input
-          set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Config.all, pinMask); //set pinMask corresponding pin in CONFIG to 1 = INPUT
-
-          switch( active )
-          {
-            case IO_EXT_LOW_ACTIVE: //active is LOW_ACTIVE
-
-              set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].PolarityInversion.all, pinMask); //set pinMask corresponding pin in POLARITY to 1 is LOW_ACTIVE INPUT
-
-              break;
-
-            case IO_EXT_HIGH_ACTIVE: //active is HIGH_ACTIVE
-
-              reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].PolarityInversion.all, pinMask); //reset pinMask corresponding pin in POLARITY to 0 is HIGH_ACTIVE INPUT
-
-              break;
-
-            default:
-
-              //nothing should all ready been catched
-              assert_param(0);
-
-              break;
-
-          }
-
-          break;
-
-        case IO_EXT_OUTPUT: //direction is IO_OUTPUT
-
-          reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Config.all, pinMask); //reset pinMask corresponding pin in CONFIG to 0 = OUTPUT
-
-          switch( active )
-          {
-            case IO_EXT_LOW_ACTIVE: //active is LOW_ACTIVE
-
-              set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pinMask); //set pin corresponding pinMask in OUTPUT to 1 is LOW_ACTIVE OUTPUT is off
-
-              break;
-
-            case IO_EXT_HIGH_ACTIVE: //active is HIGH_ACTIVE
-
-              reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pinMask); //reset pin corresponding pinMask in OUTPUT to 0  is HIGH_ACTIVE OUTPUT is off
-
-              break;
-
-            default:
-
-              //nothing should all ready been catched
-              assert_param(0);
-
-              break;
-          }
-
-          break;
-
-        default:
-
-          //nothing should all ready been catched
-          assert_param(0);
-
-          break;
-      }
-    }
-
-    else
-    {
-      //noting
     }
   }
 
