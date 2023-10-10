@@ -16,7 +16,7 @@
 #include "stm32_seq.h"
 #include "stm32_timer.h"
 
-#include "IO_Expander/IO_Expander.h"
+#include "IO/board_io.h"
 #include "CommConfig.h"
 #include "mainTask.h"
 
@@ -58,7 +58,7 @@ const void mainTask(void)
   {
     case 0: //init Powerup
 
-      init_IO_Expander(); //init IO expander
+      init_board_io(); //init IO
 
       mainTask_state++;
       break;
@@ -84,7 +84,7 @@ const void mainTask(void)
       break;
   }
 
-  update_IO_Expander(); //periodically read
+  update_board_io(); //periodically read
 
 
   //check boolean mainTaskActive, then set short period for triggering, if not set long period for triggering.

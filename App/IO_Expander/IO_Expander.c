@@ -230,25 +230,32 @@ void init_IO_Expander(void)
 }
 
 /**
- * @fn void update_IO_Expander(void)
+ * @fn void update_IO_Expander(bool input, bool output)
  * @brief function to update IO expanders, needs to be called periodically
  *
  */
-void update_IO_Expander(void)
+void update_IO_Expander(bool input, bool output)
 {
   int i;
   for (i = 0; i < NR_IO_EXPANDER - 1; i++)
   {
     if( stIO_ExpanderChipConfig[i].enabled == true ) //only when device is enabled
     {
-      TCA9535WriteOutput((TCA9535Regs*) &TCA9535_Reg_map[i]); //update outputs
-      TCA9535ReadInputReg((TCA9535Regs*) &TCA9535_Reg_map[i]); //read inputs
+      if( output )
+      {
+        TCA9535WriteOutput((TCA9535Regs*) &TCA9535_Reg_map[i]); //update outputs
+      }
+
+      if( input )
+      {
+        TCA9535ReadInputReg((TCA9535Regs*) &TCA9535_Reg_map[i]); //read inputs
+      }
     }
   }
 }
 
 /**
- * @fn int8_t setOutput(ENUM_IO_EXPANDER, uint16_t, bool)
+ * @fn int8_t setOutput_IO_Expander(ENUM_IO_EXPANDER, uint16_t, bool)
  * @brief function to set output in IO expander variable.
  *
  * @param device
@@ -256,7 +263,7 @@ void update_IO_Expander(void)
  * @param state
  * @return 0 = successful, negative is error
  */
-int8_t setOutput(ENUM_IO_EXPANDER device, uint16_t pinMask, bool state)
+int8_t setOutput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask, GPIO_PinState state)
 {
   if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
     return -1;
@@ -264,7 +271,7 @@ int8_t setOutput(ENUM_IO_EXPANDER device, uint16_t pinMask, bool state)
   if( !IS_GPIO_PIN(pinMask) ) //check pinMask
     return -2;
 
-  if( state == true )
+  if( state == GPIO_PIN_SET )
   {
     set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pinMask);
   }
@@ -286,7 +293,7 @@ int8_t setOutput(ENUM_IO_EXPANDER device, uint16_t pinMask, bool state)
  * @param pinMask
  * @return 0 = low, 1 = high, negative is error
  */
-int8_t getInput(ENUM_IO_EXPANDER device, uint16_t pinMask)
+int8_t getInput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask)
 {
   if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
     return -1;
@@ -296,16 +303,16 @@ int8_t getInput(ENUM_IO_EXPANDER device, uint16_t pinMask)
 
   if( TCA9535_Reg_map[device].Input.all & pinMask ) //check input pin is high
   {
-    return true;
+    return GPIO_PIN_SET;
   }
   else
   {
-    return false;
+    return GPIO_PIN_RESET;
   }
 }
 
 /**
- * @fn int8_t writeIO(ENUM_IO_EXPANDER, uint16_t, bool)
+ * @fn int8_t writeOutput_IO_Expander(ENUM_IO_EXPANDER, uint16_t, bool)
  * @brief function to write I/O to expander
  *
  * @param device
@@ -313,7 +320,7 @@ int8_t getInput(ENUM_IO_EXPANDER device, uint16_t pinMask)
  * @param state false = low, true = high
  * @return 0 = successful, negative is error
  */
-int8_t writeIO(ENUM_IO_EXPANDER device, uint16_t pinMask, bool state)
+int8_t writeOutput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask, GPIO_PinState state)
 {
   if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER ) //check boundary device
     return -1;
@@ -321,7 +328,7 @@ int8_t writeIO(ENUM_IO_EXPANDER device, uint16_t pinMask, bool state)
   if( !IS_GPIO_PIN(pinMask) ) //check pinMask
     return -2;
 
-  setOutput(device, pinMask, state); //set output
+  setOutput_IO_Expander(device, pinMask, state); //set output
 
   TCA9535WriteOutput((TCA9535Regs*) &TCA9535_Reg_map[device]); //update outputs
 
@@ -329,14 +336,14 @@ int8_t writeIO(ENUM_IO_EXPANDER device, uint16_t pinMask, bool state)
 }
 
 /**
- * @fn int8_t readIO(ENUM_IO_EXPANDER, uint16_t)
+ * @fn int8_t readInput_IO_Expander(ENUM_IO_EXPANDER, uint16_t)
  * @brief function to read an IO pin with forced read
  *
  * @param device
  * @param pinMask
  * @return 0 = input is low, 1 = input is high, negative is error
  */
-int8_t readIO(ENUM_IO_EXPANDER device, uint16_t pinMask)
+int8_t readInput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask)
 {
   if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER ) //check boundary device
     return -1;
@@ -346,5 +353,5 @@ int8_t readIO(ENUM_IO_EXPANDER device, uint16_t pinMask)
 
   TCA9535ReadInputReg((TCA9535Regs*)&TCA9535_Reg_map[device]); //read input
 
-  return getInput(device,pinMask);
+  return getInput_IO_Expander(device,pinMask);
 }

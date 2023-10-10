@@ -151,5 +151,321 @@ void init_board_io(void)
   {
     init_IO_Expander(); //Send configuration registers to IO Expander devices.
   }
+  else
+  {
+    //nothing
+  }
+}
 
+/**
+ * @fn GPIO_PinState read_IO_internal(ENUM_IO_ITEM)
+ * @brief helper function to read an internal IO
+ *
+ * @param item \ref ENUM_IO_ITEM
+ * @return \ref GPIO_PinState
+ */
+GPIO_PinState read_IO_internal(ENUM_IO_ITEM item)
+{
+  GPIO_PinState pinState = HAL_GPIO_ReadPin(stIO_PinConfig[item].GPIOx, stIO_PinConfig[item].pin ); //read input
+  if( stIO_PinConfig[item].active == IO_HIGH_ACTIVE )
+  {
+    return pinState;
+  }
+  else //IO_LOW_ACTIVE
+  {
+    return !pinState; //invert
+  }
+}
+
+/**
+ * @fn GPIO_PinState write_IO_internal(ENUM_IO_ITEM, GPIO_PinState pinState)
+ * @brief helper function to write an internal IO
+ *
+ * @param item \ref ENUM_IO_ITEM
+ */
+void write_IO_internal(ENUM_IO_ITEM item, GPIO_PinState pinState)
+{
+  if( stIO_PinConfig[item].active == IO_HIGH_ACTIVE )
+  {
+    pinState = pinState;
+  }
+  else //IO_LOW_ACTIVE
+  {
+    pinState = !pinState; //invert
+  }
+
+  HAL_GPIO_WritePin(stIO_PinConfig[item].GPIOx, stIO_PinConfig[item].pin, pinState ); //write output
+}
+
+/**
+ * @fn void update_IO_internal(void)
+ * @brief helper function for update IO internal for periodically calling
+ *
+ */
+void update_IO_internal(void)
+{
+  int i;
+
+  for (i = 0; i < MAX_IO_ITEM; i++) //loop of all items
+  {
+    if (stIO_PinConfig[i].io_location == IO_INTERAL) //only for IO_INTERNAL
+    {
+      switch( stIO_PinConfig[i].direction )
+      {
+        case IO_INPUT:    //inputs
+
+          board_IO_status[i] = read_IO_internal(i);
+
+          break;
+
+        case IO_OUTPUT:   //outputs
+
+          write_IO_internal(i, board_IO_status[i]);
+
+          break;
+
+        default:      //other
+          //nothing
+
+          APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: direction (%d) out of range of item %d.\r\n", stIO_PinConfig[i].direction, i );
+
+          break;
+      }
+    }
+    else
+    {
+      //nothing
+    }
+  }
+}
+
+/**
+ * @fn void update_IO_external(void)
+ * @brief helper function for update IO internal for periodically calling
+ *
+ */
+void update_IO_external(void)
+{
+  int i;
+  int8_t inputResult;
+  GPIO_PinState pinState;
+
+  update_IO_Expander(true, false); //update external inputs only
+
+  for (i = 0; i < MAX_IO_ITEM; i++) //loop of all items
+  {
+    if (stIO_PinConfig[i].io_location == IO_EXTERNAL) //only for IO_EXTERNAL
+    {
+      switch( stIO_PinConfig[i].direction )
+      {
+        case IO_INPUT:    //inputs
+
+          inputResult = getInput_IO_Expander(stIO_PinConfig[i].device, stIO_PinConfig[i].pin); //read input
+
+          if( inputResult >= 0 )
+          {
+            if( stIO_PinConfig[i].active == IO_HIGH_ACTIVE )  //check input is high active (normal)
+            {
+              board_IO_status[i] = inputResult;                  //normal
+            }
+            else //IO_LOW_ACTIVE                              //check input is low active (inverting)
+            {
+              board_IO_status[i] = !inputResult;                 //invert
+            }
+          }
+
+          break;
+
+        case IO_OUTPUT:   //outputs
+
+          if( stIO_PinConfig[i].active == IO_HIGH_ACTIVE )    //check input is high active (normal)
+          {
+            pinState = board_IO_status[i];                    //normal
+          }
+          else //IO_LOW_ACTIVE                                //check input is low active (inverting)
+          {
+            pinState = !board_IO_status[i];                   //invert
+          }
+
+          setOutput_IO_Expander(stIO_PinConfig[i].device, stIO_PinConfig[i].pin, pinState); //write output
+
+          break;
+
+        default:      //other
+
+          //nothing
+          APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: direction (%d) out of range of item %d.\r\n", stIO_PinConfig[i].direction, i );
+
+          break;
+      }
+    }
+    else
+    {
+      //nothing
+    }
+  }
+
+  update_IO_Expander(false, true); //update external outputs only
+}
+
+/**
+ * @fn void update_board_io(void)
+ * @brief  function for update all IO for periodically calling
+ *
+ */
+void update_board_io(void)
+{
+  update_IO_internal(); //update internal IO
+  update_IO_external(); //update external IO
+}
+
+/**
+ * @fn int8_t setOutput_board_io(ENUM_IO_ITEM, GPIO_PinState)
+ * @brief function updates the output status in buffer which periodically updated to device
+ *
+ * @param item \ref ENUM_IO_ITEM
+ * @param state \ref GPIO_PinState
+ * @return 0 = successful, negative is error.
+ */
+int8_t setOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state)
+{
+  if( item >= MAX_IO_ITEM )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong input: item (%d) out of range.\r\n", item );
+    assert_param( 0 );
+    return -1;
+  }
+
+  if( stIO_PinConfig[item].direction != IO_OUTPUT )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong input: direction (%d) is not an output of item %d.\r\n", stIO_PinConfig[item].direction, item);
+    assert_param( 0 );
+    return -2;
+  }
+
+  board_IO_status[item] = state;
+
+  return 0;
+}
+
+/**
+ * @fn int8_t getInput_board_io(ENUM_IO_ITEM, uint16_t)
+ * @brief function reads the state of buffer which periodically updated from device
+ *
+ * @param item \ref ENUM_IO_ITEM
+ * @param pinMask \ref GPIO_PinState
+ * @return 0 = successful, negative is error.
+ */
+int8_t getInput_board_io(ENUM_IO_ITEM item)
+{
+  if( item >= MAX_IO_ITEM )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong input: item (%d) out of range.\r\n", item );
+    assert_param( 0 );
+    return -1;
+  }
+
+  return board_IO_status[item];
+}
+
+/**
+ * @fn int8_t writeOutput_board_io(ENUM_IO_ITEM, GPIO_PinState)
+ * @brief function updates the output state and directly update the output
+ *
+ * @param item \ref ENUM_IO_ITEM
+ * @param state \ref GPIO_PinState
+ * @return 0 = successful, negative is error
+ */
+int8_t writeOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state)
+{
+  int8_t result;
+
+  result = setOutput_board_io(item, state); //set output state in variable
+  state = board_IO_status[item];
+
+  if( result >= 0 ) //check result no error
+  {
+
+    switch( stIO_PinConfig[item].io_location )
+    {
+      case IO_INTERAL:    //only for IO_INTERAL
+
+        write_IO_internal(item, state);
+
+        break;
+
+      case IO_EXTERNAL:   //only for IO_EXTERNAL
+
+        writeOutput_IO_Expander(stIO_PinConfig[item].device, stIO_PinConfig[item].pin, state); //write output
+
+        break;
+
+      default:
+
+        //nothing
+        APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: location (%d) out of range of item %d.\r\n", stIO_PinConfig[item].io_location, item );
+
+        break;
+    }
+  }
+  else
+  {
+    //nothing
+  }
+  return result;
+}
+
+/**
+ * @fn int8_t readInput_board_io(ENUM_IO_EXPANDER)
+ * @brief function reads the input state and update the state in data
+ *
+ * @param item
+ * @return 0 = input not active, 1 = input active, negative is error
+ */
+int8_t readInput_board_io(ENUM_IO_EXPANDER item)
+{
+  int8_t result = -10;
+
+  result = getInput_board_io(item); //only for argument checking, re-use.
+
+  if (result < 0) //check result  error
+  {
+    return result;
+  }
+
+  switch (stIO_PinConfig[item].io_location)
+  {
+    case IO_INTERAL:    //only for IO_INTERAL
+
+      board_IO_status[item] = read_IO_internal(item);
+
+      break;
+
+    case IO_EXTERNAL:   //only for IO_EXTERNAL
+
+      result = readInput_IO_Expander(stIO_PinConfig[item].device,stIO_PinConfig[item].pin); //no invert in software needed.
+
+      if( result < 0 ) //check on error
+      {
+        return result;
+
+      }
+      else
+      {
+        board_IO_status[item] = result; //copy result
+      }
+
+      break;
+
+    default:
+
+      //nothing
+      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: location (%d) out of range of item %d.\r\n", stIO_PinConfig[item].io_location, item);
+
+      return result;
+
+      break;
+  }
+
+    return board_IO_status[item];
 }

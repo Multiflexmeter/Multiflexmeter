@@ -10,6 +10,7 @@
 #ifndef IO_BOARD_IO_H_
 #define IO_BOARD_IO_H_
 
+#include "../IO_Expander/IO_Expander.h"
 
 typedef enum
 {
@@ -100,8 +101,8 @@ typedef enum
 
 typedef struct
 {
-    ENUM_IO_LOCATION io_location;
     ENUM_IO_EXPANDER device;        //must be IO_EXPANDER_NONE for internal IO
+    ENUM_IO_LOCATION io_location;
     GPIO_TypeDef *GPIOx;            //must be NULL for external IO
     uint16_t pin;
     uint32_t pullup;                //only for internal pins
@@ -109,5 +110,8 @@ typedef struct
     ENUM_IO_ACTIVE active;
 
 }struct_BoardIO_PinConfig;
+
+void update_board_io(void);
+void init_board_io(void);
 
 #endif /* IO_BOARD_IO_H_ */
