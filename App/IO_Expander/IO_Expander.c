@@ -325,15 +325,13 @@ int8_t init_IO_ExpanderPin(ENUM_IO_EXPANDER device, ENUM_IO_ExtDirection directi
 }
 
 /**
- * @fn void init_IO_Expander(void)
- * @brief function to initialize PIN configuration to each defined I/O expander chip
+ * @fn void init_IO_ExpanderData(void)
+ * @brief initialize data of IO_expander and set device handle/address
  *
  */
-void init_IO_Expander(void)
+void init_IO_ExpanderData(void)
 {
   int i;
-  uint8_t result;
-
   //configure handle and device address
   for( i=0; i<NR_IO_EXPANDER - 1; i++ )
   {
@@ -343,23 +341,19 @@ void init_IO_Expander(void)
     //configure I2C_handle and device address for IO_EXPANDER_SYS
     TCA9535_Reg_map[i].I2C_handle = stIO_ExpanderChipConfig[i].I2C_handle;
     TCA9535_Reg_map[i].deviceAddress = stIO_ExpanderChipConfig[i].address;;
-
   }
+}
 
-  //configure all port registers
-  for(i=0; i<sizeof(stIO_ExpanderPinConfig)/sizeof(stIO_ExpanderPinConfig[0]);i++)
-  {
-    ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(i);         //get device definition from item
-    ENUM_IO_ExtDirection direction = get_IO_ExpanderDirectionFromItem(i);  //get direction definition from item
-    uint16_t pinMask = get_IO_ExpanderPinMaskFromItem(i);                         //get pin maskchan definition from item
-    ENUM_IO_ExtACTIVE active = get_IO_ExpanderActiveFromItem(i);           //get active definition from item
-
-    if( init_IO_ExpanderPin(device, direction, pinMask, active) < 0 )
-    { //error
-      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_ExpanderPinConfig struct: out of range of item %d.\r\n", i );
-      tError = true;
-    }
-  }
+/**
+ * @fn void init_IO_Expander(void)
+ * @brief function write initial config register to devices.
+ * note: first initialize the registers of variable \ref TCA9535_Reg_map with \ref init_IO_ExpanderData() and \ref init_IO_ExpanderPin() function
+ *
+ */
+void init_IO_Expander(void)
+{
+  int i;
+  uint8_t result = 0;
 
   //initialize device
   for( i=0; i<NR_IO_EXPANDER -1; i++ )

@@ -176,6 +176,8 @@ typedef struct{
     uint8_t address;
 }struct_IO_ExpanderChipConfig;
 
+int8_t init_IO_ExpanderPin(ENUM_IO_EXPANDER device, ENUM_IO_ExtDirection direction, uint16_t pinMask, ENUM_IO_ExtACTIVE active );
+void init_IO_ExpanderData(void);
 void init_IO_Expander(void);
 void update_IO_Expander(void);
 int8_t setOutput(ENUM_IO_EXPANDER_ITEM io_item, bool state);

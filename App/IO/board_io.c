@@ -79,3 +79,53 @@ struct_BoardIO_PinConfig stIO_PinConfig[]=
     { IO_EXTERNAL,  IO_EXPANDER_BUS_EXT,  0,  1UL<<IO_EXP_SLOT6_GPIO1, 0, IO_INPUT,   IO_HIGH_ACTIVE } ,  // EXT_IO_SLOT6_GPIO1
     { IO_EXTERNAL,  IO_EXPANDER_BUS_EXT,  0,  1UL<<IO_EXP_SLOT6_GPIO2, 0, IO_INPUT,   IO_HIGH_ACTIVE } ,  // EXT_IO_SLOT6_GPIO2
 };
+
+/**
+ * @fn void init_board_io(void)
+ * @brief function to init board IO
+ *
+ */
+void init_board_io(void)
+{
+  int i;
+  bool externalFound = false;
+
+  assert_param( IO_INPUT == IO_EXT_INPUT );   //verify enumeration is equal.
+  assert_param( IO_OUTPUT == IO_EXT_OUTPUT ); //verify enumeration is equal.
+
+  assert_param( IO_LOW_ACTIVE == IO_EXT_LOW_ACTIVE );   //verify enumeration is equal.
+  assert_param( IO_HIGH_ACTIVE == IO_EXT_HIGH_ACTIVE ); //verify enumeration is equal.
+
+
+  init_IO_ExpanderData(); //Initialize the data and address of IO Expander devices
+
+  for(i=0; i<sizeof(stIO_PinConfig)/sizeof(stIO_PinConfig[0]); i++ )
+  {
+    switch( stIO_PinConfig[i].io_location )
+    {
+      case IO_INTERAL:
+
+
+        break;
+
+      case IO_EXTERNAL:
+
+        externalFound = true;
+        if( init_IO_ExpanderPin(stIO_PinConfig[i].device, stIO_PinConfig[i].direction, stIO_PinConfig[i].pin, stIO_PinConfig[i].active) < 0 ) //Initialize IO Expander pins in register variables
+        { //error.
+          APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: out of range of item %d.\r\n", i );
+        }
+
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  if( externalFound == true )
+  {
+    init_IO_Expander(); //Send configuration registers to IO Expander devices.
+  }
+
+}
