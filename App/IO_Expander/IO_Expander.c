@@ -43,148 +43,6 @@ static struct_IO_ExpanderChipConfig stIO_ExpanderChipConfig[]=
 };
 
 /**
- * @brief I/O expander pin definition
- */
-static struct_IO_ExpanderPinConfig stIO_ExpanderPinConfig[]=
-{
-    { IO_EXPANDER_SYS,  IO_EXP_FRAM_CS,         IO_EXT_OUTPUT,  IO_EXT_LOW_ACTIVE  } ,  // IO_FRAM_CS
-    { IO_EXPANDER_SYS,  IO_EXP_FLASH_SD_CS,     IO_EXT_OUTPUT,  IO_EXT_LOW_ACTIVE  } ,  // IO_FLASH_SD_CS
-    { IO_EXPANDER_SYS,  IO_EXP_FLASH_NOR_CS,    IO_EXT_OUTPUT,  IO_EXT_LOW_ACTIVE  } ,  // IO_FLASH_NOR_CS
-    { IO_EXPANDER_SYS,  IO_EXP_GE_EN,           IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_GE_EN
-    { IO_EXPANDER_SYS,  IO_EXP_BOX_OPEN,        IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_BOX_OPEN
-    { IO_EXPANDER_SYS,  IO_EXP_RST,             IO_EXT_OUTPUT,  IO_EXT_LOW_ACTIVE  } ,  // IO_RST
-    { IO_EXPANDER_SYS,  IO_EXP_USB_CONNECTED,   IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_USB_CONNECTED
-    { IO_EXPANDER_SYS,  IO_EXP_SENSOR_INTX,     IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SENSOR_INTX
-    { IO_EXPANDER_SYS,  IO_EXP_BAT_ALERT,       IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_BAT_ALERT
-    { IO_EXPANDER_SYS,  IO_EXP_VSENSOR_EN,      IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_VSENSOR_EN
-    { IO_EXPANDER_SYS,  IO_EXP_VSYS_EN,         IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_VSYS_EN
-    { IO_EXPANDER_SYS,  IO_EXP_VALWAYS_EN,      IO_EXT_OUTPUT,  IO_EXT_LOW_ACTIVE  } ,  // IO_VALWAYS_EN
-    { IO_EXPANDER_SYS,  IO_EXP_DEBUG_SW1,       IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_DEBUG_SW1
-    { IO_EXPANDER_SYS,  IO_EXP_DEBUG_SW2,       IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_DEBUG_SW2
-    { IO_EXPANDER_SYS,  IO_EXP_SC_EN,           IO_EXT_OUTPUT,  IO_EXT_LOW_ACTIVE  } ,  // IO_SC_EN
-    { IO_EXPANDER_SYS,  IO_EXP_RTC_PWR_EN,      IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_RTC_PWR_EN
-
-    { IO_EXPANDER_BUS_INT,  IO_EXP_LOADSW1,     IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_LOADSW1
-    { IO_EXPANDER_BUS_INT,  IO_EXP_LOADSW2,     IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_LOADSW2
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT1_GPIO0, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT1_GPIO0
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT1_GPIO1, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT1_GPIO1
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT1_GPIO2, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT1_GPIO2
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT2_GPIO0, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT2_GPIO0
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT2_GPIO1, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT2_GPIO1
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SLOT2_GPIO2, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT2_GPIO2
-    { IO_EXPANDER_BUS_INT,  IO_EXP_INT1,        IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_INT1
-    { IO_EXPANDER_BUS_INT,  IO_EXP_INT2,        IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_INT2
-    { IO_EXPANDER_BUS_INT,  IO_EXP_INT3,        IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_INT3
-    { IO_EXPANDER_BUS_INT,  IO_EXP_INT4,        IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_INT4
-    { IO_EXPANDER_BUS_INT,  IO_EXP_INT5,        IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_INT5
-    { IO_EXPANDER_BUS_INT,  IO_EXP_INT6,        IO_EXT_INPUT,   IO_EXT_LOW_ACTIVE  } ,  // IO_INT6
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SPARE1,      IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_SPARE1
-    { IO_EXPANDER_BUS_INT,  IO_EXP_SPARE2,      IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_SPARE2
-
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_LOADSW3,     IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_LOADSW3
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_LOADSW4,     IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_LOADSW4
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_LOADSW5,     IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_LOADSW5
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_LOADSW6,     IO_EXT_OUTPUT,  IO_EXT_HIGH_ACTIVE } ,  // IO_LOADSW6
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT3_GPIO0, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT3_GPIO0
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT3_GPIO1, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT3_GPIO1
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT3_GPIO2, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT3_GPIO2
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT4_GPIO0, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT4_GPIO0
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT4_GPIO1, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT4_GPIO1
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT4_GPIO2, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT4_GPIO2
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT5_GPIO0, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT5_GPIO0
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT5_GPIO1, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT5_GPIO1
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT5_GPIO2, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT5_GPIO2
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT6_GPIO0, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT6_GPIO0
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT6_GPIO1, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT6_GPIO1
-    { IO_EXPANDER_BUS_EXT,  IO_EXP_SLOT6_GPIO2, IO_EXT_INPUT,   IO_EXT_HIGH_ACTIVE } ,  // IO_SLOT6_GPIO2
-};
-
-/**
- * @fn ENUM_IO_EXPANDER get_IO_ExpanderDeviceFromItem(ENUM_IO_EXPANDER_ITEM)
- * @brief helper function to get the device ID from the given item
- *
- * @param io_item item number \ref ENUM_IO_EXPANDER_ITEM
- * @return device ID \ref ENUM_IO_EXPANDER
- */
-ENUM_IO_EXPANDER get_IO_ExpanderDeviceFromItem( ENUM_IO_EXPANDER_ITEM io_item )
-{
-  assert_param( io_item < MAX_IO_EXPANDER_ITEM );
-
-  if( io_item >= MAX_IO_EXPANDER_ITEM)
-    return NR_IO_EXPANDER;
-
-  return stIO_ExpanderPinConfig[io_item].device;
-}
-
-/**
- * @fn uint8_t get_IO_ExpanderPinFromItem(ENUM_IO_EXPANDER_ITEM)
- * @brief helper function to get the pin ID on the chip from the given item
- *
- * @param io_item item number \ref ENUM_IO_EXPANDER_ITEM
- * @return pin number on chip
- */
-int8_t get_IO_ExpanderPinFromItem( ENUM_IO_EXPANDER_ITEM io_item )
-{
-  assert_param( io_item < MAX_IO_EXPANDER_ITEM );
-
-  if( io_item >= MAX_IO_EXPANDER_ITEM)
-    return -1;
-
-  return stIO_ExpanderPinConfig[io_item].pin;
-}
-
-/**
- * @fn uint16_t get_IO_ExpanderPinMaskFromItem(ENUM_IO_EXPANDER_ITEM)
- * @brief helper function to get the pin mask of the given item
- *
- * @param io_item io_item item number \ref ENUM_IO_EXPANDER_ITEM
- * @return pin mask for register
- */
-uint16_t get_IO_ExpanderPinMaskFromItem( ENUM_IO_EXPANDER_ITEM io_item )
-{
-  assert_param( io_item < MAX_IO_EXPANDER_ITEM );
-
-  if( io_item >= MAX_IO_EXPANDER_ITEM)
-    return 0;
-
-  return 1UL << get_IO_ExpanderPinFromItem(io_item);
-}
-
-/**
- * @fn ENUM_IO_Direction get_IO_ExpanderDirectionFromItem(ENUM_IO_EXPANDER_ITEM)
- * @brief helper function to get the direction of the given item
- *
- * @param io_item io_item item number \ref ENUM_IO_EXPANDER_ITEM
- * @return direction of pin \ref ENUM_IO_Direction
- */
-ENUM_IO_ExtDirection get_IO_ExpanderDirectionFromItem( ENUM_IO_EXPANDER_ITEM io_item )
-{
-  assert_param( io_item < MAX_IO_EXPANDER_ITEM );
-
-  if( io_item >= MAX_IO_EXPANDER_ITEM)
-    return MAX_IO_EXT_DIRECTION;
-
-  return stIO_ExpanderPinConfig[io_item].direction;
-}
-
-/**
- * @fn ENUM_IO_ACTIVE get_IO_ExpanderActiveFromItem(ENUM_IO_EXPANDER_ITEM)
- * @brief helper function to get the active low / active high definition of the given item
- *
- * @param io_item io_item item number \ref ENUM_IO_EXPANDER_ITEM
- * @return active low or active high \ref ENUM_IO_ACTIVE
- */
-ENUM_IO_ExtACTIVE get_IO_ExpanderActiveFromItem( ENUM_IO_EXPANDER_ITEM io_item )
-{
-  assert_param( io_item < MAX_IO_EXPANDER_ITEM );
-
-  if( io_item >= MAX_IO_EXPANDER_ITEM)
-    return MAX_IO_EXT_ACTIVE;
-
-  return stIO_ExpanderPinConfig[io_item].active;
-}
-
-/**
  * @fn void set_register_IO_Expander(unsigned short*, uint16_t_t)
  * @brief helper function to set pinMask in register
  *
@@ -390,56 +248,53 @@ void update_IO_Expander(void)
 }
 
 /**
- * @fn int8_t setOutput(ENUM_IO_EXPANDER_ITEM, bool)
+ * @fn int8_t setOutput(ENUM_IO_EXPANDER, uint16_t, bool)
  * @brief function to set output in IO expander variable.
- * note: no update to device.
  *
- * @param io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @param device
+ * @param pinMask
  * @param state
  * @return 0 = successful, negative is error
  */
-int8_t setOutput(ENUM_IO_EXPANDER_ITEM io_item, bool state)
+int8_t setOutput(ENUM_IO_EXPANDER device, uint16_t pinMask, bool state)
 {
-  if( io_item >= MAX_IO_EXPANDER_ITEM ) //check boundary io_item
+  if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
     return -1;
 
-  ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(io_item);
-
-  if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
+  if( !IS_GPIO_PIN(pinMask) ) //check pinMask
     return -2;
 
   if( state == true )
   {
-    set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, get_IO_ExpanderPinFromItem(io_item));
+    set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pinMask);
   }
 
   else
   {
-    reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, get_IO_ExpanderPinFromItem(io_item));
+    reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pinMask);
   }
 
   return 0;
 }
 
 /**
- * @fn int8_t getInput(ENUM_IO_EXPANDER_ITEM)
+ * @fn int8_t getInput(ENUM_IO_EXPANDER, uint16_t)
  * @brief function to get input of IO expander variable
  * note: not forced read from device
  *
- * @param io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @param device
+ * @param pinMask
  * @return 0 = low, 1 = high, negative is error
  */
-int8_t getInput(ENUM_IO_EXPANDER_ITEM io_item)
+int8_t getInput(ENUM_IO_EXPANDER device, uint16_t pinMask)
 {
-  if( io_item >= MAX_IO_EXPANDER_ITEM ) //check boundary io_item
-     return -1;
+  if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
+    return -1;
 
-  ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(io_item);
-
-  if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER ) //check boundary device
+  if( !IS_GPIO_PIN(pinMask) ) //check pinMask
     return -2;
 
-  if( TCA9535_Reg_map[device].Input.all & get_IO_ExpanderPinMaskFromItem(io_item) ) //check input pin is high
+  if( TCA9535_Reg_map[device].Input.all & pinMask ) //check input pin is high
   {
     return true;
   }
@@ -450,24 +305,23 @@ int8_t getInput(ENUM_IO_EXPANDER_ITEM io_item)
 }
 
 /**
- * @fn int8_t writeIO(ENUM_IO_EXPANDER_ITEM, bool, bool)
+ * @fn int8_t writeIO(ENUM_IO_EXPANDER, uint16_t, bool)
  * @brief function to write I/O to expander
  *
- * @param io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @param device
+ * @param pinMask
  * @param state false = low, true = high
  * @return 0 = successful, negative is error
  */
-int8_t writeIO(ENUM_IO_EXPANDER_ITEM io_item, bool state)
+int8_t writeIO(ENUM_IO_EXPANDER device, uint16_t pinMask, bool state)
 {
-  if( io_item >= MAX_IO_EXPANDER_ITEM ) //check boundary io_item
+  if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER ) //check boundary device
     return -1;
 
-  ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(io_item);
-
-  if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER ) //check boundary device
+  if( !IS_GPIO_PIN(pinMask) ) //check pinMask
     return -2;
 
-  setOutput(io_item, state); //set output
+  setOutput(device, pinMask, state); //set output
 
   TCA9535WriteOutput((TCA9535Regs*) &TCA9535_Reg_map[device]); //update outputs
 
@@ -475,23 +329,22 @@ int8_t writeIO(ENUM_IO_EXPANDER_ITEM io_item, bool state)
 }
 
 /**
- * @fn int8_t readIO(ENUM_IO_EXPANDER_ITEM)
+ * @fn int8_t readIO(ENUM_IO_EXPANDER, uint16_t)
  * @brief function to read an IO pin with forced read
  *
- * @param io_item item number \ref ENUM_IO_EXPANDER_ITEM
+ * @param device
+ * @param pinMask
  * @return 0 = input is low, 1 = input is high, negative is error
  */
-int8_t readIO(ENUM_IO_EXPANDER_ITEM io_item)
+int8_t readIO(ENUM_IO_EXPANDER device, uint16_t pinMask)
 {
-  if( io_item >= MAX_IO_EXPANDER_ITEM ) //check boundary io_item
+  if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER ) //check boundary device
     return -1;
 
-  ENUM_IO_EXPANDER device = get_IO_ExpanderDeviceFromItem(io_item);
-
-  if( device <= IO_EXPANDER_NONE || device >= NR_IO_EXPANDER ) //check boundary device
+  if( !IS_GPIO_PIN(pinMask) ) //check pinMask
     return -2;
 
   TCA9535ReadInputReg((TCA9535Regs*)&TCA9535_Reg_map[device]); //read input
 
-  return getInput(io_item);
+  return getInput(device,pinMask);
 }

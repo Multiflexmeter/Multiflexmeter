@@ -94,63 +94,6 @@ typedef enum
 
 typedef enum
 {
-  IO_FRAM_CS,
-  IO_FLASH_SD_CS,
-  IO_FLASH_NOR_CS,
-  IO_GE_EN,
-  IO_BOX_OPEN,
-  IO_RST,
-  IO_USB_CONNECTED,
-  IO_SENSOR_INTX,
-  IO_BAT_ALERT,
-  IO_VSENSOR_EN,
-  IO_VSYS_EN,
-  IO_VALWAYS_EN,
-  IO_DEBUG_SW1,
-  IO_DEBUG_SW2,
-  IO_SC_EN,
-  IO_RTC_PWR_EN,
-
-  IO_LOADSW1,
-  IO_LOADSW2,
-  IO_SLOT1_GPIO0,
-  IO_SLOT1_GPIO1,
-  IO_SLOT1_GPIO2,
-  IO_SLOT2_GPIO0,
-  IO_SLOT2_GPIO1,
-  IO_SLOT2_GPIO2,
-  IO_INT1,
-  IO_INT2,
-  IO_INT3,
-  IO_INT4,
-  IO_INT5,
-  IO_INT6,
-  IO_SPARE1,
-  IO_SPARE2,
-
-  IO_LOADSW3,
-  IO_LOADSW4,
-  IO_LOADSW5,
-  IO_LOADSW6,
-  IO_SLOT3_GPIO0,
-  IO_SLOT3_GPIO1,
-  IO_SLOT3_GPIO2,
-  IO_SLOT4_GPIO0,
-  IO_SLOT4_GPIO1,
-  IO_SLOT4_GPIO2,
-  IO_SLOT5_GPIO0,
-  IO_SLOT5_GPIO1,
-  IO_SLOT5_GPIO2,
-  IO_SLOT6_GPIO0,
-  IO_SLOT6_GPIO1,
-  IO_SLOT6_GPIO2,
-
-  MAX_IO_EXPANDER_ITEM,
-} ENUM_IO_EXPANDER_ITEM;
-
-
-typedef enum
-{
   IO_EXT_INPUT,
   IO_EXT_OUTPUT,
   MAX_IO_EXT_DIRECTION,
@@ -164,13 +107,6 @@ typedef enum
 }ENUM_IO_ExtACTIVE;
 
 typedef struct{
-    ENUM_IO_EXPANDER device;
-    uint8_t pin;
-    ENUM_IO_ExtDirection direction;
-    ENUM_IO_ExtACTIVE active;
-}struct_IO_ExpanderPinConfig;
-
-typedef struct{
     bool enabled;
     I2C_HandleTypeDef * I2C_handle;
     uint8_t address;
@@ -180,9 +116,9 @@ int8_t init_IO_ExpanderPin(ENUM_IO_EXPANDER device, ENUM_IO_ExtDirection directi
 void init_IO_ExpanderData(void);
 void init_IO_Expander(void);
 void update_IO_Expander(void);
-int8_t setOutput(ENUM_IO_EXPANDER_ITEM io_item, bool state);
-int8_t getInput(ENUM_IO_EXPANDER_ITEM io_item);
-int8_t writeIO(ENUM_IO_EXPANDER_ITEM io_item, bool state);
-int8_t readIO(ENUM_IO_EXPANDER_ITEM io_item);
+int8_t setOutput(ENUM_IO_EXPANDER device, uint16_t pinMask, bool state);
+int8_t getInput(ENUM_IO_EXPANDER device, uint16_t pinMask);
+int8_t writeIO(ENUM_IO_EXPANDER device, uint16_t pinMask, bool state);
+int8_t readIO(ENUM_IO_EXPANDER device, uint16_t pinMask);
 
 #endif /* IO_EXPANDER_IO_EXPANDER_H_ */
