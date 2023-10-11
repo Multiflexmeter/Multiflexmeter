@@ -3,6 +3,7 @@
 #define I2C_MASTER_H_
 
 #include "main.h"
+#include "SensorRegister.h"
 
 /* Typedefs */
 typedef enum{
@@ -12,7 +13,16 @@ typedef enum{
   I2C_TIMEOUT
 }tENUM_SensorError;
 
-tENUM_SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_t *data);
-tENUM_SensorError sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, uint8_t *data);
+typedef enum{
+  SENSOR_MODULE_1 = 0x11<<1,
+  SENSOR_MODULE_2 = 0x12<<1,
+  SENSOR_MODULE_3 = 0x13<<1,
+  SENSOR_MODULE_4 = 0x14<<1,
+  SENSOR_MODULE_5 = 0x15<<1,
+  SENSOR_MODULE_6 = 0x16<<1
+}SensorAddress;
+
+
+void sensorStartMeasurement(SensorAddress address);
 
 #endif /* I2C_MASTER_H_ */

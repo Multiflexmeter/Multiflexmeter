@@ -7,7 +7,7 @@
 
 #define CRC_SIZE 2
 
-extern I2C_HandleTypeDef hi2c1;
+extern I2C_HandleTypeDef hi2c2;
 
 /**
  * @brief Read a register on a sensor module
@@ -28,7 +28,7 @@ tENUM_SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uin
 
   // Request the data from the register
   uint8_t rxBuffer[12];
-  HAL_StatusTypeDef error = HAL_I2C_Mem_Read(&hi2c1, slaveAddress, regAddress, 1, rxBuffer, regSize + CRC_SIZE, 1000);
+  HAL_StatusTypeDef error = HAL_I2C_Mem_Read(&hi2c2, slaveAddress, regAddress, 1, rxBuffer, regSize + CRC_SIZE, 1000);
   if(error == HAL_TIMEOUT)
     return I2C_TIMEOUT;
 
@@ -62,17 +62,23 @@ tENUM_SensorError sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, ui
 
   // Copy the data into the tx buffer
   txBuffer[0] = regAddress;
-  memcpy(txBuffer+1, data, regSize);
+  memcpy(&txBuffer[1], data, regSize);
 
   // Calculate the CRC and add this to the tx buffer
-  uint16_t crc = calculateCRC_CCITT(data, regSize+1);
+  uint16_t crc = calculateCRC_CCITT(txBuffer, regSize+1);
   txBuffer[regSize+2] = crc & 0xFF;
   txBuffer[regSize+1] = (crc >> 8) & 0xFF;
 
   // Write data the the register
-  HAL_StatusTypeDef error = HAL_I2C_Mem_Write(&hi2c1, slaveAddress, regAddress, 1, txBuffer, sizeof(regAddress) + regSize + CRC_SIZE, 1000);
+  HAL_StatusTypeDef error = HAL_I2C_Mem_Write(&hi2c2, slaveAddress, regAddress, 1, &txBuffer[1], regSize + CRC_SIZE, 1000);
   if(error == HAL_TIMEOUT)
     return I2C_TIMEOUT;
 
   return I2C_OK;
+}
+
+void sensorStartMeasurement(SensorAddress address)
+{
+  uint8_t startCommand = 0x01;
+  sensorMasterWrite(address, REG_MEAS_START, &startCommand);
 }

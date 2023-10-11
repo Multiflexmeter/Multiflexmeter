@@ -18,6 +18,7 @@
 
 #include "CommConfig.h"
 #include "mainTask.h"
+#include "I2CMaster/I2C_Master.h"
 
 static volatile bool mainTaskActive;
 static uint32_t mainTask_tmr;
@@ -41,7 +42,7 @@ const void setNextPeriod( UTIL_TIMER_Time_t next )
   UTIL_TIMER_Start(&MainTimer);
 }
 
-
+uint8_t sensorBuffer[10];
 /**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
@@ -64,6 +65,10 @@ const void mainTask(void)
       break;
 
     case 1:
+
+      sensorStartMeasurement(SENSOR_MODULE_1);
+      HAL_Delay(1000);
+      //sensorMasterRead(SENSOR_MODULE_1, REG_MEAS_DATA, sensorBuffer);
       mainTask_state++;
       break;
 
