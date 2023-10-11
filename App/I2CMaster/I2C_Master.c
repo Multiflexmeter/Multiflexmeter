@@ -82,3 +82,8 @@ void sensorStartMeasurement(SensorAddress address)
   uint8_t startCommand = 0x01;
   sensorMasterWrite(address, REG_MEAS_START, &startCommand);
 }
+
+void sensorSetSamples(SensorAddress address, uint8_t samples)
+{
+  sensorMasterWrite(address, REG_MEAS_SAMPLES, &samples);
+}

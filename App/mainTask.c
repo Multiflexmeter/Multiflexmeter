@@ -65,7 +65,7 @@ const void mainTask(void)
       break;
 
     case 1:
-
+      sensorSetSamples(SENSOR_MODULE_1, 9);
       sensorStartMeasurement(SENSOR_MODULE_1);
       HAL_Delay(1000);
       //sensorMasterRead(SENSOR_MODULE_1, REG_MEAS_DATA, sensorBuffer);
