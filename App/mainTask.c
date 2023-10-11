@@ -17,6 +17,7 @@
 #include "stm32_timer.h"
 
 #include "IO/board_io.h"
+#include "IO/led.h"
 #include "CommConfig.h"
 #include "mainTask.h"
 
@@ -59,6 +60,7 @@ const void mainTask(void)
     case 0: //init Powerup
 
       init_board_io(); //init IO
+      initLedTimer(); //init LED timer
 
       mainTask_state++;
       break;
