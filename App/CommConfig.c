@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "main.h"
+#include "sys_app.h"
 
 #include "utilities_def.h"
 #include "stm32_seq.h"
@@ -429,6 +430,11 @@ __weak const int8_t SD_TEST(uint32_t * capacity, uint32_t * free)
   return -1;
 }
 
+__weak const void setLedTest(int8_t test)
+{
+  return;
+}
+
 void sendError(int arguments, const char * format, ... );
 void sendOkay(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -728,6 +734,12 @@ void executeTest(int test, int subTest)
     case 2: //request of ADC measure
 
       sendAdc(subTest); //get ADC
+
+      break;
+
+    case 3:
+
+      setLedTest(subTest);
 
       break;
 
