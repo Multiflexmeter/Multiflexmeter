@@ -11,6 +11,7 @@ extern I2C_HandleTypeDef hi2c2;
 
 /**
  * @brief Read a register on a sensor module
+ *
  * @param slaveAddress The i2c slave address of the sensor module
  * @param regAddress The address of the register that needs to be read
  * @param data Pointer to a buffer to store the result in.
@@ -44,6 +45,7 @@ tENUM_SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uin
 
 /**
  * @brief Write data to a register on a sensor module
+ *
  * @param slaveAddress The i2c slave address of the sensor module
  * @param regAddress The address of the register to write
  * @param data The data to write
@@ -77,10 +79,58 @@ tENUM_SensorError sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, ui
   return I2C_OK;
 }
 
+void sensorFirmwareVersion(SensorAddress address)
+{
+  //TODO implement firmware function
+}
+
+void sensorProtocolVersion(SensorAddress address)
+{
+  //TODO implement protocol function
+}
+
+void sensorType(SensorAddress address)
+{
+  //TODO implement sensor type function
+}
+
 void sensorStartMeasurement(SensorAddress address)
 {
   uint8_t startCommand = 0x01;
   sensorMasterWrite(address, REG_MEAS_START, &startCommand);
+}
+
+void sensorReadMeasurement(SensorAddress address)
+{
+  //TODO implement sensor type function
+}
+
+void sensorAmount(SensorAddress address)
+{
+  //TODO implement sensor type function
+}
+
+void sensorSelect(SensorAddress address)
+{
+  //TODO implement sensor type function
+}
+
+void sensorSampleType(SensorAddress address)
+{
+  //TODO implement sensor type function
+}
+
+/**
+ * @brief Read the amount of samples the sensor card has to take for a measurement.
+ *
+ * @param address is the address of the sensor
+ * @return the amount of samples
+ */
+uint8_t sensorReadSamples(SensorAddress address)
+{
+  uint8_t samples;
+  sensorMasterRead(address, REG_MEAS_SAMPLES, &samples);
+  return samples;
 }
 
 void sensorSetSamples(SensorAddress address, uint8_t samples)

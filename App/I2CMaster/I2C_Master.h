@@ -25,5 +25,6 @@ typedef enum{
 
 void sensorStartMeasurement(SensorAddress address);
 void sensorSetSamples(SensorAddress address, uint8_t samples);
+uint8_t sensorReadSamples(SensorAddress address);
 
 #endif /* I2C_MASTER_H_ */
