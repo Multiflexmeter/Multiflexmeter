@@ -25,7 +25,9 @@
 /**
  * @brief enumeration for boolean type
  */
+#ifndef false
 typedef enum { false = 0, true } bool;
+#endif
 
 #define DMA_BUFFER                  __attribute__((section(".dma_buffer"),aligned(32)))
 
