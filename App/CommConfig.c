@@ -59,6 +59,7 @@ static bool dataErase;
 static bool dataTest;
 static int currentTest;
 static int currentSubTest;
+static char additionalArgumentsString[100];
 
 static uint32_t numberOffDumpRecords;
 
@@ -1610,6 +1611,11 @@ void rcvTest(int arguments, const char * format, ...)
     if( *ptr!='\r' && *ptr!='\n')
     {
       subtest = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
+      if( *ptr!='\r' && *ptr!='\n')
+      {
+        strncpy(additionalArgumentsString, ptr, sizeof(additionalArgumentsString)); //save argument for later use
+        additionalArgumentsString[sizeof(additionalArgumentsString)-1]=0;//make sure array is terminated with null character
+      }
     }
   }
 
