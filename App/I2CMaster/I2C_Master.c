@@ -28,13 +28,13 @@ tENUM_SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uin
   uint8_t regSize = registers[regIndex].datatype * registers[regIndex].size;
 
   // Request the data from the register
-  uint8_t rxBuffer[12];
+  uint8_t rxBuffer[regSize + CRC_SIZE];
   HAL_StatusTypeDef error = HAL_I2C_Mem_Read(&hi2c2, slaveAddress, regAddress, 1, rxBuffer, regSize + CRC_SIZE, 1000);
   if(error == HAL_TIMEOUT)
     return I2C_TIMEOUT;
 
   // Check the CRC of the incoming message
-  if(calculateCRC_CCITT(data + regSize, regSize + CRC_SIZE) != 0)
+  if(calculateCRC_CCITT(rxBuffer, regSize + CRC_SIZE) != 0)
     return I2C_CRC_ERROR;
 
   // Copy the data to the provided memory location and remove the CRC from the data
@@ -79,14 +79,28 @@ tENUM_SensorError sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, ui
   return I2C_OK;
 }
 
+/**
+ * @brief Get the firmware version of the sensor
+ *
+ * @param address is the sensor address
+ */
 void sensorFirmwareVersion(SensorAddress address)
 {
-  //TODO implement firmware function
+  uint8_t rxBuffer[10];
+  sensorMasterRead(address, REG_FIRMWARE_VERSION, rxBuffer);
 }
 
-void sensorProtocolVersion(SensorAddress address)
+/**
+ * @brief Get the protocol version of the sensor
+ *
+ * @param address is the sensor address
+ * @return The protocol version
+ */
+uint8_t sensorProtocolVersion(SensorAddress address)
 {
-  //TODO implement protocol function
+  uint8_t protocolVersion;
+  sensorMasterRead(address, REG_PROTOCOL_VERSION, &protocolVersion);
+  return protocolVersion;
 }
 
 void sensorType(SensorAddress address)
