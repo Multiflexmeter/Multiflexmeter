@@ -608,6 +608,18 @@ const void toggleOutput_board_io(ENUM_IO_ITEM item)
 }
 
 /**
+ * @fn const bool lightInput(void)
+ * @brief function to get light sensor status
+ *
+ * @return true = light found, false = dark
+ */
+const bool getLigthSensorStatus(void)
+{
+  return readInput_board_io((ENUM_IO_ITEM)INT_IO_BOX_OPEN);
+
+}
+
+/**
  * @fn const void testOutput_board_io(uint8_t, bool)
  * @brief test function for command interface
  *

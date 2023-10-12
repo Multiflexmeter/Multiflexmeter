@@ -118,5 +118,6 @@ const int8_t getInput_board_io(ENUM_IO_ITEM item);
 const int8_t writeOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state);
 const int8_t readInput_board_io(ENUM_IO_ITEM item);
 const void toggleOutput_board_io(ENUM_IO_ITEM item);
+const bool getLigthSensorStatus(void);
 
 #endif /* IO_BOARD_IO_H_ */

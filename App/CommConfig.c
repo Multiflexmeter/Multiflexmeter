@@ -463,6 +463,17 @@ __weak const int8_t testInput_board_io(uint8_t item)
   return -98;
 }
 
+/**
+ * @fn const bool getLigthSensorStatus(void)
+ * @brief weak function getLigthSensorStatus(), must be override in application
+ *
+ * @return
+ */
+__weak const bool getLigthSensorStatus(void)
+{
+  return 0;
+}
+
 void sendError(int arguments, const char * format, ... );
 void sendOkay(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -792,6 +803,14 @@ void executeTest(int test, int subTest, char * extraArguments)
     case 6: //SD card test
 
       sendTestSD(test);
+
+      break;
+
+    case 9: //test light sensor
+
+      value = (int)getLigthSensorStatus();
+      snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test, value);
+      uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
       break;
 
