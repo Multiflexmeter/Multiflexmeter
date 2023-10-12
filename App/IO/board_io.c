@@ -137,7 +137,7 @@ static struct_BoardIO_PinConfig stIO_PinConfig[]=
  * @brief function to init board IO
  *
  */
-void init_board_io(void)
+const void init_board_io(void)
 {
   int i;
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -407,7 +407,7 @@ static void update_IO_external(void)
  * @brief  function for update all IO for periodically calling
  *
  */
-void update_board_io(void)
+const void update_board_io(void)
 {
   update_IO_internal(); //update internal IO
   update_IO_external(); //update external IO
@@ -421,7 +421,7 @@ void update_board_io(void)
  * @param state \ref GPIO_PinState
  * @return 0 = successful, negative is error.
  */
-int8_t setOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state)
+const int8_t setOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state)
 {
   if( item >= MAX_IO_ITEM )
   {
@@ -450,7 +450,7 @@ int8_t setOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state)
  * @param pinMask \ref GPIO_PinState
  * @return 0 = successful, negative is error.
  */
-int8_t getInput_board_io(ENUM_IO_ITEM item)
+const int8_t getInput_board_io(ENUM_IO_ITEM item)
 {
   if( item >= MAX_IO_ITEM )
   {
@@ -470,7 +470,7 @@ int8_t getInput_board_io(ENUM_IO_ITEM item)
  * @param state \ref GPIO_PinState
  * @return 0 = successful, negative is error
  */
-int8_t writeOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state)
+const int8_t writeOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state)
 {
   int8_t result;
 
@@ -516,7 +516,7 @@ int8_t writeOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state)
  * @param item
  * @return 0 = input not active, 1 = input active, negative is error
  */
-int8_t readInput_board_io(ENUM_IO_ITEM item)
+const int8_t readInput_board_io(ENUM_IO_ITEM item)
 {
   int8_t result = -10;
 
@@ -570,7 +570,7 @@ int8_t readInput_board_io(ENUM_IO_ITEM item)
  *
  * @param item \ref ENUM_IO_ITEM
  */
-void toggleOutput_board_io(ENUM_IO_ITEM item)
+const void toggleOutput_board_io(ENUM_IO_ITEM item)
 {
   int8_t result = -10;
 
