@@ -721,7 +721,7 @@ void uartStartReceive_Config( uint8_t *pData, const uint16_t Size, const uint32_
  * @param test
  * @param subTest
  */
-void executeTest(int test, int subTest)
+void executeTest(int test, int subTest, char * extraArguments)
 {
 
   switch( test )
@@ -906,7 +906,7 @@ void configUartHandler(void)
 
       case 20:
 
-        executeTest(currentTest, currentSubTest);
+        executeTest(currentTest, currentSubTest, additionalArgumentsString);
         step = 2; //back to wait
 
         break;
