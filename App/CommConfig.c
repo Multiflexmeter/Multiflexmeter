@@ -436,6 +436,33 @@ __weak const void setLedTest(int8_t test)
   return;
 }
 
+/**
+ * @fn const void testOutput_board_io(uint8_t, bool)
+ * @brief weak testOutput_board_io() function, must be override in application
+ *
+ * @param item
+ * @param state
+ */
+__weak const void testOutput_board_io(uint8_t item, bool state)
+{
+  UNUSED(item);
+  UNUSED(state);
+  return;
+}
+
+/**
+ * @fn const int8_t testInput_board_io(uint8_t)
+ * @brief weak testInput_board_io() function, must be override in application
+ *
+ * @param item
+ * @return
+ */
+__weak const int8_t testInput_board_io(uint8_t item)
+{
+  UNUSED(item);
+  return -98;
+}
+
 void sendError(int arguments, const char * format, ... );
 void sendOkay(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -723,6 +750,8 @@ void uartStartReceive_Config( uint8_t *pData, const uint16_t Size, const uint32_
  */
 void executeTest(int test, int subTest, char * extraArguments)
 {
+  char *ptr; //dummy pointer
+  int value;
 
   switch( test )
   {
@@ -741,6 +770,22 @@ void executeTest(int test, int subTest, char * extraArguments)
     case 3:
 
       setLedTest(subTest);
+
+      break;
+
+    case 4: //input test
+
+      value = (int)testInput_board_io((uint8_t)subTest);
+      snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdTest, test,  subTest, value);
+      uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+      break;
+
+    case 5: //output test
+
+      value = strtol(additionalArgumentsString+1, &ptr, 10); //skip <comma>, increment ptr.
+      setLedTest(99);
+      testOutput_board_io((uint8_t)subTest, value ? true : false);
 
       break;
 

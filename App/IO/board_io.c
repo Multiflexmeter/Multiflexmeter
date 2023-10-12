@@ -606,3 +606,39 @@ const void toggleOutput_board_io(ENUM_IO_ITEM item)
       break;
   }
 }
+
+/**
+ * @fn const void testOutput_board_io(uint8_t, bool)
+ * @brief test function for command interface
+ *
+ * @param item
+ * @param state
+ */
+const void testOutput_board_io(uint8_t item, bool state)
+{
+  assert_param( item<MAX_IO_ITEM );
+  if( item >= MAX_IO_ITEM)
+  {
+    return;
+  }
+  writeOutput_board_io((ENUM_IO_ITEM)item, (GPIO_PinState)state);
+}
+
+/**
+ * @fn const int8_t testInput_board_io(uint8_t)
+ * @brief test function for command interface
+ *
+ * @param item
+ * @return
+ */
+const int8_t testInput_board_io(uint8_t item)
+{
+  assert_param( item<MAX_IO_ITEM );
+  if( item >= MAX_IO_ITEM)
+  {
+    return -99;
+  }
+  return readInput_board_io((ENUM_IO_ITEM)item);
+}
+
+
