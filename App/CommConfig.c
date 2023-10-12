@@ -423,7 +423,14 @@ __weak const uint16_t SYS_GetVoltage(int channel, uint32_t adcValue)
   return 0;
 }
 
-
+/**
+ * @fn const int8_t SD_TEST(uint32_t*, uint32_t*)
+ * @brief weak function  SD_TEST(), must be override application
+ *
+ * @param capacity
+ * @param free
+ * @return
+ */
 __weak const int8_t SD_TEST(uint32_t * capacity, uint32_t * free)
 {
   *capacity = 0;
@@ -431,6 +438,12 @@ __weak const int8_t SD_TEST(uint32_t * capacity, uint32_t * free)
   return -1;
 }
 
+/**
+ * @fn const void setLedTest(int8_t)
+ * @brief weak function setLedTest(), must be override in application
+ *
+ * @param test
+ */
 __weak const void setLedTest(int8_t test)
 {
   return;
@@ -778,7 +791,7 @@ void executeTest(int test, int subTest, char * extraArguments)
 
       break;
 
-    case 3:
+    case 3: //LED test
 
       setLedTest(subTest);
 
