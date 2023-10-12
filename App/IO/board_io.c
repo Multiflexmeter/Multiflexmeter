@@ -510,13 +510,13 @@ int8_t writeOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state)
 }
 
 /**
- * @fn int8_t readInput_board_io(ENUM_IO_EXPANDER)
+ * @fn int8_t readInput_board_io(ENUM_IO_ITEM)
  * @brief function reads the input state and update the state in data
  *
  * @param item
  * @return 0 = input not active, 1 = input active, negative is error
  */
-int8_t readInput_board_io(ENUM_IO_EXPANDER item)
+int8_t readInput_board_io(ENUM_IO_ITEM item)
 {
   int8_t result = -10;
 
@@ -565,12 +565,12 @@ int8_t readInput_board_io(ENUM_IO_EXPANDER item)
 }
 
 /**
- * @fn void toggleOutput_board_io(ENUM_IO_EXPANDER)
+ * @fn void toggleOutput_board_io(ENUM_IO_ITEM)
  * @brief toggle function for board IO
  *
- * @param item \ref ENUM_IO_EXPANDER
+ * @param item \ref ENUM_IO_ITEM
  */
-void toggleOutput_board_io(ENUM_IO_EXPANDER item)
+void toggleOutput_board_io(ENUM_IO_ITEM item)
 {
   int8_t result = -10;
 

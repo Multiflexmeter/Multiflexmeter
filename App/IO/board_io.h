@@ -116,7 +116,7 @@ void update_board_io(void);
 int8_t setOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state);
 int8_t getInput_board_io(ENUM_IO_ITEM item);
 int8_t writeOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state);
-int8_t readInput_board_io(ENUM_IO_EXPANDER item);
-void toggleOutput_board_io(ENUM_IO_EXPANDER item);
+int8_t readInput_board_io(ENUM_IO_ITEM item);
+void toggleOutput_board_io(ENUM_IO_ITEM item);
 
 #endif /* IO_BOARD_IO_H_ */
