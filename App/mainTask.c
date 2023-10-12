@@ -16,6 +16,8 @@
 #include "stm32_seq.h"
 #include "stm32_timer.h"
 
+#include "IO/board_io.h"
+#include "IO/led.h"
 #include "CommConfig.h"
 #include "mainTask.h"
 
@@ -55,15 +57,22 @@ const void mainTask(void)
   //execute steps of maintask, then wait for next trigger.
   switch( mainTask_state )
   {
-    case 0:
+    case 0: //init Powerup
+
+      init_board_io(); //init IO
+      initLedTimer(); //init LED timer
+
+      mainTask_state++;
+      break;
+
+    case 1: //init Sleep
+
+
       if( enableListenUart )
       {
         uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
       }
-      mainTask_state++;
-      break;
 
-    case 1:
       mainTask_state++;
       break;
 
@@ -76,6 +85,9 @@ const void mainTask(void)
 
       break;
   }
+
+  update_board_io(); //periodically read
+
 
   //check boolean mainTaskActive, then set short period for triggering, if not set long period for triggering.
   if( mainTaskActive )
@@ -120,7 +132,7 @@ static const void trigger_mainTask(void *context)
  */
 const void init_mainTask(void)
 {
-  mainTask_state = 0; //reset
+  mainTask_state = 0; //reset state for powerup
   mainTaskActive = true; //start the main task
   UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_Main), UTIL_SEQ_RFU, mainTask); //register the task at the scheduler
 
@@ -136,7 +148,7 @@ const void init_mainTask(void)
  */
 const void stop_mainTask(bool resume)
 {
-  mainTask_state = 0; //reset
+  mainTask_state = 1; //reset state for STOP2 mode
   mainTaskActive = false;
   enableListenUart = false;
 
