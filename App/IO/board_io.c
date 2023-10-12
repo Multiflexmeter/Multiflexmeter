@@ -20,9 +20,11 @@
 
 #if TARGET == NUCLEO
 
+#include "stm32wlxx_nucleo.h"
+
 #define INT_IO_MCU_IRQ_DETECT_PORT  0
-#define INT_IO_DEBUG_LED2_PORT      0
-#define INT_IO_DEBUG_LED1_PORT      0
+#define INT_IO_DEBUG_LED2_PORT      GPIOB
+#define INT_IO_DEBUG_LED1_PORT      GPIOB
 #define INT_IO_BOX_OPEN_PORT        0
 #define INT_IO_VDD_TCXO_EXT_PORT    0
 #define INT_IO_ADC_SELECT_PORT      0
@@ -31,8 +33,8 @@
 #define INT_IO_RF_SW_PORT           0
 
 #define INT_IO_MCU_IRQ_DETECT_PIN  GPIO_PIN_0
-#define INT_IO_DEBUG_LED2_PIN      GPIO_PIN_1
-#define INT_IO_DEBUG_LED1_PIN      GPIO_PIN_4
+#define INT_IO_DEBUG_LED2_PIN      GPIO_PIN_9
+#define INT_IO_DEBUG_LED1_PIN      GPIO_PIN_15
 #define INT_IO_BOX_OPEN_PIN        GPIO_PIN_15
 #define INT_IO_VDD_TCXO_EXT_PIN    GPIO_PIN_0
 #define INT_IO_ADC_SELECT_PIN      GPIO_PIN_5
@@ -147,6 +149,10 @@ void init_board_io(void)
   assert_param( IO_LOW_ACTIVE == IO_EXT_LOW_ACTIVE );   //verify enumeration is equal.
   assert_param( IO_HIGH_ACTIVE == IO_EXT_HIGH_ACTIVE ); //verify enumeration is equal.
 
+#if TARGET == NUCLEO
+  BSP_LED_Init(LED1);
+  BSP_LED_Init(LED2);
+#endif
 
   init_IO_ExpanderData(); //Initialize the data and address of IO Expander devices
 
