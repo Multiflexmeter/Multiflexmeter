@@ -20,15 +20,14 @@
 
 static UTIL_TIMER_Object_t LedTimer;
 static UTIL_TIMER_Time_t LedPeriod = 100; //ms
-static bool ledTest = false;
 
 static struct_LedConfig ledConfig[NR_LED];
 static const struct_LedConfig ledConfigDefault[]=
 {
     {
         .item = INT_IO_DEBUG_LED1,
-        .state = LED_ON,
-        .mode = LED_BLINK,
+        .state = LED_OFF,
+        .mode = LED_ON_OFF,
         .toggleInterval = 0,
         .blinkOnTime = 1,
         .blinkOffTime = 9,
@@ -68,7 +67,6 @@ static const void ledInterval(void *context)
       switch( ledConfig[i].mode )
       {
         case LED_ON_OFF:
-        default:
 
           writeOutput_board_io( ledConfig[i].item, ledConfig[i].state );
 
@@ -98,6 +96,12 @@ static const void ledInterval(void *context)
           {
             writeOutput_board_io( ledConfig[i].item, ledConfig[i].state ); //drive based on state, OFF
           }
+
+          break;
+        default:
+        case LED_DISABLED:
+
+          //nothing, control by direct I/O
 
           break;
       }
@@ -187,7 +191,6 @@ const void setLedTest(int8_t test)
   {
     case 0: //led test off
 
-      ledTest = true;
       setLed(LED_1, LED_ON_OFF, LED_OFF, 100, 0, 0);
       setLed(LED_2, LED_ON_OFF, LED_OFF, 100, 0, 0);
 
@@ -195,7 +198,6 @@ const void setLedTest(int8_t test)
 
     case 1: //led test blink
 
-      ledTest = true;
       setLed(LED_1, LED_BLINK, LED_ON, 0,5,5); //Blink led, start directly.
       setLed(LED_2, LED_BLINK, LED_ON, 5,5,5); //Blink led, start after 5x interval
 
@@ -203,8 +205,14 @@ const void setLedTest(int8_t test)
 
     case 10: //led normal functionality
 
-      ledTest = false;
       memcpy(&ledConfig, &ledConfigDefault, sizeof(ledConfig));
+
+      break;
+
+    case 99:
+
+      setLed(LED_1, LED_DISABLED, 0, 0,0,0); //Disable LED control, for direct I/O control
+      setLed(LED_2, LED_DISABLED, 0, 0,0,0); //Disable LED control, for direct I/O control
 
       break;
 

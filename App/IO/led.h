@@ -29,6 +29,7 @@ typedef enum
   LED_ON_OFF,
   LED_TOGGLE,
   LED_BLINK,
+  LED_DISABLED,
   NR_LED_MODE,
 }ENUM_LED_MODE;
 
