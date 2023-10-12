@@ -103,15 +103,37 @@ uint8_t sensorProtocolVersion(SensorAddress address)
   return protocolVersion;
 }
 
-void sensorType(SensorAddress address)
+uint16_t sensorReadType(SensorAddress address)
 {
-  //TODO implement sensor type function
+  uint8_t sensorType[2];
+  sensorMasterRead(address, REG_SENSOR_TYPE, sensorType);
+  return sensorType[0] + (sensorType[1]<<8);
 }
 
 void sensorStartMeasurement(SensorAddress address)
 {
   uint8_t startCommand = 0x01;
   sensorMasterWrite(address, REG_MEAS_START, &startCommand);
+}
+
+uint8_t sensorMeasurementStatus(SensorAddress address)
+{
+  uint8_t sensorStatus;
+  sensorMasterRead(address, REG_MEAS_STATUS, &sensorStatus);
+  return sensorStatus;
+}
+
+void sensorWriteSetupTime(SensorAddress address, uint16_t setupTime)
+{
+  uint8_t setupTimeBuffer[2] = {(setupTime), setupTime>>8};
+  sensorMasterWrite(address, REG_MEAS_TIME, setupTimeBuffer);
+}
+
+uint16_t sensorReadSetupTime(SensorAddress address)
+{
+  uint8_t setupTime[2];
+  sensorMasterRead(address, REG_MEAS_TIME, setupTime);
+  return setupTime[0] + (setupTime[1]<<8);
 }
 
 void sensorReadMeasurement(SensorAddress address)
