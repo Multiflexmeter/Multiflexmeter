@@ -23,7 +23,7 @@ extern SPI_HandleTypeDef hspi1;
 #define FRAM_CS_PORT      GPIOA
 #define FRAM_CS_PIN       GPIO_PIN_4
 
-// Define the commands for the MB85RS256A FRAM
+// Define the commands for the FM25L16B FRAM
 #define FRAM_WRITE_ENABLE  0x06
 #define FRAM_WRITE_DISABLE 0x04
 #define FRAM_READ          0x03
