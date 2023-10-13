@@ -9,6 +9,7 @@
 #ifndef FRAM_FRAM_FUNCTIONS_H_
 #define FRAM_FRAM_FUNCTIONS_H_
 
-
+const void saveLoraSettings( const void *pSource, size_t length );
+const void restoreLoraSettings( const void *pSource, size_t length);
 
 #endif /* FRAM_FRAM_FUNCTIONS_H_ */
