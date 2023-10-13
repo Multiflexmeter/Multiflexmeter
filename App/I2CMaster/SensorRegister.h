@@ -25,7 +25,7 @@
 typedef enum{
   UINT8_T = 1,
   UINT16_T = 2,
-  INT32_T = 4
+  SENSORDATA = 8
 }tENUM_Datatype;
 
 typedef enum{
@@ -39,6 +39,18 @@ typedef enum{
   READ,
   READWRITE
 }tENUM_READWRITE;
+
+typedef struct __attribute__((__packed__))
+{
+  int32_t pressure;
+  int32_t temperature;
+}SensorDataKeller;
+
+typedef struct __attribute__((__packed__))
+{
+  uint16_t pressure;
+  uint8_t temperature;
+}SensorDataHuba;
 
 typedef struct
 {

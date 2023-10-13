@@ -29,7 +29,7 @@ static UTIL_TIMER_Time_t MainPeriodSleep = 60000;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
 static bool enableListenUart;
 
-uint16_t sensorType;
+int32_t sensorType;
 
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
@@ -67,14 +67,9 @@ const void mainTask(void)
       break;
 
     case 1:
-      sensorFirmwareVersion(SENSOR_MODULE_1, firmware);
-      sensorProtocolVersion(SENSOR_MODULE_1);
-      sensorType = sensorReadType(SENSOR_MODULE_1);
-      sensorMeasurementStatus(SENSOR_MODULE_1);
-      sensorWriteSetupTime(SENSOR_MODULE_1, 250);
-      sensorType = sensorReadSetupTime(SENSOR_MODULE_1);
+      sensorType = sensorReadMeasurement(SENSOR_MODULE_1);
+      sensorStartMeasurement(SENSOR_MODULE_1);
       HAL_Delay(1000);
-      //sensorMasterRead(SENSOR_MODULE_1, REG_MEAS_DATA, sensorBuffer);
       mainTask_state++;
       break;
 

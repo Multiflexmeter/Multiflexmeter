@@ -29,6 +29,7 @@ void sensorStartMeasurement(SensorAddress address);
 uint8_t sensorMeasurementStatus(SensorAddress address);
 void sensorWriteSetupTime(SensorAddress address, uint16_t setupTime);
 uint16_t sensorReadSetupTime(SensorAddress address);
+int32_t sensorReadMeasurement(SensorAddress address);
 void sensorSetSamples(SensorAddress address, uint8_t samples);
 uint8_t sensorReadSamples(SensorAddress address);
 

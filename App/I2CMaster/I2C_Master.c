@@ -166,9 +166,12 @@ uint16_t sensorReadSetupTime(SensorAddress address)
   return setupTime[0] + (setupTime[1]<<8);
 }
 
-void sensorReadMeasurement(SensorAddress address)
+int32_t sensorReadMeasurement(SensorAddress address)
 {
   //TODO implement sensor type function
+  SensorDataKeller measData[2];
+  sensorMasterRead(address, REG_MEAS_DATA, (uint8_t*) measData);
+  return measData->pressure;
 }
 
 /**

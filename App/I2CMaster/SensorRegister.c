@@ -14,7 +14,7 @@ const SensorReg registers[] =
     {REG_MEAS_START,        UINT8_T,  1,  READWRITE},
     {REG_MEAS_STATUS,       UINT8_T,  1,  READ},
     {REG_MEAS_TIME,         UINT16_T, 1,  READWRITE},
-    {REG_MEAS_DATA,         INT32_T,  2,  READ},
+    {REG_MEAS_DATA,         SENSORDATA,  2,  READ},
     {REG_SENSOR_AMOUNT,     UINT8_T,  1,  READ},
     {REG_SENSOR_SELECTED,   UINT8_T,  1,  READWRITE},
     {REG_MEAS_TYPE,         UINT8_T,  1,  READWRITE},
