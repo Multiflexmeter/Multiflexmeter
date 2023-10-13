@@ -44,7 +44,7 @@ const void setNextPeriod( UTIL_TIMER_Time_t next )
   UTIL_TIMER_Start(&MainTimer);
 }
 
-uint8_t sensorBuffer[10];
+char firmware[10];
 /**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
@@ -67,7 +67,7 @@ const void mainTask(void)
       break;
 
     case 1:
-      sensorFirmwareVersion(SENSOR_MODULE_1);
+      sensorFirmwareVersion(SENSOR_MODULE_1, firmware);
       sensorProtocolVersion(SENSOR_MODULE_1);
       sensorType = sensorReadType(SENSOR_MODULE_1);
       sensorMeasurementStatus(SENSOR_MODULE_1);

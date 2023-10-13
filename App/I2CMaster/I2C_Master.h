@@ -22,7 +22,7 @@ typedef enum{
   SENSOR_MODULE_6 = 0x16<<1
 }SensorAddress;
 
-void sensorFirmwareVersion(SensorAddress address);
+void sensorFirmwareVersion(SensorAddress address, char *firmwareVersion);
 uint8_t sensorProtocolVersion(SensorAddress address);
 uint16_t sensorReadType(SensorAddress address);
 void sensorStartMeasurement(SensorAddress address);

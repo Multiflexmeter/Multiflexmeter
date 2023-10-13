@@ -86,10 +86,9 @@ tENUM_SensorError sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, ui
  *
  * @param address The sensor address
  */
-void sensorFirmwareVersion(SensorAddress address)
+void sensorFirmwareVersion(SensorAddress address, char* firmwareVersion)
 {
-  uint8_t rxBuffer[10];
-  sensorMasterRead(address, REG_FIRMWARE_VERSION, rxBuffer);
+  sensorMasterRead(address, REG_FIRMWARE_VERSION, (uint8_t*) firmwareVersion);
 }
 
 /**
