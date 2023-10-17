@@ -55,6 +55,7 @@
 #include "../../App/dataflash/dataflash_functions.h"
 #include "../../App/logging/logging.h"
 #include "../../App/MFMconfiguration.h"
+#include "../../App/IO/board_io.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -116,7 +117,7 @@ bool eraseVirtualEeprom = true;
 #endif
 
 /* USER CODE END 0 */
-
+uint64_t delay;
 /**
   * @brief  The application entry point.
   * @retval int
@@ -187,6 +188,25 @@ int main(void)
   /* USER CODE BEGIN 2 */
 //  uartInit_Config();
 //  resultInitDataflash = init_dataflash();
+
+
+  while(1)
+  {
+    delay++;
+    if( delay == 1000000UL)
+    {
+      writeOutput_board_io(INT_IO_DEBUG_LED1, GPIO_PIN_SET);
+//      HAL_GPIO_WritePin(DEBUG_LED1_GPIO_Port, DEBUG_LED1_Pin, GPIO_PIN_SET);
+    }
+    else if( delay == 2000000UL )
+    {
+      writeOutput_board_io(INT_IO_DEBUG_LED1, GPIO_PIN_RESET);
+//      HAL_GPIO_WritePin(DEBUG_LED1_GPIO_Port, DEBUG_LED1_Pin, GPIO_PIN_RESET);
+      delay = 0;
+    }
+
+
+  }
 
   if( chipErase )
   {
