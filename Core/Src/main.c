@@ -65,8 +65,8 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define CHECK_ON_TCXO_32MHZ  //enable for evaluation board Nucleo-WL55JC1 //todo disable at final target.
-#define CHECK_ON_CRYSTAL     //enable for Dekimo board
+//#define CHECK_ON_TCXO_32MHZ  //enable for evaluation board Nucleo-WL55JC1 //todo disable at final target.
+//#define CHECK_ON_CRYSTAL     //enable for Dekimo board
 //#define CHECK_ON_TCXO        //enable for Dekimo board
 
 //#define ERASE_VIRTUAL_EEPROM  //enable for erasing virtual EEPROM
