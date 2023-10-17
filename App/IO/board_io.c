@@ -653,4 +653,63 @@ const int8_t testInput_board_io(uint8_t item)
   return readInput_board_io((ENUM_IO_ITEM)item);
 }
 
+/**
+ * @fn const void FRAM_EnableChipSelect(void)
+ * @brief override function for FRAM chip select enable
+ *
+ */
+const void FRAM_EnableChipSelect(void)
+{
+  writeOutput_board_io(EXT_IO_FRAM_CS, GPIO_PIN_SET);
+}
 
+/**
+ * @fn const void FRAM_DisableChipSelect(void)
+ * @brief override function for FRAM chip select disable
+ *
+ */
+const void FRAM_DisableChipSelect(void)
+{
+  writeOutput_board_io(EXT_IO_FRAM_CS, GPIO_PIN_RESET);
+}
+
+
+/**
+ * @fn const void SD_EnableChipSelect(void)
+ * @brief override function for SD Card chip select enable
+ *
+ */
+const void SD_EnableChipSelect(void)
+{
+  writeOutput_board_io(EXT_IO_FLASH_SD_CS, GPIO_PIN_SET);
+}
+
+/**
+ * @fn const void SD_DisableChipSelect(void)
+ * @brief override function for SD card chip select disable
+ *
+ */
+const void SD_DisableChipSelect(void)
+{
+  writeOutput_board_io(EXT_IO_FLASH_SD_CS, GPIO_PIN_RESET);
+}
+
+/**
+ * @fn const void dataflash_EnableChipSelect(void)
+ * @brief override function for dataflash chip select enable
+ *
+ */
+const void dataflash_EnableChipSelect(void)
+{
+  writeOutput_board_io(EXT_IO_FLASH_NOR_CS, GPIO_PIN_SET);
+}
+
+/**
+ * @fn const void dataflash_DisableChipSelect(void)
+ * @brief override function for dataflash chip select disable
+ *
+ */
+const void dataflash_DisableChipSelect(void)
+{
+  writeOutput_board_io(EXT_IO_FLASH_NOR_CS, GPIO_PIN_RESET);
+}
