@@ -13,7 +13,6 @@
 #include "main.h"
 #include "sys_app.h"
 
-#include "../IO/board_io.h"
 #include "FRAM.h"
 
 extern SPI_HandleTypeDef hspi1;
@@ -31,24 +30,25 @@ extern SPI_HandleTypeDef hspi1;
 #define FRAM_STATUS_READ   0x05
 #define FRAM_STATUS_WRITE  0x01
 
+
 /**
  * @fn const void FRAM_EnableChipSelect(void)
- * @brief function to enable chip select for FRAM
+ * @brief weak function to enable chip select for FRAM
  *
  */
-const void FRAM_EnableChipSelect(void)
+__weak const void FRAM_EnableChipSelect(void)
 {
-  writeOutput_board_io(EXT_IO_FRAM_CS, GPIO_PIN_RESET);
+
 }
 
 /**
  * @fn const void FRAM_DisableChipSelect(void)
- * @brief function to disable chip select for FRAM
+ * @brief weak function to disable chip select for FRAM
  *
  */
-const void FRAM_DisableChipSelect(void)
+__weak const void FRAM_DisableChipSelect(void)
 {
-  writeOutput_board_io(EXT_IO_FRAM_CS, GPIO_PIN_SET);
+
 }
 
 /**
