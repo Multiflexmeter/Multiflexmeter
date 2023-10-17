@@ -16,7 +16,10 @@
 #include "../IO_Expander/IO_Expander.h"
 #include "board_io.h"
 
-#define TARGET NUCLEO
+#define NUCLEO 1
+#define DEKIMO 2
+//#define TARGET NUCLEO
+#define TARGET DEKIMO
 
 #if TARGET == NUCLEO
 
