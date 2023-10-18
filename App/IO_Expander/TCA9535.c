@@ -21,14 +21,14 @@ extern unsigned char NACK;
 int8_t I2C_Write(uint8_t Size, I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t registerAddress, uint8_t * pData, uint8_t offset )
 {
   assert_param( Size <= 2 );
-  assert_param( offset != 0 );
+  assert_param( offset == 0 );
 
   UNUSED(offset);
 
   if( Size > 2 )
        return -1;
 
-  if( offset == 0 )
+  if( offset != 0 )
     return -2;
 
   uint8_t data[3];
