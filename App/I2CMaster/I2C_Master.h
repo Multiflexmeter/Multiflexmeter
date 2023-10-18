@@ -7,11 +7,11 @@
 
 /* Typedefs */
 typedef enum{
-  I2C_OK,
-  I2C_CRC_ERROR,
-  I2C_ADDR_ERROR,
-  I2C_TIMEOUT
-}tENUM_SensorError;
+  SENSOR_OK,
+  SENSOR_CRC_ERROR,
+  SENSOR_ADDR_ERROR,
+  SENSOR_TIMEOUT
+}SensorError;
 
 typedef enum{
   SENSOR_MODULE_1 = 0x11<<1,
@@ -29,7 +29,7 @@ void sensorStartMeasurement(SensorAddress address);
 uint8_t sensorMeasurementStatus(SensorAddress address);
 void sensorWriteSetupTime(SensorAddress address, uint16_t setupTime);
 uint16_t sensorReadSetupTime(SensorAddress address);
-void sensorReadMeasurement(SensorAddress address, uint8_t* measurementData);
+SensorError sensorReadMeasurement(SensorAddress address, uint8_t* measurementData);
 void sensorSetSamples(SensorAddress address, uint8_t samples);
 uint8_t sensorReadSamples(SensorAddress address);
 

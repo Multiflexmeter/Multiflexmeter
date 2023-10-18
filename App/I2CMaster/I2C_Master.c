@@ -18,12 +18,12 @@ extern I2C_HandleTypeDef hi2c2;
  * @return Return I2C_OK when the function is successful.
  *         Else returns a specific error based on the type of fault.
  */
-tENUM_SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_t *data)
+SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_t *data)
 {
   // Determine the index of the register based on the register address
   int8_t regIndex = findRegIndex(regAddress);
   if(regIndex < 0)
-    return I2C_ADDR_ERROR;
+    return SENSOR_ADDR_ERROR;
 
   // Determine the size of the register
   uint8_t regSize = registers[regIndex].datatype * registers[regIndex].size;
@@ -32,16 +32,16 @@ tENUM_SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uin
   uint8_t rxBuffer[regSize + CRC_SIZE];
   HAL_StatusTypeDef error = HAL_I2C_Mem_Read(&hi2c2, slaveAddress, regAddress, 1, rxBuffer, regSize + CRC_SIZE, 1000);
   if(error == HAL_TIMEOUT)
-    return I2C_TIMEOUT;
+    return SENSOR_TIMEOUT;
 
   // Check the CRC of the incoming message
   if(calculateCRC_CCITT(rxBuffer, regSize + CRC_SIZE) != 0)
-    return I2C_CRC_ERROR;
+    return SENSOR_CRC_ERROR;
 
   // Copy the data to the provided memory location and remove the CRC from the data
   memcpy(data, rxBuffer, regSize);
 
-  return I2C_OK;
+  return SENSOR_OK;
 }
 
 /**
@@ -53,12 +53,12 @@ tENUM_SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uin
  * @return Return I2C_OK when the function is successful.
  *         Else returns a specific error based on the type of fault.
  */
-tENUM_SensorError sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, uint8_t *data)
+SensorError sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, uint8_t *data)
 {
   // Determine the index of the register based on the register address
   int8_t regIndex = findRegIndex(regAddress);
   if(regIndex < 0)
-    return I2C_ADDR_ERROR;
+    return SENSOR_ADDR_ERROR;
 
   // Determine the size of the register and the tx buffer
   uint8_t regSize = registers[regIndex].datatype * registers[regIndex].size;
@@ -76,9 +76,9 @@ tENUM_SensorError sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, ui
   // Write data the the register
   HAL_StatusTypeDef error = HAL_I2C_Mem_Write(&hi2c2, slaveAddress, regAddress, 1, &txBuffer[1], regSize + CRC_SIZE, 1000);
   if(error == HAL_TIMEOUT)
-    return I2C_TIMEOUT;
+    return SENSOR_TIMEOUT;
 
-  return I2C_OK;
+  return SENSOR_OK;
 }
 
 /**
@@ -166,32 +166,42 @@ uint16_t sensorReadSetupTime(SensorAddress address)
   return setupTime[0] + (setupTime[1]<<8);
 }
 
-void sensorReadMeasurement(SensorAddress address, uint8_t* measurementData)
+/**
+ * @brief Read the measurement data register form the sensor card
+ *
+ * @param address The sensor address
+ * @param measurementData The pointer to store the measurement data. Max 32 bytes.
+ * @return Return I2C_OK when the function is successful.
+ *         Else returns a specific error based on the type of fault.
+ */
+SensorError sensorReadMeasurement(SensorAddress address, uint8_t* measurementData)
 {
   uint8_t regAddress = REG_MEAS_DATA;
   uint8_t rxBuffer[34];
 
-  //Select the measurement data register
+  /* Select the measurement data register */
   HAL_I2C_Master_Transmit(&hi2c2, address, &regAddress, 1, 10);
 
-  //Receive the lenght of the measurement data
+  /* Receive the lenght of the measurement data */
   HAL_I2C_Master_Seq_Receive_IT(&hi2c2, address, rxBuffer, 1, I2C_FIRST_AND_NEXT_FRAME);
   while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 
-  //
+  /* Limit the message length to 32 bytes */
   if(rxBuffer[0] > 32)
     rxBuffer[0] = 32;
 
-  //Receive the measurement data
+  /* Receive the measurement data */
   HAL_I2C_Master_Seq_Receive_IT(&hi2c2, address, rxBuffer+1, rxBuffer[0] + CRC_SIZE, I2C_LAST_FRAME);
   while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
 
-  // Check the CRC of the incoming message
+  /* Check the CRC of the incoming message */
   if(calculateCRC_CCITT(rxBuffer, rxBuffer[0] + CRC_SIZE + 1) != 0)
-    return I2C_CRC_ERROR;
+    return SENSOR_CRC_ERROR;
 
   else
     memcpy(measurementData, rxBuffer+1, rxBuffer[0]);
+
+  return SENSOR_OK;
 }
 
 /**
