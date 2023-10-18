@@ -118,6 +118,7 @@ bool eraseVirtualEeprom = true;
 
 /* USER CODE END 0 */
 uint64_t delay;
+uint32_t count;
 /**
   * @brief  The application entry point.
   * @retval int
@@ -180,25 +181,45 @@ int main(void)
   MX_GPIO_Init();
   //MX_LoRaWAN_Init();
 //  MX_USART1_UART_Init();
-//  MX_I2C1_Init();
+  MX_I2C1_Init();
 //  MX_SPI1_Init();
 //  MX_CRC_Init();
 //  MX_FATFS_Init();
-//  MX_I2C2_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 //  uartInit_Config();
 //  resultInitDataflash = init_dataflash();
 
+  init_board_io();
 
+  writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET);
+
+  uint8_t address = 0;
   while(1)
   {
+    uint8_t buffer[]={0};
     delay++;
-    if( delay == 1000000UL)
+
+
+    if( HAL_I2C_Master_Transmit(&hi2c1, address<<1, buffer, sizeof(buffer), 1000) == HAL_OK )
+    {
+      count++;
+    }
+    if( HAL_I2C_Master_Transmit(&hi2c2, address<<1, buffer, sizeof(buffer), 1000) == HAL_OK)
+    {
+      count++;
+    }
+
+
+    address++;
+
+    if( delay == 100UL)
     {
       writeOutput_board_io(INT_IO_DEBUG_LED1, GPIO_PIN_SET);
 //      HAL_GPIO_WritePin(DEBUG_LED1_GPIO_Port, DEBUG_LED1_Pin, GPIO_PIN_SET);
+      readInput_board_io(EXT_IO_BOX_OPEN);
     }
-    else if( delay == 2000000UL )
+    else if( delay == 200UL )
     {
       writeOutput_board_io(INT_IO_DEBUG_LED1, GPIO_PIN_RESET);
 //      HAL_GPIO_WritePin(DEBUG_LED1_GPIO_Port, DEBUG_LED1_Pin, GPIO_PIN_RESET);
