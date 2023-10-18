@@ -166,12 +166,22 @@ uint16_t sensorReadSetupTime(SensorAddress address)
   return setupTime[0] + (setupTime[1]<<8);
 }
 
-int32_t sensorReadMeasurement(SensorAddress address)
+void sensorReadMeasurement(SensorAddress address)
 {
-  //TODO implement sensor type function
-  SensorDataKeller measData[2];
-  sensorMasterRead(address, REG_MEAS_DATA, (uint8_t*) measData);
-  return measData->pressure;
+  uint8_t regAddress = REG_MEAS_DATA;
+  uint8_t rxBuffer[32];
+  uint8_t messageLenght = 1;
+
+  HAL_I2C_Master_Transmit(&hi2c2, address, &regAddress, 1, 10);
+  HAL_I2C_Master_Seq_Receive_IT(&hi2c2, address, &messageLenght, 1, I2C_FIRST_AND_NEXT_FRAME);
+
+  while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+  if(messageLenght > 32)
+    messageLenght = 32;
+
+  HAL_I2C_Master_Seq_Receive_IT(&hi2c2, address, rxBuffer, messageLenght + CRC_SIZE, I2C_LAST_FRAME);
+  while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+  return;
 }
 
 /**

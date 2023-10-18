@@ -67,7 +67,7 @@ const void mainTask(void)
       break;
 
     case 1:
-      sensorType = sensorReadMeasurement(SENSOR_MODULE_1);
+      sensorReadMeasurement(SENSOR_MODULE_1);
       sensorStartMeasurement(SENSOR_MODULE_1);
       HAL_Delay(1000);
       mainTask_state++;
