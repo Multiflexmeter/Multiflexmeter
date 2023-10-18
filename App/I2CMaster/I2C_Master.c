@@ -166,22 +166,32 @@ uint16_t sensorReadSetupTime(SensorAddress address)
   return setupTime[0] + (setupTime[1]<<8);
 }
 
-void sensorReadMeasurement(SensorAddress address)
+void sensorReadMeasurement(SensorAddress address, uint8_t* measurementData)
 {
   uint8_t regAddress = REG_MEAS_DATA;
-  uint8_t rxBuffer[32];
-  uint8_t messageLenght = 1;
+  uint8_t rxBuffer[34];
 
+  //Select the measurement data register
   HAL_I2C_Master_Transmit(&hi2c2, address, &regAddress, 1, 10);
-  HAL_I2C_Master_Seq_Receive_IT(&hi2c2, address, &messageLenght, 1, I2C_FIRST_AND_NEXT_FRAME);
 
+  //Receive the lenght of the measurement data
+  HAL_I2C_Master_Seq_Receive_IT(&hi2c2, address, rxBuffer, 1, I2C_FIRST_AND_NEXT_FRAME);
   while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
-  if(messageLenght > 32)
-    messageLenght = 32;
 
-  HAL_I2C_Master_Seq_Receive_IT(&hi2c2, address, rxBuffer, messageLenght + CRC_SIZE, I2C_LAST_FRAME);
+  //
+  if(rxBuffer[0] > 32)
+    rxBuffer[0] = 32;
+
+  //Receive the measurement data
+  HAL_I2C_Master_Seq_Receive_IT(&hi2c2, address, rxBuffer+1, rxBuffer[0] + CRC_SIZE, I2C_LAST_FRAME);
   while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
-  return;
+
+  // Check the CRC of the incoming message
+  if(calculateCRC_CCITT(rxBuffer, rxBuffer[0] + CRC_SIZE + 1) != 0)
+    return I2C_CRC_ERROR;
+
+  else
+    memcpy(measurementData, rxBuffer+1, rxBuffer[0]);
 }
 
 /**

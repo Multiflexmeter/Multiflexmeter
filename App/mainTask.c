@@ -30,6 +30,7 @@ static UTIL_TIMER_Time_t MainPeriodNormal = 10;
 static bool enableListenUart;
 
 int32_t sensorType;
+uint8_t rxBuffer[32];
 
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
@@ -67,7 +68,7 @@ const void mainTask(void)
       break;
 
     case 1:
-      sensorReadMeasurement(SENSOR_MODULE_1);
+      sensorReadMeasurement(SENSOR_MODULE_1, rxBuffer);
       sensorStartMeasurement(SENSOR_MODULE_1);
       HAL_Delay(1000);
       mainTask_state++;
