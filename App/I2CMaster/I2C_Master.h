@@ -30,7 +30,10 @@ uint8_t sensorMeasurementStatus(SensorAddress address);
 void sensorWriteSetupTime(SensorAddress address, uint16_t setupTime);
 uint16_t sensorReadSetupTime(SensorAddress address);
 SensorError sensorReadMeasurement(SensorAddress address, uint8_t* measurementData);
+uint8_t sensorReadSelection(SensorAddress address);
+void sensorWriteSelection(SensorAddress address, uint8_t sensor);
 void sensorSetSamples(SensorAddress address, uint8_t samples);
 uint8_t sensorReadSamples(SensorAddress address);
+SensorError sensorReadSelected(SensorAddress address, uint8_t* measurementData);
 
 #endif /* I2C_MASTER_H_ */

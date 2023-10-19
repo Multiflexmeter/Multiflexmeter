@@ -68,7 +68,10 @@ const void mainTask(void)
       break;
 
     case 1:
-      sensorReadMeasurement(SENSOR_MODULE_1, rxBuffer);
+      sensorWriteSelection(SENSOR_MODULE_1, 0);
+      sensorReadSelected(SENSOR_MODULE_1, rxBuffer);
+      sensorWriteSelection(SENSOR_MODULE_1, 1);
+      sensorReadSelected(SENSOR_MODULE_1, rxBuffer);
       sensorStartMeasurement(SENSOR_MODULE_1);
       HAL_Delay(1000);
       mainTask_state++;

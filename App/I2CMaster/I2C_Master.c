@@ -288,3 +288,33 @@ void sensorSetSamples(SensorAddress address, uint8_t samples)
 {
   sensorMasterWrite(address, REG_MEAS_SAMPLES, &samples);
 }
+
+SensorError sensorReadSelected(SensorAddress address, uint8_t* measurementData)
+{
+  uint8_t regAddress = REG_SENSOR_DATA;
+  uint8_t rxBuffer[18];
+
+  /* Select the measurement data register */
+  HAL_I2C_Master_Transmit(&hi2c2, address, &regAddress, 1, 10);
+
+  /* Receive the lenght of the measurement data */
+  HAL_I2C_Master_Seq_Receive_IT(&hi2c2, address, rxBuffer, 1, I2C_FIRST_AND_NEXT_FRAME);
+  while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+
+  /* Limit the message length to 32 bytes */
+  if(rxBuffer[0] > 16)
+    rxBuffer[0] = 16;
+
+  /* Receive the measurement data */
+  HAL_I2C_Master_Seq_Receive_IT(&hi2c2, address, rxBuffer+1, rxBuffer[0] + CRC_SIZE, I2C_LAST_FRAME);
+  while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+
+  /* Check the CRC of the incoming message */
+  if(calculateCRC_CCITT(rxBuffer, rxBuffer[0] + CRC_SIZE + 1) != 0)
+    return SENSOR_CRC_ERROR;
+
+  else
+    memcpy(measurementData, rxBuffer+1, rxBuffer[0]);
+
+  return SENSOR_OK;
+}
