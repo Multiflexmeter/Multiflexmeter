@@ -34,8 +34,8 @@ int8_t I2C_Write(uint8_t Size, I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uin
   uint8_t data[3];
 
   data[0] = registerAddress;
-  data[1] = pData[1];
-  data[2] = pData[2];
+  data[1] = pData[0];
+  data[2] = pData[1];
 
   return HAL_I2C_Master_Transmit(hi2c, DevAddress, data, sizeof(data), TCA9535_HAL_TIMEOUT);
 }
