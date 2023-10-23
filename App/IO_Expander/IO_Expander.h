@@ -14,8 +14,8 @@
 extern I2C_HandleTypeDef hi2c1;
 extern I2C_HandleTypeDef hi2c2;
 
-#define HI2C_IO_EXPANDER_BUS  &hi2c1
-#define HI2C_IO_EXPANDER_SYS  &hi2c2
+#define HI2C_IO_EXPANDER_BUS  &hi2c2
+#define HI2C_IO_EXPANDER_SYS  &hi2c1
 
 #define ADDRESS_IO_EXPANDER_SYS     0x21
 #define ADDRESS_IO_EXPANDER_BUS_INT 0x21
