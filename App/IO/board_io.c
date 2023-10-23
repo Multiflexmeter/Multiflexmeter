@@ -157,7 +157,9 @@ const void init_board_io(void)
   BSP_LED_Init(LED2);
 #endif
 
-  init_IO_ExpanderData(); //Initialize the data and address of IO Expander devices
+  init_IO_ExpanderData(IO_EXPANDER_SYS); //Initialize the data and address of IO Expander devices
+  init_IO_ExpanderData(IO_EXPANDER_BUS_INT); //Initialize the data and address of IO Expander devices
+  init_IO_ExpanderData(IO_EXPANDER_BUS_EXT); //Initialize the data and address of IO Expander devices
 
   for(i=0; i<sizeof(stIO_PinConfig)/sizeof(stIO_PinConfig[0]); i++ )
   {
@@ -215,7 +217,10 @@ const void init_board_io(void)
 
   if( externalFound == true )
   {
-    init_IO_Expander(); //Send configuration registers to IO Expander devices.
+    init_IO_Expander(IO_EXPANDER_SYS); //Send configuration registers to IO Expander devices.
+    writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET); //enable VSYS, to operate IO expander on BUS.
+    init_IO_Expander(IO_EXPANDER_BUS_INT); //Send configuration registers to IO Expander devices.
+    init_IO_Expander(IO_EXPANDER_BUS_EXT); //Send configuration registers to IO Expander devices.
   }
   else
   {

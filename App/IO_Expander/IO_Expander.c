@@ -183,49 +183,52 @@ int8_t init_IO_ExpanderPin(ENUM_IO_EXPANDER device, ENUM_IO_ExtDirection directi
 }
 
 /**
- * @fn void init_IO_ExpanderData(void)
+ * @fn void init_IO_ExpanderData(ENUM_IO_EXPANDER)
  * @brief initialize data of IO_expander and set device handle/address
  *
+ * @param device
  */
-void init_IO_ExpanderData(void)
+void init_IO_ExpanderData(ENUM_IO_EXPANDER device)
 {
-  int i;
-  //configure handle and device address
-  for( i=0; i<NR_IO_EXPANDER - 1; i++ )
-  {
-    //initialize data struct
-    TCA9535InitDefault((TCA9535Regs*)& TCA9535_Reg_map[i]);
+  if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
+    return;
 
-    //configure I2C_handle and device address for IO_EXPANDER_SYS
-    TCA9535_Reg_map[i].I2C_handle = stIO_ExpanderChipConfig[i].I2C_handle;
-    TCA9535_Reg_map[i].deviceAddress = stIO_ExpanderChipConfig[i].address;;
-  }
+  int i = device - 1;
+
+  //initialize data struct
+  TCA9535InitDefault((TCA9535Regs*)& TCA9535_Reg_map[i]);
+
+  //configure I2C_handle and device address for IO_EXPANDER_SYS
+  TCA9535_Reg_map[i].I2C_handle = stIO_ExpanderChipConfig[i].I2C_handle;
+  TCA9535_Reg_map[i].deviceAddress = stIO_ExpanderChipConfig[i].address;;
+
 }
 
 /**
- * @fn void init_IO_Expander(void)
+ * @fn void init_IO_Expander(ENUM_IO_EXPANDER)
  * @brief function write initial config register to devices.
  * note: first initialize the registers of variable \ref TCA9535_Reg_map with \ref init_IO_ExpanderData() and \ref init_IO_ExpanderPin() function
  *
+ * @param device
  */
-void init_IO_Expander(void)
+void init_IO_Expander(ENUM_IO_EXPANDER device)
 {
-  int i;
+  if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
+    return;
+
+  int i = device - 1;
   uint8_t result = 0;
 
   //initialize device
-  for( i=0; i<NR_IO_EXPANDER -1; i++ )
-  {
-    result = TCA9535InitI2CReg((TCA9535Regs*)&TCA9535_Reg_map[i]); //send initial state to I/O expander.
+  result = TCA9535InitI2CReg((TCA9535Regs*)&TCA9535_Reg_map[i]); //send initial state to I/O expander.
 
-    if ( result == I2C_OPERATION_SUCCESSFUL )
-    {
-      stIO_ExpanderChipConfig[i].enabled = true; //device found, enable device
-    }
-    else
-    {
-      stIO_ExpanderChipConfig[i].enabled = false; //disable not found, disable device
-    }
+  if ( result == I2C_OPERATION_SUCCESSFUL )
+  {
+    stIO_ExpanderChipConfig[i].enabled = true; //device found, enable device
+  }
+  else
+  {
+    stIO_ExpanderChipConfig[i].enabled = false; //disable not found, disable device
   }
 }
 
