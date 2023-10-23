@@ -192,8 +192,6 @@ int main(void)
 
   init_board_io();
 
-  writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET);
-
   uint8_t address = 0;
   while(1)
   {
