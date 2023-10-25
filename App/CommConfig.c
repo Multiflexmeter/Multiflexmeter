@@ -835,6 +835,14 @@ void executeTest(int test, int subTest, char * extraArguments)
   }
 
 }
+void configUartTest(void)
+{
+  if (uartTxReady(&config_uart)) //check uart is ready
+  {
+
+      sendModuleInfo(0,0);
+  }
+}
 
 /**
  * @brief config uart handler for timeout and special long commands.
