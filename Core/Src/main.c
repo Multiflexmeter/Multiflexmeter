@@ -56,6 +56,7 @@
 #include "../../App/logging/logging.h"
 #include "../../App/MFMconfiguration.h"
 #include "../../App/IO/board_io.h"
+#include "dma.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -182,6 +183,8 @@ int main(void)
   MX_GPIO_Init();
 //  MX_LoRaWAN_Init();
 
+  MX_DMA_Init(); //temporary for using USART1 without MX_LoRaWAN_Init().
+
   MX_USART1_UART_Init();
   MX_I2C1_Init();
 //  MX_SPI1_Init();
@@ -192,6 +195,10 @@ int main(void)
 
   uartInit_Config();
 
+  while(1)
+  {
+    configUartTest();
+  }
 //  resultInitDataflash = init_dataflash();
 
 //  init_board_io();
