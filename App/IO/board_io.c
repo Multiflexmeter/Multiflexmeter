@@ -485,6 +485,11 @@ const int8_t writeOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state)
   result = setOutput_board_io(item, state); //set output state in variable
   state = board_IO_status[item];
 
+  if( stIO_PinConfig[item].active == IO_LOW_ACTIVE )
+  {
+    state=!state; //invert
+  }
+
   if( result >= 0 ) //check result no error
   {
 
