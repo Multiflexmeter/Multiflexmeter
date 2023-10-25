@@ -192,6 +192,14 @@ int main(void)
 
   init_board_io();
 
+
+  testDataflash(0);
+
+  while(1)
+  {
+
+  }
+
   uint8_t address = 0;
   while(1)
   {
