@@ -115,7 +115,6 @@ bool chipErase = false;
 #ifdef ERASE_VIRTUAL_EEPROM
 bool eraseVirtualEeprom = true;
 #endif
-void configUartTest(void);
 
 /* USER CODE END 0 */
 uint64_t delay;
