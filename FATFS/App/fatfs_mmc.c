@@ -39,11 +39,34 @@ static volatile uint16_t Timer1, Timer2;		/* 1kHz decrement timer stopped at zer
 static uint8_t CardType;	/* Card type flags */
 static uint8_t PowerFlag = 0;       /* Power flag */
 
-#define CS_HIGH() HAL_GPIO_WritePin(SD_CS_PORT, SD_CS_PIN, GPIO_PIN_SET)
-#define CS_LOW() HAL_GPIO_WritePin(SD_CS_PORT, SD_CS_PIN, GPIO_PIN_RESET)
+#define CS_HIGH() SD_DisableChipSelect()
+#define CS_LOW() SD_EnableChipSelect()
 
 #define FCLK_SLOW() MX_SPI1_lowSpeed()
 #define FCLK_FAST() MX_SPI1_highSpeed()
+
+
+/**
+ * @fn __weak const void SD_EnableChipSelect(void)
+ * @brief weak function for SD Card chip select enable, override in application
+ *
+ */
+__weak const void SD_EnableChipSelect(void)
+{
+  __NOP();
+}
+
+/**
+ * @fn weak const void SD_DisableChipSelect(void)
+ * @brief weak function for SD card chip select disable, override in application
+ *
+ */
+__weak const void SD_DisableChipSelect(void)
+{
+  __NOP();
+}
+
+
 
 /*-----------------------------------------------------------------------*/
 /* SPI controls (Platform dependent)                                     */

@@ -113,19 +113,19 @@ int8_t init_IO_ExpanderPin(ENUM_IO_EXPANDER device, ENUM_IO_ExtDirection directi
     case IO_EXT_INPUT: //direction is IO_INPUT
 
       //set input
-      set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Config.all, pinMask); //set pinMask corresponding pin in CONFIG to 1 = INPUT
+      set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device-1].Config.all, pinMask); //set pinMask corresponding pin in CONFIG to 1 = INPUT
 
       switch( active )
       {
         case IO_EXT_LOW_ACTIVE: //active is LOW_ACTIVE
 
-          set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].PolarityInversion.all, pinMask); //set pinMask corresponding pin in POLARITY to 1 is LOW_ACTIVE INPUT
+          set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device-1].PolarityInversion.all, pinMask); //set pinMask corresponding pin in POLARITY to 1 is LOW_ACTIVE INPUT
 
           break;
 
         case IO_EXT_HIGH_ACTIVE: //active is HIGH_ACTIVE
 
-          reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].PolarityInversion.all, pinMask); //reset pinMask corresponding pin in POLARITY to 0 is HIGH_ACTIVE INPUT
+          reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device-1].PolarityInversion.all, pinMask); //reset pinMask corresponding pin in POLARITY to 0 is HIGH_ACTIVE INPUT
 
           break;
 
@@ -143,19 +143,19 @@ int8_t init_IO_ExpanderPin(ENUM_IO_EXPANDER device, ENUM_IO_ExtDirection directi
 
     case IO_EXT_OUTPUT: //direction is IO_OUTPUT
 
-      reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Config.all, pinMask); //reset pinMask corresponding pin in CONFIG to 0 = OUTPUT
+      reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device-1].Config.all, pinMask); //reset pinMask corresponding pin in CONFIG to 0 = OUTPUT
 
       switch( active )
       {
         case IO_EXT_LOW_ACTIVE: //active is LOW_ACTIVE
 
-          set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pinMask); //set pin corresponding pinMask in OUTPUT to 1 is LOW_ACTIVE OUTPUT is off
+          set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device-1].Output.all, pinMask); //set pin corresponding pinMask in OUTPUT to 1 is LOW_ACTIVE OUTPUT is off
 
           break;
 
         case IO_EXT_HIGH_ACTIVE: //active is HIGH_ACTIVE
 
-          reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pinMask); //reset pin corresponding pinMask in OUTPUT to 0  is HIGH_ACTIVE OUTPUT is off
+          reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device-1].Output.all, pinMask); //reset pin corresponding pinMask in OUTPUT to 0  is HIGH_ACTIVE OUTPUT is off
 
           break;
 
@@ -183,49 +183,52 @@ int8_t init_IO_ExpanderPin(ENUM_IO_EXPANDER device, ENUM_IO_ExtDirection directi
 }
 
 /**
- * @fn void init_IO_ExpanderData(void)
+ * @fn void init_IO_ExpanderData(ENUM_IO_EXPANDER)
  * @brief initialize data of IO_expander and set device handle/address
  *
+ * @param device
  */
-void init_IO_ExpanderData(void)
+void init_IO_ExpanderData(ENUM_IO_EXPANDER device)
 {
-  int i;
-  //configure handle and device address
-  for( i=0; i<NR_IO_EXPANDER - 1; i++ )
-  {
-    //initialize data struct
-    TCA9535InitDefault((TCA9535Regs*)& TCA9535_Reg_map[i]);
+  if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
+    return;
 
-    //configure I2C_handle and device address for IO_EXPANDER_SYS
-    TCA9535_Reg_map[i].I2C_handle = stIO_ExpanderChipConfig[i].I2C_handle;
-    TCA9535_Reg_map[i].deviceAddress = stIO_ExpanderChipConfig[i].address;;
-  }
+  int i = device - 1;
+
+  //initialize data struct
+  TCA9535InitDefault((TCA9535Regs*)& TCA9535_Reg_map[i]);
+
+  //configure I2C_handle and device address for IO_EXPANDER_SYS
+  TCA9535_Reg_map[i].I2C_handle = stIO_ExpanderChipConfig[i].I2C_handle;
+  TCA9535_Reg_map[i].deviceAddress = stIO_ExpanderChipConfig[i].address;;
+
 }
 
 /**
- * @fn void init_IO_Expander(void)
+ * @fn void init_IO_Expander(ENUM_IO_EXPANDER)
  * @brief function write initial config register to devices.
  * note: first initialize the registers of variable \ref TCA9535_Reg_map with \ref init_IO_ExpanderData() and \ref init_IO_ExpanderPin() function
  *
+ * @param device
  */
-void init_IO_Expander(void)
+void init_IO_Expander(ENUM_IO_EXPANDER device)
 {
-  int i;
+  if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
+    return;
+
+  int i = device - 1;
   uint8_t result = 0;
 
   //initialize device
-  for( i=0; i<NR_IO_EXPANDER -1; i++ )
-  {
-    result = TCA9535InitI2CReg((TCA9535Regs*)&TCA9535_Reg_map[i]); //send initial state to I/O expander.
+  result = TCA9535InitI2CReg((TCA9535Regs*)&TCA9535_Reg_map[i]); //send initial state to I/O expander.
 
-    if ( result == I2C_OPERATION_SUCCESSFUL )
-    {
-      stIO_ExpanderChipConfig[i].enabled = true; //device found, enable device
-    }
-    else
-    {
-      stIO_ExpanderChipConfig[i].enabled = false; //disable not found, disable device
-    }
+  if ( result == I2C_OPERATION_SUCCESSFUL )
+  {
+    stIO_ExpanderChipConfig[i].enabled = true; //device found, enable device
+  }
+  else
+  {
+    stIO_ExpanderChipConfig[i].enabled = false; //disable not found, disable device
   }
 }
 
@@ -273,12 +276,12 @@ int8_t setOutput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask, GPIO_Pin
 
   if( state == GPIO_PIN_SET )
   {
-    set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pinMask);
+    set_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device-1].Output.all, pinMask);
   }
 
   else
   {
-    reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device].Output.all, pinMask);
+    reset_register_IO_Expander((unsigned short *)&TCA9535_Reg_map[device-1].Output.all, pinMask);
   }
 
   return 0;
@@ -301,7 +304,7 @@ int8_t getInput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask)
   if( !IS_GPIO_PIN(pinMask) ) //check pinMask
     return -2;
 
-  if( TCA9535_Reg_map[device].Input.all & pinMask ) //check input pin is high
+  if( TCA9535_Reg_map[device-1].Input.all & pinMask ) //check input pin is high
   {
     return GPIO_PIN_SET;
   }
@@ -330,7 +333,7 @@ int8_t writeOutput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask, GPIO_P
 
   setOutput_IO_Expander(device, pinMask, state); //set output
 
-  TCA9535WriteOutput((TCA9535Regs*) &TCA9535_Reg_map[device]); //update outputs
+  TCA9535WriteOutput((TCA9535Regs*) &TCA9535_Reg_map[device-1]); //update outputs
 
   return 0;
 }
@@ -351,7 +354,7 @@ int8_t readInput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask)
   if( !IS_GPIO_PIN(pinMask) ) //check pinMask
     return -2;
 
-  TCA9535ReadInputReg((TCA9535Regs*)&TCA9535_Reg_map[device]); //read input
+  TCA9535ReadInputReg((TCA9535Regs*)&TCA9535_Reg_map[device-1]); //read input
 
   return getInput_IO_Expander(device,pinMask);
 }

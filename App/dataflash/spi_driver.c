@@ -58,12 +58,37 @@ uint32_t SPI_PinRead(uint32_t port, uint32_t pin)
 	return USER_CONFIG_PinRead(port, pin);
 }
 
+#ifdef USE_CS_ON_IO_EXPANDER
+/**
+ * @fn const void dataflash_EnableChipSelect(void)
+ * @brief weak function for dataflash chip select enable, must be override in application
+ *
+ */
+__weak const void dataflash_EnableChipSelect(void)
+{
+
+}
+
+/**
+ * @fn const void dataflash_DisableChipSelect(void)
+ * @brief weak function for dataflash chip select disable, must be override in application
+ *
+ */
+__weak const void dataflash_DisableChipSelect(void)
+{
+
+}
+#endif
+
+
 void SPI_ConfigureSingleSPIIOs()
 {
+#ifndef USE_CS_ON_IO_EXPANDER
 	/* Configure each of the 4 pins needed for testing. */
 	// CSb - PTD4 for Moneta shield, PTC1 for Dataflash shield
 	SPI_PinInit(SPI_CSB_PORT, SPI_CSB_PIN, OUTPUT);
 	SPI_PinSet(SPI_CSB_PORT, SPI_CSB_PIN);
+#endif
 
 #ifndef USE_HAL_SPI
 	// SCK - PTD1
@@ -387,9 +412,14 @@ void SPI_Exchange(uint8_t *txBuffer,
 				  uint32_t rxNumBytes,
 				  uint32_t dummyNumBytes)
 {
+
 	// Begin data exchange
 	// Select chip
+#ifndef USE_CS_ON_IO_EXPANDER
 	SPI_PinClear(SPI_CSB_PORT, SPI_CSB_PIN);
+#else
+	dataflash_EnableChipSelect();
+#endif
 
 	// Send each byte
 	if(txNumBytes > 0)
@@ -405,7 +435,12 @@ void SPI_Exchange(uint8_t *txBuffer,
 
 	// End data exchange
 	// Deselect chip
+#ifndef USE_CS_ON_IO_EXPANDER
 	SPI_PinSet(SPI_CSB_PORT, SPI_CSB_PIN);
+#else
+	dataflash_DisableChipSelect();
+#endif
+
 }
 #else
 void SPI_Exchange(uint8_t *txBuffer,

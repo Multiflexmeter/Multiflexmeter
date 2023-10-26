@@ -182,7 +182,7 @@ const void resume_mainTask(void)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  if( GPIO_Pin == WAKE_PIN_Pin )
+  if( GPIO_Pin == MCU_IRQ_Pin )
   {
     trigger_mainTask_timer();
     enableListenUart = true;

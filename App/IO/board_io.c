@@ -16,7 +16,10 @@
 #include "../IO_Expander/IO_Expander.h"
 #include "board_io.h"
 
-#define TARGET NUCLEO
+#define NUCLEO 1
+#define DEKIMO 2
+//#define TARGET NUCLEO
+#define TARGET DEKIMO
 
 #if TARGET == NUCLEO
 
@@ -154,7 +157,9 @@ const void init_board_io(void)
   BSP_LED_Init(LED2);
 #endif
 
-  init_IO_ExpanderData(); //Initialize the data and address of IO Expander devices
+  init_IO_ExpanderData(IO_EXPANDER_SYS); //Initialize the data and address of IO Expander devices
+  init_IO_ExpanderData(IO_EXPANDER_BUS_INT); //Initialize the data and address of IO Expander devices
+  init_IO_ExpanderData(IO_EXPANDER_BUS_EXT); //Initialize the data and address of IO Expander devices
 
   for(i=0; i<sizeof(stIO_PinConfig)/sizeof(stIO_PinConfig[0]); i++ )
   {
@@ -212,7 +217,10 @@ const void init_board_io(void)
 
   if( externalFound == true )
   {
-    init_IO_Expander(); //Send configuration registers to IO Expander devices.
+    init_IO_Expander(IO_EXPANDER_SYS); //Send configuration registers to IO Expander devices.
+    writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET); //enable VSYS, to operate IO expander on BUS.
+    init_IO_Expander(IO_EXPANDER_BUS_INT); //Send configuration registers to IO Expander devices.
+    init_IO_Expander(IO_EXPANDER_BUS_EXT); //Send configuration registers to IO Expander devices.
   }
   else
   {
@@ -477,6 +485,11 @@ const int8_t writeOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state)
   result = setOutput_board_io(item, state); //set output state in variable
   state = board_IO_status[item];
 
+  if( stIO_PinConfig[item].active == IO_LOW_ACTIVE )
+  {
+    state=!state; //invert
+  }
+
   if( result >= 0 ) //check result no error
   {
 
@@ -653,4 +666,63 @@ const int8_t testInput_board_io(uint8_t item)
   return readInput_board_io((ENUM_IO_ITEM)item);
 }
 
+/**
+ * @fn const void FRAM_EnableChipSelect(void)
+ * @brief override function for FRAM chip select enable
+ *
+ */
+const void FRAM_EnableChipSelect(void)
+{
+  writeOutput_board_io(EXT_IO_FRAM_CS, GPIO_PIN_SET);
+}
 
+/**
+ * @fn const void FRAM_DisableChipSelect(void)
+ * @brief override function for FRAM chip select disable
+ *
+ */
+const void FRAM_DisableChipSelect(void)
+{
+  writeOutput_board_io(EXT_IO_FRAM_CS, GPIO_PIN_RESET);
+}
+
+
+/**
+ * @fn const void SD_EnableChipSelect(void)
+ * @brief override function for SD Card chip select enable
+ *
+ */
+const void SD_EnableChipSelect(void)
+{
+  writeOutput_board_io(EXT_IO_FLASH_SD_CS, GPIO_PIN_SET);
+}
+
+/**
+ * @fn const void SD_DisableChipSelect(void)
+ * @brief override function for SD card chip select disable
+ *
+ */
+const void SD_DisableChipSelect(void)
+{
+  writeOutput_board_io(EXT_IO_FLASH_SD_CS, GPIO_PIN_RESET);
+}
+
+/**
+ * @fn const void dataflash_EnableChipSelect(void)
+ * @brief override function for dataflash chip select enable
+ *
+ */
+const void dataflash_EnableChipSelect(void)
+{
+  writeOutput_board_io(EXT_IO_FLASH_NOR_CS, GPIO_PIN_SET);
+}
+
+/**
+ * @fn const void dataflash_DisableChipSelect(void)
+ * @brief override function for dataflash chip select disable
+ *
+ */
+const void dataflash_DisableChipSelect(void)
+{
+  writeOutput_board_io(EXT_IO_FLASH_NOR_CS, GPIO_PIN_RESET);
+}

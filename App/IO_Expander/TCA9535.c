@@ -21,21 +21,21 @@ extern unsigned char NACK;
 int8_t I2C_Write(uint8_t Size, I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t registerAddress, uint8_t * pData, uint8_t offset )
 {
   assert_param( Size <= 2 );
-  assert_param( offset != 0 );
+  assert_param( offset == 0 );
 
   UNUSED(offset);
 
   if( Size > 2 )
        return -1;
 
-  if( offset == 0 )
+  if( offset != 0 )
     return -2;
 
   uint8_t data[3];
 
   data[0] = registerAddress;
-  data[1] = pData[1];
-  data[2] = pData[2];
+  data[1] = pData[0];
+  data[2] = pData[1];
 
   return HAL_I2C_Master_Transmit(hi2c, DevAddress, data, sizeof(data), TCA9535_HAL_TIMEOUT);
 }
@@ -86,17 +86,17 @@ void TCA9535InitDefault(TCA9535Regs* Regs){
 unsigned char TCA9535InitI2CReg(TCA9535Regs* Regs){
 	int8_t result;
 
-	result = I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_CONFIG_REG0, (unsigned char*)&Regs->Config, 0);
+	result = I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_CONFIG_REG0, (unsigned char*)&Regs->Config, 0);
 
 	if( result != 0 )
 	  return I2C_OPERATION_FAIL;
 
-	result = I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_OUTPUT_REG0, (unsigned char*)&Regs->Output, 0);
+	result = I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_OUTPUT_REG0, (unsigned char*)&Regs->Output, 0);
 
 	if( result != 0 )
 	    return I2C_OPERATION_FAIL;
 
-	result = I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_POLARITY_REG0, (unsigned char*)&Regs->PolarityInversion, 0);
+	result = I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_POLARITY_REG0, (unsigned char*)&Regs->PolarityInversion, 0);
 
 	if( result != 0 )
 	    return I2C_OPERATION_FAIL;
@@ -111,7 +111,7 @@ unsigned char TCA9535InitI2CReg(TCA9535Regs* Regs){
 //! TODO 		 Implement I2C return (success/failure)
 // ****************************************************************************
 void TCA9535ReadInputReg(TCA9535Regs* Regs){
-	I2C_Read(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_INPUT_REG0, (unsigned char*)&Regs->Input);
+	I2C_Read(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_INPUT_REG0, (unsigned char*)&Regs->Input);
 }
 
 
@@ -139,19 +139,19 @@ void TCA9535WriteReg(unsigned char address, unsigned char regaddress, unsigned s
 
 void TCA9535WriteConfig(TCA9535Regs * Regs)
 {
-	I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_CONFIG_REG0, (unsigned char*)&Regs->Config, 0);
+	I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_CONFIG_REG0, (unsigned char*)&Regs->Config, 0);
 }
 
 void TCA9535WriteOutput(TCA9535Regs * Regs)
 {
 
-	I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_OUTPUT_REG0, (unsigned char*)&Regs->Output, 0);
+	I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_OUTPUT_REG0, (unsigned char*)&Regs->Output, 0);
 }
 
 void TCA9535WritePolarity(TCA9535Regs * Regs)
 {
 
-	I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress, TCA9535_POLARITY_REG0, (unsigned char*)&Regs->PolarityInversion, 0);
+	I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_POLARITY_REG0, (unsigned char*)&Regs->PolarityInversion, 0);
 }
 
 
