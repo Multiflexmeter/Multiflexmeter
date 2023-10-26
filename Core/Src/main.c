@@ -117,8 +117,7 @@ bool eraseVirtualEeprom = true;
 #endif
 
 /* USER CODE END 0 */
-uint64_t delay;
-uint32_t count;
+
 /**
   * @brief  The application entry point.
   * @retval int
