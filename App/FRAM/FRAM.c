@@ -58,9 +58,14 @@ __weak const void FRAM_DisableChipSelect(void)
  */
 const void FRAM_EnableWrite()
 {
-  uint8_t command[] = {FRAM_WRITE_ENABLE};
+  // Enable chip select
+  FRAM_EnableChipSelect();
 
+  uint8_t command[] = {FRAM_WRITE_ENABLE};
   HAL_SPI_Transmit(HSPI_FRAM, command, 1, HAL_DELAY_FRAM); //send enable write command
+
+  // Disable chip select
+  FRAM_DisableChipSelect();
 }
 
 /**
@@ -70,8 +75,14 @@ const void FRAM_EnableWrite()
  */
 const void FRAM_DisableWrite()
 {
+  // Enable chip select
+  FRAM_EnableChipSelect();
+
   uint8_t command[] = {FRAM_WRITE_DISABLE};
   HAL_SPI_Transmit(HSPI_FRAM, command, 1, HAL_DELAY_FRAM); //send disable write command
+
+  // Disable chip select
+  FRAM_DisableChipSelect();
  }
 
 /**
@@ -84,11 +95,24 @@ const void FRAM_DisableWrite()
  */
 const void FRAM_WriteData(uint16_t address, uint8_t *data, size_t length)
 {
-  // Enable chip select
-  FRAM_EnableChipSelect();
+  UNION_RegisterRDSR status_reg = {0};
 
   // Enable write operation
   FRAM_EnableWrite();
+
+  status_reg.byte = FRAM_ReadStatusRegister(); //read status register to check write is enabled
+
+  if( status_reg.bit.bit1_WEL == 0 )
+  {
+    assert_param(0);
+
+    APP_LOG(TS_OFF, VLEVEL_H, "FRAM enable write failed");
+    //error
+    return;
+  }
+
+  // Enable chip select
+  FRAM_EnableChipSelect();
 
   // Send the write command and address
   uint8_t writeCommand[3] = { FRAM_WRITE, (uint8_t) (address >> 8), (uint8_t) (address & 0xFF) };
@@ -97,11 +121,12 @@ const void FRAM_WriteData(uint16_t address, uint8_t *data, size_t length)
   // Send the data to be written
   HAL_SPI_Transmit(HSPI_FRAM, data, length, HAL_DELAY_FRAM);
 
-  // Disable write operation automatically done when chip select is disabled.
-  // FRAM_DisableWrite();
-
   // Disable chip select
   FRAM_DisableChipSelect();
+
+  // Disable write operation automatically done when chip select is disabled.
+  FRAM_DisableWrite();
+
 }
 
 /**
