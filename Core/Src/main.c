@@ -55,7 +55,6 @@
 #include "../../App/dataflash/dataflash_functions.h"
 #include "../../App/logging/logging.h"
 #include "../../App/MFMconfiguration.h"
-#include "../../App/IO/board_io.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -188,8 +187,6 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uartInit_Config();
   resultInitDataflash = init_dataflash();
-
-  init_board_io();
 
   if( chipErase )
   {
