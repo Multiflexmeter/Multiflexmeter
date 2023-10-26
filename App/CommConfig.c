@@ -29,7 +29,7 @@
 #include "secure-element.h"
 #include "../Core/Inc/sys_app.h"
 
-//#define NO_SLEEP
+#define NO_SLEEP
 
 /*!
  * App key size in characters
