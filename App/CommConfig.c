@@ -439,6 +439,17 @@ __weak const int8_t SD_TEST(uint32_t * capacity, uint32_t * free)
 }
 
 /**
+ * @fn const int8_t testFram(uint8_t * status)
+ * @brief weak function testFram(), must be override in application
+ *
+ * @return
+ */
+__weak const int8_t testFram(uint8_t * status)
+{
+  return -1;
+}
+
+/**
  * @fn const void setLedTest(int8_t)
  * @brief weak function setLedTest(), must be override in application
  *
@@ -504,6 +515,7 @@ void sendBatterijStatus(int arguments, const char * format, ...);
 void sendVbusStatus(int arguments, const char * format, ...);
 void sendAdc( int subTest );
 void sendTestSD( int test );
+void sendTestFRAM( int test );
 
 void rcvJoinId(int arguments, const char * format, ...);
 void rcvDeviceID(int arguments, const char * format, ...);
@@ -824,6 +836,12 @@ void executeTest(int test, int subTest, char * extraArguments)
       value = (int)getLigthSensorStatus();
       snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test, value);
       uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+      break;
+
+    case 10: //test FRAM
+
+      sendTestFRAM(test);
 
       break;
 
@@ -1594,6 +1612,20 @@ void sendTestSD( int test )
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
+/**
+ * @fn void sendTestFRAM(int)
+ * @brief
+ *
+ * @param test
+ */
+void sendTestFRAM( int test )
+{
+  uint8_t statusRegister;
+  int8_t result = testFram(&statusRegister);
+  snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,0x%02x\r\n", cmdTest, test, result == 0 ? 1 : 0, statusRegister);
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+}
+
 
 /**
  * @brief send alwaysOn supply setting to config uart
@@ -1698,7 +1730,7 @@ void rcvTest(int arguments, const char * format, ...)
 
   //todo set sensorStatus
 
-  if( test >= 0 && test <= 9 )
+  if( test >= 0 && test <= 10 )
   {
     dataTest = true;
     currentTest = test;
