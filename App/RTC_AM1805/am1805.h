@@ -95,6 +95,11 @@ extern "C"
 #define AM1805_12HR_MODE                  0x01
 #define AM1805_24HR_MODE                  0x02
 
+// Century
+#define AM1805_CENTURY_19xx               0x00
+#define AM1805_CENTURY_20xx               0x01
+#define AM1805_CENTURY_21xx               0x00
+
 //*****************************************************************************
 //
 // Device structure used for communication.
