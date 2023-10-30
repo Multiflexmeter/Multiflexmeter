@@ -32,7 +32,7 @@
 #include "sys_sensors.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "../../App/IO/board_io.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -131,6 +131,8 @@ void SystemApp_Init(void)
 #endif /* LOW_POWER_DISABLE */
 
   /* USER CODE BEGIN SystemApp_Init_2 */
+
+  init_board_io(); //initialize board IO direct on controller and on I2C I/O expanders.
 
   /* USER CODE END SystemApp_Init_2 */
 }

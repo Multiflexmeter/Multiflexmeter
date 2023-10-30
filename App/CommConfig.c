@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "main.h"
+#include "sys_app.h"
 
 #include "utilities_def.h"
 #include "stm32_seq.h"
@@ -28,7 +29,7 @@
 #include "secure-element.h"
 #include "../Core/Inc/sys_app.h"
 
-//#define NO_SLEEP
+#define NO_SLEEP
 
 /*!
  * App key size in characters
@@ -58,6 +59,7 @@ static bool dataErase;
 static bool dataTest;
 static int currentTest;
 static int currentSubTest;
+static char additionalArgumentsString[100];
 
 static uint32_t numberOffDumpRecords;
 
@@ -421,12 +423,79 @@ __weak const uint16_t SYS_GetVoltage(int channel, uint32_t adcValue)
   return 0;
 }
 
-
+/**
+ * @fn const int8_t SD_TEST(uint32_t*, uint32_t*)
+ * @brief weak function  SD_TEST(), must be override application
+ *
+ * @param capacity
+ * @param free
+ * @return
+ */
 __weak const int8_t SD_TEST(uint32_t * capacity, uint32_t * free)
 {
   *capacity = 0;
   *free = 0;
   return -1;
+}
+
+/**
+ * @fn const int8_t testFram(uint8_t * status)
+ * @brief weak function testFram(), must be override in application
+ *
+ * @return
+ */
+__weak const int8_t testFram(uint8_t * status)
+{
+  return -1;
+}
+
+/**
+ * @fn const void setLedTest(int8_t)
+ * @brief weak function setLedTest(), must be override in application
+ *
+ * @param test
+ */
+__weak const void setLedTest(int8_t test)
+{
+  return;
+}
+
+/**
+ * @fn const void testOutput_board_io(uint8_t, bool)
+ * @brief weak testOutput_board_io() function, must be override in application
+ *
+ * @param item
+ * @param state
+ */
+__weak const void testOutput_board_io(uint8_t item, bool state)
+{
+  UNUSED(item);
+  UNUSED(state);
+  return;
+}
+
+/**
+ * @fn const int8_t testInput_board_io(uint8_t)
+ * @brief weak testInput_board_io() function, must be override in application
+ *
+ * @param item
+ * @return
+ */
+__weak const int8_t testInput_board_io(uint8_t item)
+{
+  UNUSED(item);
+  return -98;
+}
+
+/**
+ * @fn const bool getLigthSensorStatus(void)
+ * @brief weak function getLigthSensorStatus(), must be override in application
+ *
+ * @return
+ */
+__weak const bool getLigthSensorStatus(void)
+{
+  return 0;
 }
 
 void sendError(int arguments, const char * format, ... );
@@ -446,6 +515,7 @@ void sendBatterijStatus(int arguments, const char * format, ...);
 void sendVbusStatus(int arguments, const char * format, ...);
 void sendAdc( int subTest );
 void sendTestSD( int test );
+void sendTestFRAM( int test );
 
 void rcvJoinId(int arguments, const char * format, ...);
 void rcvDeviceID(int arguments, const char * format, ...);
@@ -714,8 +784,10 @@ void uartStartReceive_Config( uint8_t *pData, const uint16_t Size, const uint32_
  * @param test
  * @param subTest
  */
-void executeTest(int test, int subTest)
+void executeTest(int test, int subTest, char * extraArguments)
 {
+  char *ptr; //dummy pointer
+  int value;
 
   switch( test )
   {
@@ -731,9 +803,45 @@ void executeTest(int test, int subTest)
 
       break;
 
+    case 3: //LED test
+
+      setLedTest(subTest);
+
+      break;
+
+    case 4: //input test
+
+      value = (int)testInput_board_io((uint8_t)subTest);
+      snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d\r\n", cmdTest, test,  subTest, value);
+      uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+      break;
+
+    case 5: //output test
+
+      value = strtol(additionalArgumentsString+1, &ptr, 10); //skip <comma>, increment ptr.
+      setLedTest(99);
+      testOutput_board_io((uint8_t)subTest, value ? true : false);
+
+      break;
+
     case 6: //SD card test
 
       sendTestSD(test);
+
+      break;
+
+    case 9: //test light sensor
+
+      value = (int)getLigthSensorStatus();
+      snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test, value);
+      uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+      break;
+
+    case 10: //test FRAM
+
+      sendTestFRAM(test);
 
       break;
 
@@ -893,7 +1001,7 @@ void configUartHandler(void)
 
       case 20:
 
-        executeTest(currentTest, currentSubTest);
+        executeTest(currentTest, currentSubTest, additionalArgumentsString);
         step = 2; //back to wait
 
         break;
@@ -1504,6 +1612,20 @@ void sendTestSD( int test )
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
+/**
+ * @fn void sendTestFRAM(int)
+ * @brief
+ *
+ * @param test
+ */
+void sendTestFRAM( int test )
+{
+  uint8_t statusRegister;
+  int8_t result = testFram(&statusRegister);
+  snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,0x%02x\r\n", cmdTest, test, result == 0 ? 1 : 0, statusRegister);
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+}
+
 
 /**
  * @brief send alwaysOn supply setting to config uart
@@ -1598,12 +1720,17 @@ void rcvTest(int arguments, const char * format, ...)
     if( *ptr!='\r' && *ptr!='\n')
     {
       subtest = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
+      if( *ptr!='\r' && *ptr!='\n')
+      {
+        strncpy(additionalArgumentsString, ptr, sizeof(additionalArgumentsString)); //save argument for later use
+        additionalArgumentsString[sizeof(additionalArgumentsString)-1]=0;//make sure array is terminated with null character
+      }
     }
   }
 
   //todo set sensorStatus
 
-  if( test >= 0 && test <= 9 )
+  if( test >= 0 && test <= 10 )
   {
     dataTest = true;
     currentTest = test;

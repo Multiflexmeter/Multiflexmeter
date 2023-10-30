@@ -60,11 +60,29 @@ void Error_Handler(void);
 #define RTC_PREDIV_A ((1<<(15-RTC_N_PREDIV_S))-1)
 #define RTC_N_PREDIV_S 10
 #define RTC_PREDIV_S ((1<<RTC_N_PREDIV_S)-1)
-#define SD_CS_Pin GPIO_PIN_4
-#define SD_CS_GPIO_Port GPIOB
-#define WAKE_PIN_Pin GPIO_PIN_13
-#define WAKE_PIN_GPIO_Port GPIOC
-#define WAKE_PIN_EXTI_IRQn EXTI15_10_IRQn
+#define USART1_RTS_Pin GPIO_PIN_3
+#define USART1_RTS_GPIO_Port GPIOB
+#define USART1_CTS_Pin GPIO_PIN_4
+#define USART1_CTS_GPIO_Port GPIOB
+#define IO_EXP_IRQ_Pin GPIO_PIN_6
+#define IO_EXP_IRQ_GPIO_Port GPIOB
+#define IO_EXP_IRQ_EXTI_IRQn EXTI9_5_IRQn
+#define MCU_IRQ_Pin GPIO_PIN_0
+#define MCU_IRQ_GPIO_Port GPIOA
+#define MCU_IRQ_EXTI_IRQn EXTI0_IRQn
+#define FE_CTRL3_Pin GPIO_PIN_1
+#define FE_CTRL3_GPIO_Port GPIOA
+#define DEBUG_LED1_Pin GPIO_PIN_4
+#define DEBUG_LED1_GPIO_Port GPIOA
+#define ADC_SENS_Pin GPIO_PIN_2
+#define ADC_SENS_GPIO_Port GPIOB
+#define DETECT_3V3_Pin GPIO_PIN_12
+#define DETECT_3V3_GPIO_Port GPIOB
+#define DETECT_3V3_EXTI_IRQn EXTI15_10_IRQn
+#define FE_CTRL2_Pin GPIO_PIN_13
+#define FE_CTRL2_GPIO_Port GPIOC
+#define BOX_OPEN_Pin GPIO_PIN_15
+#define BOX_OPEN_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 

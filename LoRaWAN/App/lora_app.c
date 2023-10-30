@@ -41,7 +41,7 @@
 
 /* External variables ---------------------------------------------------------*/
 /* USER CODE BEGIN EV */
-
+#define FRAM_USED_FOR_NVM_DATA
 /* USER CODE END EV */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -492,6 +492,36 @@ __weak const void resume_mainTask(void)
 {
 
 }
+
+#ifdef FRAM_USED_FOR_NVM_DATA
+/**
+ * @fn const void saveLoraSettings(const void*, size_t)
+ * @brief weak function to override in application
+ *
+ * @param pSource
+ * @param length
+ */
+__weak const void saveLoraSettings(const void *pSource, size_t length)
+{
+  UNUSED(pSource);
+  UNUSED(length);
+  return;
+}
+
+/**
+ * @fn const void restoreLoraSettings(const void*, size_t)
+ * @brief weak function to override in application
+ *
+ * @param pSource
+ * @param length
+ */
+__weak const void restoreLoraSettings( const void *pSource, size_t length )
+{
+  UNUSED(pSource);
+  UNUSED(length);
+  return;
+}
+#endif
 
 /* USER CODE END PrFD */
 
@@ -1097,6 +1127,12 @@ static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
 {
   /* USER CODE BEGIN OnStoreContextRequest_1 */
 
+#ifdef FRAM_USED_FOR_NVM_DATA
+  //save data to FRAM
+  saveLoraSettings((const void *)nvm, nvm_size);
+  return; //prevent to execute write in internal flash, cycles of 10k too less
+#endif
+
   /* USER CODE END OnStoreContextRequest_1 */
   /* store nvm in flash */
   if (FLASH_IF_Erase(LORAWAN_NVM_BASE_ADDRESS, FLASH_PAGE_SIZE) == FLASH_IF_OK)
@@ -1111,7 +1147,11 @@ static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
 static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
 {
   /* USER CODE BEGIN OnRestoreContextRequest_1 */
-
+#ifdef FRAM_USED_FOR_NVM_DATA
+  //read data to FRAM
+  restoreLoraSettings((const void *)nvm, nvm_size);
+  return; //prevent to execute read from internal flash, cycles of 10k too less
+#endif
   /* USER CODE END OnRestoreContextRequest_1 */
   FLASH_IF_Read(nvm, LORAWAN_NVM_BASE_ADDRESS, nvm_size);
   /* USER CODE BEGIN OnRestoreContextRequest_Last */

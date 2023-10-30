@@ -63,7 +63,7 @@ extern "C" {
 /* USER CODE END Exported Parameters */
 /* Indicates the type of switch between the ones proposed by CONFIG Constants
  */
-#define RBI_CONF_RFO                        RBI_CONF_RFO_LP_HP
+#define RBI_CONF_RFO                        RBI_CONF_RFO_LP
 
 /* Indicates whether or not TCXO is supported by the board
  * 0: TCXO not supported
