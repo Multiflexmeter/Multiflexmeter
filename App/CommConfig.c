@@ -1731,7 +1731,7 @@ void sendTestRTC( int test, int subTest, char * extraArguments )
   }
 
   //check on no errors
-  if( error == false )
+  if( error == false && subTest >= 1 && subTest <= 4)
   {
     testRTC(subTest, &dateTime); //execute test
     snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%02d-%02d-%02d,%02d:%02d:%02d\r\n", cmdTest, test, subTest, dateTime.day, dateTime.month, dateTime.year, dateTime.hour, dateTime.minute, dateTime.second); //make response

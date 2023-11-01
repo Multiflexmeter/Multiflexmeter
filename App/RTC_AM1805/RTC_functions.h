@@ -14,5 +14,6 @@
 
 const void syncRTC_withSysTime(void);
 const void syncSystemTime_withRTC(void);
+const void convert_am1805time_to_dateTime(am1805_time_t * timeSrc, struct_dateTime * timeDst );
 
 #endif /* RTC_AM1805_RTC_FUNCTIONS_H_ */

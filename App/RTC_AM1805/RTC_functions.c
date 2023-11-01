@@ -82,6 +82,24 @@ const void syncSystemTime_withRTC(void)
 }
 
 /**
+ * @fn const void convert_am1805time_to_dateTime(am1805_time_t*, struct_dateTime*)
+ * @brief function to convert structure "am1805_time_t" to "strucct_dateTime".
+ *
+ * @param timeSrc
+ * @param timeDst
+ */
+const void convert_am1805time_to_dateTime(am1805_time_t * timeSrc, struct_dateTime * timeDst )
+{
+  timeDst->day = timeSrc->ui8Date;
+  timeDst->month = timeSrc->ui8Month;
+  timeDst->year = timeSrc->ui8Year + START_YEAR;
+  timeDst->hour = timeSrc->ui8Hour;
+  timeDst->minute = timeSrc->ui8Minute;
+  timeDst->second = timeSrc->ui8Second;
+  timeDst->century = timeSrc->ui8Century;
+}
+
+/**
  * @fn const void testRTC(int, struct_dateTime*)
  * @brief
  * @todo make compatible for years from 2100.
@@ -110,59 +128,36 @@ const void testRTC( int mode, struct_dateTime * time )
     timeWrite.ui8Weekday = 0;
     timeWrite.ui8Hundredth = 0;
 
-    am1805_time_set(timeWrite, 1);
+    am1805_time_set(timeWrite, 1); //write RTC
 
-    am1805_time_get(&timeRead);
+    am1805_time_get(&timeRead); //read back
 
-    time->day = timeRead.ui8Date;
-    time->month = timeRead.ui8Month;
-    time->year = timeRead.ui8Year + START_YEAR;
-    time->hour = timeRead.ui8Hour;
-    time->minute = timeRead.ui8Minute;
-    time->second = timeRead.ui8Second;
-    time->century = timeRead.ui8Century;
+    convert_am1805time_to_dateTime(&timeRead, time); //convert for result
   }
 
-  else if (mode == 2)
+  else if (mode == 2) //read time from RTC
   { //read mode
-    time->day = timeReadOriginal.ui8Date;
-    time->month = timeReadOriginal.ui8Month;
-    time->year = timeReadOriginal.ui8Year + START_YEAR;
-    time->hour = timeReadOriginal.ui8Hour;
-    time->minute = timeReadOriginal.ui8Minute;
-    time->second = timeReadOriginal.ui8Second;
-    time->century = timeReadOriginal.ui8Century;
+    convert_am1805time_to_dateTime(&timeReadOriginal, time); //convert for result
   }
 
-  else if (mode == 3)
+  else if (mode == 3) //sync RTC to system time
   {
-    syncSystemTime_withRTC();
+    syncSystemTime_withRTC(); //sync
 
-    am1805_time_get(&timeRead);
+    am1805_time_get(&timeRead); //read back
 
-    time->day = timeRead.ui8Date;
-    time->month = timeRead.ui8Month;
-    time->year = timeRead.ui8Year + START_YEAR;
-    time->hour = timeRead.ui8Hour;
-    time->minute = timeRead.ui8Minute;
-    time->second = timeRead.ui8Second;
-    time->century = timeRead.ui8Century;
+    convert_am1805time_to_dateTime(&timeRead, time); //convert for result
 
   }
 
-  else if (mode == 4)
+  else if (mode == 4) //sync RTC with system time
   {
-    syncRTC_withSysTime();
+    syncRTC_withSysTime(); //sync
 
-    am1805_time_get(&timeRead);
+    am1805_time_get(&timeRead); //read back
 
-    time->day = timeRead.ui8Date;
-    time->month = timeRead.ui8Month;
-    time->year = timeRead.ui8Year + START_YEAR;
-    time->hour = timeRead.ui8Hour;
-    time->minute = timeRead.ui8Minute;
-    time->second = timeRead.ui8Second;
-    time->century = timeRead.ui8Century;
+    convert_am1805time_to_dateTime(&timeRead, time); //convert for result
+
   }
 
 }
