@@ -1309,3 +1309,33 @@ void am1805_ram_write(uint8_t ui8Address, uint8_t ui8Data)
     // Write the value.
     am1805_reg_write((ui8Address & 0x3F) | 0x40, ui8Data);
 }
+
+/**
+ * @fn void am1805_enable_wdi_ex2_interrupt(void)
+ * @brief enable the XT2 interrupt for the WDI input pin.
+ *
+ */
+void am1805_enable_wdi_ex2_interrupt(void)
+{
+  //The WDI input pin will generate the XT2 interrupt when the edge spec- ified by EX2P occurs.
+
+  am1805_reg_set(AM1805_INT_MASK, 0x02); //set EX2E bit to enable
+}
+
+/**
+ * @fn uint8_t am1805_get_status(uint8_t clear)
+ * @brief function to read status register
+ *
+ * @return
+ */
+uint8_t am1805_get_status(uint8_t clear)
+{
+  uint8_t status = am1805_reg_read(AM1805_STATUS);
+
+  if( clear )
+  {
+    am1805_reg_clear(AM1805_STATUS, clear);
+  }
+
+  return status;
+}
