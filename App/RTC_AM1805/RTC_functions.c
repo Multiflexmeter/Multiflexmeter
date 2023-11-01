@@ -160,4 +160,42 @@ const void testRTC( int mode, struct_dateTime * time )
 
   }
 
+  else if (mode == 5)
+  {
+    am1805_enable_wdi_ex2_interrupt(); //make sure ex2 interrupt is enabled
+    setWakeupAlarm(5); //set alarm on 5 seconds.
+  }
+
+  else if (mode == 6)
+  {
+    time->century =  getWakeupStatus(true); //miss use century byte for status feedback, automatically clear WDT status (0x20, bit WDT).
+  }
+
+}
+
+/**
+ * @fn const void setWakeupAlarm(uint32_t)
+ * @brief function to configure the wakeup alarm
+ *
+ * @param seconds
+ */
+const void setWakeupAlarm( uint32_t seconds )
+{
+  am1805_watchdog_set( seconds * 1000, 1 ); //set watchdog timer, convert seconds to ms, use mode "1" => generate an interrupt on FOUT/nIRQ
+}
+
+/**
+ * @fn const bool getWakeupStatus(bool)
+ * @brief get wakeup status
+ *
+ * @param clear
+ * @return
+ */
+const bool getWakeupStatus(bool clear)
+{
+  uint8_t clearMask = AM1805_mask_WDT; //clear WDT status (0x20, bit WDT)
+
+  uint8_t result = am1805_get_status(clear ? clearMask : 0x00);
+
+  return (result & AM1805_mask_WDT);
 }

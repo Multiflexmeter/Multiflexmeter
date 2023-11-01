@@ -1737,6 +1737,18 @@ void sendTestRTC( int test, int subTest, char * extraArguments )
     snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%02d-%02d-%02d,%02d:%02d:%02d\r\n", cmdTest, test, subTest, dateTime.day, dateTime.month, dateTime.year, dateTime.hour, dateTime.minute, dateTime.second); //make response
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig)); //send response
   }
+  else if( subTest == 5 )
+  {
+    testRTC(subTest, &dateTime); //execute test
+    snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test, subTest ); //make response
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig)); //send response
+  }
+  else if( subTest == 6 )
+  {
+    testRTC(subTest, &dateTime); //execute test
+    snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,0x%02x\r\n", cmdTest, test, subTest, dateTime.century); //make response
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig)); //send response
+  }
   else
   {
     sendError(0,0);
