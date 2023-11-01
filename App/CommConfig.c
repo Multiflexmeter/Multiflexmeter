@@ -500,15 +500,15 @@ __weak const bool getLigthSensorStatus(void)
 }
 
 /**
- * @fn const int8_t testRtc(uint8_t*)
+ * @fn const void testRtc(uint8_t*)
  * @brief
  *
  * @param status
- * @return
  */
-__weak const int8_t testRTC( int mode, struct_dateTime * time )
+__weak const void testRTC( int mode, struct_dateTime * time )
 {
-  return -1;
+  UNUSED(mode);
+  UNUSED(time);
 }
 
 void sendError(int arguments, const char * format, ... );
@@ -1658,18 +1658,89 @@ void sendTestFRAM( int test )
 void sendTestRTC( int test, int subTest, char * extraArguments )
 {
   struct_dateTime dateTime;
+  int32_t value;
+  bool error = false;
   char *ptr; //dummy pointer
-  dateTime.day = strtol(additionalArgumentsString+1, &ptr, 10); //skip <comma>, increment ptr.
-  dateTime.month = strtol(ptr+1, &ptr, 10); //skip <dash>, increment ptr.
-  dateTime.year = strtol(ptr+1, &ptr, 10); //skip <dash>, increment ptr.
 
-  dateTime.hour = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
-  dateTime.minute = strtol(ptr+1, &ptr, 10); //skip <colon>, increment ptr.
-  dateTime.second = strtol(ptr+1, &ptr, 10); //skip <colon>, increment ptr.
+  //only read extra parameters with subtest 1 ( set date/time ).
+  if( subTest == 1 )
+  {
+    value = strtol(additionalArgumentsString+1, &ptr, 10); //read day, skip <comma>, increment ptr.
+    if( value >= 1 && value <= 31 ) //check on day number
+    {
+      dateTime.day = value;
+    }
+    else
+    {
+      error = true;
+    }
 
-  uint8_t result = testRTC(subTest, &dateTime);
-  snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%02d-%02d-%02d,%02d:%02d:%02d\r\n", cmdTest, test, subTest, dateTime.day, dateTime.month, dateTime.year, dateTime.hour, dateTime.minute, dateTime.second);
-  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+    value = strtol(ptr+1, &ptr, 10); //read month, skip <dash>, increment ptr.
+    if( value >= 1 && value <= 12 ) //check on month number
+    {
+      dateTime.month = value;
+    }
+    else
+    {
+      error = true;
+    }
+
+    value = strtol(ptr+1, &ptr, 10); //read year, skip <dash>, increment ptr.
+    if( value >= 0 && value < 100) //check on year, starts from 2000, input starts at 0.
+    {
+      dateTime.year = value + 2000;
+    }
+    else if( value >= 2000 ) //check on year, starts at 2000
+    {
+      dateTime.year = value;
+    }
+    else
+    {
+      error = true;
+    }
+
+    value = strtol(ptr+1, &ptr, 10); //read hours, skip <comma>, increment ptr.
+    if( value >= 0 && value <=23 ) //check on hours number
+    {
+      dateTime.hour = value;
+    }
+    else
+    {
+      error = true;
+    }
+
+    value = strtol(ptr+1, &ptr, 10); //read minutes, skip <colon>, increment ptr.
+    if( value >= 0 && value <=59 ) //check on minutes number
+    {
+      dateTime.minute = value;
+    }
+    else
+    {
+      error = true;
+    }
+
+    value = strtol(ptr+1, &ptr, 10); //read seconds, field skip <colon>, increment ptr.
+    if( value >= 0 && value <=59 ) //check on seconds number.
+    {
+      dateTime.second = value;
+    }
+    else
+    {
+      error = true;
+    }
+  }
+
+  //check on no errors
+  if( error == false )
+  {
+    testRTC(subTest, &dateTime); //execute test
+    snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%02d-%02d-%02d,%02d:%02d:%02d\r\n", cmdTest, test, subTest, dateTime.day, dateTime.month, dateTime.year, dateTime.hour, dateTime.minute, dateTime.second); //make response
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig)); //send response
+  }
+  else
+  {
+    sendError(0,0);
+  }
 }
 
 

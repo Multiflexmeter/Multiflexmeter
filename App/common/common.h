@@ -50,10 +50,11 @@ typedef struct
 {
     uint8_t day;
     uint8_t month;
-    uint8_t year; //years from 2000
+    uint16_t year; //years from 0
     uint8_t hour;
     uint8_t minute;
     uint8_t second;
+    uint8_t century;
 }struct_dateTime;
 
 uint32_t getResetSource(void);

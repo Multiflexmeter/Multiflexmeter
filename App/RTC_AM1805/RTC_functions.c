@@ -27,7 +27,6 @@
  */
 const void syncRTC_withSysTime(void)
 {
-  int8_t result = 0;
   SysTime_t sysTime = {0};
   struct tm stTime = {0};
   am1805_time_t timeWrite = { 0 };
@@ -83,16 +82,15 @@ const void syncSystemTime_withRTC(void)
 }
 
 /**
- * @fn const int8_t testRTC(int, struct_dateTime*)
+ * @fn const void testRTC(int, struct_dateTime*)
  * @brief
+ * @todo make compatible for years from 2100.
  *
  * @param mode : 1 = write RTC, 2 = read RTC, 3 = sync RTC to systemtime, 4 = sync systemtime to RTC
  * @param time
- * @return
  */
-const int8_t testRTC( int mode, struct_dateTime * time )
+const void testRTC( int mode, struct_dateTime * time )
 {
-  int8_t result = 0;
   am1805_time_t timeReadOriginal = { 0 };
   am1805_time_t timeRead = { 0 };
   am1805_time_t timeWrite = { 0 };
@@ -105,7 +103,7 @@ const int8_t testRTC( int mode, struct_dateTime * time )
     timeWrite.ui8Century = ((time->year / 100)) % 2 + 1 ;
     timeWrite.ui8Date = time->day;
     timeWrite.ui8Month = time->month;
-    timeWrite.ui8Year = time->year;
+    timeWrite.ui8Year = time->year % 100;
     timeWrite.ui8Hour = time->hour;
     timeWrite.ui8Minute = time->minute;
     timeWrite.ui8Second = time->second;
@@ -118,20 +116,22 @@ const int8_t testRTC( int mode, struct_dateTime * time )
 
     time->day = timeRead.ui8Date;
     time->month = timeRead.ui8Month;
-    time->year = timeRead.ui8Year;
+    time->year = timeRead.ui8Year + START_YEAR;
     time->hour = timeRead.ui8Hour;
     time->minute = timeRead.ui8Minute;
     time->second = timeRead.ui8Second;
+    time->century = timeRead.ui8Century;
   }
 
   else if (mode == 2)
   { //read mode
     time->day = timeReadOriginal.ui8Date;
     time->month = timeReadOriginal.ui8Month;
-    time->year = timeReadOriginal.ui8Year;
+    time->year = timeReadOriginal.ui8Year + START_YEAR;
     time->hour = timeReadOriginal.ui8Hour;
     time->minute = timeReadOriginal.ui8Minute;
     time->second = timeReadOriginal.ui8Second;
+    time->century = timeReadOriginal.ui8Century;
   }
 
   else if (mode == 3)
@@ -142,10 +142,11 @@ const int8_t testRTC( int mode, struct_dateTime * time )
 
     time->day = timeRead.ui8Date;
     time->month = timeRead.ui8Month;
-    time->year = timeRead.ui8Year;
+    time->year = timeRead.ui8Year + START_YEAR;
     time->hour = timeRead.ui8Hour;
     time->minute = timeRead.ui8Minute;
     time->second = timeRead.ui8Second;
+    time->century = timeRead.ui8Century;
 
   }
 
@@ -157,11 +158,11 @@ const int8_t testRTC( int mode, struct_dateTime * time )
 
     time->day = timeRead.ui8Date;
     time->month = timeRead.ui8Month;
-    time->year = timeRead.ui8Year;
+    time->year = timeRead.ui8Year + START_YEAR;
     time->hour = timeRead.ui8Hour;
     time->minute = timeRead.ui8Minute;
     time->second = timeRead.ui8Second;
+    time->century = timeRead.ui8Century;
   }
 
-  return result;
 }
