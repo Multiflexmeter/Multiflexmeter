@@ -238,6 +238,17 @@ static void OnRxTimerLedEvent(void *context);
   */
 static void OnJoinTimerLedEvent(void *context);
 
+
+/**
+ * @fn const void syncRTC_withSysTime(void)
+ * @brief weak function syncRTC_withSysTime(), needs to be override in application.
+ *
+ */
+__weak const void syncRTC_withSysTime(void)
+{
+  return;
+}
+
 /* USER CODE END PFP */
 
 /* Private variables ---------------------------------------------------------*/
@@ -938,6 +949,10 @@ static void OnSysTimeUpdate(void)
   requestTime = false; //set false when time message is received
   countTimeReceived++;
   nextRequestTime = SysTimeGet().Seconds + TM_SECONDS_IN_1DAY;
+
+  syncRTC_withSysTime();
+
+
   /* USER CODE END OnSysTimeUpdate_1 */
 }
 

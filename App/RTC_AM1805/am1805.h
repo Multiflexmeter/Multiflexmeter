@@ -95,6 +95,23 @@ extern "C"
 #define AM1805_12HR_MODE                  0x01
 #define AM1805_24HR_MODE                  0x02
 
+// Century
+#define AM1805_CENTURY_19xx               0x00
+#define AM1805_CENTURY_20xx               0x01
+#define AM1805_CENTURY_21xx               0x00
+
+
+//Configuration register : status (0x0F)
+#define AM1805_mask_EX1                   0x01
+#define AM1805_mask_EX2                   0x02
+#define AM1805_mask_ALM                   0x04
+#define AM1805_mask_TIM                   0x08
+#define AM1805_mask_BL                    0x10
+#define AM1805_mask_WDT                   0x20
+#define AM1805_mask_BAT                   0x40
+#define AM1805_mask_CB                    0x80
+
+
 //*****************************************************************************
 //
 // Device structure used for communication.
@@ -149,6 +166,8 @@ void am1805_autocal_set(uint8_t ui8Period);
 uint8_t am1805_ext_address_get(uint8_t ui8Address);
 uint8_t am1805_ram_read(uint8_t ui8Address);
 void am1805_ram_write(uint8_t ui8Address, uint8_t ui8Data);
+void am1805_enable_wdi_ex2_interrupt(void);
+uint8_t am1805_get_status(uint8_t clear);
 
 #ifdef __cplusplus
 }

@@ -46,6 +46,17 @@ typedef enum{
   MAX_CHANNEL_ADC,
 } ENUM_channelAdc;
 
+typedef struct
+{
+    uint8_t day;
+    uint8_t month;
+    uint16_t year; //years from 0
+    uint8_t hour;
+    uint8_t minute;
+    uint8_t second;
+    uint8_t century;
+}struct_dateTime;
+
 uint32_t getResetSource(void);
 bool powerOnReset(void);
 void writeBackupRegister(ENUM_backupRegister backupRegisterId, uint32_t value);

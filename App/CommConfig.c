@@ -22,6 +22,7 @@
 #include "stm32wlxx_hal.h"
 #include "stm32wlxx_hal_uart.h"
 
+#include "common/common.h"
 #include "common/app_types.h"
 #include "common/uart.h"
 #include "CommConfig.h"
@@ -498,6 +499,18 @@ __weak const bool getLigthSensorStatus(void)
   return 0;
 }
 
+/**
+ * @fn const void testRtc(uint8_t*)
+ * @brief
+ *
+ * @param status
+ */
+__weak const void testRTC( int mode, struct_dateTime * time )
+{
+  UNUSED(mode);
+  UNUSED(time);
+}
+
 void sendError(int arguments, const char * format, ... );
 void sendOkay(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -516,6 +529,7 @@ void sendVbusStatus(int arguments, const char * format, ...);
 void sendAdc( int subTest );
 void sendTestSD( int test );
 void sendTestFRAM( int test );
+void sendTestRTC( int test, int subTest, char * extraArguments );
 
 void rcvJoinId(int arguments, const char * format, ...);
 void rcvDeviceID(int arguments, const char * format, ...);
@@ -828,6 +842,13 @@ void executeTest(int test, int subTest, char * extraArguments)
     case 6: //SD card test
 
       sendTestSD(test);
+
+      break;
+
+    case 7: //RTC test
+
+      sendTestRTC(test, subTest, extraArguments);
+
 
       break;
 
@@ -1624,6 +1645,114 @@ void sendTestFRAM( int test )
   int8_t result = testFram(&statusRegister);
   snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,0x%02x\r\n", cmdTest, test, result == 0 ? 1 : 0, statusRegister);
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+}
+
+/**
+ * @fn void sendTestRTC(int, int, char*)
+ * @brief function to test RTC
+ *
+ * @param test
+ * @param subTest
+ * @param extraArguments
+ */
+void sendTestRTC( int test, int subTest, char * extraArguments )
+{
+  struct_dateTime dateTime;
+  int32_t value;
+  bool error = false;
+  char *ptr; //dummy pointer
+
+  //only read extra parameters with subtest 1 ( set date/time ).
+  if( subTest == 1 )
+  {
+    value = strtol(additionalArgumentsString+1, &ptr, 10); //read day, skip <comma>, increment ptr.
+    if( value >= 1 && value <= 31 ) //check on day number
+    {
+      dateTime.day = value;
+    }
+    else
+    {
+      error = true;
+    }
+
+    value = strtol(ptr+1, &ptr, 10); //read month, skip <dash>, increment ptr.
+    if( value >= 1 && value <= 12 ) //check on month number
+    {
+      dateTime.month = value;
+    }
+    else
+    {
+      error = true;
+    }
+
+    value = strtol(ptr+1, &ptr, 10); //read year, skip <dash>, increment ptr.
+    if( value >= 0 && value < 100) //check on year, starts from 2000, input starts at 0.
+    {
+      dateTime.year = value + 2000;
+    }
+    else if( value >= 2000 ) //check on year, starts at 2000
+    {
+      dateTime.year = value;
+    }
+    else
+    {
+      error = true;
+    }
+
+    value = strtol(ptr+1, &ptr, 10); //read hours, skip <comma>, increment ptr.
+    if( value >= 0 && value <=23 ) //check on hours number
+    {
+      dateTime.hour = value;
+    }
+    else
+    {
+      error = true;
+    }
+
+    value = strtol(ptr+1, &ptr, 10); //read minutes, skip <colon>, increment ptr.
+    if( value >= 0 && value <=59 ) //check on minutes number
+    {
+      dateTime.minute = value;
+    }
+    else
+    {
+      error = true;
+    }
+
+    value = strtol(ptr+1, &ptr, 10); //read seconds, field skip <colon>, increment ptr.
+    if( value >= 0 && value <=59 ) //check on seconds number.
+    {
+      dateTime.second = value;
+    }
+    else
+    {
+      error = true;
+    }
+  }
+
+  //check on no errors
+  if( error == false && subTest >= 1 && subTest <= 4)
+  {
+    testRTC(subTest, &dateTime); //execute test
+    snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%02d-%02d-%02d,%02d:%02d:%02d\r\n", cmdTest, test, subTest, dateTime.day, dateTime.month, dateTime.year, dateTime.hour, dateTime.minute, dateTime.second); //make response
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig)); //send response
+  }
+  else if( subTest == 5 )
+  {
+    testRTC(subTest, &dateTime); //execute test
+    snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test, subTest ); //make response
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig)); //send response
+  }
+  else if( subTest == 6 )
+  {
+    testRTC(subTest, &dateTime); //execute test
+    snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,0x%02x\r\n", cmdTest, test, subTest, dateTime.century); //make response
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig)); //send response
+  }
+  else
+  {
+    sendError(0,0);
+  }
 }
 
 
