@@ -299,11 +299,11 @@ void am1805_time_set(am1805_time_t time, uint8_t ui8Protect)
   // Set the correct century.
   if (time.ui8Century == 0)
   {
-    am1805_reg_clear(AM1805_STATUS, 0x80);
+    am1805_reg_clear(AM1805_STATUS, AM1805_mask_CB);
   }
   else
   {
-    am1805_reg_set(AM1805_STATUS, 0x80);
+    am1805_reg_set(AM1805_STATUS, AM1805_mask_CB);
   }
 
   // Write all of the time counters.
@@ -570,7 +570,7 @@ void am1805_alarm_set(am1805_time_t alarm, uint8_t ui8Repeat, uint8_t ui8IntMode
     // Clear the ALM flag.
     am1805_reg_clear(AM1805_TIMER_CTRL, 0x1C);
     am1805_reg_clear(AM1805_INT_MASK, 0x64);
-    am1805_reg_clear(AM1805_STATUS, 0x04);
+    am1805_reg_clear(AM1805_STATUS, AM1805_mask_ALM);
 
     if (ui8Pin == 1)
     {
@@ -875,7 +875,7 @@ void am1805_countdown_set(uint8_t ui8Range, int32_t iPeriod, uint8_t ui8Repeat, 
         // Initialize the timer.
         // Initialize the timer repeat.
         // Start the timer.
-        am1805_reg_clear(AM1805_STATUS, 0x08);
+        am1805_reg_clear(AM1805_STATUS, AM1805_mask_TIM);
         am1805_reg_set(AM1805_INT_MASK, 0x08);
         am1805_reg_write(AM1805_TIMER, ui8Timer);
         am1805_reg_write(AM1805_TIMER_INITIAL, ui8Timer);
@@ -1098,7 +1098,7 @@ void am1805_watchdog_set(uint32_t ui8Period, uint8_t ui8Pin)
     // Disable the WDT with BMB = 0.
     // Clear the WDT flag.
     am1805_reg_write(AM1805_WDT, 0x00);
-    am1805_reg_clear(AM1805_STATUS, 0x20);
+    am1805_reg_clear(AM1805_STATUS, AM1805_mask_WDT);
 
     // Use the shortest clock interval which will allow the selected period.
     if (ui8Period < (31000 / 16))

@@ -100,6 +100,18 @@ extern "C"
 #define AM1805_CENTURY_20xx               0x01
 #define AM1805_CENTURY_21xx               0x00
 
+
+//Configuration register : status (0x0F)
+#define AM1805_mask_EX1                   0x01
+#define AM1805_mask_EX2                   0x02
+#define AM1805_mask_ALM                   0x04
+#define AM1805_mask_TIM                   0x08
+#define AM1805_mask_BL                    0x10
+#define AM1805_mask_WDT                   0x20
+#define AM1805_mask_BAT                   0x40
+#define AM1805_mask_CB                    0x80
+
+
 //*****************************************************************************
 //
 // Device structure used for communication.
