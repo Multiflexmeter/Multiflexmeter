@@ -101,8 +101,8 @@ typedef enum
 
 typedef struct
 {
-    ENUM_IO_EXPANDER device;        //must be IO_EXPANDER_NONE for internal IO
     ENUM_IO_LOCATION io_location;
+    ENUM_IO_EXPANDER device;        //must be IO_EXPANDER_NONE for internal IO
     GPIO_TypeDef *GPIOx;            //must be NULL for external IO
     uint16_t pin;
     uint32_t pullup;                //only for internal pins
