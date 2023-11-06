@@ -511,6 +511,19 @@ __weak const void testRTC( int mode, struct_dateTime * time )
   UNUSED(time);
 }
 
+/**
+ * @fn const void testBatMon(int, int32_t*)
+ * @brief
+ *
+ * @param mode
+ * @param value
+ */
+__weak const void testBatMon( int mode, int32_t * value )
+{
+  UNUSED(mode);
+  UNUSED(value);
+}
+
 void sendError(int arguments, const char * format, ... );
 void sendOkay(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -530,6 +543,7 @@ void sendAdc( int subTest );
 void sendTestSD( int test );
 void sendTestFRAM( int test );
 void sendTestRTC( int test, int subTest, char * extraArguments );
+void sendTestBatMonitor( int test, int subTest);
 
 void rcvJoinId(int arguments, const char * format, ...);
 void rcvDeviceID(int arguments, const char * format, ...);
@@ -849,6 +863,12 @@ void executeTest(int test, int subTest, char * extraArguments)
 
       sendTestRTC(test, subTest, extraArguments);
 
+
+      break;
+
+    case 8: //battery monitor test
+
+      sendTestBatMonitor(test, subTest);
 
       break;
 
@@ -1755,6 +1775,27 @@ void sendTestRTC( int test, int subTest, char * extraArguments )
   }
 }
 
+/**
+ * @fn void sendTestBatMonitor(int, int)
+ * @brief function to test battery monitor
+ *
+ * @param test
+ * @param subTest
+ */
+void sendTestBatMonitor(int test, int subTest)
+{
+  if (subTest >= 0 && subTest <= 10)
+  {
+    int32_t value;
+    testBatMon(subTest, &value );
+    snprintf((char*) bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%ld\r\n", cmdTest, test, subTest, value); //make response
+    uartSend_Config(bufferTxConfig, strlen((char*) bufferTxConfig)); //send response
+  }
+  else
+  {
+    sendError(0, 0);
+  }
+}
 
 /**
  * @brief send alwaysOn supply setting to config uart

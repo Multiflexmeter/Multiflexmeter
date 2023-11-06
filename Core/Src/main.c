@@ -55,7 +55,7 @@
 #include "../../App/dataflash/dataflash_functions.h"
 #include "../../App/logging/logging.h"
 #include "../../App/MFMconfiguration.h"
-#include "../../App/BatMon_BQ35100/bq35100.h"
+#include "../../App/BatMon_BQ35100/BatMon_functions.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -186,6 +186,7 @@ int main(void)
   MX_LoRaWAN_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+  initBatMon();
   uartInit_Config();
   resultInitDataflash = init_dataflash();
 
@@ -206,8 +207,6 @@ int main(void)
 
   reloadSettingsFromVirtualEEPROM();
 
-  bq35100_init(&hi2c1);
-
   init_mainTask();
 
   /* USER CODE END 2 */
@@ -220,8 +219,6 @@ int main(void)
     MX_LoRaWAN_Process();
 
     /* USER CODE BEGIN 3 */
-    bq35100_getExternalTemp();
-    bq35100_getInternalTemp();
   }
   /* USER CODE END 3 */
 }
