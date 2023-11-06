@@ -749,6 +749,11 @@ static void SendTxData(void)
       }
     }
 
+#ifdef FRAM_USED_FOR_NVM_DATA
+    UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStoreContextEvent), CFG_SEQ_Prio_0); //save lora settings to FRAM.
+#endif
+
+
     //get lora Interval from config.
     OnTxPeriodicityChanged( getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000); //new lora interval in ms
 
@@ -838,6 +843,10 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
   /* USER CODE BEGIN OnJoinRequest_1 */
   if (joinParams != NULL)
   {
+#ifdef FRAM_USED_FOR_NVM_DATA
+    UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStoreContextEvent), CFG_SEQ_Prio_0); //save lora settings to FRAM.
+#endif
+
     if (joinParams->Status == LORAMAC_HANDLER_SUCCESS)
     {
       UTIL_TIMER_Stop(&JoinLedTimer);
