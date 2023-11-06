@@ -55,6 +55,7 @@
 #include "../../App/dataflash/dataflash_functions.h"
 #include "../../App/logging/logging.h"
 #include "../../App/MFMconfiguration.h"
+#include "../../App/BatMon_BQ35100/BatMon_functions.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -185,6 +186,7 @@ int main(void)
   MX_LoRaWAN_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+  initBatMon();
   uartInit_Config();
   resultInitDataflash = init_dataflash();
 
