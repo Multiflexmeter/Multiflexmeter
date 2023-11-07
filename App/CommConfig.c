@@ -451,6 +451,18 @@ __weak const int8_t testFram(uint8_t * status)
 }
 
 /**
+ * @fn const int8_t testDataflash(uint32_t_t*)
+ * @brief weak function testDataflash(), must be override in application
+ *
+ * @param status
+ * @return
+ */
+__weak const int8_t testDataflash(uint8_t test, uint32_t * status)
+{
+  return -1;
+}
+
+/**
  * @fn const void setLedTest(int8_t)
  * @brief weak function setLedTest(), must be override in application
  *
@@ -542,6 +554,7 @@ void sendVbusStatus(int arguments, const char * format, ...);
 void sendAdc( int subTest );
 void sendTestSD( int test );
 void sendTestFRAM( int test );
+void sendTestDataflash( int test, int subTest, char * extraArguments );
 void sendTestRTC( int test, int subTest, char * extraArguments );
 void sendTestBatMonitor( int test, int subTest);
 
@@ -883,6 +896,12 @@ void executeTest(int test, int subTest, char * extraArguments)
     case 10: //test FRAM
 
       sendTestFRAM(test);
+
+      break;
+
+    case 11: //test dataflash
+
+      sendTestDataflash(test, subTest, extraArguments);
 
       break;
 
@@ -1668,6 +1687,37 @@ void sendTestFRAM( int test )
 }
 
 /**
+ * @fn void sendTestDataflash(int)
+ * @brief
+ *
+ * @param test
+ */
+void sendTestDataflash( int test, int subTest, char * extraArguments )
+{
+  uint32_t statusRegister;
+  int32_t value = 0;
+  char *ptr; //dummy pointer
+
+  if (subTest == 1)
+  {
+    value = strtol(additionalArgumentsString+1, &ptr, 10); //read day, skip <comma>, increment ptr.
+  }
+
+
+  if( ( subTest == 1 && value >= 0 && value < 2048) || (subTest >= 2 && subTest <= 3 && additionalArgumentsString[0] == 0 ) )
+  {
+    statusRegister = (uint32_t)value;
+    int8_t result = testDataflash(subTest, &statusRegister);
+    snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d,%lu\r\n", cmdTest, test, result >= 0 ? 1 : 0, result, statusRegister);
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
+}
+
+/**
  * @fn void sendTestRTC(int, int, char*)
  * @brief function to test RTC
  *
@@ -1900,7 +1950,7 @@ void rcvTest(int arguments, const char * format, ...)
 
   //todo set sensorStatus
 
-  if( test >= 0 && test <= 10 )
+  if( test >= 0 && test <= 11 )
   {
     dataTest = true;
     currentTest = test;

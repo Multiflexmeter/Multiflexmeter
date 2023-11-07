@@ -450,3 +450,164 @@ int8_t testCompleteDataflash(bool restoreOrinalData )
   return 0;
 
 }
+
+/**
+ * @fn const int8_t testFram(uint8_t * status)
+ * @brief function to test one block of DataFlash
+ *
+ * @return 0 = successful empty, 1 = successful page used, -1 is error verify write, -2 is error verify original data write.
+ */
+const int8_t testDataflashBlock(bool restoreOrinalData, uint16_t blockNumber, uint32_t * status)
+{
+  assert_param( sizeof(writePageBuffer) == sizeof(readPageBuffer)); //check buffer size is equal
+
+  int8_t result = 0;
+
+  int i;
+  bool tDectectNotEmpty = false;
+
+  *status = (uint32_t)blockNumber;
+
+  tDectectNotEmpty = false; //reset at new block
+
+  //fill page buffer with empth value dataflash
+  memset(writePageBuffer, 0xff, sizeof(writePageBuffer));
+
+  //read block from dataflash
+  readPageFromDataflash(blockNumber * BLOCK_4K_SIZE_DATAFLASH, block4kBuffer, sizeof(block4kBuffer));
+
+  //do it for a each page in a block
+  for (i = 0; i < NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH; i++)
+  {
+    //verify if a page contains only blank fields (0xFF)
+    if (memcmp(&block4kBuffer[i*PAGE_SIZE_DATAFLASH], writePageBuffer, sizeof(writePageBuffer)) == 0)
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, "Page %d is empty.\r\n", (blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i );
+    }
+    else
+    {
+      APP_LOG(TS_OFF, VLEVEL_M, "Page %d is not empty.\r\n", (blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i );
+      tDectectNotEmpty = true;
+    }
+  }
+
+  if ( tDectectNotEmpty == false )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Block %d is empty.\r\n", blockNumber);
+  }
+  else
+  {
+    APP_LOG(TS_OFF, VLEVEL_M, "Block %d is not empty.\r\n", blockNumber);
+    result = 1; //not empty
+
+    //block erase
+    blockErase4kDataflash((uint32_t)blockNumber*BLOCK_4K_SIZE_DATAFLASH);
+  }
+
+  //set a test value
+  memset(writePageBuffer, 0xAA, sizeof(writePageBuffer));
+
+  //do it for a each page in a block
+  for (i = 0; i < NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH; i++)
+  {
+    //write page
+    writePageInDataflash(((blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i) * PAGE_SIZE_DATAFLASH , writePageBuffer, sizeof(writePageBuffer));
+
+    //read page
+    readPageFromDataflash(((blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i) * PAGE_SIZE_DATAFLASH, readPageBuffer, sizeof(readPageBuffer));
+
+    //verify page
+    if (memcmp(readPageBuffer, writePageBuffer, sizeof(writePageBuffer)) == 0)
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, "Test page %d is okay.\r\n", (blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i );
+    }
+    else
+    {
+      APP_LOG(TS_OFF, VLEVEL_M, "Error in test Page %d\r\n", (blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i );
+      result = -1;
+    }
+  }
+
+  APP_LOG(TS_OFF, VLEVEL_M, "Testing block %d\r\n", blockNumber );
+
+  //block erase
+  blockErase4kDataflash((uint32_t)blockNumber*BLOCK_4K_SIZE_DATAFLASH);
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Test page %d is okay.\r\n", (blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i );
+
+  //check if original data need to be restored.
+  if( restoreOrinalData == true && tDectectNotEmpty == true )
+  {
+    //copy back original data
+    for (i = 0; i < NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH; i++)
+    {
+      //fill page buffer with empth value dataflash
+      memset(writePageBuffer, 0xff, sizeof(writePageBuffer));
+
+      //verify if a page contains only blank fields (0xFF)
+      if (memcmp(&block4kBuffer[i*PAGE_SIZE_DATAFLASH], writePageBuffer, sizeof(writePageBuffer)) == 0)
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, "Restore page %d is empty. No need to write it back\r\n", (blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i );
+      }
+      else
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, "Page %d is not empty. Restore data.\r\n", (blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i );
+
+        //copy data to write buffer
+        memcpy(writePageBuffer, &block4kBuffer[i*PAGE_SIZE_DATAFLASH], sizeof(writePageBuffer));
+
+        //write page
+        writePageInDataflash(((blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i) * PAGE_SIZE_DATAFLASH , writePageBuffer, sizeof(writePageBuffer));
+
+        //read page
+        readPageFromDataflash(((blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i) * PAGE_SIZE_DATAFLASH , readPageBuffer, sizeof(readPageBuffer));
+
+        //verify page
+        if (memcmp(&readPageBuffer, writePageBuffer, sizeof(writePageBuffer)) == 0)
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Restore page %d is okay.\r\n", (blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i );
+        }
+        else
+        {
+          APP_LOG(TS_OFF, VLEVEL_M, "Error at restore data in Page %d\r\n", (blockNumber * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) + i );
+          result = -2;
+        }
+      }
+    }
+  }
+  else
+  {
+    //nothing
+  }
+
+
+  return result;
+}
+
+/**
+ * @fn const int8_t testDataflash(uint8_t, uint32_t*)
+ * @brief function to test dataflash
+ *
+ * @param test : 1 = test given block number (0-2047), 2 = radom block number (0-2047)
+ * @param status
+ * @return 0 = successful empty, 1 = successful page used, -1 is error verify write, -2 is error verify original data write.
+ */
+const int8_t testDataflash(uint8_t test, uint32_t * status)
+{
+
+  if( test == 1 ) //test specific block
+  {
+    return testDataflashBlock(true, *status, status);
+  }
+
+  else if (test == 2) //test random block
+  {
+    return testDataflashBlock(true, random()%NUMBER_4K_BLOCK_DATAFLASH, status);
+  }
+
+  else if ( test == 3 ) //test complete flash
+  {
+    return testCompleteDataflash(true);
+  }
+  return -1;
+}
