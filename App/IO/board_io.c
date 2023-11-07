@@ -869,3 +869,39 @@ const void dataflash_DisableChipSelect(void)
 {
   writeOutput_board_io(EXT_IO_FLASH_NOR_CS, GPIO_PIN_RESET);
 }
+
+/**
+ * @fn const void enableVsys(void)
+ * @brief function to enable vSYS
+ * sets also all CS lines to output
+ *
+ */
+const void enableVsys(void)
+{
+  writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET);
+  setAsOutput(EXT_IO_FRAM_CS);
+  setAsOutput(EXT_IO_FLASH_SD_CS);
+  setAsOutput(EXT_IO_FLASH_NOR_CS);
+}
+
+/**
+ * @fn const void disableVsys(void)
+ * @brief function to disable vSYS
+ * sets also all CS lines to input (low power mode).
+ *
+ */
+const void disableVsys(void)
+{
+  writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_RESET);
+  setAsInput(EXT_IO_FRAM_CS);
+  setAsInput(EXT_IO_FLASH_SD_CS);
+  setAsInput(EXT_IO_FLASH_NOR_CS);
+}
+
+/**
+ * @fn const void testSystemChecks(int, int32_t*)
+ * @brief
+ *
+ * @param mode
+ * @param value
+ */
