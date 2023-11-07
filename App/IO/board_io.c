@@ -191,6 +191,35 @@ const void init_io_internal(ENUM_IO_ITEM item)
 }
 
 /**
+ * @fn const void init_io_external(ENUM_IO_ITEM)
+ * @brief function to initialize an internal I/O pin based on the definition of struct_BoardIO_PinConfig
+ *
+ * @param item
+ */
+const void init_io_external(ENUM_IO_ITEM item)
+{
+
+  if( item >= MAX_IO_ITEM )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong input: item (%d) out of range.\r\n", item );
+    assert_param( 0 );
+    return;
+  }
+
+  if( stIO_PinConfig[item].io_location != IO_EXTERNAL )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong call, I/O is not external\r\n", item );
+    assert_param( 0 );
+    return;
+  }
+
+  if( init_IO_ExpanderPin(stIO_PinConfig[item].device, stIO_PinConfig[item].direction, stIO_PinConfig[item].pin, stIO_PinConfig[item].active) < 0 ) //Initialize IO Expander pins in register variables
+  { //error.
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: out of range of item %d.\r\n", item );
+  }
+}
+
+/**
  * @fn void init_board_io(void)
  * @brief function to init board IO
  *
