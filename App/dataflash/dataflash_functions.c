@@ -335,7 +335,7 @@ int8_t testDataflash(bool restoreOrinalData )
     memset(writePageBuffer, 0xff, sizeof(writePageBuffer));
 
     //read block from dataflash
-    readPageFromDataflash(blockNumber, block4kBuffer, sizeof(block4kBuffer));
+    readPageFromDataflash(blockNumber * BLOCK_4K_SIZE_DATAFLASH, block4kBuffer, sizeof(block4kBuffer));
 
     //do it for a each page in a block
     for (i = 0; i < NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH; i++)
