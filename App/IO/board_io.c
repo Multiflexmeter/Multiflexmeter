@@ -899,6 +899,26 @@ const void disableVsys(void)
 }
 
 /**
+ * @fn const void enable_vAlwaysOn(void)
+ * @brief weak dummy function, must be override in application
+ *
+ */
+__weak const void enable_vAlwaysOn(void)
+{
+
+}
+
+/**
+ * @fn const void disable_vAlwaysOn(void)
+ * @brief weak dummy function, must be override in application
+ *
+ */
+__weak const void disable_vAlwaysOn(void)
+{
+
+}
+
+/**
  * @fn const void testSystemChecks(int, int32_t*)
  * @brief
  *
@@ -907,15 +927,27 @@ const void disableVsys(void)
  */
 const void testSystemChecks( int mode, int32_t value )
 {
-  if( mode == 1)
+  if( mode == 1) //1 = switch vSys
   {
-    if( value == 0 )
+    if( value == 0 ) //0 = off
     {
-      disableVsys();
+      disableVsys(); //disable vSys
     }
     else
     {
-      enableVsys();
+      enableVsys(); //enable vSys
+    }
+  }
+
+  else if (mode == 2) //2 = switch vAlwaysOn
+  {
+    if (value == 0) //0 = off
+    {
+      disable_vAlwaysOn(); //disable vAlwaysOn
+    }
+    else
+    {
+      enable_vAlwaysOn(); //enable vAlwaysOn
     }
   }
 }

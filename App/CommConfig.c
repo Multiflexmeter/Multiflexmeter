@@ -1877,7 +1877,7 @@ void sendTestBatMonitor(int test, int subTest)
 void sendTestSystemCheck(int test, int subTest, char * extraArguments)
 {
   char *ptr; //dummy pointer
-  if (subTest >= 0 && subTest <= 1)
+  if (subTest >= 0 && subTest <= 2)
   {
     int32_t value = strtol(additionalArgumentsString+1, &ptr, 10); //read day, skip <comma>, increment ptr.
 
