@@ -152,6 +152,13 @@ const void init_io_internal(ENUM_IO_ITEM item)
     return;
   }
 
+  if( stIO_PinConfig[item].io_location != IO_INTERAL )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong call, I/O is not internal\r\n", item );
+    assert_param( 0 );
+    return;
+  }
+
   memset(&GPIO_InitStruct, 0x00, sizeof(GPIO_InitStruct)); //set struct default value
 
   if( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[item].GPIOx) ) //check GPIO is set
@@ -191,7 +198,6 @@ const void init_io_internal(ENUM_IO_ITEM item)
 const void init_board_io(void)
 {
   int i;
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
   bool externalFound = false;
 
   assert_param( IO_INPUT == IO_EXT_INPUT );   //verify enumeration is equal.
@@ -216,35 +222,7 @@ const void init_board_io(void)
     {
       case IO_INTERAL:
 
-        memset(&GPIO_InitStruct, 0x00, sizeof(GPIO_InitStruct)); //set struct default value
-
-        if( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[i].GPIOx) ) //check GPIO is set
-        {
-          GPIO_InitStruct.Pin = stIO_PinConfig[i].pin;      //set PIN
-          GPIO_InitStruct.Pull = stIO_PinConfig[i].pullup;  //set Pull
-          switch( stIO_PinConfig[i].direction )             //check direction
-          {
-            case IO_INPUT:
-              GPIO_InitStruct.Mode = GPIO_MODE_INPUT;       //set input
-              break;
-
-            case IO_OUTPUT:
-              GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;   //set normal output
-              break;
-
-            default:
-              GPIO_InitStruct.Mode = 0;
-              break;
-          }
-
-          GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;      //default low speed
-
-          HAL_GPIO_Init(stIO_PinConfig[i].GPIOx, &GPIO_InitStruct); //init GPIO
-        }
-        else
-        {
-          APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: GPIOx is wrong.\r\n", i );
-        }
+        init_io_internal(i); //init internal I/O
 
         break;
 
