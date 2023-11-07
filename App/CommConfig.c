@@ -1933,6 +1933,7 @@ void rcvTest(int arguments, const char * format, ...)
   char *ptr; //dummy pointer
   int test = 0;
   int subtest = -1;
+  bool clearArgumentString = true;
 
   if( format[0] == '=' )
   {
@@ -1942,10 +1943,16 @@ void rcvTest(int arguments, const char * format, ...)
       subtest = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
       if( *ptr!='\r' && *ptr!='\n')
       {
+        clearArgumentString = false;
         strncpy(additionalArgumentsString, ptr, sizeof(additionalArgumentsString)); //save argument for later use
         additionalArgumentsString[sizeof(additionalArgumentsString)-1]=0;//make sure array is terminated with null character
       }
     }
+  }
+
+  if( clearArgumentString )
+  {
+    memset(additionalArgumentsString, 0x00, sizeof(additionalArgumentsString));//clear array
   }
 
   //todo set sensorStatus
