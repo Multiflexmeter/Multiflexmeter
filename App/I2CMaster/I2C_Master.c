@@ -134,7 +134,7 @@ void sensorStartMeasurement(SensorAddress address)
  * @param address The sensor address
  * @return The measurement status
  */
-uint8_t sensorMeasurementStatus(SensorAddress address)
+MeasurementStatus sensorMeasurementStatus(SensorAddress address)
 {
   uint8_t sensorStatus;
   sensorMasterRead(address, REG_MEAS_STATUS, &sensorStatus);

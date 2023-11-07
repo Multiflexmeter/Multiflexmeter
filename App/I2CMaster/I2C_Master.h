@@ -26,7 +26,7 @@ void sensorFirmwareVersion(SensorAddress address, char *firmwareVersion);
 uint8_t sensorProtocolVersion(SensorAddress address);
 uint16_t sensorReadType(SensorAddress address);
 void sensorStartMeasurement(SensorAddress address);
-uint8_t sensorMeasurementStatus(SensorAddress address);
+MeasurementStatus sensorMeasurementStatus(SensorAddress address);
 void sensorWriteSetupTime(SensorAddress address, uint16_t setupTime);
 uint16_t sensorReadSetupTime(SensorAddress address);
 SensorError sensorReadMeasurement(SensorAddress address, uint8_t* measurementData);

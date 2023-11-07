@@ -40,6 +40,14 @@ typedef enum{
   READWRITE
 }tENUM_READWRITE;
 
+typedef enum{
+  NO_MEASUREMENT = 0x00,
+  MEASUREMENT_ACTIVE = 0x01,
+  MEASUREMENT_DONE = 0x0A,
+  MEASUREMENT_ERROR = 0xF0
+}MeasurementStatus;
+
+
 typedef struct __attribute__((__packed__))
 {
   int32_t pressure;
