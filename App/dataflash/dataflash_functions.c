@@ -311,14 +311,14 @@ int8_t clearLogInDataflash(uint32_t logId)
 
 
 /**
- * @fn int8_t testDataflash(bool)
+ * @fn int8_t testCompleteDataflash(bool)
  * @brief test function to verify the whole dataflash.
  * Note: complete test takes a lot of time
  *
  * @param restoreOrinalData : true restores old data, false keep the data erased
  * @return
  */
-int8_t testDataflash(bool restoreOrinalData )
+int8_t testCompleteDataflash(bool restoreOrinalData )
 {
   assert_param( sizeof(writePageBuffer) == sizeof(readPageBuffer)); //check buffer size is equal
 
