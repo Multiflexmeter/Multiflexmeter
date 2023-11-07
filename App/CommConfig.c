@@ -451,6 +451,18 @@ __weak const int8_t testFram(uint8_t * status)
 }
 
 /**
+ * @fn const int8_t testDataflash(uint32_t_t*)
+ * @brief weak function testDataflash(), must be override in application
+ *
+ * @param status
+ * @return
+ */
+__weak const int8_t testDataflash(uint8_t test, uint32_t * status)
+{
+  return -1;
+}
+
+/**
  * @fn const void setLedTest(int8_t)
  * @brief weak function setLedTest(), must be override in application
  *
@@ -524,6 +536,19 @@ __weak const void testBatMon( int mode, int32_t * value )
   UNUSED(value);
 }
 
+/**
+ * @fn const void testSystemChecks(int, int32_t*)
+ * @brief
+ *
+ * @param mode
+ * @param value
+ */
+__weak const void testSystemChecks( int mode, int32_t value )
+{
+  UNUSED(mode);
+  UNUSED(value);
+}
+
 void sendError(int arguments, const char * format, ... );
 void sendOkay(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -542,8 +567,10 @@ void sendVbusStatus(int arguments, const char * format, ...);
 void sendAdc( int subTest );
 void sendTestSD( int test );
 void sendTestFRAM( int test );
+void sendTestDataflash( int test, int subTest, char * extraArguments );
 void sendTestRTC( int test, int subTest, char * extraArguments );
 void sendTestBatMonitor( int test, int subTest);
+void sendTestSystemCheck(int test, int subTest, char * extraArguments);
 
 void rcvJoinId(int arguments, const char * format, ...);
 void rcvDeviceID(int arguments, const char * format, ...);
@@ -883,6 +910,18 @@ void executeTest(int test, int subTest, char * extraArguments)
     case 10: //test FRAM
 
       sendTestFRAM(test);
+
+      break;
+
+    case 11: //test dataflash
+
+      sendTestDataflash(test, subTest, extraArguments);
+
+      break;
+
+    case 12: //test system checks
+
+      sendTestSystemCheck(test, subTest, extraArguments);
 
       break;
 
@@ -1668,6 +1707,37 @@ void sendTestFRAM( int test )
 }
 
 /**
+ * @fn void sendTestDataflash(int)
+ * @brief
+ *
+ * @param test
+ */
+void sendTestDataflash( int test, int subTest, char * extraArguments )
+{
+  uint32_t statusRegister;
+  int32_t value = 0;
+  char *ptr; //dummy pointer
+
+  if (subTest == 1)
+  {
+    value = strtol(additionalArgumentsString+1, &ptr, 10); //read day, skip <comma>, increment ptr.
+  }
+
+
+  if( ( subTest == 1 && value >= 0 && value < 2048) || (subTest >= 2 && subTest <= 3 && additionalArgumentsString[0] == 0 ) )
+  {
+    statusRegister = (uint32_t)value;
+    int8_t result = testDataflash(subTest, &statusRegister);
+    snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%d,%lu\r\n", cmdTest, test, result >= 0 ? 1 : 0, result, statusRegister);
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
+}
+
+/**
  * @fn void sendTestRTC(int, int, char*)
  * @brief function to test RTC
  *
@@ -1798,6 +1868,31 @@ void sendTestBatMonitor(int test, int subTest)
 }
 
 /**
+ * @fn void sendTestSystemCheck(,)
+ * @brief
+ *
+ * @param test
+ * @param subTest
+ */
+void sendTestSystemCheck(int test, int subTest, char * extraArguments)
+{
+  char *ptr; //dummy pointer
+  if (subTest >= 0 && subTest <= 2)
+  {
+    int32_t value = strtol(additionalArgumentsString+1, &ptr, 10); //read day, skip <comma>, increment ptr.
+
+    testSystemChecks(subTest, value);
+    snprintf((char*) bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%ld\r\n", cmdTest, test, subTest, value); //make response
+    uartSend_Config(bufferTxConfig, strlen((char*) bufferTxConfig)); //send response
+  }
+  else
+  {
+    sendError(0, 0);
+  }
+}
+
+
+/**
  * @brief send alwaysOn supply setting to config uart
  *
  * @param arguments not used
@@ -1883,6 +1978,7 @@ void rcvTest(int arguments, const char * format, ...)
   char *ptr; //dummy pointer
   int test = 0;
   int subtest = -1;
+  bool clearArgumentString = true;
 
   if( format[0] == '=' )
   {
@@ -1892,15 +1988,21 @@ void rcvTest(int arguments, const char * format, ...)
       subtest = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
       if( *ptr!='\r' && *ptr!='\n')
       {
+        clearArgumentString = false;
         strncpy(additionalArgumentsString, ptr, sizeof(additionalArgumentsString)); //save argument for later use
         additionalArgumentsString[sizeof(additionalArgumentsString)-1]=0;//make sure array is terminated with null character
       }
     }
   }
 
+  if( clearArgumentString )
+  {
+    memset(additionalArgumentsString, 0x00, sizeof(additionalArgumentsString));//clear array
+  }
+
   //todo set sensorStatus
 
-  if( test >= 0 && test <= 10 )
+  if( test >= 0 && test <= 12 )
   {
     dataTest = true;
     currentTest = test;

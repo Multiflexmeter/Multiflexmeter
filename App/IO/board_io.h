@@ -120,4 +120,7 @@ const int8_t readInput_board_io(ENUM_IO_ITEM item);
 const void toggleOutput_board_io(ENUM_IO_ITEM item);
 const bool getLigthSensorStatus(void);
 
+const void enableVsys(void);
+const void disableVsys(void);
+
 #endif /* IO_BOARD_IO_H_ */

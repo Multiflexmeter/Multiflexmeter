@@ -136,6 +136,98 @@ static struct_BoardIO_PinConfig stIO_PinConfig[]=
 };
 
 /**
+ * @fn const void init_io_internal(ENUM_IO_ITEM)
+ * @brief function to initialize an internal I/O pin based on the definition of struct_BoardIO_PinConfig
+ *
+ * @param item
+ */
+const void init_io_internal(ENUM_IO_ITEM item)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  if( item >= MAX_IO_ITEM )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong input: item (%d) out of range.\r\n", item );
+    assert_param( 0 );
+    return;
+  }
+
+  if( stIO_PinConfig[item].io_location != IO_INTERAL )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong call, I/O is not internal\r\n", item );
+    assert_param( 0 );
+    return;
+  }
+
+  memset(&GPIO_InitStruct, 0x00, sizeof(GPIO_InitStruct)); //set struct default value
+
+  if( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[item].GPIOx) ) //check GPIO is set
+  {
+    GPIO_InitStruct.Pin = stIO_PinConfig[item].pin;      //set PIN
+    GPIO_InitStruct.Pull = stIO_PinConfig[item].pullup;  //set Pull
+    switch( stIO_PinConfig[item].direction )             //check direction
+    {
+      case IO_INPUT:
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;       //set input
+        break;
+
+      case IO_OUTPUT:
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;   //set normal output
+        break;
+
+      default:
+        GPIO_InitStruct.Mode = 0;
+        break;
+    }
+
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;      //default low speed
+
+    HAL_GPIO_Init(stIO_PinConfig[item].GPIOx, &GPIO_InitStruct); //init GPIO
+  }
+  else
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: GPIOx is wrong.\r\n", item );
+  }
+}
+
+/**
+ * @fn const void init_io_external(ENUM_IO_ITEM, bool)
+ * @brief function to initialize an internal I/O pin based on the definition of struct_BoardIO_PinConfig
+ *
+ * @param item
+ * @param forceUpdate
+ */
+const void init_io_external(ENUM_IO_ITEM item, bool forceUpdate)
+{
+  int8_t result = false;
+  if( item >= MAX_IO_ITEM )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong input: item (%d) out of range.\r\n", item );
+    assert_param( 0 );
+    return;
+  }
+
+  if( stIO_PinConfig[item].io_location != IO_EXTERNAL )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong call, I/O is not external\r\n", item );
+    assert_param( 0 );
+    return;
+  }
+
+  result = init_IO_ExpanderPin(stIO_PinConfig[item].device, stIO_PinConfig[item].direction, stIO_PinConfig[item].pin, stIO_PinConfig[item].active); //Initialize IO Expander pins in register variables
+  if( result < 0 )
+  { //error.
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: out of range of item %d.\r\n", item );
+    return;
+  }
+
+  if( forceUpdate ) //check if output needs to be updated directly
+  {
+    init_IO_Expander(stIO_PinConfig[item].device);
+  }
+}
+
+/**
  * @fn void init_board_io(void)
  * @brief function to init board IO
  *
@@ -143,7 +235,6 @@ static struct_BoardIO_PinConfig stIO_PinConfig[]=
 const void init_board_io(void)
 {
   int i;
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
   bool externalFound = false;
 
   assert_param( IO_INPUT == IO_EXT_INPUT );   //verify enumeration is equal.
@@ -168,45 +259,14 @@ const void init_board_io(void)
     {
       case IO_INTERAL:
 
-        memset(&GPIO_InitStruct, 0x00, sizeof(GPIO_InitStruct)); //set struct default value
-
-        if( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[i].GPIOx) ) //check GPIO is set
-        {
-          GPIO_InitStruct.Pin = stIO_PinConfig[i].pin;      //set PIN
-          GPIO_InitStruct.Pull = stIO_PinConfig[i].pullup;  //set Pull
-          switch( stIO_PinConfig[i].direction )             //check direction
-          {
-            case IO_INPUT:
-              GPIO_InitStruct.Mode = GPIO_MODE_INPUT;       //set input
-              break;
-
-            case IO_OUTPUT:
-              GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;   //set normal output
-              break;
-
-            default:
-              GPIO_InitStruct.Mode = 0;
-              break;
-          }
-
-          GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;      //default low speed
-
-          HAL_GPIO_Init(stIO_PinConfig[i].GPIOx, &GPIO_InitStruct); //init GPIO
-        }
-        else
-        {
-          APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: GPIOx is wrong.\r\n", i );
-        }
+        init_io_internal(i); //init internal I/O
 
         break;
 
       case IO_EXTERNAL:
 
         externalFound = true;
-        if( init_IO_ExpanderPin(stIO_PinConfig[i].device, stIO_PinConfig[i].direction, stIO_PinConfig[i].pin, stIO_PinConfig[i].active) < 0 ) //Initialize IO Expander pins in register variables
-        { //error.
-          APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: out of range of item %d.\r\n", i );
-        }
+        init_io_external(i, false); //init internal I/O, no force update. This is done for all I/O together.
 
         break;
 
@@ -621,6 +681,89 @@ const void toggleOutput_board_io(ENUM_IO_ITEM item)
 }
 
 /**
+ * @fn const void setAsInput(ENUM_IO_ITEM)
+ * @brief function to set an I/O as input
+ *
+ * @param item
+ */
+const void setAsInput(ENUM_IO_ITEM item)
+{
+
+  if (item >= MAX_IO_ITEM)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong input: item (%d) out of range.\r\n", item);
+    assert_param(0);
+    return;
+  }
+
+  stIO_PinConfig[item].direction = IO_INPUT;
+
+
+  switch (stIO_PinConfig[item].io_location)
+  {
+    case IO_INTERAL:    //only for IO_INTERAL
+
+      init_io_internal(item);
+
+      break;
+
+    case IO_EXTERNAL:   //only for IO_EXTERNAL
+
+      init_io_external(item, true);
+
+      break;
+
+    default:
+
+      //nothing
+      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: location (%d) out of range of item %d.\r\n", stIO_PinConfig[item].io_location, item);
+
+      break;
+  }
+}
+
+/**
+ * @fn const void setAsOutput(ENUM_IO_ITEM)
+ * @brief function to set an I/O as output.
+ *
+ * @param item
+ */
+const void setAsOutput(ENUM_IO_ITEM item)
+{
+
+  if (item >= MAX_IO_ITEM)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong input: item (%d) out of range.\r\n", item);
+    assert_param(0);
+    return;
+  }
+
+  stIO_PinConfig[item].direction = IO_OUTPUT;
+
+  switch (stIO_PinConfig[item].io_location)
+  {
+    case IO_INTERAL:    //only for IO_INTERAL
+
+      init_io_internal(item);
+
+      break;
+
+    case IO_EXTERNAL:   //only for IO_EXTERNAL
+
+      init_io_external(item, true);
+
+      break;
+
+    default:
+
+      //nothing
+      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: location (%d) out of range of item %d.\r\n", stIO_PinConfig[item].io_location, item);
+
+      break;
+  }
+}
+
+/**
  * @fn const bool lightInput(void)
  * @brief function to get light sensor status
  *
@@ -725,4 +868,86 @@ const void dataflash_EnableChipSelect(void)
 const void dataflash_DisableChipSelect(void)
 {
   writeOutput_board_io(EXT_IO_FLASH_NOR_CS, GPIO_PIN_RESET);
+}
+
+/**
+ * @fn const void enableVsys(void)
+ * @brief function to enable vSYS
+ * sets also all CS lines to output
+ *
+ */
+const void enableVsys(void)
+{
+  writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET);
+  setAsOutput(EXT_IO_FRAM_CS);
+  setAsOutput(EXT_IO_FLASH_SD_CS);
+  setAsOutput(EXT_IO_FLASH_NOR_CS);
+}
+
+/**
+ * @fn const void disableVsys(void)
+ * @brief function to disable vSYS
+ * sets also all CS lines to input (low power mode).
+ *
+ */
+const void disableVsys(void)
+{
+  writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_RESET);
+  setAsInput(EXT_IO_FRAM_CS);
+  setAsInput(EXT_IO_FLASH_SD_CS);
+  setAsInput(EXT_IO_FLASH_NOR_CS);
+}
+
+/**
+ * @fn const void enable_vAlwaysOn(void)
+ * @brief weak dummy function, must be override in application
+ *
+ */
+__weak const void enable_vAlwaysOn(void)
+{
+
+}
+
+/**
+ * @fn const void disable_vAlwaysOn(void)
+ * @brief weak dummy function, must be override in application
+ *
+ */
+__weak const void disable_vAlwaysOn(void)
+{
+
+}
+
+/**
+ * @fn const void testSystemChecks(int, int32_t*)
+ * @brief
+ *
+ * @param mode
+ * @param value
+ */
+const void testSystemChecks( int mode, int32_t value )
+{
+  if( mode == 1) //1 = switch vSys
+  {
+    if( value == 0 ) //0 = off
+    {
+      disableVsys(); //disable vSys
+    }
+    else
+    {
+      enableVsys(); //enable vSys
+    }
+  }
+
+  else if (mode == 2) //2 = switch vAlwaysOn
+  {
+    if (value == 0) //0 = off
+    {
+      disable_vAlwaysOn(); //disable vAlwaysOn
+    }
+    else
+    {
+      enable_vAlwaysOn(); //enable vAlwaysOn
+    }
+  }
 }
