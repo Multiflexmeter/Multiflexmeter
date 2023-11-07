@@ -84,5 +84,7 @@ typedef struct {
 const int eraseVirtualEEPROM(void);
 const int saveSettingsToVirtualEEPROM(void);
 const int reloadSettingsFromVirtualEEPROM(void);
+const bool getAlwaysOn(void);
+const bool getAlwaysOn_changed(bool reset);
 
 #endif /* MFMCONFIGURATION_H_ */

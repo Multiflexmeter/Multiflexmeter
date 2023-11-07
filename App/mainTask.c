@@ -19,6 +19,7 @@
 #include "IO/board_io.h"
 #include "IO/led.h"
 #include "CommConfig.h"
+#include "MFMconfiguration.h"
 #include "mainTask.h"
 
 static volatile bool mainTaskActive;
@@ -49,6 +50,23 @@ const void setNextPeriod( UTIL_TIMER_Time_t next )
   UTIL_TIMER_Start(&MainTimer);
 }
 
+/**
+ * @fn const void executeAlwaysOn(void)
+ * @brief helper function which read MFM configuarion for vAlwaysOn and execute the alwaysOn driving enable / disable.
+ *
+ */
+const void executeAlwaysOn(void)
+{
+  //get configuration always on
+  if( getAlwaysOn() )
+  {
+    enable_vAlwaysOn(); //enable vAlwaysOn supply
+  }
+  else
+  {
+    disable_vAlwaysOn(); //disable vAlwaysOn supply
+  }
+}
 
 /**
  * @fn void mainTask(void)
@@ -69,15 +87,7 @@ const void mainTask(void)
       initLedTimer(); //init LED timer
       init_vAlwaysOn();
 
-      //get configuration always on
-      if( getAlwaysOn() )
-      {
-        enable_vAlwaysOn(); //enable vAlwaysOn supply
-      }
-      else
-      {
-        disable_vAlwaysOn(); //disable vAlwaysOn supply
-      }
+      executeAlwaysOn();
 
       mainTask_state++;
       break;
@@ -105,6 +115,10 @@ const void mainTask(void)
 
   update_board_io(); //periodically read
 
+  if( getAlwaysOn_changed(true)) //check vAlwaysOn setting is changed
+  {
+    executeAlwaysOn(); //execute vAlwaysOn enable/disable
+  }
 
   //check boolean mainTaskActive, then set short period for triggering, if not set long period for triggering.
   if( mainTaskActive )

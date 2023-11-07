@@ -18,6 +18,7 @@
 
 static struct_MFMSettings MFM_settings; //settings struct in RAM
 static bool initAtFirstCall = true;
+static bool vAlwaysStateChanged = false;
 
 /**
  * definition of parameters with virtual address location for saving/reading from flash (virtual EEPROM)
@@ -424,7 +425,11 @@ const int32_t setMeasureTime(int32_t sensorId, uint16_t measureTime )
  */
 const void setAlwaysOn(bool state)
 {
-  MFM_settings.alwaysOnSupplyEnabled = state;
+  if( state != MFM_settings.alwaysOnSupplyEnabled ) //check change in value
+  {
+    MFM_settings.alwaysOnSupplyEnabled = state; //save new value
+    vAlwaysStateChanged = true;                 //set change flag
+  }
 }
 
 /**
@@ -437,4 +442,22 @@ const bool getAlwaysOn(void)
 {
 
   return MFM_settings.alwaysOnSupplyEnabled;
+}
+
+/**
+ * @fn const bool getAlwaysOn_changed(bool)
+ * @brief function to detect a change in getAlwaysOn setting
+ *
+ * @param reset : true = reset flag, false = do not reset flag.
+ * @return true = changed, false = not changed
+ */
+const bool getAlwaysOn_changed(bool reset)
+{
+  bool returnValue = vAlwaysStateChanged; //get change flag
+
+  if( reset )                             //check reset flag is active
+  {
+    vAlwaysStateChanged = false;          //reset flag
+  }
+  return returnValue;
 }
