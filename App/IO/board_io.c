@@ -905,3 +905,17 @@ const void disableVsys(void)
  * @param mode
  * @param value
  */
+const void testSystemChecks( int mode, int32_t value )
+{
+  if( mode == 1)
+  {
+    if( value == 0 )
+    {
+      disableVsys();
+    }
+    else
+    {
+      enableVsys();
+    }
+  }
+}

@@ -536,6 +536,19 @@ __weak const void testBatMon( int mode, int32_t * value )
   UNUSED(value);
 }
 
+/**
+ * @fn const void testSystemChecks(int, int32_t*)
+ * @brief
+ *
+ * @param mode
+ * @param value
+ */
+__weak const void testSystemChecks( int mode, int32_t value )
+{
+  UNUSED(mode);
+  UNUSED(value);
+}
+
 void sendError(int arguments, const char * format, ... );
 void sendOkay(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -557,6 +570,7 @@ void sendTestFRAM( int test );
 void sendTestDataflash( int test, int subTest, char * extraArguments );
 void sendTestRTC( int test, int subTest, char * extraArguments );
 void sendTestBatMonitor( int test, int subTest);
+void sendTestSystemCheck(int test, int subTest, char * extraArguments);
 
 void rcvJoinId(int arguments, const char * format, ...);
 void rcvDeviceID(int arguments, const char * format, ...);
@@ -902,6 +916,12 @@ void executeTest(int test, int subTest, char * extraArguments)
     case 11: //test dataflash
 
       sendTestDataflash(test, subTest, extraArguments);
+
+      break;
+
+    case 12: //test system checks
+
+      sendTestSystemCheck(test, subTest, extraArguments);
 
       break;
 
@@ -1848,6 +1868,31 @@ void sendTestBatMonitor(int test, int subTest)
 }
 
 /**
+ * @fn void sendTestSystemCheck(,)
+ * @brief
+ *
+ * @param test
+ * @param subTest
+ */
+void sendTestSystemCheck(int test, int subTest, char * extraArguments)
+{
+  char *ptr; //dummy pointer
+  if (subTest >= 0 && subTest <= 1)
+  {
+    int32_t value = strtol(additionalArgumentsString+1, &ptr, 10); //read day, skip <comma>, increment ptr.
+
+    testSystemChecks(subTest, value);
+    snprintf((char*) bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,%ld\r\n", cmdTest, test, subTest, value); //make response
+    uartSend_Config(bufferTxConfig, strlen((char*) bufferTxConfig)); //send response
+  }
+  else
+  {
+    sendError(0, 0);
+  }
+}
+
+
+/**
  * @brief send alwaysOn supply setting to config uart
  *
  * @param arguments not used
@@ -1957,7 +2002,7 @@ void rcvTest(int arguments, const char * format, ...)
 
   //todo set sensorStatus
 
-  if( test >= 0 && test <= 11 )
+  if( test >= 0 && test <= 12 )
   {
     dataTest = true;
     currentTest = test;
