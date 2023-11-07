@@ -191,14 +191,15 @@ const void init_io_internal(ENUM_IO_ITEM item)
 }
 
 /**
- * @fn const void init_io_external(ENUM_IO_ITEM)
+ * @fn const void init_io_external(ENUM_IO_ITEM, bool)
  * @brief function to initialize an internal I/O pin based on the definition of struct_BoardIO_PinConfig
  *
  * @param item
+ * @param forceUpdate
  */
-const void init_io_external(ENUM_IO_ITEM item)
+const void init_io_external(ENUM_IO_ITEM item, bool forceUpdate)
 {
-
+  int8_t result = false;
   if( item >= MAX_IO_ITEM )
   {
     APP_LOG(TS_OFF, VLEVEL_H, "Wrong input: item (%d) out of range.\r\n", item );
@@ -213,9 +214,16 @@ const void init_io_external(ENUM_IO_ITEM item)
     return;
   }
 
-  if( init_IO_ExpanderPin(stIO_PinConfig[item].device, stIO_PinConfig[item].direction, stIO_PinConfig[item].pin, stIO_PinConfig[item].active) < 0 ) //Initialize IO Expander pins in register variables
+  result = init_IO_ExpanderPin(stIO_PinConfig[item].device, stIO_PinConfig[item].direction, stIO_PinConfig[item].pin, stIO_PinConfig[item].active); //Initialize IO Expander pins in register variables
+  if( result < 0 )
   { //error.
     APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: out of range of item %d.\r\n", item );
+    return;
+  }
+
+  if( forceUpdate ) //check if output needs to be updated directly
+  {
+    init_IO_Expander(stIO_PinConfig[item].device);
   }
 }
 
@@ -258,7 +266,7 @@ const void init_board_io(void)
       case IO_EXTERNAL:
 
         externalFound = true;
-        init_io_external(i); //init internal I/O
+        init_io_external(i, false); //init internal I/O, no force update. This is done for all I/O together.
 
         break;
 
