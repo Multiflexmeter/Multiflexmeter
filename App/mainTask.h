@@ -20,4 +20,7 @@ const void stop_mainTask(bool resume);
 const void pause_mainTask(void);
 const void resume_mainTask(void);
 
+const void enable_vAlwaysOn(void);
+const void disable_vAlwaysOn(void);
+
 #endif /* MAINTASK_H_ */

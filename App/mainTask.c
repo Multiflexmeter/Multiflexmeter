@@ -30,6 +30,12 @@ static UTIL_TIMER_Time_t MainPeriodSleep = 60000;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
 static bool enableListenUart;
 
+static UTIL_TIMER_Object_t AlwaysOnSwitch_Timer;
+static UTIL_TIMER_Time_t AlwaysOnSwitchOnTime = 3000; //3sec
+static UTIL_TIMER_Time_t AlwaysOnSwitchOffTime = 6000; //6sec
+
+static const void init_vAlwaysOn(void);
+
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
  * @brief function to set next trigger period of mainTask
@@ -61,6 +67,17 @@ const void mainTask(void)
 
       init_board_io(); //init IO
       initLedTimer(); //init LED timer
+      init_vAlwaysOn();
+
+      //get configuration always on
+      if( getAlwaysOn() )
+      {
+        enable_vAlwaysOn(); //enable vAlwaysOn supply
+      }
+      else
+      {
+        disable_vAlwaysOn(); //disable vAlwaysOn supply
+      }
 
       mainTask_state++;
       break;
@@ -188,4 +205,46 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     enableListenUart = true;
     UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStoreContextEvent), CFG_SEQ_Prio_0);
   }
+}
+
+/**
+ * @fn const void delayedSwitchOff_IO_vAlwaysOn(void)
+ * @brief function to delayed switch off the vAlwaysOn set pin
+ *
+ */
+static const void delayedSwitchOff_IO_vAlwaysOn(void *context)
+{
+  writeOutput_board_io(EXT_IOVALWAYS_EN, GPIO_PIN_RESET);
+}
+
+/**
+ * @fn const void init_vAlwaysOn(void)
+ * @brief function to create timer at power up
+ *
+ */
+static const void init_vAlwaysOn(void)
+{
+  UTIL_TIMER_Create(&AlwaysOnSwitch_Timer, AlwaysOnSwitchOnTime, UTIL_TIMER_ONESHOT, delayedSwitchOff_IO_vAlwaysOn, NULL); //create timer
+}
+
+/**
+ * @fn const void enable_vAlwaysOn(void)
+ * @brief function to start enable vAlways on supply
+ *
+ */
+const void enable_vAlwaysOn(void)
+{
+  writeOutput_board_io(EXT_IOVALWAYS_EN, GPIO_PIN_SET);
+  UTIL_TIMER_StartWithPeriod(&AlwaysOnSwitch_Timer, AlwaysOnSwitchOnTime); //set new time and start timer
+}
+
+/**
+ * @fn const void disable_vAlwaysOn(void)
+ * @brief function to start disable vAlways on supply
+ *
+ */
+const void disable_vAlwaysOn(void)
+{
+  writeOutput_board_io(EXT_IOVALWAYS_EN, GPIO_PIN_SET);
+  UTIL_TIMER_StartWithPeriod(&AlwaysOnSwitch_Timer, AlwaysOnSwitchOffTime); //set new time and start timer
 }
