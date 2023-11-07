@@ -136,6 +136,54 @@ static struct_BoardIO_PinConfig stIO_PinConfig[]=
 };
 
 /**
+ * @fn const void init_io_internal(ENUM_IO_ITEM)
+ * @brief function to initialize an internal I/O pin based on the definition of struct_BoardIO_PinConfig
+ *
+ * @param item
+ */
+const void init_io_internal(ENUM_IO_ITEM item)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  if( item >= MAX_IO_ITEM )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong input: item (%d) out of range.\r\n", item );
+    assert_param( 0 );
+    return;
+  }
+
+  memset(&GPIO_InitStruct, 0x00, sizeof(GPIO_InitStruct)); //set struct default value
+
+  if( IS_GPIO_ALL_INSTANCE(stIO_PinConfig[item].GPIOx) ) //check GPIO is set
+  {
+    GPIO_InitStruct.Pin = stIO_PinConfig[item].pin;      //set PIN
+    GPIO_InitStruct.Pull = stIO_PinConfig[item].pullup;  //set Pull
+    switch( stIO_PinConfig[item].direction )             //check direction
+    {
+      case IO_INPUT:
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;       //set input
+        break;
+
+      case IO_OUTPUT:
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;   //set normal output
+        break;
+
+      default:
+        GPIO_InitStruct.Mode = 0;
+        break;
+    }
+
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;      //default low speed
+
+    HAL_GPIO_Init(stIO_PinConfig[item].GPIOx, &GPIO_InitStruct); //init GPIO
+  }
+  else
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: GPIOx is wrong.\r\n", item );
+  }
+}
+
+/**
  * @fn void init_board_io(void)
  * @brief function to init board IO
  *
