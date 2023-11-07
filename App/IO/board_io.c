@@ -258,10 +258,7 @@ const void init_board_io(void)
       case IO_EXTERNAL:
 
         externalFound = true;
-        if( init_IO_ExpanderPin(stIO_PinConfig[i].device, stIO_PinConfig[i].direction, stIO_PinConfig[i].pin, stIO_PinConfig[i].active) < 0 ) //Initialize IO Expander pins in register variables
-        { //error.
-          APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: out of range of item %d.\r\n", i );
-        }
+        init_io_external(i); //init internal I/O
 
         break;
 
