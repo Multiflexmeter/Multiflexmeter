@@ -681,6 +681,89 @@ const void toggleOutput_board_io(ENUM_IO_ITEM item)
 }
 
 /**
+ * @fn const void setAsInput(ENUM_IO_ITEM)
+ * @brief function to set an I/O as input
+ *
+ * @param item
+ */
+const void setAsInput(ENUM_IO_ITEM item)
+{
+
+  if (item >= MAX_IO_ITEM)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong input: item (%d) out of range.\r\n", item);
+    assert_param(0);
+    return;
+  }
+
+  stIO_PinConfig[item].direction = IO_INPUT;
+
+
+  switch (stIO_PinConfig[item].io_location)
+  {
+    case IO_INTERAL:    //only for IO_INTERAL
+
+      init_io_internal(item);
+
+      break;
+
+    case IO_EXTERNAL:   //only for IO_EXTERNAL
+
+      init_io_external(item, true);
+
+      break;
+
+    default:
+
+      //nothing
+      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: location (%d) out of range of item %d.\r\n", stIO_PinConfig[item].io_location, item);
+
+      break;
+  }
+}
+
+/**
+ * @fn const void setAsOutput(ENUM_IO_ITEM)
+ * @brief function to set an I/O as output.
+ *
+ * @param item
+ */
+const void setAsOutput(ENUM_IO_ITEM item)
+{
+
+  if (item >= MAX_IO_ITEM)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong input: item (%d) out of range.\r\n", item);
+    assert_param(0);
+    return;
+  }
+
+  stIO_PinConfig[item].direction = IO_OUTPUT;
+
+  switch (stIO_PinConfig[item].io_location)
+  {
+    case IO_INTERAL:    //only for IO_INTERAL
+
+      init_io_internal(item);
+
+      break;
+
+    case IO_EXTERNAL:   //only for IO_EXTERNAL
+
+      init_io_external(item, true);
+
+      break;
+
+    default:
+
+      //nothing
+      APP_LOG(TS_OFF, VLEVEL_H, "Wrong definition in stIO_PinConfig struct: location (%d) out of range of item %d.\r\n", stIO_PinConfig[item].io_location, item);
+
+      break;
+  }
+}
+
+/**
  * @fn const bool lightInput(void)
  * @brief function to get light sensor status
  *
