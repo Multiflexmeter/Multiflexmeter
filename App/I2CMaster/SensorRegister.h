@@ -47,19 +47,6 @@ typedef enum{
   MEASUREMENT_ERROR = 0xF0
 }MeasurementStatus;
 
-
-typedef struct __attribute__((__packed__))
-{
-  int32_t pressure;
-  int32_t temperature;
-}SensorDataKeller;
-
-typedef struct __attribute__((__packed__))
-{
-  uint16_t pressure;
-  uint8_t temperature;
-}SensorDataHuba;
-
 typedef struct
 {
   uint8_t adres;
