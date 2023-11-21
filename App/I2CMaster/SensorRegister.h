@@ -11,15 +11,12 @@
 #define REG_MEAS_START            0x10
 #define REG_MEAS_STATUS           0x11
 #define REG_MEAS_TIME             0x12
-#define REG_MEAS_SIZE             0x20
-#define REG_MEAS_DATA             0x21
+#define REG_MEAS_DATA             0x20
 #define REG_SENSOR_AMOUNT         0x30
 #define REG_SENSOR_SELECTED       0x31
 #define REG_MEAS_TYPE             0x32
 #define REG_MEAS_SAMPLES          0x33
-#define REG_SENSOR_UNIT           0x37
-#define REG_SENSOR_SIZE           0x38
-#define REG_SENSOR_DATA           0x39
+#define REG_SENSOR_DATA           0x38
 #define REG_ERROR_COUNT           0x50
 #define REG_ERROR_STATUS          0x51
 
@@ -27,7 +24,8 @@
 /* Typedefs */
 typedef enum{
   UINT8_T = 1,
-  UINT16_T = 2
+  UINT16_T = 2,
+  SENSORDATA = 8
 }tENUM_Datatype;
 
 typedef enum{
@@ -41,6 +39,13 @@ typedef enum{
   READ,
   READWRITE
 }tENUM_READWRITE;
+
+typedef enum{
+  NO_MEASUREMENT = 0x00,
+  MEASUREMENT_ACTIVE = 0x01,
+  MEASUREMENT_DONE = 0x0A,
+  MEASUREMENT_ERROR = 0xF0
+}MeasurementStatus;
 
 typedef struct
 {

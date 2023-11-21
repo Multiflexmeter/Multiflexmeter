@@ -3,16 +3,37 @@
 #define I2C_MASTER_H_
 
 #include "main.h"
+#include "SensorRegister.h"
 
 /* Typedefs */
 typedef enum{
-  I2C_OK,
-  I2C_CRC_ERROR,
-  I2C_ADDR_ERROR,
-  I2C_TIMEOUT
-}tENUM_SensorError;
+  SENSOR_OK,
+  SENSOR_CRC_ERROR,
+  SENSOR_ADDR_ERROR,
+  SENSOR_TIMEOUT
+}SensorError;
 
-tENUM_SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_t *data);
-tENUM_SensorError sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, uint8_t *data);
+typedef enum{
+  SENSOR_MODULE_1 = 0x11<<1,
+  SENSOR_MODULE_2 = 0x12<<1,
+  SENSOR_MODULE_3 = 0x13<<1,
+  SENSOR_MODULE_4 = 0x14<<1,
+  SENSOR_MODULE_5 = 0x15<<1,
+  SENSOR_MODULE_6 = 0x16<<1
+}SensorAddress;
+
+void sensorFirmwareVersion(SensorAddress address, char *firmwareVersion);
+uint8_t sensorProtocolVersion(SensorAddress address);
+uint16_t sensorReadType(SensorAddress address);
+void sensorStartMeasurement(SensorAddress address);
+MeasurementStatus sensorMeasurementStatus(SensorAddress address);
+void sensorWriteSetupTime(SensorAddress address, uint16_t setupTime);
+uint16_t sensorReadSetupTime(SensorAddress address);
+SensorError sensorReadMeasurement(SensorAddress address, uint8_t* measurementData);
+uint8_t sensorReadSelection(SensorAddress address);
+void sensorWriteSelection(SensorAddress address, uint8_t sensor);
+void sensorSetSamples(SensorAddress address, uint8_t samples);
+uint8_t sensorReadSamples(SensorAddress address);
+SensorError sensorReadSelected(SensorAddress address, uint8_t* measurementData);
 
 #endif /* I2C_MASTER_H_ */
