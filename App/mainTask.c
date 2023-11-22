@@ -11,13 +11,16 @@
   */
 
 #include "main.h"
+#include "sys_app.h"
 #include "common/app_types.h"
 #include "utilities_def.h"
 #include "stm32_seq.h"
 #include "stm32_timer.h"
 
 #include "IO/board_io.h"
+#include "IO/board_io_functions.h"
 #include "IO/led.h"
+#include "I2CMaster/SensorFunctions.h"
 #include "CommConfig.h"
 #include "MFMconfiguration.h"
 #include "mainTask.h"
@@ -34,6 +37,13 @@ static bool enableListenUart;
 static UTIL_TIMER_Object_t AlwaysOnSwitch_Timer;
 static UTIL_TIMER_Time_t AlwaysOnSwitchOnTime = 3000; //3sec
 static UTIL_TIMER_Time_t AlwaysOnSwitchOffTime = 6000; //6sec
+
+static UTIL_TIMER_Object_t wait_Timer;
+static volatile bool waiting = false;
+
+static uint8_t dataBuffer[100];
+static uint8_t sensorModuleId = 0;
+static bool sensorModuleEnabled = false;
 
 static const void init_vAlwaysOn(void);
 
@@ -69,6 +79,18 @@ const void executeAlwaysOn(void)
 }
 
 /**
+ * @fn const void setWait(int)
+ * @brief helper function to set a wait time
+ *
+ * @param periodMs
+ */
+const void setWait(int periodMs)
+{
+  waiting = true; //enable wait
+  UTIL_TIMER_StartWithPeriod(&wait_Timer, periodMs); //set timer
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -94,16 +116,130 @@ const void mainTask(void)
 
     case 1: //init Sleep
 
-
       if( enableListenUart )
       {
         uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
       }
 
-      mainTask_state++;
+      //check if at least one sensor module is enabled
+      for( int i=0; i < MAX_SENSOR_MODULE -1; i++)
+      {
+        if( getSensorStatus(i) == true )
+        {
+          //check if this is the first sensor slot.
+          if( sensorModuleId == false )
+          {
+            sensorModuleId = i; //start at the first found index.
+          }
+          sensorModuleEnabled = true; //a module found, copy
+        }
+      }
+
+      if( sensorModuleEnabled )
+      {
+        mainTask_state++; //at least one active sensor module slot
+      }
+      else
+      {
+        mainTask_state = 99; //no sensor slot is active
+      }
+
       break;
 
-    case 2:
+    case 2: //enable sensor supply
+
+      slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
+      setWait(1000); //set wait time 1000ms
+      mainTask_state++; //next state
+
+      break;
+
+    case 3: //start measure
+
+      if( waiting == false ) //check wait time is expired
+      {
+        sensorFirmwareVersion(sensorModuleId, dataBuffer, sizeof(dataBuffer));
+
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module firmware: %d, %s\r\n", sensorModuleId, dataBuffer ); //print VERSION
+
+        uint8_t protocolVersion = sensorProtocolVersion(sensorModuleId);
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module protocol version: %d, %d\r\n", sensorModuleId, protocolVersion ); //print protocol version
+
+        uint8_t sensorType = sensorReadType(sensorModuleId);
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module type: %d, %d\r\n", sensorModuleId, sensorType ); //print sensor type
+
+        uint16_t sensorSetupTime = sensorReadSetupTime(sensorModuleId);
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module setup time: %d, %u\r\n", sensorModuleId, sensorSetupTime ); //print sensor setup time
+
+        sensorStartMeasurement(sensorModuleId);
+
+        setWait(100);  //set wait time 1000ms
+
+        mainTask_state++; //next state
+      }
+
+      break;
+
+    case 4:
+
+      if( waiting == false ) //check wait time is expired
+      {
+        MeasurementStatus newStatus = sensorMeasurementStatus(sensorModuleId);
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure status: %d, %d\r\n", sensorModuleId, newStatus ); //print sensor type
+
+        if( newStatus != MEASUREMENT_ACTIVE )
+        {
+          mainTask_state++; //next state
+        }
+        else
+        {
+          setWait(100);  //set wait time 100ms
+        }
+      }
+
+      break;
+
+    case 5: //read measurement
+
+      if( waiting == false ) //check wait time is expired
+      {
+        SensorError newstatus = sensorReadMeasurement(sensorModuleId, dataBuffer, sizeof(dataBuffer));
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d, %d, 0x%02x", sensorModuleId, newstatus, dataBuffer[0] ); //print sensor type
+        for(int i=0; i < dataBuffer[0]; i++)
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, ", 0x%02x", dataBuffer[i+1] ); //print data
+        }
+        APP_LOG(TS_OFF, VLEVEL_H, "\r\n" ); //print end
+
+        setWait(1000);  //set wait time 1000ms
+
+        mainTask_state++; //next state
+      }
+
+      break;
+
+    case 6:
+      if( waiting == false ) //check wait time is expired
+      {
+        setWait(10000);  //set wait time 1000ms
+
+        int escape = MAX_SENSOR_MODULE;
+        do
+        {
+          sensorModuleId++; //increment sensor ID
+          sensorModuleId %= (MAX_SENSOR_MODULE-1); //limit from 0 to 5.
+
+        }while (getSensorStatus(sensorModuleId) == false && escape--);
+
+
+
+        mainTask_state = 3;
+      }
+
+      break;
+
+    case 99:
+
       stop_mainTask(true);
 
       break;
@@ -155,6 +291,16 @@ static const void trigger_mainTask(void *context)
   trigger_mainTask_timer(); //trigger task for the scheduler
 }
 
+/**
+ * @fn const void trigger_wait(void*)
+ * @brief function to trigger after wait timer is finished.
+ *
+ * @param context
+ */
+static const void trigger_wait(void *context)
+{
+  waiting = false;
+}
 
 /**
  * @fn const void init_mainTask(void)
@@ -169,6 +315,8 @@ const void init_mainTask(void)
 
   UTIL_TIMER_Create(&MainTimer, MainPeriodNormal, UTIL_TIMER_ONESHOT, trigger_mainTask, NULL); //create timer
   UTIL_TIMER_Start(&MainTimer); //start timer
+
+  UTIL_TIMER_Create(&wait_Timer, 0, UTIL_TIMER_ONESHOT, trigger_wait, NULL); //create timer
 }
 
 

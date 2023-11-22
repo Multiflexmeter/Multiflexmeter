@@ -12,6 +12,7 @@
   */
 
 #include "main.h"
+#include "sys_app.h"
 #include "stm32wlxx_ll_rtc.h"
 #include "app_types.h"
 #include "usart.h"
