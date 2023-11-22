@@ -115,3 +115,54 @@ const void dataflash_DisableChipSelect(void)
 {
   writeOutput_board_io(EXT_IO_FLASH_NOR_CS, GPIO_PIN_RESET);
 }
+
+/**
+ * @fn const void slotPower(ENUM_slotId, bool)
+ * @brief function to control the slot power
+ * NOTE: for disable also the common vSensor supply is switched off
+ *
+ * @param slotId
+ * @param enable true = enable, false = disable
+ */
+const void slotPower(ENUM_slotId slotId, bool enable)
+{
+  assert_param( slotId >= 0 && slotId < MAX_SENSOR_SLOT );
+
+  if( slotId < 0 || slotId >= MAX_SENSOR_SLOT )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Wrong slotid\r\n", slotId );
+    return; //error, exit
+  }
+
+  GPIO_PinState pinState = enable ? GPIO_PIN_SET : GPIO_PIN_RESET;
+
+  switch(slotId)
+  {
+    case sensorSlot1:
+      writeOutput_board_io(EXT_IOVSENSOR_EN, pinState );
+      writeOutput_board_io(EXT_IOLOADSW1, pinState);
+      break;
+    case sensorSlot2:
+      writeOutput_board_io(EXT_IOVSENSOR_EN, pinState );
+      writeOutput_board_io(EXT_IOLOADSW2, pinState);
+      break;
+    case sensorSlot3:
+      writeOutput_board_io(EXT_IOVSENSOR_EN, pinState );
+      writeOutput_board_io(EXT_IOLOADSW3, pinState);
+      break;
+    case sensorSlot4:
+      writeOutput_board_io(EXT_IOVSENSOR_EN, pinState );
+      writeOutput_board_io(EXT_IOLOADSW4, pinState);
+      break;
+    case sensorSlot5:
+      writeOutput_board_io(EXT_IOVSENSOR_EN, pinState );
+      writeOutput_board_io(EXT_IOLOADSW5, pinState);
+      break;
+    case sensorSlot6:
+      writeOutput_board_io(EXT_IOVSENSOR_EN, pinState );
+      writeOutput_board_io(EXT_IOLOADSW6, pinState);
+      break;
+    default:
+      break;
+  }
+}

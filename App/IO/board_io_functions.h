@@ -33,7 +33,7 @@ const void SD_DisableChipSelect(void);
 const void dataflash_EnableChipSelect(void);
 const void dataflash_DisableChipSelect(void);
 
-
+const void slotPower(ENUM_slotId slotId, bool enable);
 
 
 #endif /* IO_BOARD_IO_FUNCTIONS_H_ */
