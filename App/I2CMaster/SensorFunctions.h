@@ -10,6 +10,8 @@
 #ifndef I2CMASTER_SENSORFUNCTIONS_H_
 #define I2CMASTER_SENSORFUNCTIONS_H_
 
+#include "I2C_Master.h"
+
 typedef enum{
   SENSOR_MODULE_ID1 = 0,
   SENSOR_MODULE_ID2,

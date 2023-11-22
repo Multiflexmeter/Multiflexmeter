@@ -12,7 +12,6 @@
 
 #include <string.h>
 
-#include "I2C_Master.h"
 #include "SensorRegister.h"
 #include "SensorFunctions.h"
 
