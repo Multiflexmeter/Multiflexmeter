@@ -20,6 +20,7 @@
 #include "IO/board_io.h"
 #include "IO/board_io_functions.h"
 #include "IO/led.h"
+#include "FRAM/FRAM_functions.h"
 #include "I2CMaster/SensorFunctions.h"
 #include "CommConfig.h"
 #include "MFMconfiguration.h"
@@ -126,11 +127,6 @@ const void mainTask(void)
       {
         if( getSensorStatus(i) == true )
         {
-          //check if this is the first sensor slot.
-          if( sensorModuleId == false )
-          {
-            sensorModuleId = i; //start at the first found index.
-          }
           sensorModuleEnabled = true; //a module found, copy
         }
       }
@@ -138,9 +134,18 @@ const void mainTask(void)
       if( sensorModuleEnabled )
       {
         mainTask_state++; //at least one active sensor module slot
+
+        getFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //read out FRAM setting module ID
+
+        if( sensorModuleId <= 0 || sensorModuleId > MAX_SENSOR_MODULE )
+        {
+          sensorModuleId = 0; //force to first.
+        }
+
       }
       else
       {
+        APP_LOG(TS_OFF, VLEVEL_H, "No sensor module slot enabled\r\n" ); //print no sensor slot enabled
         mainTask_state = 99; //no sensor slot is active
       }
 
@@ -148,9 +153,12 @@ const void mainTask(void)
 
     case 2: //enable sensor supply
 
-      slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
-      setWait(1000); //set wait time 1000ms
-      mainTask_state++; //next state
+      if( waiting == false ) //check wait time is expired
+      {
+        slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
+        setWait(1000); //set wait time 1000ms
+        mainTask_state++; //next state
+      }
 
       break;
 
@@ -213,6 +221,8 @@ const void mainTask(void)
 
         setWait(1000);  //set wait time 1000ms
 
+        slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
+
         mainTask_state++; //next state
       }
 
@@ -227,13 +237,14 @@ const void mainTask(void)
         do
         {
           sensorModuleId++; //increment sensor ID
-          sensorModuleId %= (MAX_SENSOR_MODULE-1); //limit from 0 to 5.
+          sensorModuleId %= MAX_SENSOR_MODULE; //limit from 0 to 5.
 
         }while (getSensorStatus(sensorModuleId) == false && escape--);
 
 
+        setFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //save last sensor Moudle ID
 
-        mainTask_state = 3;
+        mainTask_state = 2;
       }
 
       break;

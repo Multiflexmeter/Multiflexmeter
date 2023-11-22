@@ -15,8 +15,15 @@
 #include "FRAM.h"
 #include "FRAM_functions.h"
 
-#define ADDRESS_TEST_SETTINGS 0x0000
+#define ADDRESS_OTHER_SETTINGS 0x0000
 #define ADDRESS_LORA_SETTINGS 0x0100
+
+typedef struct
+{
+    uint8_t sensorModuleId;
+}struct_FRAM_setting;
+
+struct_FRAM_setting stFramSettings;
 
 /**
  * @fn const void saveLoraSettings(const void*, size_t)
@@ -27,6 +34,14 @@
  */
 const void saveLoraSettings( const void *pSource, size_t length )
 {
+  assert_param( ADDRESS_LORA_SETTINGS + length < 2048);
+
+  if( ADDRESS_LORA_SETTINGS + length > 2048)
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "Error FRAM lora size\r\n");
+    return;
+  }
+
   FRAM_WriteData(ADDRESS_LORA_SETTINGS,(uint8_t*)pSource, length);
 }
 
@@ -39,6 +54,14 @@ const void saveLoraSettings( const void *pSource, size_t length )
  */
 const void restoreLoraSettings( const void *pSource, size_t length)
 {
+  assert_param( ADDRESS_LORA_SETTINGS + length < 2048);
+
+  if( ADDRESS_LORA_SETTINGS + length > 2048)
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "Error FRAM lora size\r\n");
+    return;
+  }
+
   FRAM_ReadData(ADDRESS_LORA_SETTINGS,(uint8_t*)pSource, length);
 }
 
@@ -52,7 +75,15 @@ const void restoreLoraSettings( const void *pSource, size_t length)
  */
 const void saveFramSettings( const void *pSource, size_t length )
 {
-  FRAM_WriteData(ADDRESS_TEST_SETTINGS,(uint8_t*)pSource, length);
+  assert_param( ADDRESS_OTHER_SETTINGS + length < ADDRESS_LORA_SETTINGS);
+
+  if( ADDRESS_OTHER_SETTINGS + length > ADDRESS_LORA_SETTINGS)
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "Error FRAM user size\r\n");
+    return;
+  }
+
+  FRAM_WriteData(ADDRESS_OTHER_SETTINGS,(uint8_t*)pSource, length);
 }
 
 /**
@@ -64,7 +95,15 @@ const void saveFramSettings( const void *pSource, size_t length )
  */
 const void restoreFramSettings( const void *pSource, size_t length)
 {
-  FRAM_ReadData(ADDRESS_TEST_SETTINGS,(uint8_t*)pSource, length);
+  assert_param( ADDRESS_OTHER_SETTINGS + length < ADDRESS_LORA_SETTINGS);
+
+  if( ADDRESS_OTHER_SETTINGS + length > ADDRESS_LORA_SETTINGS)
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "Error FRAM user size\r\n");
+    return;
+  }
+
+  FRAM_ReadData(ADDRESS_OTHER_SETTINGS,(uint8_t*)pSource, length);
 }
 
 /**
@@ -97,4 +136,63 @@ const int8_t testFram(uint8_t * status)
   saveFramSettings(&testReadOriginal, sizeof(testReadOriginal)); //write back orinal value to FRAM
 
   return result;
+}
+
+/**
+ * @fn const int8_t setFramSetting(ENUM_FRAM_SETTING, void*, bool)
+ * @brief function to set a setting in FRAM setting struct
+ *
+ * @param setting : item to set
+ * @param value : value to set
+ * @param forceWrite : true = force write data to FRAM
+ * @return
+ */
+const int8_t setFramSetting( ENUM_FRAM_SETTING setting, void * value, bool forceWrite )
+{
+  switch(setting)
+  {
+    case FRAM_SETTING_MODEMID:
+      stFramSettings.sensorModuleId = *((uint8_t*)value);
+      break;
+
+    default:
+      return -1;
+      break;
+
+  }
+  if( forceWrite )
+  {
+    saveFramSettings(&stFramSettings, sizeof(stFramSettings)); //save value to FRAM
+  }
+  return 0;
+}
+
+/**
+ * @fn const int8_t getFramSetting(ENUM_FRAM_SETTING, void*, bool)
+ * @brief
+ *
+ * @param setting : item to get
+ * @param value : value to get
+ * @param forceRead : true = force read data to FRAM
+ * @return
+ */
+const int8_t getFramSetting( ENUM_FRAM_SETTING setting, void * value, bool forceRead )
+{
+  if( forceRead )
+  {
+    restoreFramSettings( &stFramSettings, sizeof(stFramSettings));
+  }
+
+  switch(setting)
+  {
+    case FRAM_SETTING_MODEMID:
+      *((uint8_t*)value) = stFramSettings.sensorModuleId;
+      break;
+
+    default:
+      return -1;
+      break;
+
+  }
+  return 0;
 }
