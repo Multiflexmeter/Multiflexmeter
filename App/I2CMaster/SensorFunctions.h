@@ -41,17 +41,17 @@ typedef enum{
 }SensorError;
 
 void sensorFirmwareVersion(int moduleId, char *firmwareVersion, uint16_t dataLength);
-uint8_t sensorProtocolVersion(int moduleId, uint16_t dataLength);
-uint16_t sensorReadType(int moduleId, uint16_t dataLength);
+uint8_t sensorProtocolVersion(int moduleId);
+uint16_t sensorReadType(int moduleId);;
 void sensorStartMeasurement(int moduleId);
-MeasurementStatus sensorMeasurementStatus(int moduleId, uint16_t dataLength);
+MeasurementStatus sensorMeasurementStatus(int moduleId);
 void sensorWriteSetupTime(int moduleId, uint16_t setupTime);
-uint16_t sensorReadSetupTime(int moduleId, uint16_t dataLength);
+uint16_t sensorReadSetupTime(int moduleId);
 SensorError sensorReadMeasurement(int moduleId, uint8_t* measurementData, uint16_t dataLength);
-uint8_t sensorReadSelection(int moduleId, uint16_t dataLength);
+uint8_t sensorReadSelection(int moduleId);
 void sensorWriteSelection(int moduleId, uint8_t sensor);
 void sensorSetSamples(int moduleId, uint8_t samples);
-uint8_t sensorReadSamples(int moduleId, uint16_t dataLength);
+uint8_t sensorReadSamples(int moduleId);
 SensorError sensorReadSelected(int moduleId, uint8_t* measurementData, uint16_t dataLength);
 
 #endif /* I2CMASTER_SENSORFUNCTIONS_H_ */

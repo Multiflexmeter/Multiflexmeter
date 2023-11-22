@@ -50,7 +50,7 @@ void sensorFirmwareVersion(int moduleId, char* firmwareVersion, uint16_t dataLen
  * @param moduleId The sensor module id, value 0-5.
  * @return The protocol version
  */
-uint8_t sensorProtocolVersion(int moduleId, uint16_t dataLength)
+uint8_t sensorProtocolVersion(int moduleId)
 {
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
@@ -58,7 +58,7 @@ uint8_t sensorProtocolVersion(int moduleId, uint16_t dataLength)
     return -1;
 
   uint8_t protocolVersion;
-  sensorMasterRead(sensorId2Address[moduleId], REG_PROTOCOL_VERSION, &protocolVersion, dataLength);
+  sensorMasterRead(sensorId2Address[moduleId], REG_PROTOCOL_VERSION, &protocolVersion, sizeof(protocolVersion));
   return protocolVersion;
 }
 
@@ -68,7 +68,7 @@ uint8_t sensorProtocolVersion(int moduleId, uint16_t dataLength)
  * @param moduleId The sensor module id, value 0-5.
  * @return The sensor type
  */
-uint16_t sensorReadType(int moduleId, uint16_t dataLength)
+uint16_t sensorReadType(int moduleId)
 {
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
@@ -76,7 +76,7 @@ uint16_t sensorReadType(int moduleId, uint16_t dataLength)
     return -1;
 
   uint8_t sensorType[2];
-  sensorMasterRead(sensorId2Address[moduleId], REG_SENSOR_TYPE, sensorType, dataLength);
+  sensorMasterRead(sensorId2Address[moduleId], REG_SENSOR_TYPE, sensorType, sizeof(sensorType));
   return sensorType[0] + (sensorType[1]<<8);
 }
 
@@ -102,7 +102,7 @@ void sensorStartMeasurement(int moduleId)
  * @param moduleId The sensor module id, value 0-5.
  * @return The measurement status
  */
-MeasurementStatus sensorMeasurementStatus(int moduleId, uint16_t dataLength)
+MeasurementStatus sensorMeasurementStatus(int moduleId)
 {
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
@@ -110,7 +110,7 @@ MeasurementStatus sensorMeasurementStatus(int moduleId, uint16_t dataLength)
     return MEASUREMENT_ERROR;
 
   uint8_t sensorStatus;
-  sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_STATUS, &sensorStatus, dataLength);
+  sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_STATUS, &sensorStatus, sizeof(sensorStatus));
   return sensorStatus;
 }
 
@@ -137,7 +137,7 @@ void sensorWriteSetupTime(int moduleId, uint16_t setupTime)
  * @param moduleId The sensor module id, value 0-5.
  * @return The setup time
  */
-uint16_t sensorReadSetupTime(int moduleId, uint16_t dataLength)
+uint16_t sensorReadSetupTime(int moduleId)
 {
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
@@ -145,7 +145,7 @@ uint16_t sensorReadSetupTime(int moduleId, uint16_t dataLength)
     return -1;
 
   uint8_t setupTime[2];
-  sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_TIME, setupTime, dataLength);
+  sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_TIME, setupTime, sizeof(setupTime));
   return setupTime[0] + (setupTime[1]<<8);
 }
 
@@ -176,7 +176,7 @@ SensorError sensorReadMeasurement(int moduleId, uint8_t* measurementData, uint16
  * @param moduleId The sensor module id, value 0-5.
  * @return The amount of sensors connected
  */
-uint8_t sensorReadAmount(int moduleId, uint16_t dataLength)
+uint8_t sensorReadAmount(int moduleId)
 {
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
@@ -184,7 +184,7 @@ uint8_t sensorReadAmount(int moduleId, uint16_t dataLength)
     return -1;
 
   uint8_t sensorAmount;
-  sensorMasterRead(sensorId2Address[moduleId], REG_SENSOR_AMOUNT, &sensorAmount, dataLength);
+  sensorMasterRead(sensorId2Address[moduleId], REG_SENSOR_AMOUNT, &sensorAmount, sizeof(sensorAmount));
   return sensorAmount;
 }
 
@@ -194,7 +194,7 @@ uint8_t sensorReadAmount(int moduleId, uint16_t dataLength)
  * @param moduleId The sensor module id, value 0-5.
  * @return The selected sensor
  */
-uint8_t sensorReadSelection(int moduleId, uint16_t dataLength)
+uint8_t sensorReadSelection(int moduleId)
 {
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
@@ -202,7 +202,7 @@ uint8_t sensorReadSelection(int moduleId, uint16_t dataLength)
     return -1;
 
   uint8_t sensor;
-  sensorMasterRead(sensorId2Address[moduleId], REG_SENSOR_SELECTED, &sensor, dataLength);
+  sensorMasterRead(sensorId2Address[moduleId], REG_SENSOR_SELECTED, &sensor, sizeof(sensor));
   return sensor;
 }
 
@@ -244,7 +244,7 @@ void sensorWriteSampleType(int moduleId, uint8_t sampleType)
  * @param moduleId The sensor module id, value 0-5.
  * @return The sample type
  */
-uint8_t sensorReadSampleType(int moduleId, uint16_t dataLength)
+uint8_t sensorReadSampleType(int moduleId)
 {
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
@@ -252,7 +252,7 @@ uint8_t sensorReadSampleType(int moduleId, uint16_t dataLength)
     return -1;
 
   uint8_t sampleType;
-  sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_TYPE, &sampleType, dataLength);
+  sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_TYPE, &sampleType, sizeof(sampleType));
   return sampleType;
 }
 
@@ -262,7 +262,7 @@ uint8_t sensorReadSampleType(int moduleId, uint16_t dataLength)
  * @param moduleId The sensor module id, value 0-5.
  * @return The amount of samples
  */
-uint8_t sensorReadSamples(int moduleId, uint16_t dataLength)
+uint8_t sensorReadSamples(int moduleId)
 {
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
@@ -270,7 +270,7 @@ uint8_t sensorReadSamples(int moduleId, uint16_t dataLength)
     return -1;
 
   uint8_t samples;
-  sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_SAMPLES, &samples, dataLength);
+  sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_SAMPLES, &samples, sizeof(samples));
   return samples;
 }
 
