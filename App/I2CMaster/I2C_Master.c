@@ -39,7 +39,7 @@ SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_t *
     return SENSOR_CRC_ERROR;
 
   // blank the destination buffer
-  memcpy(data, 0x00, dataLength );
+  memset(data, 0x00, dataLength );
 
   // Copy the data to the provided memory location and remove the CRC from the data
   memcpy(data, rxBuffer, regSize > dataLength ? dataLength : regSize);
