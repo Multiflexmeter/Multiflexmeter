@@ -40,7 +40,7 @@ typedef enum{
   SENSOR_ID_ERROR,
 }SensorError;
 
-void sensorFirmwareVersion(int moduleId, char *firmwareVersion, uint16_t dataLength);
+void sensorFirmwareVersion(int moduleId, uint8_t *firmwareVersion, uint16_t dataLength);
 uint8_t sensorProtocolVersion(int moduleId);
 uint16_t sensorReadType(int moduleId);;
 void sensorStartMeasurement(int moduleId);

@@ -31,7 +31,7 @@ SensorAddress sensorId2Address[] =
  *
  * @param moduleId The sensor module id, value 0-5.
  */
-void sensorFirmwareVersion(int moduleId, char* firmwareVersion, uint16_t dataLength)
+void sensorFirmwareVersion(int moduleId, uint8_t* firmwareVersion, uint16_t dataLength)
 {
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
