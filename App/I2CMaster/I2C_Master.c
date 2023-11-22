@@ -18,12 +18,12 @@ extern I2C_HandleTypeDef hi2c2;
  * @return Return I2C_OK when the function is successful.
  *         Else returns a specific error based on the type of fault.
  */
-SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_t *data, uint16_t dataLength)
+ENUM_I2C_Error sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_t *data, uint16_t dataLength)
 {
   // Determine the index of the register based on the register address
   int8_t regIndex = findRegIndex(regAddress);
   if(regIndex < 0)
-    return SENSOR_ADDR_ERROR;
+    return I2C_REGISTER_ERROR;
 
   // Determine the size of the register
   uint8_t regSize = registers[regIndex].datatype * registers[regIndex].size;
@@ -32,11 +32,11 @@ SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_t *
   uint8_t rxBuffer[regSize + CRC_SIZE];
   HAL_StatusTypeDef error = HAL_I2C_Mem_Read(&hi2c2, slaveAddress, regAddress, 1, rxBuffer, regSize + CRC_SIZE, 1000);
   if(error == HAL_TIMEOUT)
-    return SENSOR_TIMEOUT;
+    return I2C_TIMEOUT;
 
   // Check the CRC of the incoming message
   if(calculateCRC_CCITT(rxBuffer, regSize + CRC_SIZE) != 0)
-    return SENSOR_CRC_ERROR;
+    return I2C_CRC_ERROR;
 
   // blank the destination buffer
   memset(data, 0x00, dataLength );
@@ -44,7 +44,7 @@ SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_t *
   // Copy the data to the provided memory location and remove the CRC from the data
   memcpy(data, rxBuffer, regSize > dataLength ? dataLength : regSize);
 
-  return SENSOR_OK;
+  return I2C_TRANSFER_OK;
 }
 
 /**
@@ -56,12 +56,12 @@ SensorError sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_t *
  * @return Return I2C_OK when the function is successful.
  *         Else returns a specific error based on the type of fault.
  */
-SensorError sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, uint8_t *data)
+ENUM_I2C_Error sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, uint8_t *data)
 {
   // Determine the index of the register based on the register address
   int8_t regIndex = findRegIndex(regAddress);
   if(regIndex < 0)
-    return SENSOR_ADDR_ERROR;
+    return I2C_REGISTER_ERROR;
 
   // Determine the size of the register and the tx buffer
   uint8_t regSize = registers[regIndex].datatype * registers[regIndex].size;
@@ -79,9 +79,9 @@ SensorError sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, uint8_t 
   // Write data the the register
   HAL_StatusTypeDef error = HAL_I2C_Mem_Write(&hi2c2, slaveAddress, regAddress, 1, &txBuffer[1], regSize + CRC_SIZE, 1000);
   if(error == HAL_TIMEOUT)
-    return SENSOR_TIMEOUT;
+    return I2C_TIMEOUT;
 
-  return SENSOR_OK;
+  return I2C_TRANSFER_OK;
 }
 
 /**
@@ -92,14 +92,14 @@ SensorError sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, uint8_t 
  * @return Return I2C_OK when the function is successful.
  *         Else returns a specific error based on the type of fault.
  */
-SensorError sensorMasterReadVariableLength(uint8_t slaveAddress, uint8_t regAddress, uint8_t* data, uint16_t dataLength)
+ENUM_I2C_Error sensorMasterReadVariableLength(uint8_t slaveAddress, uint8_t regAddress, uint8_t* data, uint16_t dataLength)
 {
   uint8_t variableLength;
 
   /* check minimum length */
   if( dataLength <=  1 + CRC_SIZE )
   {
-    return SENSOR_BUFFER_ERROR;
+    return I2C_BUFFER_ERROR;
   }
 
   /* Select the measurement data register */
@@ -121,7 +121,7 @@ SensorError sensorMasterReadVariableLength(uint8_t slaveAddress, uint8_t regAddr
 
   /* Check the CRC of the incoming message */
   if(calculateCRC_CCITT(data, variableLength + CRC_SIZE + 1) != 0)
-    return SENSOR_CRC_ERROR;
+    return I2C_CRC_ERROR;
 
-  return SENSOR_OK;
+  return I2C_TRANSFER_OK;
 }
