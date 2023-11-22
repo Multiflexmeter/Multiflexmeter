@@ -31,6 +31,15 @@ typedef enum{
   MODULE_ADDRESS6 = 0x16<<1
 }SensorAddress;
 
+typedef enum{
+  SENSOR_OK = I2C_TRANSFER_OK ,
+  SENSOR_CRC_ERROR = I2C_CRC_ERROR,
+  SENSOR_REGISTER_ERROR = I2C_REGISTER_ERROR,
+  SENSOR_TIMEOUT = I2C_TIMEOUT,
+  SENSOR_BUFFER_ERROR = I2C_BUFFER_ERROR,
+  SENSOR_ID_ERROR,
+}SensorError;
+
 void sensorFirmwareVersion(int moduleId, char *firmwareVersion, uint16_t dataLength);
 uint8_t sensorProtocolVersion(int moduleId, uint16_t dataLength);
 uint16_t sensorReadType(int moduleId, uint16_t dataLength);

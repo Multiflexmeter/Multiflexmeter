@@ -36,7 +36,10 @@ void sensorFirmwareVersion(int moduleId, char* firmwareVersion, uint16_t dataLen
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
   if( moduleId < SENSOR_MODULE_ID1 || moduleId >= MAX_SENSOR_MODULE )
+  {
+    memset(firmwareVersion, 0x00, dataLength); //force to 0x00.
     return;
+  }
 
   sensorMasterRead(sensorId2Address[moduleId], REG_FIRMWARE_VERSION, (uint8_t*) firmwareVersion, dataLength);
 }
@@ -159,7 +162,10 @@ SensorError sensorReadMeasurement(int moduleId, uint8_t* measurementData, uint16
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
   if( moduleId < SENSOR_MODULE_ID1 || moduleId >= MAX_SENSOR_MODULE )
-    return SENSOR_BUFFER_ERROR;
+  {
+    memset(measurementData, 0x00, dataLength); //force to 0x00
+    return SENSOR_ID_ERROR;
+  }
 
   return sensorMasterReadVariableLength(sensorId2Address[moduleId], REG_MEAS_DATA, measurementData, dataLength);
 }
@@ -298,7 +304,10 @@ SensorError sensorReadSelected(int moduleId, uint8_t* measurementData, uint16_t 
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
   if( moduleId < SENSOR_MODULE_ID1 || moduleId >= MAX_SENSOR_MODULE )
-    return -1;
+  {
+    memset( measurementData, 0x00, dataLength); //force to 0x00
+    return SENSOR_ID_ERROR;
+  }
 
   return sensorMasterReadVariableLength(sensorId2Address[moduleId], REG_SENSOR_DATA, measurementData, dataLength);
 }
