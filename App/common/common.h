@@ -62,4 +62,7 @@ bool powerOnReset(void);
 void writeBackupRegister(ENUM_backupRegister backupRegisterId, uint32_t value);
 uint32_t readBackupRegister(ENUM_backupRegister backupRegisterId);
 
+uint32_t SYS_GetAdc(int channel);
+uint16_t SYS_GetVoltage(int channel, uint32_t adcValue);
+
 #endif /* COMMON_COMMON_H_ */
