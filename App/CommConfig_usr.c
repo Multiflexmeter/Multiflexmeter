@@ -15,17 +15,6 @@
 #include "common/common.h"
 #include "CommConfig_usr.h"
 
-/**
- * @fn int32_t SYS_GetAdc(int)
- * @brief weak function SYS_GetAdc(), can be override in application code
- *
- * @param sensorId
- * @return
- */
-__weak const uint32_t SYS_GetAdc(int channel)
-{
-  return 0;
-}
 
 /**
  * @brief override function for getBatterijSupply()
@@ -46,6 +35,8 @@ const uint16_t getBatterijSupply(void)
  */
 const uint16_t getVbusSupply(void)
 {
-  return (uint16_t)SYS_GetAdc(CHANNEL_4_ADC);
+  uint32_t measure = SYS_GetAdc(CHANNEL_4_ADC);
+  uint16_t supply_mV = SYS_GetVoltage(CHANNEL_4_ADC, measure);
+  return supply_mV;
 }
 
