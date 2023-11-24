@@ -63,6 +63,7 @@ static int currentSubTest;
 static char additionalArgumentsString[100];
 
 static uint32_t numberOffDumpRecords;
+static uint8_t loraBufferSize;
 
 static const char cmdError[]="ERROR";
 static const char cmdOkay[]="OK";
@@ -549,6 +550,17 @@ __weak const void testSystemChecks( int mode, int32_t value )
   UNUSED(value);
 }
 
+/**
+ * @fn const uint8_t getBufferSize(void)
+ * @brief function to get maximum buffer side.
+ *
+ * @return
+ */
+const uint8_t getBufferSize(void)
+{
+  return loraBufferSize;
+}
+
 void sendError(int arguments, const char * format, ... );
 void sendOkay(int arguments, const char * format, ... );
 void sendModuleInfo(int arguments, const char * format, ... );
@@ -571,6 +583,7 @@ void sendTestDataflash( int test, int subTest, char * extraArguments );
 void sendTestRTC( int test, int subTest, char * extraArguments );
 void sendTestBatMonitor( int test, int subTest);
 void sendTestSystemCheck(int test, int subTest, char * extraArguments);
+void sensLoraTxBufSize(int test, int subTest);
 
 void rcvJoinId(int arguments, const char * format, ...);
 void rcvDeviceID(int arguments, const char * format, ...);
@@ -922,6 +935,12 @@ void executeTest(int test, int subTest, char * extraArguments)
     case 12: //test system checks
 
       sendTestSystemCheck(test, subTest, extraArguments);
+
+      break;
+
+    case 99:
+
+      sensLoraTxBufSize(test, subTest);
 
       break;
 
@@ -1891,6 +1910,26 @@ void sendTestSystemCheck(int test, int subTest, char * extraArguments)
   }
 }
 
+/**
+ * @fn void sensLoraTxBufSize(,)
+ * @brief
+ *
+ * @param test
+ * @param subTest
+ */
+void sensLoraTxBufSize(int test, int subTest)
+{
+  if (subTest >= 0 && subTest <= 255)
+  {
+    loraBufferSize = subTest;
+    snprintf((char*) bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%u\r\n", cmdTest, test, loraBufferSize); //make response
+    uartSend_Config(bufferTxConfig, strlen((char*) bufferTxConfig)); //send response
+  }
+  else
+  {
+    sendError(0, 0);
+  }
+}
 
 /**
  * @brief send alwaysOn supply setting to config uart
@@ -2002,7 +2041,7 @@ void rcvTest(int arguments, const char * format, ...)
 
   //todo set sensorStatus
 
-  if( test >= 0 && test <= 12 )
+  if( (test >= 0 && test <= 12) || test == 99 )
   {
     dataTest = true;
     currentTest = test;
