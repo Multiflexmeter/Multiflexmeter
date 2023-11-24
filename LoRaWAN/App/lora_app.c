@@ -534,6 +534,17 @@ __weak const void restoreLoraSettings( const void *pSource, size_t length )
 }
 #endif
 
+/**
+ * @fn const uint8_t getBufferSize(void)
+ * @brief weak function to get maximum buffer side.
+ *
+ * @return
+ */
+__weak const uint8_t getBufferSize(void)
+{
+  return 50;
+}
+
 /* USER CODE END PrFD */
 
 static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
@@ -711,7 +722,7 @@ static void SendTxData(void)
     }
 
     //testcode to fill databuffer until 50 bytes.
-    while(i<50)
+    while(i<getBufferSize())
     {
       AppData.Buffer[i++] = 0xAA;
     }
