@@ -710,6 +710,12 @@ static void SendTxData(void)
       AppData.Buffer[i++] = (uint8_t)(altitudeGps & 0xFF);
     }
 
+    //testcode to fill databuffer until 50 bytes.
+    while(i<50)
+    {
+      AppData.Buffer[i++] = 0xAA;
+    }
+
     AppData.BufferSize = i;
 #endif /* CAYENNE_LPP */
 
