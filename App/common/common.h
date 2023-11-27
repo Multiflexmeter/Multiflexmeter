@@ -65,4 +65,6 @@ uint32_t readBackupRegister(ENUM_backupRegister backupRegisterId);
 uint32_t SYS_GetAdc(int channel);
 uint16_t SYS_GetVoltage(int channel, uint32_t adcValue);
 
+int getDecimal(float value, int digits);
+
 #endif /* COMMON_COMMON_H_ */
