@@ -12,6 +12,7 @@
 
 #include "main.h"
 #include "sys_app.h"
+#include "common/common.h"
 #include "common/app_types.h"
 #include "utilities_def.h"
 #include "stm32_seq.h"
@@ -213,11 +214,32 @@ const void mainTask(void)
       {
         SensorError newstatus = sensorReadMeasurement(sensorModuleId, dataBuffer, sizeof(dataBuffer));
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d, %d, 0x%02x", sensorModuleId, newstatus, dataBuffer[0] ); //print sensor type
+
         for(int i=0; i < dataBuffer[0]; i++)
         {
           APP_LOG(TS_OFF, VLEVEL_H, ", 0x%02x", dataBuffer[i+1] ); //print data
         }
         APP_LOG(TS_OFF, VLEVEL_H, "\r\n" ); //print end
+
+
+        uint8_t sensorType = sensorReadType(sensorModuleId);
+
+        if( sensorType == MFM_PREASURE_RS485 || sensorType == MFM_PREASURE_ONEWIRE)
+        {
+          uint8_t unitPress[] = "bar";
+          uint8_t unitTemp[] = " C";
+          unitTemp[0] = 176; //overwrite degree sign to ascii 176
+
+          structDataPressureSensor * pSensorData = (structDataPressureSensor*)&dataBuffer[0];
+          APP_LOG(TS_OFF, VLEVEL_H, "Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n,",
+              (int)pSensorData->pressure1, getDecimal(pSensorData->pressure1, 2), unitPress,
+              (int)pSensorData->temperature1, getDecimal(pSensorData->temperature1, 2), unitTemp,
+              (int)pSensorData->pressure2, getDecimal(pSensorData->pressure2, 2), unitPress,
+              (int)pSensorData->temperature2, getDecimal(pSensorData->temperature2, 2), unitTemp
+
+
+              ); //print sensor data
+        }
 
         setWait(1000);  //set wait time 1000ms
 
