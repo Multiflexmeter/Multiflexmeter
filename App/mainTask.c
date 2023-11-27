@@ -124,9 +124,9 @@ const void mainTask(void)
       }
 
       //check if at least one sensor module is enabled
-      for( int i=0; i < MAX_SENSOR_MODULE -1; i++)
+      for( int i=0; i < MAX_SENSOR_MODULE; i++)
       {
-        if( getSensorStatus(i) == true )
+        if( getSensorStatus(i + 1) == true )
         {
           sensorModuleEnabled = true; //a module found, copy
         }
@@ -138,7 +138,7 @@ const void mainTask(void)
 
         getFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //read out FRAM setting module ID
 
-        if( sensorModuleId <= 0 || sensorModuleId > MAX_SENSOR_MODULE )
+        if( sensorModuleId < 0 || sensorModuleId >= MAX_SENSOR_MODULE )
         {
           sensorModuleId = 0; //force to first.
         }
@@ -261,7 +261,7 @@ const void mainTask(void)
           sensorModuleId++; //increment sensor ID
           sensorModuleId %= MAX_SENSOR_MODULE; //limit from 0 to 5.
 
-        }while (getSensorStatus(sensorModuleId) == false && escape--);
+        }while (getSensorStatus(sensorModuleId + 1) == false && escape--);
 
 
         setFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //save last sensor Moudle ID
