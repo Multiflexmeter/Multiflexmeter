@@ -47,6 +47,17 @@ typedef enum{
   MEASUREMENT_ERROR = 0xF0
 }MeasurementStatus;
 
+/**
+ * @enum
+ * @brief Definition of MFM modules, only for debug purposes
+ *
+ */
+typedef enum{
+  MFM_NOT_USED = 0x00,                             /**< MFM_NOT_USED */
+  MFM_PREASURE_RS485,  /**< MFM_PREASURE_RS485 */  /**< MFM_PREASURE_RS485 */
+  MFM_PREASURE_ONEWIRE,/**< MFM_PREASURE_ONEWIRE *//**< MFM_PREASURE_ONEWIRE */
+}ENUM_MFM_MODULE;
+
 typedef struct
 {
   uint8_t adres;
@@ -54,6 +65,21 @@ typedef struct
   uint8_t size;
   tENUM_READWRITE RW;
 }SensorReg;
+
+/**
+ * @struct
+ * @brief definition of data package of MFM pressure sensor, only for debug purposes
+ *
+ */
+typedef struct __attribute__((packed))
+{
+  uint8_t dataLength;
+  float pressure1;
+  float temperature1;
+  float pressure2;
+  float temperature2;
+  uint16_t crc;
+} structDataPressureSensor;
 
 extern const SensorReg registers[];
 
