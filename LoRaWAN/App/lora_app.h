@@ -34,6 +34,7 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 const void setNewTxInterval(UTIL_TIMER_Time_t newInterval);
+const UTIL_TIMER_Time_t getForcedLoraInterval(void);
 const void triggerSaveNvmData2Fram(void);
 /* USER CODE END ET */
 

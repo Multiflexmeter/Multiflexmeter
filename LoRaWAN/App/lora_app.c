@@ -93,6 +93,7 @@ static bool requestTime = 0;
 static uint32_t nextRequestTime = 0;
 static uint32_t countTimeRequestActive;
 static uint32_t countTimeReceived;
+static UTIL_TIMER_Time_t forcedLoraInterval;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -364,6 +365,17 @@ static UTIL_TIMER_Object_t JoinLedTimer;
 const void setNewTxInterval(UTIL_TIMER_Time_t newInterval)
 {
   OnTxPeriodicityChanged( newInterval); //new lora interval in ms
+}
+
+/**
+ * @fn const UTIL_TIMER_Time_t getForcedLoraInterval(void)
+ * @brief function to return the lora interval forced by the remote side.
+ *
+ * @return force lora interval
+ */
+const UTIL_TIMER_Time_t getForcedLoraInterval(void)
+{
+  return forcedLoraInterval;
 }
 
 /**
@@ -804,6 +816,7 @@ static void SendTxData(void)
     //get lora Interval from config.
     OnTxPeriodicityChanged( getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000); //new lora interval in ms
 
+    forcedLoraInterval = nextTxIn; //save for request by mainTask.c
   }
 
   if (EventType == TX_ON_TIMER)
