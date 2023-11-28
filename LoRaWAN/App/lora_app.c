@@ -356,6 +356,17 @@ static UTIL_TIMER_Object_t JoinLedTimer;
 /* USER CODE END PV */
 
 /**
+ * @fn const void setNewTxInterval(UTIL_TIMER_Time_t)
+ * @brief function to set a new transmit interval
+ *
+ * @param newInterval
+ */
+const void setNewTxInterval(UTIL_TIMER_Time_t newInterval)
+{
+  OnTxPeriodicityChanged( newInterval); //new lora interval in ms
+}
+
+/**
  * @fn const void triggerSaveNvmData2Fram(void)
  * @brief function to save NVM data to FRAM
  *
@@ -555,6 +566,18 @@ __weak const void restoreLoraSettings( const void *pSource, size_t length )
 __weak const uint8_t getBufferSize(void)
 {
   return 50;
+}
+
+/**
+ * @fn const void setNewTxInterval_usr(void)
+ * @brief weak function to be override in user application
+ *
+ */
+__weak const void setNewTxInterval_usr(LmHandlerErrorStatus_t status)
+{
+  UNUSED(status); //not used in weak
+  UTIL_TIMER_Time_t newInterval = MAX(forcedLoraInterval, TxPeriodicity);
+  setNewTxInterval( newInterval); //new lora interval in ms
 }
 
 /* USER CODE END PrFD */
@@ -785,9 +808,7 @@ static void SendTxData(void)
 
   if (EventType == TX_ON_TIMER)
   {
-    UTIL_TIMER_Stop(&TxTimer);
-    UTIL_TIMER_SetPeriod(&TxTimer, MAX(nextTxIn, TxPeriodicity));
-    UTIL_TIMER_Start(&TxTimer);
+    setNewTxInterval_usr(status); //set new timer or callback to maintask
   }
 
   /* USER CODE END SendTxData_1 */

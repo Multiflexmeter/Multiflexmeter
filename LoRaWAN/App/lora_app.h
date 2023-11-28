@@ -28,12 +28,12 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stm32_timer.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+const void setNewTxInterval(UTIL_TIMER_Time_t newInterval);
 const void triggerSaveNvmData2Fram(void);
 /* USER CODE END ET */
 
