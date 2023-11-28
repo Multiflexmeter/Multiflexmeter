@@ -238,7 +238,6 @@ const void mainTask(void)
 
     case 5: //read measurement
 
-      if( waiting == false ) //check wait time is expired
       {
         SensorError newstatus = sensorReadMeasurement(sensorModuleId, dataBuffer, sizeof(dataBuffer));
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d, %d, 0x%02x", sensorModuleId, newstatus, dataBuffer[0] ); //print sensor type
@@ -269,7 +268,6 @@ const void mainTask(void)
               ); //print sensor data
         }
 
-        setWait(1000);  //set wait time 1000ms
         writeNewLog(sensorModuleId, sensorType, dataBuffer, dataBuffer[0]); //write log data to dataflash.
 
         triggerSendTxData(); //trigger Lora transmit
@@ -282,10 +280,8 @@ const void mainTask(void)
       break;
 
     case 6:
-      if( waiting == false ) //check wait time is expired
-      {
-        setWait(10000);  //set wait time 1000ms
 
+      {
         int escape = MAX_SENSOR_MODULE;
         do
         {
