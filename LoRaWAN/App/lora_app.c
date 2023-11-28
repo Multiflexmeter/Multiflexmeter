@@ -390,6 +390,16 @@ const void triggerSaveNvmData2Fram(void)
 #endif
 }
 
+/**
+ * @fn const void triggerSendTxData(void)
+ * @brief function to trigger txSendData external
+ *
+ */
+const void triggerSendTxData(void )
+{
+  UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaSendOnTxTimerOrButtonEvent), CFG_SEQ_Prio_0);
+}
+
 /* Exported functions ---------------------------------------------------------*/
 /* USER CODE BEGIN EF */
 
