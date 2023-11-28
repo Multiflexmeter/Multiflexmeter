@@ -823,9 +823,7 @@ static void SendTxData(void)
       }
     }
 
-    //get lora Interval from config.
-    OnTxPeriodicityChanged( getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000); //new lora interval in ms
-
+    OnTxPeriodicityChanged(nextTxIn > TxPeriodicity ? nextTxIn : TxPeriodicity); //timer only actively used without mainTask.c
     forcedLoraInterval = nextTxIn; //save for request by mainTask.c
   }
 
