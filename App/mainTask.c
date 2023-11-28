@@ -12,17 +12,23 @@
 
 #include "main.h"
 #include "sys_app.h"
+#include "utilities.h"
 #include "common/common.h"
 #include "common/app_types.h"
 #include "utilities_def.h"
 #include "stm32_seq.h"
 #include "stm32_timer.h"
+#include "stm32_systime.h"
+
+#include "lora_app.h"
+#include "LmHandlerTypes.h"
 
 #include "IO/board_io.h"
 #include "IO/board_io_functions.h"
 #include "IO/led.h"
 #include "FRAM/FRAM_functions.h"
 #include "I2CMaster/SensorFunctions.h"
+#include "logging/logging.h"
 #include "CommConfig.h"
 #include "MFMconfiguration.h"
 #include "mainTask.h"
@@ -43,9 +49,14 @@ static UTIL_TIMER_Time_t AlwaysOnSwitchOffTime = 6000; //6sec
 static UTIL_TIMER_Object_t wait_Timer;
 static volatile bool waiting = false;
 
+static UTIL_TIMER_Object_t measurement_Timer;
+static volatile bool startMeasure = true;
+
 static uint8_t dataBuffer[100];
 static uint8_t sensorModuleId = 0;
 static bool sensorModuleEnabled = false;
+static bool loraTransmitReady = false;
+static LmHandlerErrorStatus_t loraTransmitStatus;
 
 static const void init_vAlwaysOn(void);
 
@@ -90,6 +101,18 @@ const void setWait(int periodMs)
 {
   waiting = true; //enable wait
   UTIL_TIMER_StartWithPeriod(&wait_Timer, periodMs); //set timer
+}
+
+/**
+ * @fn const void setWait(int)
+ * @brief helper function to set a wait time
+ *
+ * @param periodMs
+ */
+const void setNewMeasureTime(int periodMs)
+{
+  startMeasure = false; //reset
+  UTIL_TIMER_StartWithPeriod(&measurement_Timer, periodMs); //set timer
 }
 
 /**
@@ -154,7 +177,12 @@ const void mainTask(void)
 
     case 2: //enable sensor supply
 
-      if( waiting == false ) //check wait time is expired
+      if( startMeasure == false )
+      {
+        //keep waiting
+      }
+
+      else if( waiting == false ) //check wait time is expired
       {
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
         setWait(1000); //set wait time 1000ms
@@ -242,6 +270,9 @@ const void mainTask(void)
         }
 
         setWait(1000);  //set wait time 1000ms
+        writeNewLog(sensorModuleId, sensorType, dataBuffer, dataBuffer[0]); //write log data to dataflash.
+
+        triggerSendTxData(); //trigger Lora transmit
 
         slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
 
@@ -266,7 +297,59 @@ const void mainTask(void)
 
         setFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //save last sensor Moudle ID
 
-        mainTask_state = 2;
+
+        mainTask_state++;
+      }
+
+      break;
+
+    case 7:
+
+      //wait on transmit ready flag
+      if( loraTransmitReady == true )
+      {
+        UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
+        UTIL_TIMER_Time_t forcedInterval = 0;
+
+        loraTransmitReady = false; //reset
+
+        switch( loraTransmitStatus )
+        {
+          case LORAMAC_HANDLER_DUTYCYCLE_RESTRICTED:
+
+            forcedInterval = getForcedLoraInterval();//get restricted dutycyle
+            newLoraInterval = MAX(forcedInterval, newLoraInterval); //override forced interval based on Maximum of these.
+
+            break;
+
+          case LORAMAC_HANDLER_PAYLOAD_LENGTH_RESTRICTED:
+
+            break;
+
+          case LORAMAC_HANDLER_NVM_DATA_UP_TO_DATE:
+
+            break;
+
+          case LORAMAC_HANDLER_SUCCESS:
+
+            break;
+
+          case LORAMAC_HANDLER_ERROR: //transmission not started, no JOIN
+          case LORAMAC_HANDLER_BUSY_ERROR:
+          case LORAMAC_HANDLER_NO_NETWORK_JOINED:
+          case LORAMAC_HANDLER_COMPLIANCE_RUNNING: //only for LORAMAC_VERSION == 0x01000300
+          case LORAMAC_HANDLER_CRYPTO_ERROR:
+          default:
+
+            //failed, repeat again once
+
+            break;
+        }
+
+        setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
+
+        mainTask_state=2; //go back to state waiting for new measure.
+
       }
 
       break;
@@ -336,6 +419,17 @@ static const void trigger_wait(void *context)
 }
 
 /**
+ * @fn const void trigger_measure(void*)
+ * @brief function to trigger after measure timer is finished.
+ *
+ * @param context
+ */
+static const void trigger_measure(void *context)
+{
+  startMeasure = true;
+}
+
+/**
  * @fn const void init_mainTask(void)
  * @brief function to initialize the mainTask
  *
@@ -350,6 +444,10 @@ const void init_mainTask(void)
   UTIL_TIMER_Start(&MainTimer); //start timer
 
   UTIL_TIMER_Create(&wait_Timer, 0, UTIL_TIMER_ONESHOT, trigger_wait, NULL); //create timer
+
+  UTIL_TIMER_Create(&measurement_Timer, 0, UTIL_TIMER_ONESHOT, trigger_measure, NULL); //create timer
+
+
 }
 
 
@@ -442,4 +540,15 @@ const void disable_vAlwaysOn(void)
 {
   writeOutput_board_io(EXT_IOVALWAYS_EN, GPIO_PIN_SET);
   UTIL_TIMER_StartWithPeriod(&AlwaysOnSwitch_Timer, AlwaysOnSwitchOffTime); //set new time and start timer
+}
+
+/**
+ * @fn const void setNewTxInterval_usr(void)
+ * @brief override function to disable periodically set timer from lora_app.c SendTxData() function.
+ * empty function.
+ *
+ */
+const void setNewTxInterval_usr(LmHandlerErrorStatus_t status)
+{
+  loraTransmitReady = true;
 }
