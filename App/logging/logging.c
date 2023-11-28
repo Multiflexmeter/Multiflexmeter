@@ -295,7 +295,7 @@ int8_t restoreLatestTimeFromLog(void)
  * @param dataLength
  * @return 0 = successful
  */
-int8_t writeNewLog( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, uint8_t * sensorData, uint8_t dataLength )
+int8_t writeNewLog( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, uint8_t protocol, uint8_t * sensorData, uint8_t dataLength )
 {
   int8_t result;
   bool turnoverAndErased = false;
@@ -325,6 +325,7 @@ int8_t writeNewLog( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, uint8_
 
   logdata.sensorModuleSlotId = sensorModuleSlotId; //set sensor module slot ID
   logdata.sensorModuleType = sensorModuleType; //set sensor module type
+  logdata.sensorModuleProtocol = protocol; //set sensor module protocol
   memcpy(logdata.sensorModuleData, sensorData, dataLength); //copy sensor data
 
   //check if not all bytes are used in sensorModuleData buffer

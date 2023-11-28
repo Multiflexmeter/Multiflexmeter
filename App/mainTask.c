@@ -268,7 +268,9 @@ const void mainTask(void)
               ); //print sensor data
         }
 
-        writeNewLog(sensorModuleId, sensorType, dataBuffer, dataBuffer[0]); //write log data to dataflash.
+        uint8_t sensorProtocol = sensorProtocolVersion(sensorModuleId);
+
+        writeNewLog(sensorModuleId, sensorType, sensorProtocol, &dataBuffer[1], dataBuffer[0]); //write log data to dataflash.
 
         triggerSendTxData(); //trigger Lora transmit
 
