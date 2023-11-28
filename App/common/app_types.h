@@ -30,6 +30,6 @@ typedef enum { false = 0, true } bool;
 #endif
 
 #define DMA_BUFFER                  __attribute__((section(".dma_buffer"),aligned(32)))
-
+#define UNUSED_VAR                  __attribute__((unused))
 
 #endif /* COMMON_APP_TYPES_H_ */

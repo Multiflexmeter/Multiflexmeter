@@ -40,18 +40,21 @@ typedef enum{
   SENSOR_ID_ERROR,
 }SensorError;
 
-void sensorFirmwareVersion(int moduleId, uint8_t *firmwareVersion, uint16_t dataLength);
-uint8_t sensorProtocolVersion(int moduleId);
-uint16_t sensorReadType(int moduleId);;
-void sensorStartMeasurement(int moduleId);
+uint8_t sensorFirmwareVersion(int moduleId, uint8_t *firmwareVersion, uint16_t dataLength);
+uint8_t sensorProtocolVersion(int moduleId, uint8_t * protocol);
+uint8_t sensorReadType(int moduleId, uint16_t * type);
+uint8_t sensorStartMeasurement(int moduleId);
 MeasurementStatus sensorMeasurementStatus(int moduleId);
-void sensorWriteSetupTime(int moduleId, uint16_t setupTime);
-uint16_t sensorReadSetupTime(int moduleId);
+uint8_t sensorWriteSetupTime(int moduleId, uint16_t setupTime);
+uint8_t sensorReadSetupTime(int moduleId, uint16_t * setupTime);
 SensorError sensorReadMeasurement(int moduleId, uint8_t* measurementData, uint16_t dataLength);
-uint8_t sensorReadSelection(int moduleId);
-void sensorWriteSelection(int moduleId, uint8_t sensor);
-void sensorSetSamples(int moduleId, uint8_t samples);
-uint8_t sensorReadSamples(int moduleId);
+uint8_t sensorReadAmount(int moduleId, uint8_t * numberOfSensors);
+uint8_t sensorReadSelection(int moduleId, uint8_t * selectedSensor);
+uint8_t sensorWriteSelection(int moduleId, uint8_t sensor);
+uint8_t sensorWriteSampleType(int moduleId, uint8_t sampleType);
+uint8_t sensorReadSampleType(int moduleId, uint8_t * sensorType);
+uint8_t sensorReadSamples(int moduleId, uint8_t * numberOfSamples);
+uint8_t sensorSetSamples(int moduleId, uint8_t samples);
 SensorError sensorReadSelected(int moduleId, uint8_t* measurementData, uint16_t dataLength);
 
 #endif /* I2CMASTER_SENSORFUNCTIONS_H_ */

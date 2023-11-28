@@ -195,17 +195,22 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
+        memset(dataBuffer, 0x00, sizeof(dataBuffer));
         sensorFirmwareVersion(sensorModuleId, dataBuffer, sizeof(dataBuffer));
 
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module firmware: %d, %s\r\n", sensorModuleId, dataBuffer ); //print VERSION
 
-        uint8_t protocolVersion = sensorProtocolVersion(sensorModuleId);
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module protocol version: %d, %d\r\n", sensorModuleId, protocolVersion ); //print protocol version
+        uint8_t result;
+        uint8_t sensorProtocol = 0;
+        result = sensorProtocolVersion(sensorModuleId, &sensorProtocol);
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module protocol version: %d, %d\r\n", sensorModuleId, result == SENSOR_OK ? sensorProtocol : -1); //print protocol version
 
-        uint8_t sensorType = sensorReadType(sensorModuleId);
+        uint16_t sensorType = 0;
+        result = sensorReadType(sensorModuleId, &sensorType);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module type: %d, %d\r\n", sensorModuleId, sensorType ); //print sensor type
 
-        uint16_t sensorSetupTime = sensorReadSetupTime(sensorModuleId);
+        uint16_t sensorSetupTime = 0;
+        result = sensorReadSetupTime(sensorModuleId, &sensorSetupTime);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module setup time: %d, %u\r\n", sensorModuleId, sensorSetupTime ); //print sensor setup time
 
         sensorStartMeasurement(sensorModuleId);
@@ -248,8 +253,9 @@ const void mainTask(void)
         }
         APP_LOG(TS_OFF, VLEVEL_H, "\r\n" ); //print end
 
-
-        uint8_t sensorType = sensorReadType(sensorModuleId);
+        uint8_t UNUSED_VAR result;
+        uint16_t sensorType = 0;
+        result = sensorReadType(sensorModuleId, &sensorType);
 
         if( sensorType == MFM_PREASURE_RS485 || sensorType == MFM_PREASURE_ONEWIRE)
         {
@@ -268,7 +274,9 @@ const void mainTask(void)
               ); //print sensor data
         }
 
-        uint8_t sensorProtocol = sensorProtocolVersion(sensorModuleId);
+
+        uint8_t sensorProtocol = 0;
+        result = sensorProtocolVersion(sensorModuleId, &sensorProtocol);
 
         writeNewLog(sensorModuleId, sensorType, sensorProtocol, &dataBuffer[1], dataBuffer[0]); //write log data to dataflash.
 
