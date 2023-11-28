@@ -539,11 +539,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 /* Private functions ---------------------------------------------------------*/
 /* USER CODE BEGIN PrFD */
 
-__weak const uint16_t getLoraInterval(void)
-{
-  return 5;
-}
-
 __weak const void resume_mainTask(void)
 {
 
