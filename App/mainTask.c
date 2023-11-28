@@ -342,6 +342,7 @@ const void mainTask(void)
             break;
         }
 
+        triggerSaveNvmData2Fram(); //save NVM data
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
 
         mainTask_state=2; //go back to state waiting for new measure.
