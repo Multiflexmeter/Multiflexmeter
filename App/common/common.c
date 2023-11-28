@@ -11,7 +11,10 @@
   ******************************************************************************
   */
 
+#include <math.h>
+
 #include "main.h"
+#include "sys_app.h"
 #include "stm32wlxx_ll_rtc.h"
 #include "app_types.h"
 #include "usart.h"
@@ -176,3 +179,18 @@ uint16_t SYS_GetVoltage(int channel, uint32_t adcValue)
 
   return result;
 }
+
+/**
+ * @fn int getDecimal(float, int)
+ * @brief function to return the decimals of a floating number.
+ *
+ * @param value float input
+ * @param digits number of digits after decimal point
+ * @return number after decimal point.
+ */
+int getDecimal(float value, int digits)
+{
+  int factor = pow(10,digits);
+  return ((int)(value * factor)) % factor;
+}
+

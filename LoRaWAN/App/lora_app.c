@@ -88,11 +88,13 @@ typedef enum TxEventType_e
 #define LORAWAN_NVM_BASE_ADDRESS                    ((void *)0x0803F000UL)
 
 /* USER CODE BEGIN PD */
+static uint8_t measurement[MAX_SIZE_LOGDATA];
 static const char *slotStrings[] = { "1", "2", "C", "C_MC", "P", "P_MC" };
 static bool requestTime = 0;
 static uint32_t nextRequestTime = 0;
 static uint32_t countTimeRequestActive;
 static uint32_t countTimeReceived;
+static UTIL_TIMER_Time_t forcedLoraInterval;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -358,6 +360,50 @@ static UTIL_TIMER_Object_t JoinLedTimer;
 /* Exported functions ---------------------------------------------------------*/
 /* USER CODE BEGIN EF */
 
+/**
+ * @fn const void setNewTxInterval(UTIL_TIMER_Time_t)
+ * @brief function to set a new transmit interval
+ *
+ * @param newInterval
+ */
+const void setNewTxInterval(UTIL_TIMER_Time_t newInterval)
+{
+  OnTxPeriodicityChanged( newInterval); //new lora interval in ms
+}
+
+/**
+ * @fn const UTIL_TIMER_Time_t getForcedLoraInterval(void)
+ * @brief function to return the lora interval forced by the remote side.
+ *
+ * @return force lora interval
+ */
+const UTIL_TIMER_Time_t getForcedLoraInterval(void)
+{
+  return forcedLoraInterval;
+}
+
+/**
+ * @fn const void triggerSaveNvmData2Fram(void)
+ * @brief function to save NVM data to FRAM
+ *
+ */
+const void triggerSaveNvmData2Fram(void)
+{
+#ifdef FRAM_USED_FOR_NVM_DATA
+    UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStoreContextEvent), CFG_SEQ_Prio_0); //save lora settings to FRAM.
+#endif
+}
+
+/**
+ * @fn const void triggerSendTxData(void)
+ * @brief function to trigger txSendData external
+ *
+ */
+const void triggerSendTxData(void )
+{
+  UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaSendOnTxTimerOrButtonEvent), CFG_SEQ_Prio_0);
+}
+
 /* USER CODE END EF */
 
 void LoRaWAN_Init(void)
@@ -494,11 +540,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 /* Private functions ---------------------------------------------------------*/
 /* USER CODE BEGIN PrFD */
 
-__weak const uint16_t getLoraInterval(void)
-{
-  return 5;
-}
-
 __weak const void resume_mainTask(void)
 {
 
@@ -543,6 +584,18 @@ __weak const void restoreLoraSettings( const void *pSource, size_t length )
 __weak const uint8_t getBufferSize(void)
 {
   return 50;
+}
+
+/**
+ * @fn const void setNewTxInterval_usr(void)
+ * @brief weak function to be override in user application
+ *
+ */
+__weak const void setNewTxInterval_usr(LmHandlerErrorStatus_t status)
+{
+  UNUSED(status); //not used in weak
+  UTIL_TIMER_Time_t newInterval = MAX(forcedLoraInterval, TxPeriodicity);
+  setNewTxInterval( newInterval); //new lora interval in ms
 }
 
 /* USER CODE END PrFD */
@@ -638,97 +691,54 @@ static void SendTxData(void)
   /* USER CODE BEGIN SendTxData_1 */
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
   uint8_t batteryLevel = GetBatteryLevel();
-  sensor_t sensor_data;
   UTIL_TIMER_Time_t nextTxIn = 0;
-  uint8_t data[3];
+  STRUCT_logdata *logdata = (STRUCT_logdata *)&measurement[0];
 
   if (LmHandlerIsBusy() == false)
   {
-#ifdef CAYENNE_LPP
-    uint8_t channel = 0;
-#else
-    uint16_t pressure = 0;
-    int16_t temperature = 0;
-    uint16_t humidity = 0;
     uint32_t i = 0;
-    int32_t latitude = 0;
-    int32_t longitude = 0;
-    uint16_t altitudeGps = 0;
-#endif /* CAYENNE_LPP */
-
-    EnvSensors_Read(&sensor_data);
 
     APP_LOG(TS_ON, VLEVEL_M, "VDDA: %d\r\n", batteryLevel);
-    APP_LOG(TS_ON, VLEVEL_M, "temp: %d\r\n", (int16_t)(sensor_data.temperature));
 
     AppData.Port = LORAWAN_USER_APP_PORT;
 
-    //fill in log data
-    data[0] = batteryLevel;
-    data[1] = (int16_t)(sensor_data.temperature) & 0xFF;
-    data[2] = ((int16_t)(sensor_data.temperature)>>8 ) & 0xFF;
+    /* read latest log data */
+    readLog(getLatestLogId() > 0 ? getLatestLogId() - 1 : 0, measurement, sizeof(measurement));
 
-    writeNewLog(0, data, sizeof(data)); //write log data to dataflash.
+    /* get sensor module data size */
+    uint8_t sensorDataSize = logdata->sensorModuleDatasize;
 
-#ifdef CAYENNE_LPP
-    CayenneLppReset();
-    CayenneLppAddBarometricPressure(channel++, sensor_data.pressure);
-    CayenneLppAddTemperature(channel++, sensor_data.temperature);
-    CayenneLppAddRelativeHumidity(channel++, (uint16_t)(sensor_data.humidity));
-
-    if ((LmHandlerParams.ActiveRegion != LORAMAC_REGION_US915) && (LmHandlerParams.ActiveRegion != LORAMAC_REGION_AU915)
-        && (LmHandlerParams.ActiveRegion != LORAMAC_REGION_AS923))
+    /* check if size is within limit of 36 bytes */
+    if( sensorDataSize >= sizeof(logdata->sensorModuleData) )
     {
-      CayenneLppAddDigitalInput(channel++, GetBatteryLevel());
-      CayenneLppAddDigitalOutput(channel++, AppLedStateOn);
+      sensorDataSize = sizeof(logdata->sensorModuleData); //Maximize on 36 bytes
     }
 
-    CayenneLppCopy(AppData.Buffer);
-    AppData.BufferSize = CayenneLppGetSize();
-#else  /* not CAYENNE_LPP */
-    humidity    = (uint16_t)(sensor_data.humidity * 10);            /* in %*10     */
-    temperature = (int16_t)(sensor_data.temperature);
-    pressure = (uint16_t)(sensor_data.pressure * 100 / 10); /* in hPa / 10 */
+    /* fill in log data */
+    AppData.Buffer[i++] = 0; //protocol MFM
+    AppData.Buffer[i++] = logdata->sensorModuleSlotId;
+    AppData.Buffer[i++] = logdata->sensorModuleType;
+    AppData.Buffer[i++] = logdata->sensorModuleProtocol;
+    AppData.Buffer[i++] = sensorDataSize;
 
-    AppData.Buffer[i++] = AppLedStateOn;
-    AppData.Buffer[i++] = (uint8_t)((pressure >> 8) & 0xFF);
-    AppData.Buffer[i++] = (uint8_t)(pressure & 0xFF);
-    AppData.Buffer[i++] = (uint8_t)(temperature & 0xFF);
-    AppData.Buffer[i++] = (uint8_t)((humidity >> 8) & 0xFF);
-    AppData.Buffer[i++] = (uint8_t)(humidity & 0xFF);
+    /* copy sensordata max 36 bytes */
+    memcpy(&AppData.Buffer[i],logdata->sensorModuleData, sensorDataSize );
+    i+=sensorDataSize;
+    AppData.Buffer[i++] = batteryLevel;
 
-    if ((LmHandlerParams.ActiveRegion == LORAMAC_REGION_US915) || (LmHandlerParams.ActiveRegion == LORAMAC_REGION_AU915)
-        || (LmHandlerParams.ActiveRegion == LORAMAC_REGION_AS923))
-    {
-      AppData.Buffer[i++] = 0;
-      AppData.Buffer[i++] = 0;
-      AppData.Buffer[i++] = 0;
-      AppData.Buffer[i++] = 0;
-    }
-    else
-    {
-      latitude = sensor_data.latitude;
-      longitude = sensor_data.longitude;
 
-      AppData.Buffer[i++] = GetBatteryLevel();        /* 1 (very low) to 254 (fully charged) */
-      AppData.Buffer[i++] = (uint8_t)((latitude >> 16) & 0xFF);
-      AppData.Buffer[i++] = (uint8_t)((latitude >> 8) & 0xFF);
-      AppData.Buffer[i++] = (uint8_t)(latitude & 0xFF);
-      AppData.Buffer[i++] = (uint8_t)((longitude >> 16) & 0xFF);
-      AppData.Buffer[i++] = (uint8_t)((longitude >> 8) & 0xFF);
-      AppData.Buffer[i++] = (uint8_t)(longitude & 0xFF);
-      AppData.Buffer[i++] = (uint8_t)((altitudeGps >> 8) & 0xFF);
-      AppData.Buffer[i++] = (uint8_t)(altitudeGps & 0xFF);
-    }
-
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
     //testcode to fill databuffer until 50 bytes.
     while(i<getBufferSize())
     {
       AppData.Buffer[i++] = 0xAA;
     }
+//////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////
 
     AppData.BufferSize = i;
-#endif /* CAYENNE_LPP */
+
 
     if ((JoinLedTimer.IsRunning) && (LmHandlerJoinStatus() == LORAMAC_HANDLER_SET))
     {
@@ -766,16 +776,13 @@ static void SendTxData(void)
       }
     }
 
-    //get lora Interval from config.
-    OnTxPeriodicityChanged( getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000); //new lora interval in ms
-
+    OnTxPeriodicityChanged(nextTxIn > TxPeriodicity ? nextTxIn : TxPeriodicity); //timer only actively used without mainTask.c
+    forcedLoraInterval = nextTxIn; //save for request by mainTask.c
   }
 
   if (EventType == TX_ON_TIMER)
   {
-    UTIL_TIMER_Stop(&TxTimer);
-    UTIL_TIMER_SetPeriod(&TxTimer, MAX(nextTxIn, TxPeriodicity));
-    UTIL_TIMER_Start(&TxTimer);
+    setNewTxInterval_usr(status); //set new timer or callback to maintask
   }
 
   /* USER CODE END SendTxData_1 */
@@ -784,9 +791,7 @@ static void SendTxData(void)
 static void OnTxTimerEvent(void *context)
 {
   /* USER CODE BEGIN OnTxTimerEvent_1 */
-#ifdef FRAM_USED_FOR_NVM_DATA
-    UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStoreContextEvent), CFG_SEQ_Prio_0); //save lora settings to FRAM.
-#endif
+  triggerSaveNvmData2Fram();
   resume_mainTask(); //make sure mainTask is running.
   /* USER CODE END OnTxTimerEvent_1 */
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaSendOnTxTimerOrButtonEvent), CFG_SEQ_Prio_0);
@@ -848,6 +853,7 @@ static void OnTxData(LmHandlerTxParams_t *params)
       {
         APP_LOG(TS_OFF, VLEVEL_H, "UNCONFIRMED\r\n");
       }
+      triggerSaveNvmData2Fram();
     }
   }
   /* USER CODE END OnTxData_1 */
@@ -858,9 +864,7 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
   /* USER CODE BEGIN OnJoinRequest_1 */
   if (joinParams != NULL)
   {
-#ifdef FRAM_USED_FOR_NVM_DATA
-    UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStoreContextEvent), CFG_SEQ_Prio_0); //save lora settings to FRAM.
-#endif
+    triggerSaveNvmData2Fram();
 
     if (joinParams->Status == LORAMAC_HANDLER_SUCCESS)
     {

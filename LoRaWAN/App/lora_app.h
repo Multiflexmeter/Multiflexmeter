@@ -28,12 +28,15 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stm32_timer.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+const void setNewTxInterval(UTIL_TIMER_Time_t newInterval);
+const UTIL_TIMER_Time_t getForcedLoraInterval(void);
+const void triggerSaveNvmData2Fram(void);
+const void triggerSendTxData(void );
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -51,7 +54,7 @@ extern "C" {
 /*!
  * Defines the application data transmission duty cycle. 10s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            10000
+#define APP_TX_DUTYCYCLE                            172800000
 
 /*!
  * LoRaWAN User application port

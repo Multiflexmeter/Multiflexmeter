@@ -1682,7 +1682,7 @@ void sendVbusStatus(int arguments, const char * format, ...)
  */
 void sendAdc( int subTest )
 {
-  char unit[2] = "mV";
+  char unit[] = "mV";
 
   if( subTest == 19 )
   {
