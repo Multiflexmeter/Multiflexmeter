@@ -66,10 +66,6 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-//#define CHECK_ON_TCXO_32MHZ  //enable for evaluation board Nucleo-WL55JC1 //todo disable at final target.
-//#define CHECK_ON_CRYSTAL     //enable for Dekimo board
-//#define CHECK_ON_TCXO        //enable for Dekimo board
-
 //#define ERASE_VIRTUAL_EEPROM  //enable for erasing virtual EEPROM
 
 /* USER CODE END PD */
@@ -93,17 +89,6 @@ void SystemClock_Config(void);
 
 void SystemClock_Config_MSI_RC(void);
 
-#ifdef CHECK_ON_TCXO_32MHZ
-int SystemClock_Config_HSI_TXCO_32Mhz(void);
-#endif
-
-#ifdef CHECK_ON_CRYSTAL
-int SystemClock_Config_HSI_Crystal(void);
-#endif
-
-#ifdef CHECK_ON_TCXO
-int SystemClock_Config_HSI_TCXO(void);
-#endif
 
 /* USER CODE END PFP */
 
@@ -125,7 +110,7 @@ bool eraseVirtualEeprom = true;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  int clockInit = -1;
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -141,38 +126,6 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
-  //todo prevent calling SystemClock_Config().
-
-#ifdef CHECK_ON_CRYSTAL
-  if( clockInit < 0 )                                   //check if clock init is not ready
-  {
-    HAL_RCC_DeInit();
-    clockInit = SystemClock_Config_HSI_Crystal();       //init clock HSI crystal, if failed try other
-  }
-#endif
-
-#ifdef CHECK_ON_TCXO
-  if( clockInit < 0 )                                   //check if clock init is not ready
-  {
-    HAL_RCC_DeInit();
-    clockInit = SystemClock_Config_HSI_TCXO();          //init clock HSI TCXO, if failed try other
-  }
-#endif
-
-#ifdef CHECK_ON_TCXO_32MHZ
-  if( clockInit < 0 )                                   //check if clock init is not ready
-  {
-    HAL_RCC_DeInit();
-    clockInit = SystemClock_Config_HSI_TXCO_32Mhz();    //init clock HSI TCXO 32Mhz (only for evaluation board Nucleo), if failed try other
-  }
-#endif
-
-  if( clockInit < 0 )                                   //check if clock init is not ready
-  {
-    HAL_RCC_DeInit();
-    SystemClock_Config_MSI_RC();                        //init clock MSI RC, should always work
-  }
 
   /* USER CODE END SysInit */
 
@@ -272,226 +225,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-/**
-  * @brief Original System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config_MSI_RC(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-  /** Configure LSE Drive Capability
-  */
-  HAL_PWR_EnableBkUpAccess();
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
-
-  /** Configure the main internal regulator output voltage
-  */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE|RCC_OSCILLATORTYPE_MSI;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-  RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_11;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure the SYSCLKSource, HCLK, PCLK1 and PCLK2 clocks dividers
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK3|RCC_CLOCKTYPE_HCLK
-                              |RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_PCLK1
-                              |RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.AHBCLK3Divider = RCC_SYSCLK_DIV1;
-
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
-#ifdef CHECK_ON_TCXO_32MHZ
-/**
-  * @brief HSI crystal System Clock Configuration (based on 32Mhz)
-  * @retval None
-  */
-int SystemClock_Config_HSI_TXCO_32Mhz(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-  /** Configure LSE Drive Capability
-  */
-  HAL_PWR_EnableBkUpAccess();
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
-
-  /** Configure the main internal regulator output voltage
-  */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS_PWR;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-  RCC_OscInitStruct.HSEDiv = RCC_HSE_DIV1;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV4;
-  RCC_OscInitStruct.PLL.PLLN = 12;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    return -1; //failed
-  }
-
-  /** Configure the SYSCLKSource, HCLK, PCLK1 and PCLK2 clocks dividers
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK3|RCC_CLOCKTYPE_HCLK
-                              |RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_PCLK1
-                              |RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.AHBCLK3Divider = RCC_SYSCLK_DIV1;
-
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
-    return -2; //failed
-  }
-
-  return 0; //successful
-}
-
-#endif
-
-#ifdef CHECK_ON_CRYSTAL
-/**
-  * @brief HSI crystal System Clock Configuration (based on 8Mhz)
-  * @retval None
-  */
-int SystemClock_Config_HSI_Crystal(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-  /** Configure LSE Drive Capability
-  */
-  HAL_PWR_EnableBkUpAccess();
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
-
-  /** Configure the main internal regulator output voltage
-  */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-  RCC_OscInitStruct.HSEDiv = RCC_HSE_DIV1;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
-  RCC_OscInitStruct.PLL.PLLN = 12;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    return -1; //failed
-  }
-
-  /** Configure the SYSCLKSource, HCLK, PCLK1 and PCLK2 clocks dividers
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK3|RCC_CLOCKTYPE_HCLK
-                              |RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_PCLK1
-                              |RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.AHBCLK3Divider = RCC_SYSCLK_DIV1;
-
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
-    return -2; //failed
-  }
-
-  return 0; //successful
-}
-#endif
-
-#ifdef CHECK_ON_TCXO
-/**
-  * @brief HSI TCXO System Clock Configuration (based on 8Mhz)
-  * @retval None
-  */
-int SystemClock_Config_HSI_TCXO(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-  /** Configure LSE Drive Capability
-  */
-  HAL_PWR_EnableBkUpAccess();
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
-
-  /** Configure the main internal regulator output voltage
-  */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS_PWR;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-  RCC_OscInitStruct.HSEDiv = RCC_HSE_DIV1;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
-  RCC_OscInitStruct.PLL.PLLN = 12;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    return -1; //failed
-  }
-
-  /** Configure the SYSCLKSource, HCLK, PCLK1 and PCLK2 clocks dividers
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK3|RCC_CLOCKTYPE_HCLK
-                              |RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_PCLK1
-                              |RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.AHBCLK3Divider = RCC_SYSCLK_DIV1;
-
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
-    return -2; //failed
-  }
-
-  return 0; //successful
-}
-#endif
 
 /* USER CODE END 4 */
 
