@@ -356,6 +356,9 @@ static UTIL_TIMER_Object_t JoinLedTimer;
 
 /* USER CODE END PV */
 
+/* Exported functions ---------------------------------------------------------*/
+/* USER CODE BEGIN EF */
+
 /**
  * @fn const void setNewTxInterval(UTIL_TIMER_Time_t)
  * @brief function to set a new transmit interval
@@ -399,9 +402,6 @@ const void triggerSendTxData(void )
 {
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaSendOnTxTimerOrButtonEvent), CFG_SEQ_Prio_0);
 }
-
-/* Exported functions ---------------------------------------------------------*/
-/* USER CODE BEGIN EF */
 
 /* USER CODE END EF */
 
