@@ -54,7 +54,7 @@ const void triggerSendTxData(void );
 /*!
  * Defines the application data transmission duty cycle. 10s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            10000
+#define APP_TX_DUTYCYCLE                            172800000
 
 /*!
  * LoRaWAN User application port
