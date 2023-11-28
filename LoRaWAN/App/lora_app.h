@@ -34,6 +34,7 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
+const void triggerSaveNvmData2Fram(void);
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

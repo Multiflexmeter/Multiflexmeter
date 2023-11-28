@@ -355,6 +355,18 @@ static UTIL_TIMER_Object_t JoinLedTimer;
 
 /* USER CODE END PV */
 
+/**
+ * @fn const void triggerSaveNvmData2Fram(void)
+ * @brief function to save NVM data to FRAM
+ *
+ */
+const void triggerSaveNvmData2Fram(void)
+{
+#ifdef FRAM_USED_FOR_NVM_DATA
+    UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStoreContextEvent), CFG_SEQ_Prio_0); //save lora settings to FRAM.
+#endif
+}
+
 /* Exported functions ---------------------------------------------------------*/
 /* USER CODE BEGIN EF */
 
@@ -784,9 +796,7 @@ static void SendTxData(void)
 static void OnTxTimerEvent(void *context)
 {
   /* USER CODE BEGIN OnTxTimerEvent_1 */
-#ifdef FRAM_USED_FOR_NVM_DATA
-    UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStoreContextEvent), CFG_SEQ_Prio_0); //save lora settings to FRAM.
-#endif
+  triggerSaveNvmData2Fram();
   resume_mainTask(); //make sure mainTask is running.
   /* USER CODE END OnTxTimerEvent_1 */
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaSendOnTxTimerOrButtonEvent), CFG_SEQ_Prio_0);
@@ -858,9 +868,7 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
   /* USER CODE BEGIN OnJoinRequest_1 */
   if (joinParams != NULL)
   {
-#ifdef FRAM_USED_FOR_NVM_DATA
-    UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStoreContextEvent), CFG_SEQ_Prio_0); //save lora settings to FRAM.
-#endif
+    triggerSaveNvmData2Fram();
 
     if (joinParams->Status == LORAMAC_HANDLER_SUCCESS)
     {
