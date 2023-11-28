@@ -336,13 +336,13 @@ const void mainTask(void)
           case LORAMAC_HANDLER_COMPLIANCE_RUNNING: //only for LORAMAC_VERSION == 0x01000300
           case LORAMAC_HANDLER_CRYPTO_ERROR:
           default:
-
             //failed, repeat again once
+            triggerSaveNvmData2Fram(); //save NVM data, for succesfull it's saved
 
             break;
         }
 
-        triggerSaveNvmData2Fram(); //save NVM data
+
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
 
         mainTask_state=2; //go back to state waiting for new measure.

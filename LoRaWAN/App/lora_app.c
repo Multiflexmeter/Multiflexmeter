@@ -895,6 +895,7 @@ static void OnTxData(LmHandlerTxParams_t *params)
       {
         APP_LOG(TS_OFF, VLEVEL_H, "UNCONFIRMED\r\n");
       }
+      triggerSaveNvmData2Fram();
     }
   }
   /* USER CODE END OnTxData_1 */
