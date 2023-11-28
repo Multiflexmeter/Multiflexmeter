@@ -295,7 +295,7 @@ int8_t restoreLatestTimeFromLog(void)
  * @param dataLength
  * @return 0 = successful
  */
-int8_t writeNewLog( uint8_t sensorModuleType, uint8_t * sensorData, uint8_t dataLength )
+int8_t writeNewLog( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, uint8_t * sensorData, uint8_t dataLength )
 {
   int8_t result;
   bool turnoverAndErased = false;
@@ -323,6 +323,7 @@ int8_t writeNewLog( uint8_t sensorModuleType, uint8_t * sensorData, uint8_t data
   logdata.measurementId = newLogId; //set new log ID.
   logdata.timestamp = SysTimeGet().Seconds; //get system time, if time not yet in sync start from 0, otherwise unix timestamp
 
+  logdata.sensorModuleSlotId = sensorModuleSlotId; //set sensor module slot ID
   logdata.sensorModuleType = sensorModuleType; //set sensor module type
   memcpy(logdata.sensorModuleData, sensorData, dataLength); //copy sensor data
 

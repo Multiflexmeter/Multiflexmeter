@@ -668,7 +668,7 @@ static void SendTxData(void)
     data[1] = (int16_t)(sensor_data.temperature) & 0xFF;
     data[2] = ((int16_t)(sensor_data.temperature)>>8 ) & 0xFF;
 
-    writeNewLog(0, data, sizeof(data)); //write log data to dataflash.
+    writeNewLog(0, 0, data, sizeof(data)); //write log data to dataflash.
 
 #ifdef CAYENNE_LPP
     CayenneLppReset();
