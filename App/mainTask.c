@@ -22,6 +22,7 @@
 
 #include "lora_app.h"
 #include "LmHandlerTypes.h"
+#include "LmHandler.h"
 
 #include "IO/board_io.h"
 #include "IO/board_io_functions.h"
@@ -36,6 +37,7 @@
 static volatile bool mainTaskActive;
 static uint32_t mainTask_tmr;
 static int mainTask_state;
+static int loraJoinRetryCounter = 0;
 
 static UTIL_TIMER_Object_t MainTimer;
 static UTIL_TIMER_Time_t MainPeriodSleep = 60000;
@@ -347,16 +349,43 @@ const void mainTask(void)
 
         MainPeriodSleep = newLoraInterval;
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
-
         mainTask_state++; //next state
 
+        //check JOIN is not active
+        if (LmHandlerJoinStatus() == LORAMAC_HANDLER_RESET) // JOIN is not active
+        { //retry it after ..
+          setWait(10000);  //set wait time 10sec
+        }
+        else
+        {
+          mainTask_state++; //increment again, to skip retry for join.
+        }
       }
 
       break;
 
-    case 8: //switch off for low power oparation
+    case 8:
+
+      if( waiting == false ) //check wait time is expired
+      {
+        if( LmHandlerJoinStatus() == LORAMAC_HANDLER_SET || loraJoinRetryCounter > 5 )
+        {
+          mainTask_state++; //next state
+        }
+        else
+        { //try again
+          loraJoinRetryCounter++;
+          triggerSendTxData(); //trigger Lora transmit
+          mainTask_state--; //previous state
+        }
+      }
+
+      break;
+
+    case 9: //switch off for low power oparation
 
       disableVsys();
+      loraJoinRetryCounter = 0; //reset
 
       pause_mainTask();
 
