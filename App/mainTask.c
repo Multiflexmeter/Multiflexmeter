@@ -395,6 +395,8 @@ const void mainTask(void)
     }
   }
 
+  uartKeepListen( getInput_board_io(EXT_IOUSB_CONNECTED) ); //if USB is connected, keep listen to UART.
+
   //exit, wait on next trigger.
 
 }
