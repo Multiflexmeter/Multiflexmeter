@@ -352,10 +352,11 @@ const void mainTask(void)
             break;
         }
 
-
+        MainPeriodSleep = newLoraInterval;
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
 
         mainTask_state=2; //go back to state waiting for new measure.
+        pause_mainTask();
 
       }
 
@@ -386,7 +387,12 @@ const void mainTask(void)
   }
   else
   {
-    setNextPeriod(MainPeriodSleep);
+    //check if measurement_Timer is running, otherwise force run.
+    if( UTIL_TIMER_IsRunning(&measurement_Timer) == 0)
+    { //not running, force next Period.
+      setNextPeriod(MainPeriodSleep);
+      setNewMeasureTime(MainPeriodSleep);
+    }
   }
 
   //exit, wait on next trigger.
@@ -434,6 +440,7 @@ static const void trigger_wait(void *context)
 static const void trigger_measure(void *context)
 {
   startMeasure = true;
+  resume_mainTask();
 }
 
 /**
