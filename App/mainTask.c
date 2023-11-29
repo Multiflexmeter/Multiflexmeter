@@ -128,13 +128,17 @@ const void mainTask(void)
       init_board_io(); //init IO
       initLedTimer(); //init LED timer
       init_vAlwaysOn();
-
-      executeAlwaysOn();
+      enable_vAlwaysOn(); //force on, temporary for proto hardware //todo change for seconde proto
+      executeAlwaysOn(); //execute Always on config value.
 
       mainTask_state++;
       break;
 
-    case 1: //init Sleep
+    case 1: //init after Sleep
+
+      enableVsys(); //enable supply for I/O expander
+      init_board_io_device(IO_EXPANDER_BUS_INT);
+      init_board_io_device(IO_EXPANDER_BUS_EXT);
 
       if( enableListenUart )
       {
@@ -350,10 +354,19 @@ const void mainTask(void)
         MainPeriodSleep = newLoraInterval;
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
 
-        mainTask_state=2; //go back to state waiting for new measure.
-        pause_mainTask();
+        mainTask_state++; //next state
 
       }
+
+      break;
+
+    case 8: //switch off for low power oparation
+
+      disableVsys();
+
+      pause_mainTask();
+
+      mainTask_state = 1; //go back to init after sleep, for next measure
 
       break;
 
