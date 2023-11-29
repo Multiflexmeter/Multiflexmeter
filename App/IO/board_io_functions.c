@@ -270,4 +270,16 @@ const void setup_io_for_dataflash(bool state)
   setup_io_for_SPI_devices(state);
 }
 
+/**
+ * @fn const void setup_io_for_SdCard(bool)
+ * @brief override of weak function. To enable I/O needed for SD-card
+ * function detects the vSys previous state and turns ON/OFF vSys if it was off.
+ *
+ * @param state
+ */
+const void setup_io_for_SdCard(bool state)
+{
+  setup_io_for_SPI_devices(state);
+}
+
 
