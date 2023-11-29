@@ -54,6 +54,8 @@ static bool sensorModuleEnabled = false;
 static bool loraTransmitReady = false;
 static LmHandlerErrorStatus_t loraTransmitStatus;
 
+static uint16_t sensorType;
+static uint8_t sensorProtocol;
 
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
@@ -202,11 +204,11 @@ const void mainTask(void)
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module firmware: %d, %s\r\n", sensorModuleId, dataBuffer ); //print VERSION
 
         uint8_t result;
-        uint8_t sensorProtocol = 0;
+        sensorProtocol = 0; //reset first
         result = sensorProtocolVersion(sensorModuleId, &sensorProtocol);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module protocol version: %d, %d\r\n", sensorModuleId, result == SENSOR_OK ? sensorProtocol : -1); //print protocol version
 
-        uint16_t sensorType = 0;
+        sensorType = 0; //reset first
         result = sensorReadType(sensorModuleId, &sensorType);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module type: %d, %d\r\n", sensorModuleId, sensorType ); //print sensor type
 
@@ -252,10 +254,6 @@ const void mainTask(void)
         }
         APP_LOG(TS_OFF, VLEVEL_H, "\r\n" ); //print end
 
-        uint8_t UNUSED_VAR result;
-        uint16_t sensorType = 0;
-        result = sensorReadType(sensorModuleId, &sensorType);
-
         if( sensorType == MFM_PREASURE_RS485 || sensorType == MFM_PREASURE_ONEWIRE)
         {
           uint8_t unitPress[] = "bar";
@@ -272,10 +270,6 @@ const void mainTask(void)
 
               ); //print sensor data
         }
-
-
-        uint8_t sensorProtocol = 0;
-        result = sensorProtocolVersion(sensorModuleId, &sensorProtocol);
 
         slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
 
