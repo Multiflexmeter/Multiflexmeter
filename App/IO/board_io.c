@@ -228,6 +228,37 @@ const void init_io_external(ENUM_IO_ITEM item, bool forceUpdate)
 }
 
 /**
+ * @fn bool init_board_io_Int_Ext(int)
+ * @brief helper function to init a internal/external I/O item
+ *
+ * @param item : item number in stIO_PinConfig[] config struct
+ * @return true = external, false = internal
+ */
+static bool init_board_io_Ext_Int(int item)
+{
+  bool result = false;
+  switch (stIO_PinConfig[item].io_location)
+  {
+    case IO_INTERAL:
+
+      init_io_internal(item); //init internal I/O
+
+      break;
+
+    case IO_EXTERNAL:
+
+      result = true;
+      init_io_external(item, false); //init internal I/O, no force update. This is done for all I/O together.
+
+      break;
+
+    default:
+      break;
+  }
+  return result;
+}
+
+/**
  * @fn void init_board_io(void)
  * @brief function to init board IO
  *
@@ -254,25 +285,7 @@ const void init_board_io(void)
 
   for(i=0; i<sizeof(stIO_PinConfig)/sizeof(stIO_PinConfig[0]); i++ )
   {
-
-    switch( stIO_PinConfig[i].io_location )
-    {
-      case IO_INTERAL:
-
-        init_io_internal(i); //init internal I/O
-
-        break;
-
-      case IO_EXTERNAL:
-
-        externalFound = true;
-        init_io_external(i, false); //init internal I/O, no force update. This is done for all I/O together.
-
-        break;
-
-      default:
-        break;
-    }
+    externalFound |= init_board_io_Ext_Int(i);
   }
 
   if( externalFound == true )
@@ -281,6 +294,72 @@ const void init_board_io(void)
     writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET); //enable VSYS, to operate IO expander on BUS.
     init_IO_Expander(IO_EXPANDER_BUS_INT); //Send configuration registers to IO Expander devices.
     init_IO_Expander(IO_EXPANDER_BUS_EXT); //Send configuration registers to IO Expander devices.
+  }
+  else
+  {
+    //nothing
+  }
+}
+
+/**
+ * @fn const void init_board_io_device(ENUM_IO_EXPANDER)
+ * @brief function to init I/O of each device separate
+ * @note make sure EXT_IOVSYS_EN is enabled for IO_EXPANDER_BUS_INT and IO_EXPANDER_BUS_EXT
+ *
+ * @param device
+ */
+const void init_board_io_device(ENUM_IO_EXPANDER device)
+{
+  int i;
+  bool externalFound = false;
+
+  assert_param( device >= IO_EXPANDER_NONE && device < NR_IO_EXPANDER);   //verify enumeration is equal.
+
+  if( device >= NR_IO_EXPANDER )
+    return;
+
+  switch( device )
+  {
+    case IO_EXPANDER_SYS:
+      init_IO_ExpanderData(IO_EXPANDER_SYS); //Initialize the data and address of IO Expander devices
+      break;
+    case IO_EXPANDER_BUS_INT:
+      init_IO_ExpanderData(IO_EXPANDER_BUS_INT); //Initialize the data and address of IO Expander devices
+      break;
+    case IO_EXPANDER_BUS_EXT:
+      init_IO_ExpanderData(IO_EXPANDER_BUS_EXT); //Initialize the data and address of IO Expander devices
+      break;
+    default:
+      //nothing
+      break;
+  }
+
+  for(i=0; i<sizeof(stIO_PinConfig)/sizeof(stIO_PinConfig[0]); i++ )
+  {
+    //check if device is equal
+    if( stIO_PinConfig[i].device == device )
+    {
+      externalFound |= init_board_io_Ext_Int(i);
+    }
+  }
+
+  if( externalFound == true )
+  {
+    switch( device )
+    {
+      case IO_EXPANDER_SYS:
+        init_IO_Expander(IO_EXPANDER_SYS); //Send configuration registers to IO Expander devices.
+        break;
+      case IO_EXPANDER_BUS_INT:
+        init_IO_Expander(IO_EXPANDER_BUS_INT); //Send configuration registers to IO Expander devices.
+        break;
+      case IO_EXPANDER_BUS_EXT:
+        init_IO_Expander(IO_EXPANDER_BUS_EXT); //Send configuration registers to IO Expander devices.
+        break;
+      default:
+        //nothing
+        break;
+    }
   }
   else
   {

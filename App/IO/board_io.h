@@ -112,6 +112,7 @@ typedef struct
 }struct_BoardIO_PinConfig;
 
 const void init_board_io(void);
+const void init_board_io_device(ENUM_IO_EXPANDER device);
 const void update_board_io(void);
 const int8_t setOutput_board_io(ENUM_IO_ITEM item, GPIO_PinState state);
 const int8_t getInput_board_io(ENUM_IO_ITEM item);
