@@ -26,6 +26,18 @@ typedef struct
 struct_FRAM_setting stFramSettings;
 
 /**
+ * @fn const void setup_io_for_fram(bool)
+ * @brief weak function to be override in application for enable I/O for FRAM operations
+ *
+ * @param state
+ */
+__weak const void setup_io_for_fram(bool state)
+{
+  UNUSED(state);
+  __NOP();
+}
+
+/**
  * @fn const void saveLoraSettings(const void*, size_t)
  * @brief function to save Lora session settings in FRAM
  *
@@ -42,7 +54,11 @@ const void saveLoraSettings( const void *pSource, size_t length )
     return;
   }
 
+  setup_io_for_fram(true);
+
   FRAM_WriteData(ADDRESS_LORA_SETTINGS,(uint8_t*)pSource, length);
+
+  setup_io_for_fram(false);
 }
 
 /**
@@ -62,7 +78,11 @@ const void restoreLoraSettings( const void *pSource, size_t length)
     return;
   }
 
+  setup_io_for_fram(true);
+
   FRAM_ReadData(ADDRESS_LORA_SETTINGS,(uint8_t*)pSource, length);
+
+  setup_io_for_fram(false);
 }
 
 
@@ -83,7 +103,11 @@ const void saveFramSettings( const void *pSource, size_t length )
     return;
   }
 
+  setup_io_for_fram(true);
+
   FRAM_WriteData(ADDRESS_OTHER_SETTINGS,(uint8_t*)pSource, length);
+
+  setup_io_for_fram(false);
 }
 
 /**
@@ -103,7 +127,11 @@ const void restoreFramSettings( const void *pSource, size_t length)
     return;
   }
 
+  setup_io_for_fram(true);
+
   FRAM_ReadData(ADDRESS_OTHER_SETTINGS,(uint8_t*)pSource, length);
+
+  setup_io_for_fram(false);
 }
 
 /**
@@ -118,6 +146,8 @@ const int8_t testFram(uint8_t * status)
   uint8_t testReadOriginal;
   uint8_t testRead;
   uint8_t testWrite;
+
+  setup_io_for_fram(true);
 
   *status = FRAM_ReadStatusRegister(); //read status register
 
@@ -134,6 +164,8 @@ const int8_t testFram(uint8_t * status)
   }
 
   saveFramSettings(&testReadOriginal, sizeof(testReadOriginal)); //write back orinal value to FRAM
+
+  setup_io_for_fram(false);
 
   return result;
 }

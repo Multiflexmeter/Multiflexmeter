@@ -30,7 +30,7 @@
 #include "secure-element.h"
 #include "../Core/Inc/sys_app.h"
 
-#define NO_SLEEP
+//#define NO_SLEEP
 
 /*!
  * App key size in characters
@@ -47,14 +47,16 @@
 #endif
 
 #define RECEIVE_TIMEOUT_COMMAND  (5 * config_uart.Init.BaudRate) //5 seconds
-#define UART_RX_TASK_ACTIVE_TIME  (1000000L)
 
 #define DUMP_ALL  UINT32_MAX
 
 static DMA_BUFFER uint8_t bufferTxConfig[SIZE_TX_BUFFER_CONFIG];
 static DMA_BUFFER uint8_t bufferRxConfig[SIZE_RX_BUFFER_CONFIG];
 
-volatile uint32_t uartConfigActiveTime;
+static UTIL_TIMER_Object_t uartConfigActive_Timer;
+static UTIL_TIMER_Time_t uartConfigActiveTime_default = 30000; //30sec
+static bool uartConfigKeepListen = false;
+
 static bool dataDump;
 static bool dataErase;
 static bool dataTest;
@@ -759,11 +761,8 @@ void UartConfigHandlerProcess(void)
   /*
    * check uart needs to be active
    */
-  if( uartConfigActiveTime )
+  if( UTIL_TIMER_IsRunning(&uartConfigActive_Timer))
   {
-#ifndef NO_SLEEP
-    uartConfigActiveTime--;
-#endif
     UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_UartConfig), CFG_SEQ_Prio_1);
   }
 
@@ -778,7 +777,7 @@ void UartConfigHandlerProcess(void)
  */
 void uartSendReady_Config(UART_HandleTypeDef *huart)
 {
-  uartConfigActiveTime = UART_RX_TASK_ACTIVE_TIME; //set activation time of task
+  UTIL_TIMER_StartWithPeriod(&uartConfigActive_Timer, uartConfigActiveTime_default ); //set activation time of task
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_UartConfig), CFG_SEQ_Prio_1); //activate task
   uartStartReceive_Config(bufferRxConfig, sizeof(bufferRxConfig), RECEIVE_TIMEOUT_COMMAND ); //start receiver to listen
 }
@@ -794,6 +793,37 @@ void uartListen(void)
 }
 
 /**
+ * @fn void uartKeepListen(bool)
+ * @brief function to enable / disable the keep the uart in listen mode
+ * @note if mode is active STOP2 mode will not be active.
+ *
+ * @param keepListenAcitve
+ */
+void uartKeepListen(bool keepListenAcitve)
+{
+  uartConfigKeepListen = keepListenAcitve;
+}
+
+/**
+ * @fn void trigger_uartConfigActiveTimeout(void*)
+ * @brief timeout function of TIMER, to stop the uartConfig
+ *
+ * @param context
+ */
+void trigger_uartConfigActiveTimeout( void *context )
+{
+  UTIL_TIMER_Stop(&uartConfigActive_Timer); //stop timer
+  if( uartConfigKeepListen
+#ifdef NO_SLEEP
+      || true
+#endif
+      )
+  {
+    UTIL_TIMER_Start(&uartConfigActive_Timer); //start again.
+  }
+}
+
+/**
  * @brief initialization function for the uart config command handling
  *  - configure a task for the scheduler with low priority and trigger it.
  *  - register TX complete callback
@@ -801,11 +831,13 @@ void uartListen(void)
  */
 void uartInit_Config( void )
 {
-  uartConfigActiveTime = UART_RX_TASK_ACTIVE_TIME;
   UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_UartConfig), UTIL_SEQ_RFU, UartConfigHandlerProcess);
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_UartConfig), CFG_SEQ_Prio_1);
 
   HAL_UART_RegisterCallback(&config_uart, HAL_UART_TX_COMPLETE_CB_ID, uartSendReady_Config);
+
+  UTIL_TIMER_Create(&uartConfigActive_Timer, uartConfigActiveTime_default, UTIL_TIMER_ONESHOT, trigger_uartConfigActiveTimeout, NULL); //create timer
+  UTIL_TIMER_Start(&uartConfigActive_Timer);
 }
 
 /**
@@ -818,7 +850,7 @@ void uartInit_Config( void )
  */
 HAL_StatusTypeDef uartSend_Config( const uint8_t *pData, const uint16_t Size)
 {
-  uartConfigActiveTime = UART_RX_TASK_ACTIVE_TIME;
+  UTIL_TIMER_SetPeriod(&uartConfigActive_Timer, uartConfigActiveTime_default ); //set activation time of task
 	return uartSend(&config_uart, pData, Size);
 }
 

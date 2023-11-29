@@ -540,11 +540,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 /* Private functions ---------------------------------------------------------*/
 /* USER CODE BEGIN PrFD */
 
-__weak const void resume_mainTask(void)
-{
-
-}
-
 #ifdef FRAM_USED_FOR_NVM_DATA
 /**
  * @fn const void saveLoraSettings(const void*, size_t)
@@ -792,7 +787,6 @@ static void OnTxTimerEvent(void *context)
 {
   /* USER CODE BEGIN OnTxTimerEvent_1 */
   triggerSaveNvmData2Fram();
-  resume_mainTask(); //make sure mainTask is running.
   /* USER CODE END OnTxTimerEvent_1 */
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaSendOnTxTimerOrButtonEvent), CFG_SEQ_Prio_0);
 

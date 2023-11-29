@@ -17,6 +17,7 @@
 
 void uartInit_Config( void );
 void uartListen(void);
+void uartKeepListen(bool keepListenAcitve);
 HAL_StatusTypeDef uartSend_Config( const uint8_t *pData, uint16_t Size);
 void uartStartReceive_Config( uint8_t *pData, const uint16_t Size, const uint32_t timeout );
 void configUartHandler(void);

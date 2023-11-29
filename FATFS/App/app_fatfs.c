@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <string.h>
+#include "sys_app.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,6 +62,18 @@ static uint32_t freeSpace;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
+
+/**
+ * @fn const void setup_io_for_SdCard(bool)
+ * @brief weak function to be override in application for enable I/O for SD operations
+ *
+ * @param state
+ */
+__weak const void setup_io_for_SdCard(bool state)
+{
+  UNUSED(state);
+  __NOP();
+}
 
 /* USER CODE END PFP */
 
@@ -133,10 +146,13 @@ const int8_t SD_TEST(uint32_t * capacity, uint32_t * free)
   *capacity = 0;
   *free = 0;
 
+  setup_io_for_SdCard(true);
+
   // Mount the filesystem
   fres = f_mount(&fs, "/", 1);
   if (fres != FR_OK)
   {
+    setup_io_for_SdCard(false);
     return -1;
   }
 
@@ -154,6 +170,7 @@ const int8_t SD_TEST(uint32_t * capacity, uint32_t * free)
   fres= f_open(&file, "write.txt", FA_WRITE | FA_CREATE_ALWAYS);
   if (fres != FR_OK)
   {
+    setup_io_for_SdCard(false);
     return -1;
   }
 
@@ -164,6 +181,7 @@ const int8_t SD_TEST(uint32_t * capacity, uint32_t * free)
   fres= f_open(&file, "write.txt", FA_READ);
   if (fres != FR_OK)
   {
+    setup_io_for_SdCard(false);
     return -1;
   }
 
@@ -177,6 +195,8 @@ const int8_t SD_TEST(uint32_t * capacity, uint32_t * free)
   f_close(&file);
   f_unlink("/write.txt");
   f_mount(NULL, "/", 0);
+
+  setup_io_for_SdCard(false);
 
   return result;
 }

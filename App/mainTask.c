@@ -22,6 +22,7 @@
 
 #include "lora_app.h"
 #include "LmHandlerTypes.h"
+#include "LmHandler.h"
 
 #include "IO/board_io.h"
 #include "IO/board_io_functions.h"
@@ -36,15 +37,12 @@
 static volatile bool mainTaskActive;
 static uint32_t mainTask_tmr;
 static int mainTask_state;
+static int loraJoinRetryCounter = 0;
 
 static UTIL_TIMER_Object_t MainTimer;
 static UTIL_TIMER_Time_t MainPeriodSleep = 60000;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
 static bool enableListenUart;
-
-static UTIL_TIMER_Object_t AlwaysOnSwitch_Timer;
-static UTIL_TIMER_Time_t AlwaysOnSwitchOnTime = 3000; //3sec
-static UTIL_TIMER_Time_t AlwaysOnSwitchOffTime = 6000; //6sec
 
 static UTIL_TIMER_Object_t wait_Timer;
 static volatile bool waiting = false;
@@ -58,7 +56,8 @@ static bool sensorModuleEnabled = false;
 static bool loraTransmitReady = false;
 static LmHandlerErrorStatus_t loraTransmitStatus;
 
-static const void init_vAlwaysOn(void);
+static uint16_t sensorType;
+static uint8_t sensorProtocol;
 
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
@@ -133,13 +132,17 @@ const void mainTask(void)
       init_board_io(); //init IO
       initLedTimer(); //init LED timer
       init_vAlwaysOn();
-
-      executeAlwaysOn();
+      enable_vAlwaysOn(); //force on, temporary for proto hardware //todo change for seconde proto
+      executeAlwaysOn(); //execute Always on config value.
 
       mainTask_state++;
       break;
 
-    case 1: //init Sleep
+    case 1: //init after Sleep
+
+      enableVsys(); //enable supply for I/O expander
+      init_board_io_device(IO_EXPANDER_BUS_INT);
+      init_board_io_device(IO_EXPANDER_BUS_EXT);
 
       if( enableListenUart )
       {
@@ -177,16 +180,16 @@ const void mainTask(void)
 
     case 2: //enable sensor supply
 
-      if( startMeasure == false )
-      {
-        //keep waiting
-      }
-
-      else if( waiting == false ) //check wait time is expired
+      if( startMeasure == true )
       {
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
-        setWait(1000); //set wait time 1000ms
+        setWait(10); //set wait time 10ms
         mainTask_state++; //next state
+      }
+
+      else
+      {
+        //keep waiting.
       }
 
       break;
@@ -195,17 +198,19 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
+        sensorStartMeasurement(sensorModuleId); //start measure
+
         memset(dataBuffer, 0x00, sizeof(dataBuffer));
         sensorFirmwareVersion(sensorModuleId, dataBuffer, sizeof(dataBuffer));
 
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module firmware: %d, %s\r\n", sensorModuleId, dataBuffer ); //print VERSION
 
         uint8_t result;
-        uint8_t sensorProtocol = 0;
+        sensorProtocol = 0; //reset first
         result = sensorProtocolVersion(sensorModuleId, &sensorProtocol);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module protocol version: %d, %d\r\n", sensorModuleId, result == SENSOR_OK ? sensorProtocol : -1); //print protocol version
 
-        uint16_t sensorType = 0;
+        sensorType = 0; //reset first
         result = sensorReadType(sensorModuleId, &sensorType);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module type: %d, %d\r\n", sensorModuleId, sensorType ); //print sensor type
 
@@ -213,9 +218,7 @@ const void mainTask(void)
         result = sensorReadSetupTime(sensorModuleId, &sensorSetupTime);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module setup time: %d, %u\r\n", sensorModuleId, sensorSetupTime ); //print sensor setup time
 
-        sensorStartMeasurement(sensorModuleId);
-
-        setWait(100);  //set wait time 1000ms
+        setWait(250);  //set wait time 250ms
 
         mainTask_state++; //next state
       }
@@ -253,10 +256,6 @@ const void mainTask(void)
         }
         APP_LOG(TS_OFF, VLEVEL_H, "\r\n" ); //print end
 
-        uint8_t UNUSED_VAR result;
-        uint16_t sensorType = 0;
-        result = sensorReadType(sensorModuleId, &sensorType);
-
         if( sensorType == MFM_PREASURE_RS485 || sensorType == MFM_PREASURE_ONEWIRE)
         {
           uint8_t unitPress[] = "bar";
@@ -274,15 +273,11 @@ const void mainTask(void)
               ); //print sensor data
         }
 
-
-        uint8_t sensorProtocol = 0;
-        result = sensorProtocolVersion(sensorModuleId, &sensorProtocol);
+        slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
 
         writeNewLog(sensorModuleId, sensorType, sensorProtocol, &dataBuffer[1], dataBuffer[0]); //write log data to dataflash.
 
         triggerSendTxData(); //trigger Lora transmit
-
-        slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
 
         mainTask_state++; //next state
       }
@@ -352,12 +347,49 @@ const void mainTask(void)
             break;
         }
 
-
+        MainPeriodSleep = newLoraInterval;
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
+        mainTask_state++; //next state
 
-        mainTask_state=2; //go back to state waiting for new measure.
-
+        //check JOIN is not active
+        if (LmHandlerJoinStatus() == LORAMAC_HANDLER_RESET) // JOIN is not active
+        { //retry it after ..
+          setWait(10000);  //set wait time 10sec
+        }
+        else
+        {
+          mainTask_state++; //increment again, to skip retry for join.
+        }
       }
+
+      break;
+
+    case 8:
+
+      if( waiting == false ) //check wait time is expired
+      {
+        if( LmHandlerJoinStatus() == LORAMAC_HANDLER_SET || loraJoinRetryCounter > 5 )
+        {
+          mainTask_state++; //next state
+        }
+        else
+        { //try again
+          loraJoinRetryCounter++;
+          triggerSendTxData(); //trigger Lora transmit
+          mainTask_state--; //previous state
+        }
+      }
+
+      break;
+
+    case 9: //switch off for low power oparation
+
+      disableVsys();
+      loraJoinRetryCounter = 0; //reset
+
+      pause_mainTask();
+
+      mainTask_state = 1; //go back to init after sleep, for next measure
 
       break;
 
@@ -386,8 +418,15 @@ const void mainTask(void)
   }
   else
   {
-    setNextPeriod(MainPeriodSleep);
+    //check if measurement_Timer is running, otherwise force run.
+    if( UTIL_TIMER_IsRunning(&measurement_Timer) == 0)
+    { //not running, force next Period.
+      setNextPeriod(MainPeriodSleep);
+      setNewMeasureTime(MainPeriodSleep);
+    }
   }
+
+  uartKeepListen( getInput_board_io(EXT_IOUSB_CONNECTED) ); //if USB is connected, keep listen to UART.
 
   //exit, wait on next trigger.
 
@@ -434,6 +473,8 @@ static const void trigger_wait(void *context)
 static const void trigger_measure(void *context)
 {
   startMeasure = true;
+  uartListen(); //todo remove, used for test.
+  resume_mainTask();
 }
 
 /**
@@ -505,48 +546,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     enableListenUart = true;
     UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStoreContextEvent), CFG_SEQ_Prio_0);
   }
-}
-
-/**
- * @fn const void delayedSwitchOff_IO_vAlwaysOn(void)
- * @brief function to delayed switch off the vAlwaysOn set pin
- *
- */
-static const void delayedSwitchOff_IO_vAlwaysOn(void *context)
-{
-  writeOutput_board_io(EXT_IOVALWAYS_EN, GPIO_PIN_RESET);
-}
-
-/**
- * @fn const void init_vAlwaysOn(void)
- * @brief function to create timer at power up
- *
- */
-static const void init_vAlwaysOn(void)
-{
-  UTIL_TIMER_Create(&AlwaysOnSwitch_Timer, AlwaysOnSwitchOnTime, UTIL_TIMER_ONESHOT, delayedSwitchOff_IO_vAlwaysOn, NULL); //create timer
-}
-
-/**
- * @fn const void enable_vAlwaysOn(void)
- * @brief function to start enable vAlways on supply
- *
- */
-const void enable_vAlwaysOn(void)
-{
-  writeOutput_board_io(EXT_IOVALWAYS_EN, GPIO_PIN_SET);
-  UTIL_TIMER_StartWithPeriod(&AlwaysOnSwitch_Timer, AlwaysOnSwitchOnTime); //set new time and start timer
-}
-
-/**
- * @fn const void disable_vAlwaysOn(void)
- * @brief function to start disable vAlways on supply
- *
- */
-const void disable_vAlwaysOn(void)
-{
-  writeOutput_board_io(EXT_IOVALWAYS_EN, GPIO_PIN_SET);
-  UTIL_TIMER_StartWithPeriod(&AlwaysOnSwitch_Timer, AlwaysOnSwitchOffTime); //set new time and start timer
 }
 
 /**

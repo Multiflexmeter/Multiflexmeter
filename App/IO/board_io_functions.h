@@ -35,5 +35,8 @@ const void dataflash_DisableChipSelect(void);
 
 const void slotPower(ENUM_slotId slotId, bool enable);
 
+const void init_vAlwaysOn(void);
+const void enable_vAlwaysOn(void);
+const void disable_vAlwaysOn(void);
 
 #endif /* IO_BOARD_IO_FUNCTIONS_H_ */
