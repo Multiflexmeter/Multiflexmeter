@@ -179,7 +179,7 @@ const void mainTask(void)
       if( startMeasure == true )
       {
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
-        setWait(1000); //set wait time 1000ms
+        setWait(10); //set wait time 10ms
         mainTask_state++; //next state
       }
 
@@ -194,6 +194,8 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
+        sensorStartMeasurement(sensorModuleId); //start measure
+
         memset(dataBuffer, 0x00, sizeof(dataBuffer));
         sensorFirmwareVersion(sensorModuleId, dataBuffer, sizeof(dataBuffer));
 
@@ -212,9 +214,7 @@ const void mainTask(void)
         result = sensorReadSetupTime(sensorModuleId, &sensorSetupTime);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module setup time: %d, %u\r\n", sensorModuleId, sensorSetupTime ); //print sensor setup time
 
-        sensorStartMeasurement(sensorModuleId);
-
-        setWait(100);  //set wait time 1000ms
+        setWait(250);  //set wait time 250ms
 
         mainTask_state++; //next state
       }
@@ -277,11 +277,11 @@ const void mainTask(void)
         uint8_t sensorProtocol = 0;
         result = sensorProtocolVersion(sensorModuleId, &sensorProtocol);
 
+        slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
+
         writeNewLog(sensorModuleId, sensorType, sensorProtocol, &dataBuffer[1], dataBuffer[0]); //write log data to dataflash.
 
         triggerSendTxData(); //trigger Lora transmit
-
-        slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
 
         mainTask_state++; //next state
       }
