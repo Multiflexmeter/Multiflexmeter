@@ -246,3 +246,34 @@ const void setup_io_for_fram(bool state)
     }
   }
 }
+
+/**
+ * @fn const void setup_io_for_sdcard(bool)
+ * @brief override of weak function. To enable I/O needed for dataflash
+ * function detects the vSys previous state and turns ON/OFF vSys if it was off.
+ *
+ * @param state
+ */
+const void setup_io_for_dataflash(bool state)
+{
+  static int8_t vSysState = 0;
+
+
+  if( state == true ) //vSys needs to be active
+  {
+    vSysState = readInput_board_io(EXT_IOVSYS_EN); //read first current state
+
+    if( vSysState == 0 ) //if current state is off, switch ON vSys
+    {
+      enableVsys();
+    }
+  }
+
+  else //state = false, Vsys needs to be in old state.
+  {
+    if( vSysState == 0 ) //if previous state was OFF, then disable vSys again.
+    {
+      disableVsys();
+    }
+  }
+}

@@ -18,6 +18,17 @@ static uint8_t writePageBuffer[PAGE_SIZE_DATAFLASH];
 static uint8_t readPageBuffer[PAGE_SIZE_DATAFLASH];
 static uint8_t block4kBuffer[BLOCK_4K_SIZE_DATAFLASH];
 
+/**
+ * @fn const void setup_io_for_dataflash(bool)
+ * @brief weak function to be override in application for enable I/O for FRAM operations
+ *
+ * @param state
+ */
+__weak const void setup_io_for_dataflash(bool state)
+{
+  UNUSED(state);
+  __NOP();
+}
 
 /**
  * @fn int init_dataflash(void)
@@ -77,6 +88,9 @@ int8_t writePageInDataflash(uint32_t pageAddress, uint8_t * data, uint32_t lengt
     return -3;
   }
 
+  //enable io needed for dataflash
+  setup_io_for_dataflash(true);
+
   //enable write
   standardflashWriteEnable();
 
@@ -85,6 +99,9 @@ int8_t writePageInDataflash(uint32_t pageAddress, uint8_t * data, uint32_t lengt
 
   //wait for ready
   standardflashWaitOnReady();
+
+  //disable io again
+  setup_io_for_dataflash(false);
 
   return 0;
 }
@@ -174,7 +191,13 @@ int8_t readPageFromDataflash(uint32_t pageAddress, uint8_t * data, uint32_t leng
     return -2;
   }
 
+  //enable io needed for dataflash
+  setup_io_for_dataflash(true);
+
   standardflashReadArrayLowFreq(pageAddress, data, length);
+
+  //disable io again
+  setup_io_for_dataflash(false);
 
   return 0;
 }
@@ -218,6 +241,9 @@ int8_t readLogFromDataflash(uint32_t logId, uint8_t * data, uint32_t length)
  */
 int8_t blockErase4kDataflash( uint32_t address )
 {
+  //enable io needed for dataflash
+  setup_io_for_dataflash(true);
+
   //enable write
   standardflashWriteEnable();
 
@@ -226,6 +252,9 @@ int8_t blockErase4kDataflash( uint32_t address )
 
   //wait ready
   standardflashWaitOnReady();
+
+  //disable io again
+  setup_io_for_dataflash(false);
 
   return 0;
 }
@@ -239,6 +268,9 @@ int8_t blockErase4kDataflash( uint32_t address )
  */
 int8_t blockErase32kDataflash( uint32_t address )
 {
+  //enable io needed for dataflash
+  setup_io_for_dataflash(true);
+
   //enable write
   standardflashWriteEnable();
 
@@ -247,6 +279,9 @@ int8_t blockErase32kDataflash( uint32_t address )
 
   //wait ready
   standardflashWaitOnReady();
+
+  //disable io again
+  setup_io_for_dataflash(false);
 
   return 0;
 }
@@ -260,6 +295,9 @@ int8_t blockErase32kDataflash( uint32_t address )
  */
 int8_t blockErase64kDataflash( uint32_t address )
 {
+  //enable io needed for dataflash
+  setup_io_for_dataflash(true);
+
   //enable write
   standardflashWriteEnable();
 
@@ -268,6 +306,9 @@ int8_t blockErase64kDataflash( uint32_t address )
 
   //wait ready
   standardflashWaitOnReady();
+
+  //disable io again
+  setup_io_for_dataflash(false);
 
   return 0;
 }
@@ -280,6 +321,9 @@ int8_t blockErase64kDataflash( uint32_t address )
  */
 const int8_t chipEraseDataflash(void)
 {
+  //enable io needed for dataflash
+  setup_io_for_dataflash(true);
+
   //enable write
   standardflashWriteEnable();
 
@@ -288,6 +332,9 @@ const int8_t chipEraseDataflash(void)
 
   //wait ready
   standardflashWaitOnReady();
+
+  //disable io again
+  setup_io_for_dataflash(false);
 
   return 0;
 }
