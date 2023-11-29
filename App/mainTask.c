@@ -440,6 +440,7 @@ static const void trigger_wait(void *context)
 static const void trigger_measure(void *context)
 {
   startMeasure = true;
+  uartListen(); //todo remove, used for test.
   resume_mainTask();
 }
 
