@@ -147,6 +147,8 @@ const int8_t testFram(uint8_t * status)
   uint8_t testRead;
   uint8_t testWrite;
 
+  setup_io_for_fram(true);
+
   *status = FRAM_ReadStatusRegister(); //read status register
 
   restoreFramSettings(&testReadOriginal, sizeof(testReadOriginal)); // first read original value
@@ -162,6 +164,8 @@ const int8_t testFram(uint8_t * status)
   }
 
   saveFramSettings(&testReadOriginal, sizeof(testReadOriginal)); //write back orinal value to FRAM
+
+  setup_io_for_fram(false);
 
   return result;
 }
