@@ -55,6 +55,7 @@ static DMA_BUFFER uint8_t bufferRxConfig[SIZE_RX_BUFFER_CONFIG];
 
 static UTIL_TIMER_Object_t uartConfigActive_Timer;
 static UTIL_TIMER_Time_t uartConfigActiveTime_default = 30000; //30sec
+static bool uartConfigKeepListen = false;
 
 static bool dataDump;
 static bool dataErase;
@@ -791,12 +792,35 @@ void uartListen(void)
   uartSendReady_Config( &config_uart );
 }
 
+/**
+ * @fn void uartKeepListen(bool)
+ * @brief function to enable / disable the keep the uart in listen mode
+ * @note if mode is active STOP2 mode will not be active.
+ *
+ * @param keepListenAcitve
+ */
+void uartKeepListen(bool keepListenAcitve)
+{
+  uartConfigKeepListen = keepListenAcitve;
+}
+
+/**
+ * @fn void trigger_uartConfigActiveTimeout(void*)
+ * @brief timeout function of TIMER, to stop the uartConfig
+ *
+ * @param context
+ */
 void trigger_uartConfigActiveTimeout( void *context )
 {
   UTIL_TIMER_Stop(&uartConfigActive_Timer); //stop timer
+  if( uartConfigKeepListen
 #ifdef NO_SLEEP
-  UTIL_TIMER_Start(&uartConfigActive_Timer); //start again.
+      || true
 #endif
+      )
+  {
+    UTIL_TIMER_Start(&uartConfigActive_Timer); //start again.
+  }
 }
 
 /**
