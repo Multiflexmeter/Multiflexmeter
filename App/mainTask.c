@@ -177,16 +177,16 @@ const void mainTask(void)
 
     case 2: //enable sensor supply
 
-      if( startMeasure == false )
-      {
-        //keep waiting
-      }
-
-      else if( waiting == false ) //check wait time is expired
+      if( startMeasure == true )
       {
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
         setWait(1000); //set wait time 1000ms
         mainTask_state++; //next state
+      }
+
+      else
+      {
+        //keep waiting.
       }
 
       break;
