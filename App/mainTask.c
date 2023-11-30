@@ -33,6 +33,8 @@
 #include "MFMconfiguration.h"
 #include "mainTask.h"
 
+#define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
+
 static volatile bool mainTaskActive;
 static uint32_t mainTask_tmr;
 static int mainTask_state;
@@ -203,6 +205,7 @@ const void mainTask(void)
           sensorModuleId = 0; //force to first.
         }
 
+#ifdef LORA_PERIODICALLY_CONFIRMED_MSG
         /* get DevNonce for set confirmed / unconfirmed messages */
         if( getDevNonce() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
         {
@@ -212,6 +215,7 @@ const void mainTask(void)
         {
           setTxConfirmed(LORAMAC_HANDLER_UNCONFIRMED_MSG);
         }
+#endif
 
       }
       else
