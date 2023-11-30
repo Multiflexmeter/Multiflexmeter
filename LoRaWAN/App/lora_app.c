@@ -418,6 +418,17 @@ const void triggerSendTxData(void )
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaSendOnTxTimerOrButtonEvent), CFG_SEQ_Prio_0);
 }
 
+/**
+ * @fn const void triggerStopJoin(void)
+ * @brief function to trigger an stop and join
+ *
+ */
+const void triggerStopJoin(void)
+{
+  UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStopJoinEvent), CFG_SEQ_Prio_0);
+}
+
+
 /* USER CODE END EF */
 
 void LoRaWAN_Init(void)
