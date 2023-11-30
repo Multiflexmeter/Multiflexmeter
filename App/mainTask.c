@@ -49,6 +49,8 @@ static volatile bool waiting = false;
 static UTIL_TIMER_Object_t measurement_Timer;
 static volatile bool startMeasure = true;
 
+static UTIL_TIMER_Object_t rejoin_Timer;
+
 static uint8_t dataBuffer[100];
 static uint8_t sensorModuleId = 0;
 static bool sensorModuleEnabled = false;
@@ -112,6 +114,17 @@ const void setNewMeasureTime(int periodMs)
 {
   startMeasure = false; //reset
   UTIL_TIMER_StartWithPeriod(&measurement_Timer, periodMs); //set timer
+}
+
+/**
+ * @fn const void setDelayReJoin(int)
+ * @brief helper function to set set a delay rejoin
+ *
+ * @param periodMs
+ */
+const void setDelayReJoin(int periodMs)
+{
+  UTIL_TIMER_StartWithPeriod(&rejoin_Timer, periodMs); //set timer
 }
 
 /**
@@ -405,10 +418,19 @@ const void mainTask(void)
 
       disableVsys();
       loraJoinRetryCounter = 0; //reset
+      mainTask_state++; //next state
 
-      pause_mainTask();
+      break;
 
-      mainTask_state = 1; //go back to init after sleep, for next measure
+    case 10:
+
+      //check rejoin is not active
+      if( !UTIL_TIMER_IsRunning(&rejoin_Timer))
+      {
+        pause_mainTask();
+
+        mainTask_state = 1; //go back to init after sleep, for next measure
+      }
 
       break;
 
@@ -497,6 +519,17 @@ static const void trigger_measure(void *context)
 }
 
 /**
+ * @fn const void trigger_delayedReJoin(void*)
+ * @brief function to trigger delayed rejoin
+ *
+ * @param context
+ */
+static const void trigger_delayedReJoin(void *context)
+{
+  triggerReJoin();
+}
+
+/**
  * @fn const void init_mainTask(void)
  * @brief function to initialize the mainTask
  *
@@ -514,6 +547,7 @@ const void init_mainTask(void)
 
   UTIL_TIMER_Create(&measurement_Timer, 0, UTIL_TIMER_ONESHOT, trigger_measure, NULL); //create timer
 
+  UTIL_TIMER_Create(&rejoin_Timer, 0, UTIL_TIMER_ONESHOT, trigger_delayedReJoin, NULL); //create timer
 
 }
 
@@ -634,7 +668,7 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
           {
             //trigger rejoin
             APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Rejoin received\r\n" ); //print no sensor slot enabled
-            triggerStopJoin();
+            setDelayReJoin(10000); //set a delay ReJoin after 10 seconds. At Join the NVM is read. NVM needs to be saved before new join starts.
           }
           else
           {

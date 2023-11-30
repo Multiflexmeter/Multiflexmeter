@@ -95,6 +95,7 @@ static uint32_t nextRequestTime = 0;
 static uint32_t countTimeRequestActive;
 static uint32_t countTimeReceived;
 static UTIL_TIMER_Time_t forcedLoraInterval;
+static bool reJoinStarted = false;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -223,6 +224,17 @@ static void OnSystemReset(void);
 /* USER CODE BEGIN PFP */
 
 /**
+  * @brief  ReJoin switch timer callback function
+  * @param  context ptr of Join switch context
+  */
+static void OnReJoinTimerEvent(void *context);
+
+/**
+  * @brief  stop current LoRa execution to rejoin
+  */
+static void ReJoin(void);
+
+/**
   * @brief  LED Tx timer callback function
   * @param  context ptr of LED context
   */
@@ -339,6 +351,12 @@ static UTIL_TIMER_Time_t TxPeriodicity = APP_TX_DUTYCYCLE;
 static UTIL_TIMER_Object_t StopJoinTimer;
 
 /* USER CODE BEGIN PV */
+
+/**
+  * @brief ReJoin Timer period
+  */
+static UTIL_TIMER_Object_t ReJoinTimer;
+
 /**
   * @brief User application buffer
   */
@@ -419,13 +437,14 @@ const void triggerSendTxData(void )
 }
 
 /**
- * @fn const void triggerStopJoin(void)
- * @brief function to trigger an stop and join
+ * @fn const void triggerReJoin(void)
+ * @brief function to trigger an rejoin
  *
  */
-const void triggerStopJoin(void)
+const void triggerReJoin(void)
 {
-  UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStopJoinEvent), CFG_SEQ_Prio_0);
+  reJoinStarted = false; //reset
+  UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaReJoinEvent), CFG_SEQ_Prio_0);
 }
 
 /**
@@ -510,6 +529,10 @@ void LoRaWAN_Init(void)
   LmHandlerConfigure(&LmHandlerParams);
 
   /* USER CODE BEGIN LoRaWAN_Init_2 */
+  UTIL_TIMER_Create(&ReJoinTimer, JOIN_TIME, UTIL_TIMER_ONESHOT, OnReJoinTimerEvent, NULL);
+
+  UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_LoRaReJoinEvent), UTIL_SEQ_RFU, ReJoin);
+
   UTIL_TIMER_Start(&JoinLedTimer);
 
   if( LmHandlerSetAdrEnable(false) == LORAMAC_HANDLER_ERROR )
@@ -626,6 +649,42 @@ __weak const void setNewTxInterval_usr(LmHandlerErrorStatus_t status)
   UNUSED(status); //not used in weak
   UTIL_TIMER_Time_t newInterval = MAX(forcedLoraInterval, TxPeriodicity);
   setNewTxInterval( newInterval); //new lora interval in ms
+}
+
+static void ReJoin(void)
+{
+  UTIL_TIMER_Stop(&TxTimer);
+
+  if (LORAMAC_HANDLER_SUCCESS != LmHandlerStop())
+  {
+    APP_LOG(TS_OFF, VLEVEL_M, "LmHandler Stop on going ...\r\n");
+  }
+  else
+  {
+    APP_LOG(TS_OFF, VLEVEL_M, "LmHandler Stopped\r\n");
+
+    ActivationType = LORAWAN_DEFAULT_ACTIVATION_TYPE;
+
+    LmHandlerConfigure(&LmHandlerParams);
+    LmHandlerJoin(ActivationType, true);
+    reJoinStarted = true;
+
+    APP_LOG(TS_OFF, VLEVEL_M, "LmHandler Start join\r\n");
+
+    UTIL_TIMER_Start(&TxTimer);
+  }
+  UTIL_TIMER_Start(&ReJoinTimer);
+  /* USER CODE BEGIN StopJoin_Last */
+
+  /* USER CODE END StopJoin_Last */
+}
+
+static void OnReJoinTimerEvent(void *context)
+{
+  if (reJoinStarted == false)
+  {
+    UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaReJoinEvent), CFG_SEQ_Prio_0);
+  }
 }
 
 /* USER CODE END PrFD */
