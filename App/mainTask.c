@@ -21,8 +21,7 @@
 #include "stm32_systime.h"
 
 #include "lora_app.h"
-#include "LmHandlerTypes.h"
-#include "LmHandler.h"
+#include "LoRaMac.h"
 
 #include "IO/board_io.h"
 #include "IO/board_io_functions.h"
@@ -53,6 +52,7 @@ static volatile bool startMeasure = true;
 static uint8_t dataBuffer[100];
 static uint8_t sensorModuleId = 0;
 static bool sensorModuleEnabled = false;
+static uint8_t numberOfsensorModules = 0;
 static bool loraTransmitReady = false;
 static LmHandlerErrorStatus_t loraTransmitStatus;
 
@@ -149,11 +149,14 @@ const void mainTask(void)
         uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
       }
 
+      numberOfsensorModules = 0;
+      sensorModuleEnabled = false;
       //check if at least one sensor module is enabled
       for( int i=0; i < MAX_SENSOR_MODULE; i++)
       {
         if( getSensorStatus(i + 1) == true )
         {
+          numberOfsensorModules++;
           sensorModuleEnabled = true; //a module found, copy
         }
       }
@@ -167,6 +170,22 @@ const void mainTask(void)
         if( sensorModuleId < 0 || sensorModuleId >= MAX_SENSOR_MODULE )
         {
           sensorModuleId = 0; //force to first.
+        }
+
+        /* get DevNonce for set confirmed / unconfirmed messages */
+        LoRaMacNvmData_t *nvm;
+        MibRequestConfirm_t mibReq;
+        mibReq.Type = MIB_NVM_CTXS;
+        LoRaMacMibGetRequestConfirm( &mibReq );
+        nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+        if( nvm->Crypto.DevNonce % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+        {
+          setTxConfirmed(LORAMAC_HANDLER_CONFIRMED_MSG);
+        }
+        else
+        {
+          setTxConfirmed(LORAMAC_HANDLER_UNCONFIRMED_MSG);
         }
 
       }
