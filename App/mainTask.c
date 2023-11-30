@@ -21,8 +21,7 @@
 #include "stm32_systime.h"
 
 #include "lora_app.h"
-#include "LmHandlerTypes.h"
-#include "LmHandler.h"
+#include "LoRaMac.h"
 
 #include "IO/board_io.h"
 #include "IO/board_io_functions.h"
@@ -33,6 +32,8 @@
 #include "CommConfig.h"
 #include "MFMconfiguration.h"
 #include "mainTask.h"
+
+#define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
 
 static volatile bool mainTaskActive;
 static uint32_t mainTask_tmr;
@@ -50,9 +51,12 @@ static volatile bool waiting = false;
 static UTIL_TIMER_Object_t measurement_Timer;
 static volatile bool startMeasure = true;
 
+static UTIL_TIMER_Object_t rejoin_Timer;
+
 static uint8_t dataBuffer[100];
 static uint8_t sensorModuleId = 0;
 static bool sensorModuleEnabled = false;
+static uint8_t numberOfsensorModules = 0;
 static bool loraTransmitReady = false;
 static LmHandlerErrorStatus_t loraTransmitStatus;
 
@@ -115,6 +119,35 @@ const void setNewMeasureTime(int periodMs)
 }
 
 /**
+ * @fn const void setDelayReJoin(int)
+ * @brief helper function to set set a delay rejoin
+ *
+ * @param periodMs
+ */
+const void setDelayReJoin(int periodMs)
+{
+  UTIL_TIMER_StartWithPeriod(&rejoin_Timer, periodMs); //set timer
+}
+
+/**
+ * @fn const uint16_t getDevNonce(void)
+ * @brief function to get the DevNonce counter
+ *
+ * @return devNonce counter
+ */
+static const uint16_t getDevNonce(void)
+{
+  /* get DevNonce */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    return nvm->Crypto.DevNonce;
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -149,11 +182,14 @@ const void mainTask(void)
         uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
       }
 
+      numberOfsensorModules = 0;
+      sensorModuleEnabled = false;
       //check if at least one sensor module is enabled
       for( int i=0; i < MAX_SENSOR_MODULE; i++)
       {
         if( getSensorStatus(i + 1) == true )
         {
+          numberOfsensorModules++;
           sensorModuleEnabled = true; //a module found, copy
         }
       }
@@ -168,6 +204,18 @@ const void mainTask(void)
         {
           sensorModuleId = 0; //force to first.
         }
+
+#ifdef LORA_PERIODICALLY_CONFIRMED_MSG
+        /* get DevNonce for set confirmed / unconfirmed messages */
+        if( getDevNonce() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+        {
+          setTxConfirmed(LORAMAC_HANDLER_CONFIRMED_MSG);
+        }
+        else
+        {
+          setTxConfirmed(LORAMAC_HANDLER_UNCONFIRMED_MSG);
+        }
+#endif
 
       }
       else
@@ -386,10 +434,19 @@ const void mainTask(void)
 
       disableVsys();
       loraJoinRetryCounter = 0; //reset
+      mainTask_state++; //next state
 
-      pause_mainTask();
+      break;
 
-      mainTask_state = 1; //go back to init after sleep, for next measure
+    case 10:
+
+      //check rejoin is not active
+      if( !UTIL_TIMER_IsRunning(&rejoin_Timer))
+      {
+        pause_mainTask();
+
+        mainTask_state = 1; //go back to init after sleep, for next measure
+      }
 
       break;
 
@@ -478,6 +535,17 @@ static const void trigger_measure(void *context)
 }
 
 /**
+ * @fn const void trigger_delayedReJoin(void*)
+ * @brief function to trigger delayed rejoin
+ *
+ * @param context
+ */
+static const void trigger_delayedReJoin(void *context)
+{
+  triggerReJoin();
+}
+
+/**
  * @fn const void init_mainTask(void)
  * @brief function to initialize the mainTask
  *
@@ -495,6 +563,7 @@ const void init_mainTask(void)
 
   UTIL_TIMER_Create(&measurement_Timer, 0, UTIL_TIMER_ONESHOT, trigger_measure, NULL); //create timer
 
+  UTIL_TIMER_Create(&rejoin_Timer, 0, UTIL_TIMER_ONESHOT, trigger_delayedReJoin, NULL); //create timer
 
 }
 
@@ -615,7 +684,7 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
           {
             //trigger rejoin
             APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Rejoin received\r\n" ); //print no sensor slot enabled
-            triggerStopJoin();
+            setDelayReJoin(10000); //set a delay ReJoin after 10 seconds. At Join the NVM is read. NVM needs to be saved before new join starts.
           }
           else
           {
