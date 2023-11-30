@@ -428,6 +428,16 @@ const void triggerStopJoin(void)
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStopJoinEvent), CFG_SEQ_Prio_0);
 }
 
+/**
+ * @fn const void setTxConfirmed(LmHandlerMsgTypes_t)
+ * @brief function to change tx Confirmed
+ *
+ * @param isTxConfirmed \ref LmHandlerMsgTypes_t: LORAMAC_HANDLER_UNCONFIRMED_MSG or LORAMAC_HANDLER_CONFIRMED_MSG
+ */
+const void setTxConfirmed(LmHandlerMsgTypes_t isTxConfirmed)
+{
+  OnTxFrameCtrlChanged( isTxConfirmed);
+}
 
 /* USER CODE END EF */
 
