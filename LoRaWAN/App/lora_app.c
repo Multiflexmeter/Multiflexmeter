@@ -251,6 +251,19 @@ __weak const void syncRTC_withSysTime(void)
   return;
 }
 
+/**
+ * @fn const void rxDataUsrCallback(LmHandlerAppData_t*)
+ * @brief weak function for rx data received to be override in user code.
+ *
+ * @param appData
+ */
+__weak const void rxDataUsrCallback(LmHandlerAppData_t *appData)
+{
+  UNUSED(appData);
+  __NOP();
+}
+
+
 extern const void setGreenLedOnOf(bool ledState);
 /* USER CODE END PFP */
 
@@ -668,6 +681,8 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
               break;
 
             default:
+
+              rxDataUsrCallback( appData );
 
               break;
           }
