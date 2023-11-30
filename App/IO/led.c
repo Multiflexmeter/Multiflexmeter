@@ -180,6 +180,17 @@ const void setLed(ENUM_LED led, ENUM_LED_MODE ledmode, ENUM_LED_STATE ledstate, 
 }
 
 /**
+ * @fn const void setGreenLedOnOf(bool)
+ * @brief function to swith on/off the green LED
+ *
+ * @param ledState
+ */
+const void setGreenLedOnOf(bool ledState)
+{
+  setLed(LED_1, LED_BLINK, ledState == true ? LED_ON : LED_OFF, 20, 1, 19);
+}
+
+/**
  * @fn const void setLedTest(int8_t)
  * @brief function to set LED test
  *
