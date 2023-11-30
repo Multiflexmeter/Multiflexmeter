@@ -128,6 +128,24 @@ const void setDelayReJoin(int periodMs)
 }
 
 /**
+ * @fn const uint16_t getDevNonce(void)
+ * @brief function to get the DevNonce counter
+ *
+ * @return devNonce counter
+ */
+static const uint16_t getDevNonce(void)
+{
+  /* get DevNonce */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    return nvm->Crypto.DevNonce;
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -186,13 +204,7 @@ const void mainTask(void)
         }
 
         /* get DevNonce for set confirmed / unconfirmed messages */
-        LoRaMacNvmData_t *nvm;
-        MibRequestConfirm_t mibReq;
-        mibReq.Type = MIB_NVM_CTXS;
-        LoRaMacMibGetRequestConfirm( &mibReq );
-        nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
-
-        if( nvm->Crypto.DevNonce % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+        if( getDevNonce() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
         {
           setTxConfirmed(LORAMAC_HANDLER_CONFIRMED_MSG);
         }
