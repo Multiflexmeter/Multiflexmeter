@@ -37,6 +37,7 @@ const void setNewTxInterval(UTIL_TIMER_Time_t newInterval);
 const UTIL_TIMER_Time_t getForcedLoraInterval(void);
 const void triggerSaveNvmData2Fram(void);
 const void triggerSendTxData(void );
+const void triggerStopJoin(void);
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

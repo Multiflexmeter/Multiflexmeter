@@ -251,6 +251,20 @@ __weak const void syncRTC_withSysTime(void)
   return;
 }
 
+/**
+ * @fn const void rxDataUsrCallback(LmHandlerAppData_t*)
+ * @brief weak function for rx data received to be override in user code.
+ *
+ * @param appData
+ */
+__weak const void rxDataUsrCallback(LmHandlerAppData_t *appData)
+{
+  UNUSED(appData);
+  __NOP();
+}
+
+
+extern const void setGreenLedOnOf(bool ledState);
 /* USER CODE END PFP */
 
 /* Private variables ---------------------------------------------------------*/
@@ -403,6 +417,17 @@ const void triggerSendTxData(void )
 {
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaSendOnTxTimerOrButtonEvent), CFG_SEQ_Prio_0);
 }
+
+/**
+ * @fn const void triggerStopJoin(void)
+ * @brief function to trigger an stop and join
+ *
+ */
+const void triggerStopJoin(void)
+{
+  UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStopJoinEvent), CFG_SEQ_Prio_0);
+}
+
 
 /* USER CODE END EF */
 
@@ -650,6 +675,7 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                 if (AppLedStateOn == RESET)
                 {
                   APP_LOG(TS_OFF, VLEVEL_H, "LED OFF\r\n");
+                  setGreenLedOnOf(false);
 #ifdef USE_LORA_APP_LED3
                   HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET); /* LED_RED */
 #endif
@@ -657,6 +683,7 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                 else
                 {
                   APP_LOG(TS_OFF, VLEVEL_H, "LED ON\r\n");
+                  setGreenLedOnOf(true);
 #ifdef USE_LORA_APP_LED3
                   HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET); /* LED_RED */
 #endif
@@ -665,6 +692,8 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
               break;
 
             default:
+
+              rxDataUsrCallback( appData );
 
               break;
           }
