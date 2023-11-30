@@ -558,3 +558,86 @@ const void setNewTxInterval_usr(LmHandlerErrorStatus_t status)
 {
   loraTransmitReady = true;
 }
+
+/**
+ * @fn const void rxDataUsrCallback(LmHandlerAppData_t*)
+ * @brief override function to handle uplink data in user application
+ * FPort 0x69, command 0x55 will force a rejoin
+ *
+ * @param appData : received data
+ */
+const void rxDataUsrCallback(LmHandlerAppData_t *appData)
+{
+  //check buffer is not NULL, no data
+  if (appData->Buffer == NULL)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: buffer NULL\r\n" );
+    return;
+  }
+
+  //check Lora reserved ports
+  if( appData->Port ==0 || appData->Port > 223 )
+  {
+     APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: reserved port\r\n" );
+     return;
+   }
+
+  //check Lora_app used ports, see OnRxData() in LoRaWAN\App\lora_app.c
+  if( appData->Port > 0 && appData->Port <=3)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: used lora_app port\r\n");
+    return;
+  }
+
+  //check buffersize is at least 2 for MFM protocol
+  if( appData->BufferSize > 2 )
+  {
+     APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: More data as expected\r\n");
+     return;
+   }
+
+  uint8_t command = appData->Buffer[0]; //MFM command byte
+  uint8_t optionalByte = appData->Buffer[1]; //reserved for optional byte for command
+
+  UNUSED(optionalByte); //not yet used, prevent warning.
+
+  switch ( appData->Port )
+  {
+
+    case 0x69: //MFM command
+
+      switch (command)
+      {
+        case 0x55: //command for rejoin in 5 minutes
+
+          //check command buffer matches
+          if(  appData->BufferSize == 1 )
+          {
+            //trigger rejoin
+            APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Rejoin received\r\n" ); //print no sensor slot enabled
+            triggerStopJoin();
+          }
+          else
+          {
+            APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: More data as expected\r\n");
+          }
+
+          break;
+
+        default:
+
+          //nothing
+          APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: No action defined\r\n");
+
+          break;
+      }
+
+      break;
+
+    default:
+
+      //nothing
+
+      break;
+  }
+}
