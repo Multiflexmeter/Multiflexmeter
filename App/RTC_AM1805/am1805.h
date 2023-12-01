@@ -111,6 +111,35 @@ extern "C"
 #define AM1805_mask_BAT                   0x40
 #define AM1805_mask_CB                    0x80
 
+//Countdown
+#define CNTDWN_RANGE_USEC                   0x00
+#define CNTDWN_RANGE_SEC                    0x01
+
+#define CNTDWN_IRQ_SINGLE_LEVEL             0x00 //0 => generate a single level interrupt
+#define CNTDWN_IRQ_REP_PULSED_XT_1_4096S    0x01 //1 => generate a repeated pulsed interrupt, 1/4096 s (XT mode), 1/128 s(RC mode) (ui8Range must be 0)
+#define CNTDWN_IRQ_REP_PULSED_RC_1_128S     0x01 //1 => generate a repeated pulsed interrupt, 1/4096 s (XT mode), 1/128 s(RC mode) (ui8Range must be 0)
+#define CNTDWN_IRQ_SINGLE_PULSED_XT_1_4096S 0x02 //2 => generate a single pulsed interrupt, 1/4096 s (XT mode), 1/128 s (RC mode) (ui8Range must be 0)
+#define CNTDWN_IRQ_SINGLE_PULSED_RC_1_128S  0x02 //2 => generate a single pulsed interrupt, 1/4096 s (XT mode), 1/128 s (RC mode) (ui8Range must be 0)
+#define CNTDWN_IRQ_REP_PULSED_1_128S        0x03 //3 => generate a repeated pulsed interrupt, 1/128 s (ui8Range must be 0)
+#define CNTDWN_IRQ_SINGLE_PULSED_1_128S     0x04 //4 => generate a single pulsed interrupt, 1/128 s (ui8Range must be 0)
+#define CNTDWN_IRQ_REP_PULSED_1_64s         0x05 //5 => generate a repeated pulsed interrupt, 1/64 s (ui8Range must be 1)
+#define CNTDWN_IRQ_SINGLE_PULSED_1_64S      0x06 //6 => generate a single pulsed interrupt, 1/64 s (ui8Range must be 1)
+
+#define CNTDOWN_DISABLE_CNT_DOWN_TMR            0x00 //0 => disable the countdown timer
+#define CNTDOWN_PIN_nTIRQ_LOW                   0x01 //1 => generate an interrupt on nTIRQ only, asserted low
+#define CNTDOWN_PIN_FOUT_AND_nTIRQ_LOW          0x02 //2 => generate an interrupt on FOUT/nIRQ and nTIRQ, both asserted low
+#define CNTDOWN_PIN_PSW_AND_nTIRQ_LOW           0x03 //3 => generate an interrupt on PSW/nIRQ2 and nTIRQ, both asserted low
+#define CNTDOWN_PIN_CLKOUT_AND_nTIRQ_LOW        0x04 //4 => generate an interrupt on CLKOUT/nIRQ3 and nTIRQ, both asserted low
+#define CNTDOWN_PIN_CLKOUT_HIGH_AND_nTIRQ_LOW   0x05 //5 => generate an interrupt on CLKOUT/nIRQ3 (asserted high) and nTIRQ (asserted low)
+
+#define SLEEP_MODE_nRST_LOW                 0x00//0 => nRST is pulled low in sleep mode
+#define SLEEP_MODE_PSW_LOW                  0x01//1 => PSW/nIRQ2 is pulled high on a sleep
+#define SLEEP_MODE_nRST_LOW_AND_PSW_HIGH    0x02//2 => nRST pulled low and PSW/nIRQ2 pulled high on sleep
+
+#define SLEEP_RETURN_ACCEPTED               0x00 //0 => sleep request accepted, sleep mode will be initiated in ui8Timeout seconds
+#define SLEEP_RETURN_ILLEGAL_INPUT          0x01 //1 => illegal input values
+#define SLEEP_RETURN_DECLINED_ACTIVE_IRQ    0x02 //2 => sleep request declined, interrupt is currently pending
+#define SLEEP_RETURN_DECLINED_NO_SLEEP_IRQ  0x03 //3 => sleep request declined, no sleep trigger interrupt enabled
 
 //*****************************************************************************
 //
