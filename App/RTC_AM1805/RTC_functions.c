@@ -199,3 +199,60 @@ const bool getWakeupStatus(bool clear)
 
   return (result & AM1805_mask_WDT);
 }
+
+/**
+ * @fn const void goIntoSleep(uint32_t, uint8_t)
+ * @brief function to enable sleep mode of Real Time Clock.
+ * Also disables the supply of this controller.
+ * @warning this functions shutdown the processor supply
+ *
+ * @param sleepTime_sec : time to be in sleep
+ * @param waitTimeTicks : value between 0-7, 0 = noDelay, 1-7 periods of 7.8ms. The value is limited automatically to 7.
+ */
+const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
+{
+  //check wait is between 0-7.
+  if( waitTimeTicks > 7 )
+  {
+    waitTimeTicks = 7;
+  }
+
+  //setup the sleeptime
+  am1805_countdown_set(CNTDWN_RANGE_SEC, sleepTime_sec, CNTDWN_IRQ_SINGLE_PULSED_1_64S, CNTDOWN_PIN_PSW_AND_nTIRQ_LOW);
+
+  //enable the sleepmode
+  uint32_t sleepStatus = am1805_sleep_set(waitTimeTicks, SLEEP_MODE_nRST_LOW_AND_PSW_HIGH);
+
+  switch( sleepStatus )
+  {
+    case SLEEP_RETURN_ACCEPTED:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ACTIVE\r\n" );
+      break;
+    case SLEEP_RETURN_ILLEGAL_INPUT:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, illegal input\r\n" );
+      break;
+    case SLEEP_RETURN_DECLINED_ACTIVE_IRQ:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, IRQ already active\r\n" );
+      break;
+    case SLEEP_RETURN_DECLINED_NO_SLEEP_IRQ:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, sleep IRQ not enabled\r\n" );
+      break;
+    default:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, wrong return value\r\n" );
+      break;
+  }
+
+  //todo if brownout enabled, turn it off.
+  //while( 1 ); //keep waiting to turn off.
+
+}
+
+/**
+ * @fn const void disableSleep(void)
+ * @brief function to disable the sleepmode.
+ *
+ */
+const void disableSleep(void)
+{
+  am1805_countdown_set(CNTDWN_RANGE_SEC, 0, CNTDWN_IRQ_SINGLE_PULSED_1_64S, CNTDOWN_DISABLE_CNT_DOWN_TMR);
+}
