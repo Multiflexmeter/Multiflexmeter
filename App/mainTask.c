@@ -30,11 +30,13 @@
 #include "I2CMaster/SensorFunctions.h"
 #include "logging/logging.h"
 #include "BatMon_BQ35100/BatMon_functions.h"
+#include "RTC_AM1805/RTC_functions.h"
 #include "CommConfig.h"
 #include "MFMconfiguration.h"
 #include "mainTask.h"
 
 #define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
+//#define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled.
 
 static volatile bool mainTaskActive;
 static uint32_t mainTask_tmr;
@@ -165,6 +167,7 @@ const void mainTask(void)
   {
     case INIT_POWERUP: //init Powerup
 
+      disableSleep();
       init_board_io(); //init IO
       initLedTimer(); //init LED timer
       init_vAlwaysOn();
@@ -491,9 +494,14 @@ const void mainTask(void)
       //check rejoin is not active
       if( !UTIL_TIMER_IsRunning(&rejoin_Timer))
       {
+#ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+        goIntoSleep(MainPeriodSleep, 1);
+        //will stop here
+#else
         pause_mainTask();
 
         mainTask_state = INIT_SLEEP; //go back to init after sleep, for next measure
+#endif
       }
 
       break;
