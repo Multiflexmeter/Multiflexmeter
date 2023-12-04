@@ -226,7 +226,7 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   switch( sleepStatus )
   {
     case SLEEP_RETURN_ACCEPTED:
-      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ACTIVE\r\n" );
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ACTIVE %u seconds\r\n", sleepTime_sec );
       break;
     case SLEEP_RETURN_ILLEGAL_INPUT:
       APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, illegal input\r\n" );
