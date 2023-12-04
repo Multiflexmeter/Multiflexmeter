@@ -15,6 +15,27 @@
 #ifndef MAINTASK_H_
 #define MAINTASK_H_
 
+typedef enum
+{
+
+  INIT_POWERUP = 0,
+  INIT_SLEEP,
+  ENABLE_SLOTPOWER,
+  START_SENSOR_MEASURE,
+  WAIT_FOR_SENSOR_DATA,
+  READ_SENSOR_DATA,
+  WAIT_BATMON_DATA,
+  SAVE_DATA,
+  SEND_LORA_DATA,
+  NEXT_SENSOR_MODULE,
+  WAIT_LORA_TRANSMIT_READY,
+  CHECK_LORA_JOINED,
+  SWITCH_OFF_VSYS,
+  CHECK_LORA_REJOIN,
+  STOP_MAINTASK,
+
+} ENUM_STATE_MAINTASK;
+
 const void init_mainTask(void);
 const void stop_mainTask(bool resume);
 const void pause_mainTask(void);

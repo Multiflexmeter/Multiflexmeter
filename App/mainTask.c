@@ -29,6 +29,7 @@
 #include "FRAM/FRAM_functions.h"
 #include "I2CMaster/SensorFunctions.h"
 #include "logging/logging.h"
+#include "BatMon_BQ35100/BatMon_functions.h"
 #include "CommConfig.h"
 #include "MFMconfiguration.h"
 #include "mainTask.h"
@@ -62,6 +63,8 @@ static LmHandlerErrorStatus_t loraTransmitStatus;
 
 static uint16_t sensorType;
 static uint8_t sensorProtocol;
+
+static uint8_t waitForBatteryMonitorDataCounter = 0;
 
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
@@ -160,7 +163,7 @@ const void mainTask(void)
   //execute steps of maintask, then wait for next trigger.
   switch( mainTask_state )
   {
-    case 0: //init Powerup
+    case INIT_POWERUP: //init Powerup
 
       init_board_io(); //init IO
       initLedTimer(); //init LED timer
@@ -168,10 +171,12 @@ const void mainTask(void)
       enable_vAlwaysOn(); //force on, temporary for proto hardware //todo change for seconde proto
       executeAlwaysOn(); //execute Always on config value.
 
-      mainTask_state++;
+      mainTask_state = INIT_SLEEP;
       break;
 
-    case 1: //init after Sleep
+    case INIT_SLEEP: //init after Sleep
+
+      initBatMon(); //start battery gauge
 
       enableVsys(); //enable supply for I/O expander
       init_board_io_device(IO_EXPANDER_BUS_INT);
@@ -196,7 +201,7 @@ const void mainTask(void)
 
       if( sensorModuleEnabled )
       {
-        mainTask_state++; //at least one active sensor module slot
+        mainTask_state = ENABLE_SLOTPOWER; //at least one active sensor module slot
 
         getFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //read out FRAM setting module ID
 
@@ -221,18 +226,18 @@ const void mainTask(void)
       else
       {
         APP_LOG(TS_OFF, VLEVEL_H, "No sensor module slot enabled\r\n" ); //print no sensor slot enabled
-        mainTask_state = 99; //no sensor slot is active
+        mainTask_state = STOP_MAINTASK; //no sensor slot is active
       }
 
       break;
 
-    case 2: //enable sensor supply
+    case ENABLE_SLOTPOWER: //enable sensor supply
 
       if( startMeasure == true )
       {
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
         setWait(10); //set wait time 10ms
-        mainTask_state++; //next state
+        mainTask_state = START_SENSOR_MEASURE; //next state
       }
 
       else
@@ -242,7 +247,7 @@ const void mainTask(void)
 
       break;
 
-    case 3: //start measure
+    case START_SENSOR_MEASURE: //start measure
 
       if( waiting == false ) //check wait time is expired
       {
@@ -268,12 +273,12 @@ const void mainTask(void)
 
         setWait(250);  //set wait time 250ms
 
-        mainTask_state++; //next state
+        mainTask_state = WAIT_FOR_SENSOR_DATA; //next state
       }
 
       break;
 
-    case 4:
+    case WAIT_FOR_SENSOR_DATA:
 
       if( waiting == false ) //check wait time is expired
       {
@@ -282,7 +287,7 @@ const void mainTask(void)
 
         if( newStatus != MEASUREMENT_ACTIVE )
         {
-          mainTask_state++; //next state
+          mainTask_state = READ_SENSOR_DATA; //next state
         }
         else
         {
@@ -292,7 +297,7 @@ const void mainTask(void)
 
       break;
 
-    case 5: //read measurement
+    case READ_SENSOR_DATA: //read senor module measurement
 
       {
         SensorError newstatus = sensorReadMeasurement(sensorModuleId, dataBuffer, sizeof(dataBuffer));
@@ -311,7 +316,7 @@ const void mainTask(void)
           unitTemp[0] = 176; //overwrite degree sign to ascii 176
 
           structDataPressureSensor * pSensorData = (structDataPressureSensor*)&dataBuffer[0];
-          APP_LOG(TS_OFF, VLEVEL_H, "Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n,",
+          APP_LOG(TS_OFF, VLEVEL_H, "Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n",
               (int)pSensorData->pressure1, getDecimal(pSensorData->pressure1, 2), unitPress,
               (int)pSensorData->temperature1, getDecimal(pSensorData->temperature1, 2), unitTemp,
               (int)pSensorData->pressure2, getDecimal(pSensorData->pressure2, 2), unitPress,
@@ -323,16 +328,59 @@ const void mainTask(void)
 
         slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
 
-        writeNewLog(sensorModuleId, sensorType, sensorProtocol, &dataBuffer[1], dataBuffer[0]); //write log data to dataflash.
+        waitForBatteryMonitorDataCounter = 0; //reset
 
-        triggerSendTxData(); //trigger Lora transmit
-
-        mainTask_state++; //next state
+        mainTask_state = WAIT_BATMON_DATA; //next state
       }
 
       break;
 
-    case 6:
+    case WAIT_BATMON_DATA:
+
+      if( waiting == false ) //check wait time is expired
+      {
+
+        batmon_measure(); //save battery monitor data
+
+        APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor data: %dmV, %dmA, %d%%, %u.%u%cC, Z:%umOhm, R:%umOhm\r\n",
+            batmon_getMeasure().voltage,
+            batmon_getMeasure().current,
+            batmon_getMeasure().stateOfHealth,
+            batmon_getMeasure().temperature/10, batmon_getMeasure().temperature%10, 176,
+            batmon_getMeasure().MeasuredZ,
+            batmon_getMeasure().ScaledR
+            );
+
+        if( batmon_getMeasure().voltage > 0 || waitForBatteryMonitorDataCounter > 10)
+        {
+          deinitBatMon();
+          mainTask_state = SAVE_DATA; //next state
+        }
+        else
+        {
+          waitForBatteryMonitorDataCounter++;
+          setWait(100);  //set wait time 100msec
+        }
+      }
+
+
+      break;
+
+    case SAVE_DATA:
+
+      writeNewLog(sensorModuleId, sensorType, sensorProtocol, &dataBuffer[1], dataBuffer[0]); //write log data to dataflash.
+      mainTask_state = SEND_LORA_DATA; //next state
+
+      break;
+
+    case SEND_LORA_DATA:
+
+      triggerSendTxData(); //trigger Lora transmit
+      mainTask_state = NEXT_SENSOR_MODULE; //next state
+
+      break;
+
+    case NEXT_SENSOR_MODULE:
 
       {
         int escape = MAX_SENSOR_MODULE;
@@ -347,12 +395,12 @@ const void mainTask(void)
         setFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //save last sensor Moudle ID
 
 
-        mainTask_state++;
+        mainTask_state = WAIT_LORA_TRANSMIT_READY;
       }
 
       break;
 
-    case 7:
+    case WAIT_LORA_TRANSMIT_READY:
 
       //wait on transmit ready flag
       if( loraTransmitReady == true )
@@ -397,60 +445,60 @@ const void mainTask(void)
 
         MainPeriodSleep = newLoraInterval;
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
-        mainTask_state++; //next state
 
         //check JOIN is not active
         if (LmHandlerJoinStatus() == LORAMAC_HANDLER_RESET) // JOIN is not active
         { //retry it after ..
           setWait(10000);  //set wait time 10sec
+          mainTask_state = CHECK_LORA_JOINED; //next state
         }
         else
         {
-          mainTask_state++; //increment again, to skip retry for join.
+          mainTask_state = SWITCH_OFF_VSYS; //increment again, to skip retry for join.
         }
       }
 
       break;
 
-    case 8:
+    case CHECK_LORA_JOINED:
 
       if( waiting == false ) //check wait time is expired
       {
         if( LmHandlerJoinStatus() == LORAMAC_HANDLER_SET || loraJoinRetryCounter > 5 )
         {
-          mainTask_state++; //next state
+          mainTask_state = SWITCH_OFF_VSYS; //next state
         }
         else
         { //try again
           loraJoinRetryCounter++;
           triggerSendTxData(); //trigger Lora transmit
-          mainTask_state--; //previous state
+          mainTask_state = WAIT_LORA_TRANSMIT_READY; //previous state
         }
       }
 
       break;
 
-    case 9: //switch off for low power oparation
+    case SWITCH_OFF_VSYS: //switch off for low power oparation
 
       disableVsys();
       loraJoinRetryCounter = 0; //reset
-      mainTask_state++; //next state
+      mainTask_state = CHECK_LORA_REJOIN; //next state
 
       break;
 
-    case 10:
+    case CHECK_LORA_REJOIN:
 
       //check rejoin is not active
       if( !UTIL_TIMER_IsRunning(&rejoin_Timer))
       {
         pause_mainTask();
 
-        mainTask_state = 1; //go back to init after sleep, for next measure
+        mainTask_state = INIT_SLEEP; //go back to init after sleep, for next measure
       }
 
       break;
 
-    case 99:
+    case STOP_MAINTASK:
 
       stop_mainTask(true);
 
@@ -552,7 +600,7 @@ static const void trigger_delayedReJoin(void *context)
  */
 const void init_mainTask(void)
 {
-  mainTask_state = 0; //reset state for powerup
+  mainTask_state = INIT_POWERUP; //reset state for powerup
   mainTaskActive = true; //start the main task
   UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_Main), UTIL_SEQ_RFU, mainTask); //register the task at the scheduler
 
@@ -575,7 +623,7 @@ const void init_mainTask(void)
  */
 const void stop_mainTask(bool resume)
 {
-  mainTask_state = 1; //reset state for STOP2 mode
+  mainTask_state = INIT_SLEEP; //reset state for STOP2 mode
   mainTaskActive = false;
   enableListenUart = false;
 

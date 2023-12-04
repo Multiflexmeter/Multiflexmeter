@@ -139,7 +139,7 @@ int main(void)
   MX_LoRaWAN_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  initBatMon();
+
   uartInit_Config();
   resultInitDataflash = init_dataflash();
 
