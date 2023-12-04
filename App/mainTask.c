@@ -503,7 +503,7 @@ const void mainTask(void)
 
     case WAIT_LORA_RECEIVE_READY:
 
-      if( loraReceiveReady == true )
+      if( loraReceiveReady == true || !LoRaMacIsBusy() )
       {
         mainTask_state = WAIT_FOR_SLEEP;
         setWait(1000);  //set wait time 1sec
