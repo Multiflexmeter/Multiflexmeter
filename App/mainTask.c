@@ -30,17 +30,20 @@
 #include "I2CMaster/SensorFunctions.h"
 #include "logging/logging.h"
 #include "BatMon_BQ35100/BatMon_functions.h"
+#include "RTC_AM1805/RTC_functions.h"
 #include "CommConfig.h"
 #include "MFMconfiguration.h"
 #include "mainTask.h"
 
 #define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
+#define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled. //if enabled jumper on J11 1-2 must be placed.
 
 static volatile bool mainTaskActive;
 static uint32_t mainTask_tmr;
 static int mainTask_state;
 static int loraJoinRetryCounter = 0;
 
+static SysTime_t bootTime;
 static UTIL_TIMER_Object_t MainTimer;
 static UTIL_TIMER_Time_t MainPeriodSleep = 60000;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
@@ -58,7 +61,8 @@ static uint8_t dataBuffer[100];
 static uint8_t sensorModuleId = 0;
 static bool sensorModuleEnabled = false;
 static uint8_t numberOfsensorModules = 0;
-static bool loraTransmitReady = false;
+static volatile bool loraTransmitReady = false;
+static volatile bool loraReceiveReady = false;
 static LmHandlerErrorStatus_t loraTransmitStatus;
 
 static uint16_t sensorType;
@@ -165,6 +169,7 @@ const void mainTask(void)
   {
     case INIT_POWERUP: //init Powerup
 
+      disableSleep();
       init_board_io(); //init IO
       initLedTimer(); //init LED timer
       init_vAlwaysOn();
@@ -375,6 +380,9 @@ const void mainTask(void)
 
     case SEND_LORA_DATA:
 
+      loraTransmitReady = false; //reset before new transmit
+      loraReceiveReady = false; //reset before new transmit
+
       triggerSendTxData(); //trigger Lora transmit
       mainTask_state = NEXT_SENSOR_MODULE; //next state
 
@@ -407,8 +415,6 @@ const void mainTask(void)
       {
         UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
         UTIL_TIMER_Time_t forcedInterval = 0;
-
-        loraTransmitReady = false; //reset
 
         switch( loraTransmitStatus )
         {
@@ -491,9 +497,55 @@ const void mainTask(void)
       //check rejoin is not active
       if( !UTIL_TIMER_IsRunning(&rejoin_Timer))
       {
+        mainTask_state = WAIT_LORA_RECEIVE_READY;
+      }
+
+      break;
+
+    case WAIT_LORA_RECEIVE_READY:
+
+      if( loraReceiveReady == true || !LoRaMacIsBusy() )
+      {
+        mainTask_state = WAIT_FOR_SLEEP;
+        setWait(1000);  //set wait time 1sec
+      }
+
+      break;
+
+    case WAIT_FOR_SLEEP:
+
+      if( waiting == false ) //check wait time is expired
+      {
+#ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+
+        uint32_t nextWake = MainPeriodSleep/1000; //LoraInterval from ms to sec
+
+        if( SysTimeGet().Seconds > bootTime.Seconds ) //check current time is larger then saved boottime.
+        {
+          SysTime_t elepsedTime = SysTimeSub(SysTimeGet(), bootTime); //calculate elapsed time
+
+          if( nextWake > (elepsedTime.Seconds + 1) )
+          {
+            nextWake -= elepsedTime.Seconds;
+          }
+
+          else
+          {
+            nextWake = 10; //force to minimum 10 second
+          }
+        }
+        else
+        { //something went wrong
+          //nothing, just use interval
+        }
+
+        goIntoSleep(nextWake, 1);
+        //will stop here
+#else
         pause_mainTask();
 
         mainTask_state = INIT_SLEEP; //go back to init after sleep, for next measure
+#endif
       }
 
       break;
@@ -600,6 +652,9 @@ static const void trigger_delayedReJoin(void *context)
  */
 const void init_mainTask(void)
 {
+
+  bootTime = SysTimeGet(); //get boottime.
+
   mainTask_state = INIT_POWERUP; //reset state for powerup
   mainTaskActive = true; //start the main task
   UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_Main), UTIL_SEQ_RFU, mainTask); //register the task at the scheduler
@@ -757,4 +812,14 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
 
       break;
   }
+}
+
+/**
+ * @fn const void rxDataReady(void)
+ * @brief override function to signal lora rxData is processed
+ *
+ */
+const void rxDataReady(void)
+{
+  loraReceiveReady = true;
 }

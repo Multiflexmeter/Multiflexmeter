@@ -37,6 +37,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "../../../App/logging/logging.h"
+#include "../../../App/common/common.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -275,6 +276,17 @@ __weak const void rxDataUsrCallback(LmHandlerAppData_t *appData)
   __NOP();
 }
 
+/**
+ * @fn const void rxDataReady(LmHandlerAppData_t*)
+ * @brief weak function for signal user app that rx data is ready.
+ *
+ * @param appData
+ */
+__weak const void rxDataReady(void)
+{
+  __NOP();
+}
+
 
 extern const void setGreenLedOnOf(bool ledState);
 /* USER CODE END PFP */
@@ -458,6 +470,16 @@ const void setTxConfirmed(LmHandlerMsgTypes_t isTxConfirmed)
   OnTxFrameCtrlChanged( isTxConfirmed);
 }
 
+/**
+ * @fn const void setRequestTime(void)
+ * @brief function to request time sync from lora portal
+ *
+ */
+const void setRequestTime(void)
+{
+  requestTime = true;
+}
+
 /* USER CODE END EF */
 
 void LoRaWAN_Init(void)
@@ -544,6 +566,8 @@ void LoRaWAN_Init(void)
   {
     APP_LOG(TS_OFF, VLEVEL_H, "###### FAIL init datarate\r\n");
   }
+
+  nextRequestTime = readBackupRegister( BACKUP_REGISTER_LAST_TIME_SYNC ); //get value from backup register
 
   /* USER CODE END LoRaWAN_Init_2 */
 
@@ -775,6 +799,8 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
               params->DownlinkCounter, RxPort, params->Datarate, slotStrings[params->RxSlot],
               params->Rssi, params->Snr);
     }
+
+    rxDataReady(); //signal to mainTask rx is ready
   }
   /* USER CODE END OnRxData_1 */
 }
@@ -845,6 +871,8 @@ static void SendTxData(void)
     if( nextRequestTime < SysTimeGet().Seconds )
     {
       nextRequestTime = SysTimeGet().Seconds + TM_SECONDS_IN_1DAY;
+      writeBackupRegister(BACKUP_REGISTER_LAST_TIME_SYNC, nextRequestTime);//save in backup register
+
       requestTime = true;
     }
 
@@ -977,8 +1005,6 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
 
       //always enable ADR after join
       LmHandlerSetAdrEnable(true);
-
-      requestTime = true; //set true, to call "LmHandlerDeviceTimeReq()" until time message is received.
 
     }
     else
