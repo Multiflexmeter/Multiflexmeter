@@ -41,6 +41,7 @@ const void triggerSaveNvmData2Fram(void);
 const void triggerSendTxData(void );
 const void triggerReJoin(void);
 const void setTxConfirmed(LmHandlerMsgTypes_t isTxConfirmed);
+const void setRequestTime(void);
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

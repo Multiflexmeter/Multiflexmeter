@@ -37,6 +37,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "../../../App/logging/logging.h"
+#include "../../../App/common/common.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -469,6 +470,16 @@ const void setTxConfirmed(LmHandlerMsgTypes_t isTxConfirmed)
   OnTxFrameCtrlChanged( isTxConfirmed);
 }
 
+/**
+ * @fn const void setRequestTime(void)
+ * @brief function to request time sync from lora portal
+ *
+ */
+const void setRequestTime(void)
+{
+  requestTime = true;
+}
+
 /* USER CODE END EF */
 
 void LoRaWAN_Init(void)
@@ -555,6 +566,8 @@ void LoRaWAN_Init(void)
   {
     APP_LOG(TS_OFF, VLEVEL_H, "###### FAIL init datarate\r\n");
   }
+
+  nextRequestTime = readBackupRegister( BACKUP_REGISTER_LAST_TIME_SYNC ); //get value from backup register
 
   /* USER CODE END LoRaWAN_Init_2 */
 
@@ -858,6 +871,8 @@ static void SendTxData(void)
     if( nextRequestTime < SysTimeGet().Seconds )
     {
       nextRequestTime = SysTimeGet().Seconds + TM_SECONDS_IN_1DAY;
+      writeBackupRegister(BACKUP_REGISTER_LAST_TIME_SYNC, nextRequestTime);//save in backup register
+
       requestTime = true;
     }
 
@@ -990,8 +1005,6 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
 
       //always enable ADR after join
       LmHandlerSetAdrEnable(true);
-
-      requestTime = true; //set true, to call "LmHandlerDeviceTimeReq()" until time message is received.
 
     }
     else
