@@ -314,7 +314,7 @@ const void mainTask(void)
           unitTemp[0] = 176; //overwrite degree sign to ascii 176
 
           structDataPressureSensor * pSensorData = (structDataPressureSensor*)&dataBuffer[0];
-          APP_LOG(TS_OFF, VLEVEL_H, "Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n,",
+          APP_LOG(TS_OFF, VLEVEL_H, "Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n",
               (int)pSensorData->pressure1, getDecimal(pSensorData->pressure1, 2), unitPress,
               (int)pSensorData->temperature1, getDecimal(pSensorData->temperature1, 2), unitTemp,
               (int)pSensorData->pressure2, getDecimal(pSensorData->pressure2, 2), unitPress,
