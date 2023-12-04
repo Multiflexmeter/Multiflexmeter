@@ -243,7 +243,7 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   }
 
   //todo if brownout enabled, turn it off.
-  //while( 1 ); //keep waiting to turn off.
+  while( 1 ); //keep waiting to turn off.
 
 }
 

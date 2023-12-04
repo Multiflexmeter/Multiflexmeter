@@ -36,7 +36,7 @@
 #include "mainTask.h"
 
 #define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
-//#define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled.
+#define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled. //if enabled jumper on J11 1-2 must be placed.
 
 static volatile bool mainTaskActive;
 static uint32_t mainTask_tmr;
