@@ -43,6 +43,7 @@ static uint32_t mainTask_tmr;
 static int mainTask_state;
 static int loraJoinRetryCounter = 0;
 
+static SysTime_t bootTime;
 static UTIL_TIMER_Object_t MainTimer;
 static UTIL_TIMER_Time_t MainPeriodSleep = 60000;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
@@ -516,7 +517,29 @@ const void mainTask(void)
       if( waiting == false ) //check wait time is expired
       {
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
-        goIntoSleep(MainPeriodSleep, 1);
+
+        uint32_t nextWake = MainPeriodSleep/1000; //LoraInterval from ms to sec
+
+        if( SysTimeGet().Seconds > bootTime.Seconds ) //check current time is larger then saved boottime.
+        {
+          SysTime_t elepsedTime = SysTimeSub(SysTimeGet(), bootTime); //calculate elapsed time
+
+          if( nextWake > (elepsedTime.Seconds + 1) )
+          {
+            nextWake -= elepsedTime.Seconds;
+          }
+
+          else
+          {
+            nextWake = 1; //force to 1 second
+          }
+        }
+        else
+        { //something went wrong
+          //nothing, just use interval
+        }
+
+        goIntoSleep(nextWake, 1);
         //will stop here
 #else
         pause_mainTask();
@@ -629,6 +652,9 @@ static const void trigger_delayedReJoin(void *context)
  */
 const void init_mainTask(void)
 {
+
+  bootTime = SysTimeGet(); //get boottime.
+
   mainTask_state = INIT_POWERUP; //reset state for powerup
   mainTaskActive = true; //start the main task
   UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_Main), UTIL_SEQ_RFU, mainTask); //register the task at the scheduler
