@@ -531,7 +531,7 @@ const void mainTask(void)
 
           else
           {
-            nextWake = 1; //force to 1 second
+            nextWake = 10; //force to minimum 10 second
           }
         }
         else
