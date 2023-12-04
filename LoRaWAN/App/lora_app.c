@@ -275,6 +275,17 @@ __weak const void rxDataUsrCallback(LmHandlerAppData_t *appData)
   __NOP();
 }
 
+/**
+ * @fn const void rxDataReady(LmHandlerAppData_t*)
+ * @brief weak function for signal user app that rx data is ready.
+ *
+ * @param appData
+ */
+__weak const void rxDataReady(void)
+{
+  __NOP();
+}
+
 
 extern const void setGreenLedOnOf(bool ledState);
 /* USER CODE END PFP */
@@ -775,6 +786,8 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
               params->DownlinkCounter, RxPort, params->Datarate, slotStrings[params->RxSlot],
               params->Rssi, params->Snr);
     }
+
+    rxDataReady(); //signal to mainTask rx is ready
   }
   /* USER CODE END OnRxData_1 */
 }

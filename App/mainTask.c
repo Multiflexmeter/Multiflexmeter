@@ -60,7 +60,8 @@ static uint8_t dataBuffer[100];
 static uint8_t sensorModuleId = 0;
 static bool sensorModuleEnabled = false;
 static uint8_t numberOfsensorModules = 0;
-static bool loraTransmitReady = false;
+static volatile bool loraTransmitReady = false;
+static volatile bool loraReceiveReady = false;
 static LmHandlerErrorStatus_t loraTransmitStatus;
 
 static uint16_t sensorType;
@@ -378,6 +379,9 @@ const void mainTask(void)
 
     case SEND_LORA_DATA:
 
+      loraTransmitReady = false; //reset before new transmit
+      loraReceiveReady = false; //reset before new transmit
+
       triggerSendTxData(); //trigger Lora transmit
       mainTask_state = NEXT_SENSOR_MODULE; //next state
 
@@ -410,8 +414,6 @@ const void mainTask(void)
       {
         UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
         UTIL_TIMER_Time_t forcedInterval = 0;
-
-        loraTransmitReady = false; //reset
 
         switch( loraTransmitStatus )
         {
@@ -493,6 +495,25 @@ const void mainTask(void)
 
       //check rejoin is not active
       if( !UTIL_TIMER_IsRunning(&rejoin_Timer))
+      {
+        mainTask_state = WAIT_LORA_RECEIVE_READY;
+      }
+
+      break;
+
+    case WAIT_LORA_RECEIVE_READY:
+
+      if( loraReceiveReady == true )
+      {
+        mainTask_state = WAIT_FOR_SLEEP;
+        setWait(1000);  //set wait time 1sec
+      }
+
+      break;
+
+    case WAIT_FOR_SLEEP:
+
+      if( waiting == false ) //check wait time is expired
       {
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
         goIntoSleep(MainPeriodSleep, 1);
@@ -765,4 +786,14 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
 
       break;
   }
+}
+
+/**
+ * @fn const void rxDataReady(void)
+ * @brief override function to signal lora rxData is processed
+ *
+ */
+const void rxDataReady(void)
+{
+  loraReceiveReady = true;
 }
