@@ -16,6 +16,11 @@
 #include "../IO/board_io.h"
 #include "bq35100.h"
 
+#include "BatMon_functions.h"
+
+
+structBatMonData measure;
+
 /**
  * @fn const void initBatMon(void)
  * @brief function to initialize battery monitor
@@ -26,6 +31,53 @@ const void initBatMon(void)
   writeOutput_board_io(EXT_IO_GE_EN, GPIO_PIN_SET); //enable GE_EN, to operate battery monitor
   bq35100_init(&hi2c1);
 }
+
+/**
+ * @fn const void batmon_enable_gauge(void)
+ * @brief enable gauge battery monitor
+ *
+ */
+const void batmon_enable_gauge(void)
+{
+  bq35100_enableGauge();
+}
+
+/**
+ * @fn const void batmon_disable_gauge(void)
+ * @brief disable gauge battery monitor
+ *
+ */
+const void batmon_disable_gauge(void)
+{
+  bq35100_disableGauge(true);
+}
+
+/**
+ * @fn const void batmon_measure(void)
+ * @brief function to execute a battery monitor measure
+ *
+ */
+const void batmon_measure(void)
+{
+  measure.voltage = bq35100_getVoltage();
+  measure.current = bq35100_getCurrent();
+  measure.temperature = bq35100_getInternalTemp();
+  measure.stateOfHealth = bq35100_getStateOfHealth();
+  measure.ScaledR = bq35100_getScaledR();
+  measure.MeasuredZ = bq35100_getMeasuredZ();
+}
+
+/**
+ * @fn const structBatMonData getBatmon_measure(void)
+ * @brief get battery monitor data
+ *
+ * @return
+ */
+const structBatMonData batmon_getMeasure(void)
+{
+  return measure;
+}
+
 
 /**
  * @fn const void testBatMon(int, int32_t*)
