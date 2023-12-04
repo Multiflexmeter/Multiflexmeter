@@ -29,6 +29,7 @@
 #include "FRAM/FRAM_functions.h"
 #include "I2CMaster/SensorFunctions.h"
 #include "logging/logging.h"
+#include "BatMon_BQ35100/BatMon_functions.h"
 #include "CommConfig.h"
 #include "MFMconfiguration.h"
 #include "mainTask.h"
@@ -177,6 +178,8 @@ const void mainTask(void)
       init_board_io_device(IO_EXPANDER_BUS_INT);
       init_board_io_device(IO_EXPANDER_BUS_EXT);
 
+      batmon_enable_gauge(); //enable gauge
+
       if( enableListenUart )
       {
         uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
@@ -322,6 +325,18 @@ const void mainTask(void)
         }
 
         slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
+
+        batmon_measure(); //save battery monitor data
+        batmon_disable_gauge(); //disable gauge
+
+        APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor data: %dmV, %dmA, %d%%, %u.%u%cC, Z:%umOhm, R:%umOhm\r\n",
+            batmon_getMeasure().voltage,
+            batmon_getMeasure().current,
+            batmon_getMeasure().stateOfHealth,
+            batmon_getMeasure().temperature/10, batmon_getMeasure().temperature%10, 176,
+            batmon_getMeasure().MeasuredZ,
+            batmon_getMeasure().ScaledR
+            );
 
         writeNewLog(sensorModuleId, sensorType, sensorProtocol, &dataBuffer[1], dataBuffer[0]); //write log data to dataflash.
 
