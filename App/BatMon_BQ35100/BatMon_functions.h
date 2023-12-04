@@ -20,9 +20,12 @@ typedef struct {
 
 }structBatMonData;
 
-const void initBatMon(void);
+const void batmon_enable(void);
+const void batmon_disable(void);
 const void batmon_enable_gauge(void);
 const void batmon_disable_gauge(void);
+const void initBatMon(void);
+const void deinitBatMon(void);
 const void batmon_measure(void);
 const structBatMonData batmon_getMeasure(void);
 

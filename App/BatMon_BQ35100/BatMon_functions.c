@@ -22,14 +22,23 @@
 structBatMonData measure;
 
 /**
- * @fn const void initBatMon(void)
- * @brief function to initialize battery monitor
+ * @fn const void batmon_enable(void)
+ * @brief enable battery monitor
  *
  */
-const void initBatMon(void)
+const void batmon_enable(void)
 {
   writeOutput_board_io(EXT_IO_GE_EN, GPIO_PIN_SET); //enable GE_EN, to operate battery monitor
-  bq35100_init(&hi2c1);
+}
+
+/**
+ * @fn const void batmon_disable(void)
+ * @brief disable battery monitor
+ *
+ */
+const void batmon_disable(void)
+{
+  writeOutput_board_io(EXT_IO_GE_EN, GPIO_PIN_RESET); //enable GE_EN, to operate battery monitor
 }
 
 /**
@@ -50,6 +59,32 @@ const void batmon_enable_gauge(void)
 const void batmon_disable_gauge(void)
 {
   bq35100_disableGauge(true);
+}
+
+/**
+ * @fn const void initBatMon(void)
+ * @brief function to initialize battery monitor
+ * - initialize the I2C handle
+ * - enables the GE pin
+ * - start the gauge
+ */
+const void initBatMon(void)
+{
+  bq35100_init(&hi2c1);
+  batmon_enable();
+  batmon_enable_gauge();
+}
+
+/**
+ * @fn const void initBatMon(void)
+ * @brief function to deinitialize battery monitor
+ * - stop the gague
+ * - disable the GE pin
+ */
+const void deinitBatMon(void)
+{
+  batmon_disable_gauge();
+  batmon_disable();
 }
 
 /**
