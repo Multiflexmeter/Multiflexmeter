@@ -174,11 +174,11 @@ const void mainTask(void)
 
     case INIT_SLEEP: //init after Sleep
 
+      initBatMon(); //start battery gauge
+
       enableVsys(); //enable supply for I/O expander
       init_board_io_device(IO_EXPANDER_BUS_INT);
       init_board_io_device(IO_EXPANDER_BUS_EXT);
-
-      batmon_enable_gauge(); //enable gauge
 
       if( enableListenUart )
       {
