@@ -64,6 +64,8 @@ static LmHandlerErrorStatus_t loraTransmitStatus;
 static uint16_t sensorType;
 static uint8_t sensorProtocol;
 
+static uint8_t waitForBatteryMonitorDataCounter = 0;
+
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
  * @brief function to set next trigger period of mainTask
@@ -326,8 +328,19 @@ const void mainTask(void)
 
         slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
 
+        waitForBatteryMonitorDataCounter = 0; //reset
+
+        mainTask_state = WAIT_BATMON_DATA; //next state
+      }
+
+      break;
+
+    case WAIT_BATMON_DATA:
+
+      if( waiting == false ) //check wait time is expired
+      {
+
         batmon_measure(); //save battery monitor data
-        batmon_disable_gauge(); //disable gauge
 
         APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor data: %dmV, %dmA, %d%%, %u.%u%cC, Z:%umOhm, R:%umOhm\r\n",
             batmon_getMeasure().voltage,
@@ -338,12 +351,32 @@ const void mainTask(void)
             batmon_getMeasure().ScaledR
             );
 
-        writeNewLog(sensorModuleId, sensorType, sensorProtocol, &dataBuffer[1], dataBuffer[0]); //write log data to dataflash.
-
-        triggerSendTxData(); //trigger Lora transmit
-
-        mainTask_state = NEXT_SENSOR_MODULE; //next state
+        if( batmon_getMeasure().voltage > 0 || waitForBatteryMonitorDataCounter > 10)
+        {
+          deinitBatMon();
+          mainTask_state = SAVE_DATA; //next state
+        }
+        else
+        {
+          waitForBatteryMonitorDataCounter++;
+          setWait(100);  //set wait time 100msec
+        }
       }
+
+
+      break;
+
+    case SAVE_DATA:
+
+      writeNewLog(sensorModuleId, sensorType, sensorProtocol, &dataBuffer[1], dataBuffer[0]); //write log data to dataflash.
+      mainTask_state = SEND_LORA_DATA; //next state
+
+      break;
+
+    case SEND_LORA_DATA:
+
+      triggerSendTxData(); //trigger Lora transmit
+      mainTask_state = NEXT_SENSOR_MODULE; //next state
 
       break;
 
