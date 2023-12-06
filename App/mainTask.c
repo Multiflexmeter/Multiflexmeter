@@ -218,6 +218,11 @@ const void mainTask(void)
 
       if( UTIL_TIMER_IsRunning(&measurement_Timer) == 0)
       {
+
+#ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+        bootTime = SysTimeGet(); //get boottime. //only when no RTC is used, overwrite boottime.
+#endif
+
         batmon_enable(); //enable battery monitor, takes a while until batmon is ready.
 
         if( enableListenUart )
