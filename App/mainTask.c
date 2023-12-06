@@ -170,26 +170,75 @@ const void mainTask(void)
     case INIT_POWERUP: //init Powerup
 
       disableSleep();
-      init_board_io(); //init IO
+//      init_board_io_device(IO_EXPANDER_SYS); //done in MX_LoRaWAN_Init() -> SystemApp_Init();
       initLedTimer(); //init LED timer
       init_vAlwaysOn();
       executeAlwaysOn(); //execute Always on config value.
+
+      initBatMon(); //initialize and enable battery gauge
 
       mainTask_state = INIT_SLEEP;
       break;
 
     case INIT_SLEEP: //init after Sleep
 
-      initBatMon(); //start battery gauge
+      if( UTIL_TIMER_IsRunning(&measurement_Timer) == 0)
+      {
+        batmon_enable(); //enable battery monitor, takes a while until batmon is ready.
+
+        if( enableListenUart )
+        {
+          uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
+        }
+
+        setWait(100); //set wait timeout 250ms
+
+        mainTask_state = WAIT_BATTERY_GAUGE_INIT;
+        }
+      break;
+
+    case WAIT_BATTERY_GAUGE_INIT:
+
+     if( waiting == false  )
+     {
+       if( batmon_isInitComplet()) //wait battery monitor is ready
+       {
+         APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
+
+         batmon_enable_gauge(); //enable gauging
+         mainTask_state = WAIT_GAUGE_ENABLED;
+       }
+
+       setWait(100); //set wait timeout 1s
+     }
+
+      break;
+
+    case WAIT_GAUGE_ENABLED:
+      if( waiting == false )
+      {
+        if( batmon_isGaugeActive() )
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: gauge active\r\n");
+          mainTask_state = ENABLE_VSYS;
+        }
+
+        setWait(100); //set wait timeout 1s
+      }
+
+      break;
+
+    case ENABLE_VSYS:
 
       enableVsys(); //enable supply for I/O expander
       init_board_io_device(IO_EXPANDER_BUS_INT);
       init_board_io_device(IO_EXPANDER_BUS_EXT);
 
-      if( enableListenUart )
-      {
-        uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
-      }
+      mainTask_state = CHECK_SENSOR_SLOT;
+
+      break;
+
+    case CHECK_SENSOR_SLOT:
 
       numberOfsensorModules = 0;
       sensorModuleEnabled = false;
@@ -357,7 +406,6 @@ const void mainTask(void)
 
         if( batmon_getMeasure().voltage > 0 || waitForBatteryMonitorDataCounter > 10)
         {
-          deinitBatMon();
           mainTask_state = SAVE_DATA; //next state
         }
         else
@@ -485,6 +533,8 @@ const void mainTask(void)
 
     case SWITCH_OFF_VSYS: //switch off for low power oparation
 
+      deinit_IO_Expander(IO_EXPANDER_BUS_EXT);
+      deinit_IO_Expander(IO_EXPANDER_BUS_INT);
       disableVsys();
       loraJoinRetryCounter = 0; //reset
       mainTask_state = CHECK_LORA_REJOIN; //next state
@@ -505,8 +555,24 @@ const void mainTask(void)
 
       if( loraReceiveReady == true || !LoRaMacIsBusy() )
       {
-        mainTask_state = WAIT_FOR_SLEEP;
-        setWait(1000);  //set wait time 1sec
+        batmon_disable_gauge();
+        mainTask_state = WAIT_BATTERY_MONITOR_READY;
+        setWait(100);  //set wait time 100msec
+      }
+
+      break;
+
+    case WAIT_BATTERY_MONITOR_READY:
+
+      if( waiting == false ) //check wait time is expired
+      {
+        //wait battery monitor saved data internally
+        if( batmon_isReady() )
+        {
+          batmon_disable(); //switch off battery monitor
+          mainTask_state = WAIT_FOR_SLEEP;
+        }
+        setWait(100);  //set wait time 100ms
       }
 
       break;
