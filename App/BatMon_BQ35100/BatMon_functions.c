@@ -106,14 +106,10 @@ const bool batmon_isReady(void)
  * @fn const void initBatMon(void)
  * @brief function to initialize battery monitor
  * - initialize the I2C handle
- * - enables the GE pin
- * - start the gauge
  */
 const void initBatMon(void)
 {
   bq35100_init(&hi2c1);
-  batmon_enable();
-  batmon_enable_gauge();
 }
 
 /**
