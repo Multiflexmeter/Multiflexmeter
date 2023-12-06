@@ -569,7 +569,8 @@ const void mainTask(void)
   }
 
   //check boolean mainTaskActive, then set short period for triggering, if not set long period for triggering.
-  if( mainTaskActive )
+  //or if USB is connected
+  if( mainTaskActive ||  getInput_board_io(EXT_IOUSB_CONNECTED) )
   {
     setNextPeriod(MainPeriodNormal);
   }
