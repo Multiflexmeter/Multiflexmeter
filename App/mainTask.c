@@ -173,7 +173,6 @@ const void mainTask(void)
       init_board_io(); //init IO
       initLedTimer(); //init LED timer
       init_vAlwaysOn();
-      enable_vAlwaysOn(); //force on, temporary for proto hardware //todo change for seconde proto
       executeAlwaysOn(); //execute Always on config value.
 
       mainTask_state = INIT_SLEEP;
@@ -565,11 +564,13 @@ const void mainTask(void)
 
   if( getAlwaysOn_changed(true)) //check vAlwaysOn setting is changed
   {
+    APP_LOG(TS_OFF, VLEVEL_H, "Setting Supply V-always changed: %d\r\n", getAlwaysOn() );
     executeAlwaysOn(); //execute vAlwaysOn enable/disable
   }
 
   //check boolean mainTaskActive, then set short period for triggering, if not set long period for triggering.
-  if( mainTaskActive )
+  //or if USB is connected
+  if( mainTaskActive ||  getInput_board_io(EXT_IOUSB_CONNECTED) )
   {
     setNextPeriod(MainPeriodNormal);
   }
