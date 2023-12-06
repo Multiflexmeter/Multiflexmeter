@@ -7,7 +7,7 @@
 
 #include "bq35100.h"
 
-#define BQ35100_I2C_WAIT 110 //ms
+#define BQ35100_I2C_WAIT 150 //ms
 //technical reference manual (SLUUBH1C) mention 100ms, this is not enough after GE pin is enabled.
 //BQ35100 answer on I2C master request freezes for 103.5ms.
 
