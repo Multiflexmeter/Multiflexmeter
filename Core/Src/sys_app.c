@@ -132,7 +132,7 @@ void SystemApp_Init(void)
 
   /* USER CODE BEGIN SystemApp_Init_2 */
 
-  init_board_io(); //initialize board IO direct on controller and on I2C I/O expanders.
+  init_board_io_device(IO_EXPANDER_SYS); //initialize board IO direct system I2C I/O expanders.
 
   /* USER CODE END SystemApp_Init_2 */
 }
