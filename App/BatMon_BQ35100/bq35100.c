@@ -233,12 +233,13 @@ bool bq35100_getControlStatus(uint8_t * controlStatus, uint8_t length)
  */
 bool bq35100_isGaugeEnabled(void)
 {
-  uint8_t controlStatus[2];
+  uint8_t controlStatus[2] = {0};
 
-  HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_CONTROL, 1, controlStatus, 2, BQ35100_I2C_WAIT);
+  bq35100_getControlStatus(controlStatus, sizeof(controlStatus));
 
-  return (controlStatus[0] & 0x01) == 0x01;
+  return (controlStatus[0] & CONTROL_STATUS0_GA) ? true : false;
 }
+
 
 /**
  * @brief Enables the battery gauge.
