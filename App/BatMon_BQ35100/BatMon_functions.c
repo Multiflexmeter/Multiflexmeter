@@ -62,6 +62,47 @@ const void batmon_disable_gauge(void)
 }
 
 /**
+ * @fn const bool batmon_isInitComplet(void)
+ * @brief
+ *
+ * @return true is complete, false not complete
+ */
+const bool batmon_isInitComplet(void)
+{
+  uint8_t controlStatus[2] = {0};
+
+  bq35100_getControlStatus(controlStatus, sizeof(controlStatus));
+
+  return (controlStatus[0] & CONTROL_STATUS0_INITCOMP) ? true : false;
+}
+
+/**
+ * @fn const bool batmon_isGaugeActive(void)
+ * @brief
+ *
+ * @return true is active, false not active
+ */
+const bool batmon_isGaugeActive(void)
+{
+  return bq35100_isGaugeEnabled();
+}
+
+/**
+ * @fn const bool batmon_isReady(void)
+ * @brief
+ *
+ * @return true is ready, false is busy
+ */
+const bool batmon_isReady(void)
+{
+  uint8_t controlStatus[2] = {0};
+
+  bool result = bq35100_getControlStatus(controlStatus, sizeof(controlStatus));
+
+  return (controlStatus[0] & CONTROL_STATUS0_G_DONE || result == false) ? true : false;
+}
+
+/**
  * @fn const void initBatMon(void)
  * @brief function to initialize battery monitor
  * - initialize the I2C handle
