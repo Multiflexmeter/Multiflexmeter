@@ -44,7 +44,7 @@ void MX_I2C1_Init(void);
 void MX_I2C2_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void HAL_I2C_checkError(void);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
