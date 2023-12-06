@@ -622,6 +622,8 @@ const void mainTask(void)
 #else
         pause_mainTask();
 
+        APP_LOG(TS_OFF, VLEVEL_H, "WAIT: %u\r\n",  getNextWake( MainPeriodSleep, bootTime) );
+
         mainTask_state = INIT_SLEEP; //go back to init after sleep, for next measure
 #endif
       }
