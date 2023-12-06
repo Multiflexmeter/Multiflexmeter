@@ -155,6 +155,40 @@ static const uint16_t getDevNonce(void)
 }
 
 /**
+ * @fn uint32_t getNextWake(UTIL_TIMER_Time_t, SysTime_t)
+ * @brief helper function to calculate next wakeUp
+ *
+ * @param period : measurement interval
+ * @param startTime : time of last wakeup
+ * @return
+ */
+static uint32_t getNextWake(UTIL_TIMER_Time_t period, SysTime_t startTime )
+{
+  uint32_t nextWake = period/1000; //LoraInterval from ms to sec
+
+  if( SysTimeGet().Seconds > bootTime.Seconds ) //check current time is larger then saved boottime.
+  {
+    SysTime_t elepsedTime = SysTimeSub(SysTimeGet(), startTime); //calculate elapsed time
+
+    if( nextWake > (elepsedTime.Seconds + 1) )
+    {
+      nextWake -= elepsedTime.Seconds;
+    }
+
+    else
+    {
+      nextWake = 10; //force to minimum 10 second
+    }
+  }
+  else
+  { //something went wrong
+    //nothing, just use interval
+  }
+
+  return nextWake;
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -583,28 +617,7 @@ const void mainTask(void)
       {
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
 
-        uint32_t nextWake = MainPeriodSleep/1000; //LoraInterval from ms to sec
-
-        if( SysTimeGet().Seconds > bootTime.Seconds ) //check current time is larger then saved boottime.
-        {
-          SysTime_t elepsedTime = SysTimeSub(SysTimeGet(), bootTime); //calculate elapsed time
-
-          if( nextWake > (elepsedTime.Seconds + 1) )
-          {
-            nextWake -= elepsedTime.Seconds;
-          }
-
-          else
-          {
-            nextWake = 10; //force to minimum 10 second
-          }
-        }
-        else
-        { //something went wrong
-          //nothing, just use interval
-        }
-
-        goIntoSleep(nextWake, 1);
+        goIntoSleep(getNextWake( MainPeriodSleep, bootTime), 1);
         //will stop here
 #else
         pause_mainTask();
