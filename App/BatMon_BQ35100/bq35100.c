@@ -254,17 +254,15 @@ bool bq35100_enableGauge(void)
   data[1] = SUB_CMD_GAUGE_START;      // First byte of GAUGE_START sub-command (0x11)
   data[2] = SUB_CMD_GAUGE_START>>8;   // Second byte of GAUGE_START sub-command (0x00) (register address will auto-increment)
 
-  HAL_I2C_Master_Transmit(bq35100Handle, BQ35100_ADDRESS, data, 3, BQ35100_I2C_WAIT);
+  HAL_StatusTypeDef result = HAL_I2C_Master_Transmit(bq35100Handle, BQ35100_ADDRESS, data, 3, BQ35100_I2C_WAIT);
 
-  for(uint8_t i=0; i<10; i++)
+  if( result == HAL_OK)
   {
-    HAL_Delay(10);
-    if(bq35100_isGaugeEnabled())
-      return true;
+    return true;
   }
 
   return false;
-}
+  }
 
 /**
  * @brief Disables the battery gauge.
