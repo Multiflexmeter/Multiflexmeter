@@ -209,6 +209,24 @@ SecurityMode bq35100_getSecurityMode(void)
 }
 
 /**
+ * @fn bool bq35100_getControlStatus(uint16_t*)
+ * @brief functions reads the control status register.
+ *
+ * @param controlStatus
+ * @return true if successful, otherwise false.
+ */
+bool bq35100_getControlStatus(uint8_t * controlStatus, uint8_t length)
+{
+  //read control status
+  HAL_StatusTypeDef result = HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_CONTROL, 1, controlStatus, length, BQ35100_I2C_WAIT);
+
+  if( result == HAL_OK)
+    return true; //successful
+
+  return false; //error
+}
+
+/**
  * @brief Check if the battery gauging is enabled or not.
  *
  * @return true if battery gauging is enabled, otherwise false.
