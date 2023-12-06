@@ -267,19 +267,23 @@ int8_t restoreLatestTimeFromLog(void)
         newTime.Seconds = logdata.timestamp;
         newTime.SubSeconds = 0;
         SysTimeSet( newTime );
+        APP_LOG(TS_OFF, VLEVEL_H, "Time: restored from log\r\n");
       }
       else
       { //current time is newer, do not restore old time
+        APP_LOG(TS_OFF, VLEVEL_H, "Time: current time is newer, time not restored\r\n");
         return -5;
       }
     }
     else
     { //no valid ID
+      APP_LOG(TS_OFF, VLEVEL_H, "Time: ERROR, no valid dataflash ID \r\n");
       return -4;
     }
   }
   else
   { //failed to read
+    APP_LOG(TS_OFF, VLEVEL_H, "Time: ERROR, failed to read from dataflash\r\n");
     return -3;
   }
 
