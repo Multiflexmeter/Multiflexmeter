@@ -181,6 +181,8 @@ const void slotPower(ENUM_slotId slotId, bool enable)
 static const void delayedSwitchOff_IO_vAlwaysOn(void *context)
 {
   writeOutput_board_io(EXT_IOVALWAYS_EN, GPIO_PIN_RESET);
+  int8_t vAlways_sens = readInput_board_io(EXT_IO_VALWAYS_SENS);
+  APP_LOG(TS_OFF, VLEVEL_H, "Supply V-always: sens state after %d\r\n", vAlways_sens );
 }
 
 /**
@@ -200,8 +202,21 @@ const void init_vAlwaysOn(void)
  */
 const void enable_vAlwaysOn(void)
 {
-  writeOutput_board_io(EXT_IOVALWAYS_EN, GPIO_PIN_SET);
-  UTIL_TIMER_StartWithPeriod(&AlwaysOnSwitch_Timer, AlwaysOnSwitchOnTime); //set new time and start timer
+  int8_t vAlways_sens = readInput_board_io(EXT_IO_VALWAYS_SENS);
+
+  //check vAlways supply is off
+  if( vAlways_sens == 0 )
+  { //then switch on
+    writeOutput_board_io(EXT_IOVALWAYS_EN, GPIO_PIN_SET);
+    UTIL_TIMER_StartWithPeriod(&AlwaysOnSwitch_Timer, AlwaysOnSwitchOnTime); //set new time and start timer
+  }
+  else
+  {
+    //already on, do nothing.
+  }
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Supply V-always: switch ON, sens state before %d\r\n", vAlways_sens );
+
 }
 
 /**
@@ -211,9 +226,23 @@ const void enable_vAlwaysOn(void)
  */
 const void disable_vAlwaysOn(void)
 {
-  writeOutput_board_io(EXT_IOVALWAYS_EN, GPIO_PIN_SET);
-  UTIL_TIMER_StartWithPeriod(&AlwaysOnSwitch_Timer, AlwaysOnSwitchOffTime); //set new time and start timer
+  int8_t vAlways_sens = readInput_board_io(EXT_IO_VALWAYS_SENS);
+
+  //check vAlways supply is on
+  if( readInput_board_io(EXT_IO_VALWAYS_SENS) )
+  { //then switch off
+    writeOutput_board_io(EXT_IOVALWAYS_EN, GPIO_PIN_SET);
+    UTIL_TIMER_StartWithPeriod(&AlwaysOnSwitch_Timer, AlwaysOnSwitchOffTime); //set new time and start timer
+  }
+  else
+  {
+    //already off, do nothing.
+  }
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Supply V-always: switch OFF, sens state before %d\r\n", vAlways_sens );
+
 }
+
 
 /**
  * @fn const void setup_io_for_SPI_devices(bool)
