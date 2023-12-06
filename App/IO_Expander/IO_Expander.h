@@ -115,6 +115,7 @@ typedef struct{
 int8_t init_IO_ExpanderPin(ENUM_IO_EXPANDER device, ENUM_IO_ExtDirection direction, uint16_t pinMask, ENUM_IO_ExtACTIVE active );
 void init_IO_ExpanderData(ENUM_IO_EXPANDER device);
 void init_IO_Expander(ENUM_IO_EXPANDER device);
+void deinit_IO_Expander(ENUM_IO_EXPANDER device);
 void update_IO_Expander(bool input, bool output);
 int8_t setOutput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask, GPIO_PinState state);
 int8_t getInput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask);

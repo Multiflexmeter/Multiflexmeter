@@ -233,6 +233,28 @@ void init_IO_Expander(ENUM_IO_EXPANDER device)
 }
 
 /**
+ * @fn void deinit_IO_Expander(ENUM_IO_EXPANDER)
+ * @brief function to deinit IO expander.
+ *
+ * @param device
+ */
+void deinit_IO_Expander(ENUM_IO_EXPANDER device)
+{
+
+  if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
+    return;
+
+  int i = device - 1;
+
+  init_IO_ExpanderData(device);
+
+  //initialize device
+  TCA9535InitI2CReg((TCA9535Regs*)&TCA9535_Reg_map[i]); //send initial state to I/O expander.
+
+  stIO_ExpanderChipConfig[i].enabled = false; //disable device
+}
+
+/**
  * @fn void update_IO_Expander(bool input, bool output)
  * @brief function to update IO expanders, needs to be called periodically
  *
