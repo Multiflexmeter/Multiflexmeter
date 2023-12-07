@@ -69,6 +69,10 @@ const void syncRTC_withSysTime(void)
  */
 const void syncSystemTime_withRTC(void)
 {
+#if VERBOSE_LEVEL == VLEVEL_H
+  char timeStringNow[20] = {0};
+#endif
+
   am1805_time_t timeRead = { 0 };
   SysTime_t sysTime = {0};
   struct tm stTime = {0};
@@ -89,6 +93,12 @@ const void syncSystemTime_withRTC(void)
   SysTimeSet(sysTime); //save date/time to internal RTC
   sysTime = SysTimeGet(); //read back to verify, for debug
 
+#if VERBOSE_LEVEL == VLEVEL_H
+  strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &stTime);
+  APP_LOG(TS_OFF, VLEVEL_H, "TIME NOW: %s\r\n", timeStringNow );
+#endif
+
+  APP_LOG(TS_OFF, VLEVEL_H, "TIME: RTC -> internal\r\n" );
 }
 
 /**
