@@ -216,6 +216,88 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   {
     waitTimeTicks = 7;
   }
+  am1805_time_t time_RTC;
+
+  //read current time
+  am1805_time_get(&time_RTC);
+
+  //convert to struct time
+  struct tm struct_time = {0};
+  struct_time.tm_year = 2000 + time_RTC.ui8Year + time_RTC.ui8Century * 100;
+  struct_time.tm_mon = time_RTC.ui8Month;
+  struct_time.tm_mday = time_RTC.ui8Date;
+  struct_time.tm_hour = time_RTC.ui8Hour;
+  struct_time.tm_min = time_RTC.ui8Minute;
+  struct_time.tm_sec = time_RTC.ui8Second;
+
+  //convert struct time to seconds timestamp
+  time_t timestamp = mktime(&struct_time);
+
+  //add seconds for sleep
+  timestamp += sleepTime_sec;
+
+  //convert new timestamp to struct time
+  struct tm * sleepTime;
+  sleepTime = gmtime(&timestamp);
+
+  //set new alarm time
+  am1805_time_t alarmTime;
+  alarmTime = time_RTC; //copy orginal readed values
+  alarmTime.ui8Century = ((sleepTime->tm_year / 100)) % 2; //overwrite century
+  alarmTime.ui8Year = sleepTime->tm_year % 100;           //overwrite year
+  alarmTime.ui8Month = sleepTime->tm_mon;                 //overwrite month
+  alarmTime.ui8Date = sleepTime->tm_mday;                 //overwrite day
+  alarmTime.ui8Hour = sleepTime->tm_hour;                 //overwrite year
+  alarmTime.ui8Minute = sleepTime->tm_min;                //overwrite minutes
+  alarmTime.ui8Second = sleepTime->tm_sec;                //overwrite seconds
+
+  //setup the alarm
+  am1805_alarm_set(alarmTime, ALARM_INTERVAL_YEAR, ALARM_IRQ_LEVEL, ALARM_PIN_PSW);
+
+  //enable the sleepmode
+  uint32_t sleepStatus = am1805_sleep_set(waitTimeTicks, SLEEP_MODE_nRST_LOW_AND_PSW_HIGH);
+
+  switch( sleepStatus )
+  {
+    case SLEEP_RETURN_ACCEPTED:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ACTIVE %u seconds\r\n", sleepTime_sec );
+      break;
+    case SLEEP_RETURN_ILLEGAL_INPUT:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, illegal input\r\n" );
+      break;
+    case SLEEP_RETURN_DECLINED_ACTIVE_IRQ:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, IRQ already active\r\n" );
+      break;
+    case SLEEP_RETURN_DECLINED_NO_SLEEP_IRQ:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, sleep IRQ not enabled\r\n" );
+      break;
+    default:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, wrong return value\r\n" );
+      break;
+  }
+
+  //todo if brownout enabled, turn it off.
+  while( 1 ); //keep waiting to turn off.
+
+}
+
+/**
+ * @fn const void goIntoSleep_with_countdown(uint32_t, uint8_t)
+ * @brief function to enable sleep mode of Real Time Clock.
+ * Also disables the supply of this controller.
+ * @warning this functions shutdown the processor supply
+ * @note this function has a low resolution (1 minute) for values above 256 seconds
+ *
+ * @param sleepTime_sec : time to be in sleep
+ * @param waitTimeTicks : value between 0-7, 0 = noDelay, 1-7 periods of 7.8ms. The value is limited automatically to 7.
+ */
+const void goIntoSleep_with_countdown(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
+{
+  //check wait is between 0-7.
+  if( waitTimeTicks > 7 )
+  {
+    waitTimeTicks = 7;
+  }
 
   //setup the sleeptime
   am1805_countdown_set(CNTDWN_RANGE_SEC, sleepTime_sec, CNTDWN_IRQ_SINGLE_PULSED_1_64S, CNTDOWN_PIN_PSW_AND_nTIRQ_LOW);

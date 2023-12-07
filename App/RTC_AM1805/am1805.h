@@ -141,6 +141,29 @@ extern "C"
 #define SLEEP_RETURN_DECLINED_ACTIVE_IRQ    0x02 //2 => sleep request declined, interrupt is currently pending
 #define SLEEP_RETURN_DECLINED_NO_SLEEP_IRQ  0x03 //3 => sleep request declined, no sleep trigger interrupt enabled
 
+//alarm
+#define ALARM_INTERVAL_DISABLE        0x00  //0 => disable alarm
+#define ALARM_INTERVAL_YEAR           0x01  //1 => once per year
+#define ALARM_INTERVAL_MONTH          0x02  //2 => once per month
+#define ALARM_INTERVAL_WEEK           0x03  //3 => once per week
+#define ALARM_INTERVAL_DAY            0x04  //4 => once per day
+#define ALARM_INTERVAL_HOUR           0x05  //5 => once per hour
+#define ALARM_INTERVAL_MINUTE         0x06  //6 => once per minute
+#define ALARM_INTERVAL_SECOND         0x07  //7 => once per second
+#define ALARM_INTERVAL_10TH_SECOND    0x08  //8 => once per 10th of a second
+#define ALARM_INTERVAL_100TH_SECOND   0x09  //9 => once per 100th of a second
+
+#define ALARM_IRQ_LEVEL               0x00  //0 => level interrupt
+#define ALARM_IRQ_PULSE_XT_1_8192S    0x01  //1 => pulse of 1/8192s (XT)
+#define ALARM_IRQ_PULSE_RC_1_128S     0x01  //1 => pulse of 1/128 s (RC)
+#define ALARM_IRQ_PULSE_1_64S         0x02  //2 => pulse of 1/64 s
+#define ALARM_IRQ_PULSE_1_4S          0x03  //3 => pulse of 1/4 s
+
+#define ALARM_PIN_INTERNAL_FLAG       0x00 //0 => internal flag only
+#define ALARM_PIN_nIRQ                0x01 //1 => FOUT/nIRQ
+#define ALARM_PIN_PSW                 0x02 //2 => PSW/nIRQ2
+
+
 //*****************************************************************************
 //
 // Device structure used for communication.
