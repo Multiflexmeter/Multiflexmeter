@@ -269,7 +269,7 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   am1805_alarm_set(alarmTime, ALARM_INTERVAL_YEAR, ALARM_IRQ_LEVEL, ALARM_PIN_PSW);
 
 #if VERBOSE_LEVEL == VLEVEL_H
-  strftime(timeStringNow, sizeof(timeStringWake), "%H:%M:%S", &struct_time);
+  strftime(timeStringNow, sizeof(timeStringNow), "%H:%M:%S", &struct_time);
   strftime(timeStringWake, sizeof(timeStringWake), "%H:%M:%S", sleepTime);
   APP_LOG(TS_OFF, VLEVEL_H, "Sleep time; %u, NOW: %s, WAKE: %s\r\n", sleepTime_sec, timeStringNow, timeStringWake );
 #endif
