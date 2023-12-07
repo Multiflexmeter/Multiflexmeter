@@ -19,6 +19,8 @@ const void syncSystemTime_withRTC(void);
 const void convert_am1805time_to_dateTime(am1805_time_t * timeSrc, struct_dateTime * timeDst );
 const void setWakeupWdtAlarm( uint32_t seconds );
 const bool getWakeupWdtStatus(bool clear);
+const bool getWakeupAlarmStatus(bool clear);
+const bool getWakeupBatStatus(bool clear);
 const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks);
 const void disableSleep(void);
 

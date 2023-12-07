@@ -211,6 +211,41 @@ const bool getWakeupWdtStatus(bool clear)
 }
 
 /**
+ * @fn const bool getWakeupAlarmStatus(bool)
+ * @brief get wakeup alarm status
+ * Set when the Alarm function is enabled and all selected Alarm registers match their respective counters.
+ *
+ * @param clear
+ * @return
+ */
+const bool getWakeupAlarmStatus(bool clear)
+{
+  uint8_t clearMask = AM1805_mask_ALM; //clear WDT status (0x20, bit WDT)
+
+  uint8_t result = am1805_get_status(clear ? clearMask : 0x00);
+
+  return (result & AM1805_mask_ALM);
+}
+
+/**
+ * @fn const bool getWakeupBatStatus(bool)
+ * @brief get wakeup battery status
+ * Set wehn the system switches to the VBAT Power state
+ *
+ * @param clear
+ * @return
+ */
+const bool getWakeupBatStatus(bool clear)
+{
+  uint8_t clearMask = AM1805_mask_BAT; //clear WDT status (0x20, bit WDT)
+
+  uint8_t result = am1805_get_status(clear ? clearMask : 0x00);
+
+  return (result & AM1805_mask_BAT);
+}
+
+
+/**
  * @fn const void goIntoSleep(uint32_t, uint8_t)
  * @brief function to enable sleep mode of Real Time Clock.
  * Also disables the supply of this controller.
