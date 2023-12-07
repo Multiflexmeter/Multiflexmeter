@@ -150,7 +150,6 @@ int main(void)
   }
 
   restoreLatestLogId();
-  restoreLatestTimeFromLog();
 
 #ifdef ERASE_VIRTUAL_EEPROM
   if (eraseVirtualEeprom == true)

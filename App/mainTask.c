@@ -209,16 +209,22 @@ const void mainTask(void)
       //check BAT flag is set, indicate battery disconnected.
       if( getWakeupBatStatus(1) )
       {
-        setRequestTime();
         APP_LOG(TS_OFF, VLEVEL_H, ", BAT");
+
+        restoreLatestTimeFromLog(); //time in RTC not valid, set time from last log
+        setRequestTime(); //request a time sync to server
+      }
+      else
+      {
+        //get time from RTC and sync it with controller clock
+        syncSystemTime_withRTC();
       }
 
       //check alarm, indicates awake from alarm
       if( getWakeupAlarmStatus(1) )
-       {
-
-         APP_LOG(TS_OFF, VLEVEL_H, ", ALARM");
-       }
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, ", ALARM");
+      }
 
       APP_LOG(TS_OFF, VLEVEL_H, "\r\n");
 
