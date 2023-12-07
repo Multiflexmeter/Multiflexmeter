@@ -266,7 +266,7 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   alarmTime.ui8Second = sleepTime->tm_sec;                //overwrite seconds
 
   //setup the alarm
-  am1805_alarm_set(alarmTime, ALARM_INTERVAL_YEAR, ALARM_IRQ_LEVEL, ALARM_PIN_PSW);
+  am1805_alarm_set(alarmTime, ALARM_INTERVAL_MONTH, ALARM_IRQ_PULSE_1_64S, ALARM_PIN_PSW);
 
 #if VERBOSE_LEVEL == VLEVEL_H
   strftime(timeStringNow, sizeof(timeStringNow), "%H:%M:%S", &struct_time);
