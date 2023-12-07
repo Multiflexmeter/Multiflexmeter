@@ -336,5 +336,7 @@ const void goIntoSleep_with_countdown(uint32_t sleepTime_sec, uint8_t waitTimeTi
  */
 const void disableSleep(void)
 {
+  am1805_time_t alarmTime = {0};
   am1805_countdown_set(CNTDWN_RANGE_SEC, 0, CNTDWN_IRQ_SINGLE_PULSED_1_64S, CNTDOWN_DISABLE_CNT_DOWN_TMR);
+  am1805_alarm_set(alarmTime, ALARM_INTERVAL_DISABLE, ALARM_IRQ_LEVEL, ALARM_PIN_PSW);
 }
