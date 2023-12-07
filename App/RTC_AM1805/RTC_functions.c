@@ -211,6 +211,10 @@ const bool getWakeupStatus(bool clear)
  */
 const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
 {
+#if VERBOSE_LEVEL == VLEVEL_H
+  char timeStringNow[20] = {0};
+  char timeStringWake[20] = {0};
+#endif
   //check wait is between 0-7.
   if( waitTimeTicks > 7 )
   {
@@ -254,13 +258,19 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   //setup the alarm
   am1805_alarm_set(alarmTime, ALARM_INTERVAL_YEAR, ALARM_IRQ_LEVEL, ALARM_PIN_PSW);
 
+#if VERBOSE_LEVEL == VLEVEL_H
+  strftime(timeStringNow, sizeof(timeStringWake), "%H:%M:%S", &struct_time);
+  strftime(timeStringWake, sizeof(timeStringWake), "%H:%M:%S", sleepTime);
+  APP_LOG(TS_OFF, VLEVEL_H, "Sleep time; %u, NOW: %s, WAKE: %s\r\n", sleepTime_sec, timeStringNow, timeStringWake );
+#endif
+
   //enable the sleepmode
   uint32_t sleepStatus = am1805_sleep_set(waitTimeTicks, SLEEP_MODE_nRST_LOW_AND_PSW_HIGH);
 
   switch( sleepStatus )
   {
     case SLEEP_RETURN_ACCEPTED:
-      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ACTIVE %u seconds\r\n", sleepTime_sec );
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ACTIVE\r\n" );
       break;
     case SLEEP_RETURN_ILLEGAL_INPUT:
       APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, illegal input\r\n" );
