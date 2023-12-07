@@ -203,6 +203,25 @@ const void mainTask(void)
   {
     case INIT_POWERUP: //init Powerup
 
+      APP_LOG(TS_OFF, VLEVEL_H, "RTC: status: ");
+      APP_LOG(TS_OFF, VLEVEL_H, "0x%02x", am1805_get_status(0));
+
+      //check BAT flag is set, indicate battery disconnected.
+      if( getWakeupBatStatus(1) )
+      {
+        setRequestTime();
+        APP_LOG(TS_OFF, VLEVEL_H, ", BAT");
+      }
+
+      //check alarm, indicates awake from alarm
+      if( getWakeupAlarmStatus(1) )
+       {
+
+         APP_LOG(TS_OFF, VLEVEL_H, ", ALARM");
+       }
+
+      APP_LOG(TS_OFF, VLEVEL_H, "\r\n");
+
       disableSleep();
 //      init_board_io_device(IO_EXPANDER_SYS); //done in MX_LoRaWAN_Init() -> SystemApp_Init();
       initLedTimer(); //init LED timer
