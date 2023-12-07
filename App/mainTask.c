@@ -314,6 +314,11 @@ const void mainTask(void)
         }
 #endif
 
+        if( getDevNonce() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+        {
+          setRequestTime();
+        }
+
       }
       else
       {
