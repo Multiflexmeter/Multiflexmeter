@@ -51,6 +51,29 @@ uint32_t crossReferenceChannelAdc[]=
 
 static uint32_t resetSource;
 
+static bool resetBackupDetected;
+
+/**
+ * @fn void detectResetBackup(void)
+ * @brief function to detect a reset of the backup domain.
+ *
+ */
+void detectResetBackup(void)
+{
+  resetBackupDetected = LL_RCC_GetRTCClockSource() == LL_RCC_RTC_CLKSOURCE_NONE; //detect a reset of the RTC
+}
+
+/**
+ * @fn bool getResetBackup(void)
+ * @brief function to get the stored resetBackup state
+ *
+ * @return
+ */
+bool getResetBackup(void)
+{
+  return resetBackupDetected;
+}
+
 /**
  * @fn uint32_t getResetSource(void)
  * @brief function to read out reset cause
