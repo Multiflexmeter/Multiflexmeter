@@ -170,10 +170,15 @@ int8_t restoreLatestLogId(void)
 
   UNION_logdata * pLog = (UNION_logdata *)&logdata;
 
-  APP_LOG(TS_OFF, VLEVEL_H, "Reset cause: %x\r\n", getResetSource());
+  APP_LOG(TS_OFF, VLEVEL_H, "Reset cause: %x\r\n", getResetSource() );
+
+  if (getResetBackup())
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "VBACKUP: reset detect\r\n");
+  }
 
   //check no power on reset
-  if( powerOnReset() == false )
+  if( getResetBackup() == false )
   {
     readLatestIdFromBackupRegister = readBackupRegister( BACKUP_REGISTER_LATEST_LOG ); //get value from backup register
 
