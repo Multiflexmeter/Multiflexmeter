@@ -27,6 +27,9 @@
  */
 const void syncRTC_withSysTime(void)
 {
+#if VERBOSE_LEVEL == VLEVEL_H
+  char timeStringNow[20] = {0};
+#endif
   SysTime_t sysTime = {0};
   struct tm stTime = {0};
   am1805_time_t timeWrite = { 0 };
@@ -49,6 +52,13 @@ const void syncRTC_withSysTime(void)
 
   am1805_time_set(timeWrite, 1); //save date/time to external RTC
   am1805_time_get(&timeRead); //read back to verify, for debug
+
+#if VERBOSE_LEVEL == VLEVEL_H
+  strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &stTime);
+  APP_LOG(TS_OFF, VLEVEL_H, "TIME NOW: %s\r\n", timeStringNow );
+#endif
+
+  APP_LOG(TS_OFF, VLEVEL_H, "TIME: RTC sync\r\n" );
 
 }
 
