@@ -38,6 +38,10 @@ __weak const void setup_io_for_dataflash(bool state)
  */
 int8_t init_dataflash(void)
 {
+  int result = 0;
+  //enable io needed for dataflash
+  setup_io_for_dataflash(true);
+
   // initialize the I/O
   SPI_ConfigureSingleSPIIOs();
 
@@ -48,14 +52,18 @@ int8_t init_dataflash(void)
   if (compareByteArrays(dataRead, MID, 3))
   {
     printf("Dataflash: ReadMID Success.\n");
+    result = 0;
   }
   else
   {
     printf("Dataflash: ReadMID fail.\n");
-    return -1;
+    result = -1;
   }
 
-  return 0;
+  //disable io needed for dataflash
+  setup_io_for_dataflash(false);
+
+  return result;
 }
 
 /**

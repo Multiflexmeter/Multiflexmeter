@@ -240,4 +240,19 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 
 /* USER CODE BEGIN 1 */
 
+void HAL_I2C_checkError(void)
+{
+  if (hi2c1.ErrorCode)
+  {
+    HAL_I2C_MspDeInit(&hi2c1);
+    HAL_I2C_MspInit(&hi2c1);
+  }
+
+  if (hi2c2.ErrorCode)
+  {
+    HAL_I2C_MspDeInit(&hi2c2);
+    HAL_I2C_MspInit(&hi2c2);
+  }
+}
+
 /* USER CODE END 1 */

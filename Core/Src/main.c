@@ -56,6 +56,7 @@
 #include "../../App/logging/logging.h"
 #include "../../App/MFMconfiguration.h"
 #include "../../App/BatMon_BQ35100/BatMon_functions.h"
+#include "../../App/IO/board_io.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

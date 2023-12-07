@@ -155,6 +155,40 @@ static const uint16_t getDevNonce(void)
 }
 
 /**
+ * @fn uint32_t getNextWake(UTIL_TIMER_Time_t, SysTime_t)
+ * @brief helper function to calculate next wakeUp
+ *
+ * @param period : measurement interval
+ * @param startTime : time of last wakeup
+ * @return
+ */
+static uint32_t getNextWake(UTIL_TIMER_Time_t period, SysTime_t startTime )
+{
+  uint32_t nextWake = period/1000; //LoraInterval from ms to sec
+
+  if( SysTimeGet().Seconds > bootTime.Seconds ) //check current time is larger then saved boottime.
+  {
+    SysTime_t elepsedTime = SysTimeSub(SysTimeGet(), startTime); //calculate elapsed time
+
+    if( nextWake > (elepsedTime.Seconds + 1) )
+    {
+      nextWake -= elepsedTime.Seconds;
+    }
+
+    else
+    {
+      nextWake = 10; //force to minimum 10 second
+    }
+  }
+  else
+  { //something went wrong
+    //nothing, just use interval
+  }
+
+  return nextWake;
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -170,26 +204,80 @@ const void mainTask(void)
     case INIT_POWERUP: //init Powerup
 
       disableSleep();
-      init_board_io(); //init IO
+//      init_board_io_device(IO_EXPANDER_SYS); //done in MX_LoRaWAN_Init() -> SystemApp_Init();
       initLedTimer(); //init LED timer
       init_vAlwaysOn();
       executeAlwaysOn(); //execute Always on config value.
+
+      initBatMon(); //initialize and enable battery gauge
 
       mainTask_state = INIT_SLEEP;
       break;
 
     case INIT_SLEEP: //init after Sleep
 
-      initBatMon(); //start battery gauge
+      if( UTIL_TIMER_IsRunning(&measurement_Timer) == 0)
+      {
+
+#ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+        bootTime = SysTimeGet(); //get boottime. //only when no RTC is used, overwrite boottime.
+#endif
+
+        batmon_enable(); //enable battery monitor, takes a while until batmon is ready.
+
+        if( enableListenUart )
+        {
+          uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
+        }
+
+        setWait(100); //set wait timeout 250ms
+
+        mainTask_state = WAIT_BATTERY_GAUGE_INIT;
+        }
+      break;
+
+    case WAIT_BATTERY_GAUGE_INIT:
+
+     if( waiting == false  )
+     {
+       if( batmon_isInitComplet()) //wait battery monitor is ready
+       {
+         APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
+
+         batmon_enable_gauge(); //enable gauging
+         mainTask_state = WAIT_GAUGE_ENABLED;
+       }
+
+       setWait(100); //set wait timeout 1s
+     }
+
+      break;
+
+    case WAIT_GAUGE_ENABLED:
+      if( waiting == false )
+      {
+        if( batmon_isGaugeActive() )
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: gauge active\r\n");
+          mainTask_state = ENABLE_VSYS;
+        }
+
+        setWait(100); //set wait timeout 1s
+      }
+
+      break;
+
+    case ENABLE_VSYS:
 
       enableVsys(); //enable supply for I/O expander
       init_board_io_device(IO_EXPANDER_BUS_INT);
       init_board_io_device(IO_EXPANDER_BUS_EXT);
 
-      if( enableListenUart )
-      {
-        uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
-      }
+      mainTask_state = CHECK_SENSOR_SLOT;
+
+      break;
+
+    case CHECK_SENSOR_SLOT:
 
       numberOfsensorModules = 0;
       sensorModuleEnabled = false;
@@ -357,7 +445,6 @@ const void mainTask(void)
 
         if( batmon_getMeasure().voltage > 0 || waitForBatteryMonitorDataCounter > 10)
         {
-          deinitBatMon();
           mainTask_state = SAVE_DATA; //next state
         }
         else
@@ -485,6 +572,8 @@ const void mainTask(void)
 
     case SWITCH_OFF_VSYS: //switch off for low power oparation
 
+      deinit_IO_Expander(IO_EXPANDER_BUS_EXT);
+      deinit_IO_Expander(IO_EXPANDER_BUS_INT);
       disableVsys();
       loraJoinRetryCounter = 0; //reset
       mainTask_state = CHECK_LORA_REJOIN; //next state
@@ -505,8 +594,24 @@ const void mainTask(void)
 
       if( loraReceiveReady == true || !LoRaMacIsBusy() )
       {
-        mainTask_state = WAIT_FOR_SLEEP;
-        setWait(1000);  //set wait time 1sec
+        batmon_disable_gauge();
+        mainTask_state = WAIT_BATTERY_MONITOR_READY;
+        setWait(100);  //set wait time 100msec
+      }
+
+      break;
+
+    case WAIT_BATTERY_MONITOR_READY:
+
+      if( waiting == false ) //check wait time is expired
+      {
+        //wait battery monitor saved data internally
+        if( batmon_isReady() )
+        {
+          batmon_disable(); //switch off battery monitor
+          mainTask_state = WAIT_FOR_SLEEP;
+        }
+        setWait(100);  //set wait time 100ms
       }
 
       break;
@@ -517,31 +622,12 @@ const void mainTask(void)
       {
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
 
-        uint32_t nextWake = MainPeriodSleep/1000; //LoraInterval from ms to sec
-
-        if( SysTimeGet().Seconds > bootTime.Seconds ) //check current time is larger then saved boottime.
-        {
-          SysTime_t elepsedTime = SysTimeSub(SysTimeGet(), bootTime); //calculate elapsed time
-
-          if( nextWake > (elepsedTime.Seconds + 1) )
-          {
-            nextWake -= elepsedTime.Seconds;
-          }
-
-          else
-          {
-            nextWake = 10; //force to minimum 10 second
-          }
-        }
-        else
-        { //something went wrong
-          //nothing, just use interval
-        }
-
-        goIntoSleep(nextWake, 1);
+        goIntoSleep(getNextWake( MainPeriodSleep, bootTime), 1);
         //will stop here
 #else
         pause_mainTask();
+
+        APP_LOG(TS_OFF, VLEVEL_H, "WAIT: %u\r\n",  getNextWake( MainPeriodSleep, bootTime) );
 
         mainTask_state = INIT_SLEEP; //go back to init after sleep, for next measure
 #endif

@@ -55,6 +55,23 @@
 #define SUB_CMD_RESET                           0x0041
 #define SUB_CMD_NEW_BATTERY                     0xA613
 
+/* control status */
+#define CONTROL_STATUS0_GA                      0x01
+#define CONTROL_STATUS0_EOS_BAD_OCV             0x08
+#define CONTROL_STATUS0_SOH_MERIT               0x10
+#define CONTROL_STATUS0_SOH_ERR                 0x20
+#define CONTROL_STATUS0_G_DONE                  0x40
+#define CONTROL_STATUS0_INITCOMP                0x80
+
+#define CONTROL_STATUS1_OCVFAIL                 0x01
+#define CONTROL_STATUS1_LTEN                    0x02
+#define CONTROL_STATUS1_CCA                     0x04
+#define CONTROL_STATUS1_BCA                     0x08
+#define CONTROL_STATUS1_CALLMODE                0x10
+#define CONTROL_STATUS1_SEC0                    0x20
+#define CONTROL_STATUS1_SEC1                    0x40
+#define CONTROL_STATUS1_FLASHF                  0x80
+
 
 /* Device I2C address. */
 #define BQ35100_ADDRESS 0x55 << 1
@@ -91,6 +108,7 @@ uint16_t bq35100_getDesignCapacity(void);
 uint32_t bq35100_getRemainingCapacity(void);
 uint32_t bq35100_getUsedCapacity(void);
 SecurityMode bq35100_getSecurityMode(void);
+bool bq35100_getControlStatus(uint8_t * controlStatus, uint8_t length);
 bool bq35100_isGaugeEnabled(void);
 bool bq35100_enableGauge(void);
 bool bq35100_disableGauge(bool ignoreCheck);
