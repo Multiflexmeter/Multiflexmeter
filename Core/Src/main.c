@@ -57,6 +57,7 @@
 #include "../../App/MFMconfiguration.h"
 #include "../../App/BatMon_BQ35100/BatMon_functions.h"
 #include "../../App/IO/board_io.h"
+#include "../../App/common/common.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -111,7 +112,7 @@ bool eraseVirtualEeprom = true;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  detectResetBackup(); //detect if the vBAT backup domain is reset, must be executed before init.
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -150,7 +151,6 @@ int main(void)
   }
 
   restoreLatestLogId();
-  restoreLatestTimeFromLog();
 
 #ifdef ERASE_VIRTUAL_EEPROM
   if (eraseVirtualEeprom == true)

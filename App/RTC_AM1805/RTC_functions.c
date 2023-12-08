@@ -19,6 +19,7 @@
 #include "am1805.h"
 #include "RTC_functions.h"
 
+static uint8_t statusRegisterRtc;
 
 /**
  * @fn const void syncRTC_withSysTime(void)
@@ -27,6 +28,9 @@
  */
 const void syncRTC_withSysTime(void)
 {
+#if VERBOSE_LEVEL == VLEVEL_H
+  char timeStringNow[20] = {0};
+#endif
   SysTime_t sysTime = {0};
   struct tm stTime = {0};
   am1805_time_t timeWrite = { 0 };
@@ -50,6 +54,13 @@ const void syncRTC_withSysTime(void)
   am1805_time_set(timeWrite, 1); //save date/time to external RTC
   am1805_time_get(&timeRead); //read back to verify, for debug
 
+#if VERBOSE_LEVEL == VLEVEL_H
+  strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &stTime);
+  APP_LOG(TS_OFF, VLEVEL_H, "TIME NOW: %s\r\n", timeStringNow );
+#endif
+
+  APP_LOG(TS_OFF, VLEVEL_H, "TIME: RTC sync\r\n" );
+
 }
 
 /**
@@ -59,6 +70,10 @@ const void syncRTC_withSysTime(void)
  */
 const void syncSystemTime_withRTC(void)
 {
+#if VERBOSE_LEVEL == VLEVEL_H
+  char timeStringNow[20] = {0};
+#endif
+
   am1805_time_t timeRead = { 0 };
   SysTime_t sysTime = {0};
   struct tm stTime = {0};
@@ -79,6 +94,12 @@ const void syncSystemTime_withRTC(void)
   SysTimeSet(sysTime); //save date/time to internal RTC
   sysTime = SysTimeGet(); //read back to verify, for debug
 
+#if VERBOSE_LEVEL == VLEVEL_H
+  strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &stTime);
+  APP_LOG(TS_OFF, VLEVEL_H, "TIME NOW: %s\r\n", timeStringNow );
+#endif
+
+  APP_LOG(TS_OFF, VLEVEL_H, "TIME: RTC -> internal\r\n" );
 }
 
 /**
@@ -163,42 +184,113 @@ const void testRTC( int mode, struct_dateTime * time )
   else if (mode == 5)
   {
     am1805_enable_wdi_ex2_interrupt(); //make sure ex2 interrupt is enabled
-    setWakeupAlarm(5); //set alarm on 5 seconds.
+    setWakeupWdtAlarm(5); //set alarm on 5 seconds.
   }
 
   else if (mode == 6)
   {
-    time->century =  getWakeupStatus(true); //miss use century byte for status feedback, automatically clear WDT status (0x20, bit WDT).
+    readStatusRegisterRtc();
+    time->century =  getWakeupWdtStatus(true); //miss use century byte for status feedback, automatically clear WDT status (0x20, bit WDT).
   }
 
 }
 
 /**
- * @fn const void setWakeupAlarm(uint32_t)
+ * @fn const void setWakeupWdtAlarm(uint32_t)
  * @brief function to configure the wakeup alarm
  *
  * @param seconds
  */
-const void setWakeupAlarm( uint32_t seconds )
+const void setWakeupWdtAlarm( uint32_t seconds )
 {
   am1805_watchdog_set( seconds * 1000, 1 ); //set watchdog timer, convert seconds to ms, use mode "1" => generate an interrupt on FOUT/nIRQ
 }
 
+
+
 /**
- * @fn const bool getWakeupStatus(bool)
+ * @fn uint8_t getStatusRegisterRtc(void)
+ * @brief function to return last read status register
+ *
+ * @return
+ */
+uint8_t getStatusRegisterRtc(void)
+{
+  return statusRegisterRtc;
+}
+
+/**
+ * @fn uint8_t readStatusRegisterRtc(void)
+ * @brief function to read the RTC status register, force reset all except CB
+ *
+ * @return
+ */
+uint8_t readStatusRegisterRtc(void)
+{
+  statusRegisterRtc = am1805_get_status(0x7f);
+
+  return getStatusRegisterRtc();
+}
+
+/**
+ * @fn const bool getBitStatusRegisterRtc(uint8_t, bool)
+ * @brief function to get bit of status register RTC
+ *
+ * @param mask bitmask
+ * @param clear : true = clear, false = do not clear
+ * @return
+ */
+const bool getBitStatusRegisterRtc(uint8_t mask, bool clear)
+{
+  uint8_t result = statusRegisterRtc & mask;
+
+  if(clear )
+  {
+    statusRegisterRtc &= ~mask; //clear
+  }
+
+  return (result ? true : false);
+}
+
+
+/**
+ * @fn const bool getWakeupWdtStatus(bool)
  * @brief get wakeup status
  *
  * @param clear
  * @return
  */
-const bool getWakeupStatus(bool clear)
+const bool getWakeupWdtStatus(bool clear)
 {
-  uint8_t clearMask = AM1805_mask_WDT; //clear WDT status (0x20, bit WDT)
-
-  uint8_t result = am1805_get_status(clear ? clearMask : 0x00);
-
-  return (result & AM1805_mask_WDT);
+  return getBitStatusRegisterRtc(AM1805_mask_WDT, clear);
 }
+
+/**
+ * @fn const bool getWakeupAlarmStatus(bool)
+ * @brief get wakeup alarm status
+ * Set when the Alarm function is enabled and all selected Alarm registers match their respective counters.
+ *
+ * @param clear
+ * @return
+ */
+const bool getWakeupAlarmStatus(bool clear)
+{
+  return getBitStatusRegisterRtc(AM1805_mask_ALM, clear);
+}
+
+/**
+ * @fn const bool getWakeupBatStatus(bool)
+ * @brief get wakeup battery status
+ * Set when the system switches to the VBAT Power state
+ *
+ * @param clear locally
+ * @return
+ */
+const bool getWakeupBatStatus(bool clear)
+{
+  return getBitStatusRegisterRtc(AM1805_mask_BAT, clear);
+}
+
 
 /**
  * @fn const void goIntoSleep(uint32_t, uint8_t)
@@ -210,6 +302,98 @@ const bool getWakeupStatus(bool clear)
  * @param waitTimeTicks : value between 0-7, 0 = noDelay, 1-7 periods of 7.8ms. The value is limited automatically to 7.
  */
 const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
+{
+#if VERBOSE_LEVEL == VLEVEL_H
+  char timeStringNow[20] = {0};
+  char timeStringWake[20] = {0};
+#endif
+  //check wait is between 0-7.
+  if( waitTimeTicks > 7 )
+  {
+    waitTimeTicks = 7;
+  }
+  am1805_time_t time_RTC;
+
+  //read current time
+  am1805_time_get(&time_RTC);
+
+  //convert to struct time
+  struct tm struct_time = {0};
+  struct_time.tm_year = 2000 + time_RTC.ui8Year + time_RTC.ui8Century * 100;
+  struct_time.tm_mon = time_RTC.ui8Month;
+  struct_time.tm_mday = time_RTC.ui8Date;
+  struct_time.tm_hour = time_RTC.ui8Hour;
+  struct_time.tm_min = time_RTC.ui8Minute;
+  struct_time.tm_sec = time_RTC.ui8Second;
+
+  //convert struct time to seconds timestamp
+  time_t timestamp = mktime(&struct_time);
+
+  //add seconds for sleep
+  timestamp += sleepTime_sec;
+
+  //convert new timestamp to struct time
+  struct tm * sleepTime;
+  sleepTime = gmtime(&timestamp);
+
+  //set new alarm time
+  am1805_time_t alarmTime;
+  alarmTime = time_RTC; //copy orginal readed values
+  alarmTime.ui8Century = ((sleepTime->tm_year / 100)) % 2; //overwrite century
+  alarmTime.ui8Year = sleepTime->tm_year % 100;           //overwrite year
+  alarmTime.ui8Month = sleepTime->tm_mon;                 //overwrite month
+  alarmTime.ui8Date = sleepTime->tm_mday;                 //overwrite day
+  alarmTime.ui8Hour = sleepTime->tm_hour;                 //overwrite year
+  alarmTime.ui8Minute = sleepTime->tm_min;                //overwrite minutes
+  alarmTime.ui8Second = sleepTime->tm_sec;                //overwrite seconds
+
+  //setup the alarm
+  am1805_alarm_set(alarmTime, ALARM_INTERVAL_MONTH, ALARM_IRQ_PULSE_1_64S, ALARM_PIN_PSW);
+
+#if VERBOSE_LEVEL == VLEVEL_H
+  strftime(timeStringNow, sizeof(timeStringNow), "%H:%M:%S", &struct_time);
+  strftime(timeStringWake, sizeof(timeStringWake), "%H:%M:%S", sleepTime);
+  APP_LOG(TS_OFF, VLEVEL_H, "Sleep time; %u, NOW: %s, WAKE: %s\r\n", sleepTime_sec, timeStringNow, timeStringWake );
+#endif
+
+  //enable the sleepmode
+  uint32_t sleepStatus = am1805_sleep_set(waitTimeTicks, SLEEP_MODE_nRST_LOW_AND_PSW_HIGH);
+
+  switch( sleepStatus )
+  {
+    case SLEEP_RETURN_ACCEPTED:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ACTIVE\r\n" );
+      break;
+    case SLEEP_RETURN_ILLEGAL_INPUT:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, illegal input\r\n" );
+      break;
+    case SLEEP_RETURN_DECLINED_ACTIVE_IRQ:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, IRQ already active\r\n" );
+      break;
+    case SLEEP_RETURN_DECLINED_NO_SLEEP_IRQ:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, sleep IRQ not enabled\r\n" );
+      break;
+    default:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ERROR, wrong return value\r\n" );
+      break;
+  }
+
+  //todo if brownout enabled, turn it off.
+  while( 1 ); //keep waiting to turn off.
+
+}
+
+/**
+ * @fn const void goIntoSleep_with_countdown(uint32_t, uint8_t)
+ * @brief function to enable sleep mode of Real Time Clock.
+ * Also disables the supply of this controller.
+ * @warning this functions shutdown the processor supply
+ * @note this function has a low resolution (1 minute) for values above 256 seconds
+ *
+ * @param sleepTime_sec : time to be in sleep
+ * @param waitTimeTicks : value between 0-7, 0 = noDelay, 1-7 periods of 7.8ms. The value is limited automatically to 7.
+ */
+const void goIntoSleep_with_countdown(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
 {
   //check wait is between 0-7.
   if( waitTimeTicks > 7 )
@@ -254,5 +438,7 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
  */
 const void disableSleep(void)
 {
+  am1805_time_t alarmTime = {0};
   am1805_countdown_set(CNTDWN_RANGE_SEC, 0, CNTDWN_IRQ_SINGLE_PULSED_1_64S, CNTDOWN_DISABLE_CNT_DOWN_TMR);
+  am1805_alarm_set(alarmTime, ALARM_INTERVAL_DISABLE, ALARM_IRQ_LEVEL, ALARM_PIN_PSW);
 }

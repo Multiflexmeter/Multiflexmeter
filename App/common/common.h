@@ -58,6 +58,8 @@ typedef struct
     uint8_t century;
 }struct_dateTime;
 
+void detectResetBackup(void);
+bool getResetBackup(void);
 uint32_t getResetSource(void);
 bool powerOnReset(void);
 void writeBackupRegister(ENUM_backupRegister backupRegisterId, uint32_t value);

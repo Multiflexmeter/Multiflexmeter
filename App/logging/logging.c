@@ -170,10 +170,15 @@ int8_t restoreLatestLogId(void)
 
   UNION_logdata * pLog = (UNION_logdata *)&logdata;
 
-  APP_LOG(TS_OFF, VLEVEL_H, "Reset cause: %x\r\n", getResetSource());
+  APP_LOG(TS_OFF, VLEVEL_H, "Reset cause: %x\r\n", getResetSource() );
+
+  if (getResetBackup())
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "VBACKUP: reset detect\r\n");
+  }
 
   //check no power on reset
-  if( powerOnReset() == false )
+  if( getResetBackup() == false )
   {
     readLatestIdFromBackupRegister = readBackupRegister( BACKUP_REGISTER_LATEST_LOG ); //get value from backup register
 
@@ -267,7 +272,16 @@ int8_t restoreLatestTimeFromLog(void)
         newTime.Seconds = logdata.timestamp;
         newTime.SubSeconds = 0;
         SysTimeSet( newTime );
-        APP_LOG(TS_OFF, VLEVEL_H, "Time: restored from log\r\n");
+
+#if VERBOSE_LEVEL == VLEVEL_H
+
+         char timeStringNow[20] = {0};
+         struct tm stTime;
+         SysTimeLocalTime(SysTimeGet().Seconds, &stTime); //get system time
+         strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &stTime); //make date/time string
+         APP_LOG(TS_OFF, VLEVEL_H, "Time: restored from log: %s\r\n", timeStringNow);
+
+#endif
       }
       else
       { //current time is newer, do not restore old time
