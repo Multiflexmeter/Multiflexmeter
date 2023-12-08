@@ -362,6 +362,8 @@ const void mainTask(void)
       else
       {
         APP_LOG(TS_OFF, VLEVEL_H, "No sensor module slot enabled\r\n" ); //print no sensor slot enabled
+        UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
+        setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
         mainTask_state = STOP_MAINTASK; //no sensor slot is active
       }
 
