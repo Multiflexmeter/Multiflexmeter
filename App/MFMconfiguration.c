@@ -343,13 +343,20 @@ const int32_t getSensorType(int32_t sensorId)
 }
 
 /**
- * @brief override function getLoraInterval(), can be override in application code.
+ * @brief override function getLoraInterval().
  *
- * @return Interval time in minutes
+ * @return Interval time in minutes, force minimum of 5 minutes.
  */
 const uint16_t getLoraInterval(void)
 {
-  return MFM_settings.intervalLora;
+  uint16_t value = 5;
+
+  if( value <= MFM_settings.intervalLora)
+  {
+    value = MFM_settings.intervalLora;
+  }
+
+  return value;
 }
 
 /**

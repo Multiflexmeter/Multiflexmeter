@@ -55,8 +55,6 @@
 #include "../../App/dataflash/dataflash_functions.h"
 #include "../../App/logging/logging.h"
 #include "../../App/MFMconfiguration.h"
-#include "../../App/BatMon_BQ35100/BatMon_functions.h"
-#include "../../App/IO/board_io.h"
 #include "../../App/common/common.h"
 /* USER CODE END Includes */
 
@@ -68,6 +66,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+//#define ERASE_DATAFLASH       //enable for erasing dataflash
 //#define ERASE_VIRTUAL_EEPROM  //enable for erasing virtual EEPROM
 
 /* USER CODE END PD */
@@ -97,9 +96,14 @@ void SystemClock_Config_MSI_RC(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 static int8_t resultInitDataflash;
-bool chipErase = false;
+
+#ifdef ERASE_DATAFLASH
+#warning ERASE_DATAFLASH at boot enabled
+bool chipErase = true;
+#endif
 
 #ifdef ERASE_VIRTUAL_EEPROM
+#warning ERASE_VIRTUAL_EEPROM at boot enabled
 bool eraseVirtualEeprom = true;
 #endif
 
@@ -145,12 +149,12 @@ int main(void)
   uartInit_Config();
   resultInitDataflash = init_dataflash();
 
+#ifdef ERASE_DATAFLASH
   if( chipErase )
   {
     chipEraseDataflash();
   }
-
-  restoreLatestLogId();
+#endif
 
 #ifdef ERASE_VIRTUAL_EEPROM
   if (eraseVirtualEeprom == true)
@@ -159,6 +163,7 @@ int main(void)
   }
 #endif
 
+  restoreLatestLogId();
   reloadSettingsFromVirtualEEPROM();
 
   init_mainTask();
