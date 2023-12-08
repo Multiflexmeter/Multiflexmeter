@@ -19,6 +19,7 @@
 #include "am1805.h"
 #include "RTC_functions.h"
 
+static uint8_t statusRegisterRtc;
 
 /**
  * @fn const void syncRTC_withSysTime(void)
@@ -188,6 +189,7 @@ const void testRTC( int mode, struct_dateTime * time )
 
   else if (mode == 6)
   {
+    readStatusRegisterRtc();
     time->century =  getWakeupWdtStatus(true); //miss use century byte for status feedback, automatically clear WDT status (0x20, bit WDT).
   }
 
@@ -204,6 +206,53 @@ const void setWakeupWdtAlarm( uint32_t seconds )
   am1805_watchdog_set( seconds * 1000, 1 ); //set watchdog timer, convert seconds to ms, use mode "1" => generate an interrupt on FOUT/nIRQ
 }
 
+
+
+/**
+ * @fn uint8_t getStatusRegisterRtc(void)
+ * @brief function to return last read status register
+ *
+ * @return
+ */
+uint8_t getStatusRegisterRtc(void)
+{
+  return statusRegisterRtc;
+}
+
+/**
+ * @fn uint8_t readStatusRegisterRtc(void)
+ * @brief function to read the RTC status register, force reset all except CB
+ *
+ * @return
+ */
+uint8_t readStatusRegisterRtc(void)
+{
+  statusRegisterRtc = am1805_get_status(0x7f);
+
+  return getStatusRegisterRtc();
+}
+
+/**
+ * @fn const bool getBitStatusRegisterRtc(uint8_t, bool)
+ * @brief function to get bit of status register RTC
+ *
+ * @param mask bitmask
+ * @param clear : true = clear, false = do not clear
+ * @return
+ */
+const bool getBitStatusRegisterRtc(uint8_t mask, bool clear)
+{
+  uint8_t result = statusRegisterRtc & mask;
+
+  if(clear )
+  {
+    statusRegisterRtc &= ~mask; //clear
+  }
+
+  return (result ? true : false);
+}
+
+
 /**
  * @fn const bool getWakeupWdtStatus(bool)
  * @brief get wakeup status
@@ -213,11 +262,7 @@ const void setWakeupWdtAlarm( uint32_t seconds )
  */
 const bool getWakeupWdtStatus(bool clear)
 {
-  uint8_t clearMask = AM1805_mask_WDT; //clear WDT status (0x20, bit WDT)
-
-  uint8_t result = am1805_get_status(clear ? clearMask : 0x00);
-
-  return (result & AM1805_mask_WDT);
+  return getBitStatusRegisterRtc(AM1805_mask_WDT, clear);
 }
 
 /**
@@ -230,28 +275,20 @@ const bool getWakeupWdtStatus(bool clear)
  */
 const bool getWakeupAlarmStatus(bool clear)
 {
-  uint8_t clearMask = AM1805_mask_ALM; //clear WDT status (0x20, bit WDT)
-
-  uint8_t result = am1805_get_status(clear ? clearMask : 0x00);
-
-  return (result & AM1805_mask_ALM);
+  return getBitStatusRegisterRtc(AM1805_mask_ALM, clear);
 }
 
 /**
  * @fn const bool getWakeupBatStatus(bool)
  * @brief get wakeup battery status
- * Set wehn the system switches to the VBAT Power state
+ * Set when the system switches to the VBAT Power state
  *
- * @param clear
+ * @param clear locally
  * @return
  */
 const bool getWakeupBatStatus(bool clear)
 {
-  uint8_t clearMask = AM1805_mask_BAT; //clear WDT status (0x20, bit WDT)
-
-  uint8_t result = am1805_get_status(clear ? clearMask : 0x00);
-
-  return (result & AM1805_mask_BAT);
+  return getBitStatusRegisterRtc(AM1805_mask_BAT, clear);
 }
 
 

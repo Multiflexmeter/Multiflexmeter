@@ -202,7 +202,6 @@ uint32_t getActiveTime(void)
  */
 const void mainTask(void)
 {
-
   mainTask_tmr++; //count the number of executes
 
   //execute steps of maintask, then wait for next trigger.
@@ -210,14 +209,29 @@ const void mainTask(void)
   {
     case INIT_POWERUP: //init Powerup
 
+      readStatusRegisterRtc();
+
+#if VERBOSE_LEVEL == VLEVEL_H
       APP_LOG(TS_OFF, VLEVEL_H, "RTC: status: ");
-      APP_LOG(TS_OFF, VLEVEL_H, "0x%02x", am1805_get_status(0));
+      APP_LOG(TS_OFF, VLEVEL_H, "0x%02x", getStatusRegisterRtc());
 
       //check BAT flag is set, indicate battery disconnected.
-      if( getWakeupBatStatus(1) )
+      if( getWakeupBatStatus(0) )
       {
         APP_LOG(TS_OFF, VLEVEL_H, ", BAT");
+      }
 
+      //check alarm, indicates awake from alarm
+      if( getWakeupAlarmStatus(0) )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, ", ALARM");
+      }
+
+      APP_LOG(TS_OFF, VLEVEL_H, "\r\n");
+#endif
+
+      if( getWakeupBatStatus(1) )
+      {
         restoreLatestTimeFromLog(); //time in RTC not valid, set time from last log
         setRequestTime(); //request a time sync to server
       }
@@ -226,14 +240,7 @@ const void mainTask(void)
         //get time from RTC and sync it with controller clock
         syncSystemTime_withRTC();
       }
-
-      //check alarm, indicates awake from alarm
-      if( getWakeupAlarmStatus(1) )
-      {
-        APP_LOG(TS_OFF, VLEVEL_H, ", ALARM");
-      }
-
-      APP_LOG(TS_OFF, VLEVEL_H, "\r\n");
+      getWakeupAlarmStatus(1); //reset awake alarm, future use.
 
       disableSleep();
 //      init_board_io_device(IO_EXPANDER_SYS); //done in MX_LoRaWAN_Init() -> SystemApp_Init();
