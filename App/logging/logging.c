@@ -272,7 +272,16 @@ int8_t restoreLatestTimeFromLog(void)
         newTime.Seconds = logdata.timestamp;
         newTime.SubSeconds = 0;
         SysTimeSet( newTime );
-        APP_LOG(TS_OFF, VLEVEL_H, "Time: restored from log\r\n");
+
+#if VERBOSE_LEVEL == VLEVEL_H
+
+         char timeStringNow[20] = {0};
+         struct tm stTime;
+         SysTimeLocalTime(SysTimeGet().Seconds, &stTime); //get system time
+         strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &stTime); //make date/time string
+         APP_LOG(TS_OFF, VLEVEL_H, "Time: restored from log: %s\r\n", timeStringNow);
+
+#endif
       }
       else
       { //current time is newer, do not restore old time
