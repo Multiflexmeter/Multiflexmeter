@@ -575,6 +575,22 @@ const void mainTask(void)
       //wait on transmit ready flag
       if( loraTransmitReady == true )
       {
+
+#if VERBOSE_LEVEL == VLEVEL_H
+        //extra measure for debug, print values after transmit
+        batmon_measure(); //save battery monitor data
+
+        APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor data: %dmV, %dmA, %d%%, %u.%u%cC, Z:%umOhm, R:%umOhm\r\n",
+            batmon_getMeasure().voltage,
+            batmon_getMeasure().current,
+            batmon_getMeasure().stateOfHealth,
+            batmon_getMeasure().temperature/10, batmon_getMeasure().temperature%10, 176,
+            batmon_getMeasure().MeasuredZ,
+            batmon_getMeasure().ScaledR
+            );
+#endif
+
+
         UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
         UTIL_TIMER_Time_t forcedInterval = 0;
 
