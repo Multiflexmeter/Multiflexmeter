@@ -43,7 +43,6 @@ static uint32_t mainTask_tmr;
 static int mainTask_state;
 static int loraJoinRetryCounter = 0;
 
-static SysTime_t bootTime;
 static UTIL_TIMER_Object_t MainTimer;
 static UTIL_TIMER_Time_t MainPeriodSleep = 60000;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
@@ -56,6 +55,10 @@ static UTIL_TIMER_Object_t measurement_Timer;
 static volatile bool startMeasure = true;
 
 static UTIL_TIMER_Object_t rejoin_Timer;
+
+static UTIL_TIMER_Object_t systemActive_Timer;
+static UTIL_TIMER_Time_t period_1sec = 1000;
+static volatile uint32_t systemActiveTime_sec;
 
 static uint8_t dataBuffer[100];
 static uint8_t sensorModuleId = 0;
@@ -155,37 +158,41 @@ static const uint16_t getDevNonce(void)
 }
 
 /**
- * @fn uint32_t getNextWake(UTIL_TIMER_Time_t, SysTime_t)
+ * @fn uint32_t getNextWake(UTIL_TIMER_Time_t period, uint32_t activeTime )
  * @brief helper function to calculate next wakeUp
  *
  * @param period : measurement interval
- * @param startTime : time of last wakeup
+ * @param startTime : active time from last wake-up
  * @return
  */
-static uint32_t getNextWake(UTIL_TIMER_Time_t period, SysTime_t startTime )
+static uint32_t getNextWake(UTIL_TIMER_Time_t period, uint32_t activeTime )
 {
   uint32_t nextWake = period/1000; //LoraInterval from ms to sec
 
-  if( SysTimeGet().Seconds > bootTime.Seconds ) //check current time is larger then saved boottime.
+  if( nextWake >  activeTime )
   {
-    SysTime_t elepsedTime = SysTimeSub(SysTimeGet(), startTime); //calculate elapsed time
-
-    if( nextWake > (elepsedTime.Seconds + 1) )
-    {
-      nextWake -= elepsedTime.Seconds;
-    }
-
-    else
-    {
-      nextWake = 10; //force to minimum 10 second
-    }
+    nextWake -= activeTime;
   }
-  else
-  { //something went wrong
-    //nothing, just use interval
+
+  //guard minimum sleep time
+  if( nextWake < 30 )
+  {
+    nextWake = 30;
   }
+
 
   return nextWake;
+}
+
+/**
+ * @fn uint32_t getActiveTime(void)
+ * @brief function gives the system active time in seconds.
+ *
+ * @return
+ */
+uint32_t getActiveTime(void)
+{
+  return systemActiveTime_sec;
 }
 
 /**
@@ -245,7 +252,7 @@ const void mainTask(void)
       {
 
 #ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
-        bootTime = SysTimeGet(); //get boottime. //only when no RTC is used, overwrite boottime.
+        systemActiveTime_sec = 0; //reset //only when no RTC is used, overwrite boottime.
 #endif
 
         batmon_enable(); //enable battery monitor, takes a while until batmon is ready.
@@ -680,14 +687,15 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
+
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
 
-        goIntoSleep(getNextWake( MainPeriodSleep, bootTime), 1);
+        goIntoSleep(getNextWake( MainPeriodSleep, systemActiveTime_sec), 1);
         //will stop here
 #else
         pause_mainTask();
 
-        APP_LOG(TS_OFF, VLEVEL_H, "WAIT: %u\r\n",  getNextWake( MainPeriodSleep, bootTime) );
+        APP_LOG(TS_OFF, VLEVEL_H, "WAIT: %u\r\n",  getNextWake( MainPeriodSleep, systemActiveTime_sec) );
 
         mainTask_state = INIT_SLEEP; //go back to init after sleep, for next measure
 #endif
@@ -793,6 +801,17 @@ static const void trigger_delayedReJoin(void *context)
 }
 
 /**
+ * @fn const void trigger_systemActiveTime(void*)
+ * @brief function to trigger system active time
+ *
+ * @param context
+ */
+static const void trigger_systemActiveTime(void *context)
+{
+  systemActiveTime_sec++; //increment every second
+}
+
+/**
  * @fn const void init_mainTask(void)
  * @brief function to initialize the mainTask
  *
@@ -800,7 +819,15 @@ static const void trigger_delayedReJoin(void *context)
 const void init_mainTask(void)
 {
 
-  bootTime = SysTimeGet(); //get boottime.
+#if VERBOSE_LEVEL == VLEVEL_H
+
+  char timeStringNow[20] = {0};
+  struct tm stTime;
+  SysTimeLocalTime(SysTimeGet().Seconds, &stTime); //get system time
+  strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &stTime); //make date/time string
+  APP_LOG(TS_OFF, VLEVEL_H, "SysTime: sec:%d, subSec: %d, %s\r\n", SysTimeGet().Seconds, SysTimeGet().SubSeconds, timeStringNow); //print values for debug
+
+#endif
 
   mainTask_state = INIT_POWERUP; //reset state for powerup
   mainTaskActive = true; //start the main task
@@ -814,6 +841,9 @@ const void init_mainTask(void)
   UTIL_TIMER_Create(&measurement_Timer, 0, UTIL_TIMER_ONESHOT, trigger_measure, NULL); //create timer
 
   UTIL_TIMER_Create(&rejoin_Timer, 0, UTIL_TIMER_ONESHOT, trigger_delayedReJoin, NULL); //create timer
+
+  UTIL_TIMER_Create(&systemActive_Timer, period_1sec, UTIL_TIMER_PERIODIC, trigger_systemActiveTime, NULL); //create timer
+  UTIL_TIMER_Start(&systemActive_Timer); //start timer
 
 }
 
