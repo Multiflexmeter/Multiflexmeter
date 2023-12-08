@@ -55,8 +55,6 @@
 #include "../../App/dataflash/dataflash_functions.h"
 #include "../../App/logging/logging.h"
 #include "../../App/MFMconfiguration.h"
-#include "../../App/BatMon_BQ35100/BatMon_functions.h"
-#include "../../App/IO/board_io.h"
 #include "../../App/common/common.h"
 /* USER CODE END Includes */
 
