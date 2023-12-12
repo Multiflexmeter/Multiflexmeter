@@ -698,6 +698,7 @@ const void mainTask(void)
         //wait battery monitor saved data internally
         if( batmon_isReady() )
         {
+          executeBatteryMeasure();//do a battery measurement for battery supply, battery current, temperature, R and Z impedances ( the gauges must be stopped to get valid R and Z impedances).
           batmon_disable(); //switch off battery monitor
           mainTask_state = WAIT_FOR_SLEEP;
         }
