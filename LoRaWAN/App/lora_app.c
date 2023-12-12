@@ -863,7 +863,7 @@ static void SendTxData(void)
     readLog(getLatestLogId() > 0 ? getLatestLogId() - 1 : 0, measurement, sizeof(measurement));
 
     /* get sensor module data size */
-    uint8_t sensorDataSize = logdata->sensorModuleDatasize;
+    uint8_t sensorDataSize = logdata->sensorModuleData.sensorModuleDataSize;
 
     /* check if size is within limit of 36 bytes */
     if( sensorDataSize >= sizeof(logdata->sensorModuleData) )
@@ -873,13 +873,13 @@ static void SendTxData(void)
 
     /* fill in log data */
     AppData.Buffer[i++] = 0; //protocol MFM
-    AppData.Buffer[i++] = logdata->sensorModuleSlotId;
-    AppData.Buffer[i++] = logdata->sensorModuleType;
-    AppData.Buffer[i++] = logdata->sensorModuleProtocol;
+    AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleSlotId;
+    AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleTypeId;
+    AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleProtocolId;
     AppData.Buffer[i++] = sensorDataSize;
 
     /* copy sensordata max 36 bytes */
-    memcpy(&AppData.Buffer[i],logdata->sensorModuleData, sensorDataSize );
+    memcpy(&AppData.Buffer[i],logdata->sensorModuleData.sensorModuleData, sensorDataSize );
     i+=sensorDataSize;
     AppData.Buffer[i++] = batteryLevel;
 

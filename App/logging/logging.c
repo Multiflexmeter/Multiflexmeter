@@ -341,20 +341,20 @@ int8_t writeNewLog( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, uint8_
   logdata.measurementId = newLogId; //set new log ID.
   logdata.timestamp = SysTimeGet().Seconds; //get system time, if time not yet in sync start from 0, otherwise unix timestamp
 
-  logdata.sensorModuleSlotId = sensorModuleSlotId; //set sensor module slot ID
-  logdata.sensorModuleType = sensorModuleType; //set sensor module type
-  logdata.sensorModuleProtocol = protocol; //set sensor module protocol
-  memcpy(logdata.sensorModuleData, sensorData, dataLength); //copy sensor data
+  logdata.sensorModuleData.sensorModuleSlotId = sensorModuleSlotId; //set sensor module slot ID
+  logdata.sensorModuleData.sensorModuleTypeId = sensorModuleType; //set sensor module type
+  logdata.sensorModuleData.sensorModuleProtocolId = protocol; //set sensor module protocol
+  memcpy(logdata.sensorModuleData.sensorModuleData, sensorData, dataLength); //copy sensor data
 
   //check if not all bytes are used in sensorModuleData buffer
   if( dataLength < sizeof(logdata.sensorModuleData) )
   {
-    memset(&logdata.sensorModuleData[dataLength], 0xFF, sizeof(logdata.sensorModuleData) - dataLength); //fill in remaining empty sensor data.
+    memset(&logdata.sensorModuleData.sensorModuleData[dataLength], 0xFF, sizeof(logdata.sensorModuleData.sensorModuleData) - dataLength); //fill in remaining empty sensor data.
   }
 
-  logdata.sensorModuleDatasize = dataLength; //set used datasize
+  logdata.sensorModuleData.sensorModuleDataSize = dataLength; //set used datasize
 
-  logdata.crc = calculateCRC_CCITT(logdata.sensorModuleData, logdata.sensorModuleDatasize); //calculate CRC on sensordata
+  logdata.sensorModuleData_crc = calculateCRC_CCITT(logdata.sensorModuleData.sensorModuleData, logdata.sensorModuleData.sensorModuleDataSize); //calculate CRC on sensordata
 
   memset( logdata.spare, 0xFF, sizeof(logdata.spare)); //set 0xFF (blank) in spare array
 
@@ -426,19 +426,19 @@ int32_t printLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength )
 
   int length = 0;
 
-  length += snprintf((char*) buffer + length, bufferLength - length, "%lu;%lu;%u;", logdata.measurementId, logdata.timestamp, logdata.sensorModuleType);
+  length += snprintf((char*) buffer + length, bufferLength - length, "%lu;%lu;%u;", logdata.measurementId, logdata.timestamp, logdata.sensorModuleData.sensorModuleTypeId);
 
   if( length >= bufferLength )
     return -1;
 
-  for (int i = 0; i < logdata.sensorModuleDatasize; i++)
+  for (int i = 0; i < logdata.sensorModuleData.sensorModuleDataSize; i++)
   {
-    length += snprintf((char*) buffer + length, bufferLength - length, "0x%02x", logdata.sensorModuleData[i]);
+    length += snprintf((char*) buffer + length, bufferLength - length, "0x%02x", logdata.sensorModuleData.sensorModuleData[i]);
 
     if( length >= bufferLength )
         return -1;
 
-    if (i < (logdata.sensorModuleDatasize - 1))
+    if (i < (logdata.sensorModuleData.sensorModuleDataSize - 1))
     {
       length += snprintf((char*) buffer + length, bufferLength, ",");
     }

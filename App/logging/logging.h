@@ -15,23 +15,6 @@
 
 #define MAX_SIZE_LOGDATA  0x100 //max of 256 bytes, pagesize of flash
 
-typedef struct __attribute__((packed)){
-  uint32_t measurementId;
-  uint32_t timestamp;
-  uint8_t sensorModuleSlotId;
-  uint8_t sensorModuleType;
-  uint8_t sensorModuleProtocol;
-  uint8_t sensorModuleDatasize;
-  uint8_t sensorModuleData[36];
-  uint16_t crc;
-  uint8_t spare[206];
-}STRUCT_logdata;
-
-typedef union{
-  uint8_t logdata[MAX_SIZE_LOGDATA];
-  STRUCT_logdata log;
-}UNION_logdata;
-
 typedef struct __attribute__((packed))
 {
   uint8_t sensorModuleSlotId;
@@ -40,6 +23,20 @@ typedef struct __attribute__((packed))
   uint8_t sensorModuleDataSize;
   uint8_t sensorModuleData[MAX_SENSOR_DATASIZE];
 }struct_MFM_sensorModuleData;
+
+typedef struct __attribute__((packed)){
+  uint32_t measurementId;
+  uint32_t timestamp;
+  uint8_t protocolMFM;
+  struct_MFM_sensorModuleData sensorModuleData;
+  uint16_t sensorModuleData_crc;
+  uint8_t spare[205];
+}STRUCT_logdata;
+
+typedef union{
+  uint8_t logdata[MAX_SIZE_LOGDATA];
+  STRUCT_logdata log;
+}UNION_logdata;
 
 typedef struct __attribute__((packed))
 {
