@@ -103,7 +103,7 @@ uint16_t bq35100_getScaledR(void)
 
   HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_SCALED_R, 1, data, 2, BQ35100_I2C_WAIT);
 
-  scaledR = (data[1]<<8 & 0xFF00) | (data[0] & 0x00FF);
+  scaledR = (int16_t)(data[1]<<8 & 0xFF00) | (data[0] & 0x00FF);
 
   return scaledR;
 }
@@ -120,7 +120,7 @@ uint16_t bq35100_getMeasuredZ(void)
 
   HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_MEASURED_Z, 1, data, 2, BQ35100_I2C_WAIT);
 
-  measuredZ = (data[1]<<8 & 0xFF00) | (data[0] & 0x00FF);
+  measuredZ = (int16_t)(data[1]<<8 & 0xFF00) | (data[0] & 0x00FF);
 
   return measuredZ;
 }

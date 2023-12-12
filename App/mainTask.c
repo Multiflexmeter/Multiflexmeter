@@ -158,6 +158,26 @@ static const uint16_t getDevNonce(void)
 }
 
 /**
+ * @fn const void executeBatteryMeasure(void)
+ * @brief helper function to read the battery monitor data and print a debug line
+ *
+ */
+static const void executeBatteryMeasure(void)
+{
+
+  batmon_measure(); //save battery monitor data
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor data: %dmV, %dmA, %d%%, %u.%u%cC, Z:%umOhm, R:%umOhm\r\n",
+      batmon_getMeasure().voltage,
+      batmon_getMeasure().current,
+      batmon_getMeasure().stateOfHealth,
+      batmon_getMeasure().temperature/10, batmon_getMeasure().temperature%10, 176,
+      batmon_getMeasure().MeasuredZ,
+      batmon_getMeasure().ScaledR
+      );
+}
+
+/**
  * @fn uint32_t getNextWake(UTIL_TIMER_Time_t period, uint32_t activeTime )
  * @brief helper function to calculate next wakeUp
  *
@@ -508,16 +528,7 @@ const void mainTask(void)
       if( waiting == false ) //check wait time is expired
       {
 
-        batmon_measure(); //save battery monitor data
-
-        APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor data: %dmV, %dmA, %d%%, %u.%u%cC, Z:%umOhm, R:%umOhm\r\n",
-            batmon_getMeasure().voltage,
-            batmon_getMeasure().current,
-            batmon_getMeasure().stateOfHealth,
-            batmon_getMeasure().temperature/10, batmon_getMeasure().temperature%10, 176,
-            batmon_getMeasure().MeasuredZ,
-            batmon_getMeasure().ScaledR
-            );
+        executeBatteryMeasure(); //do a battery measurement for battery supply, battery current and temperature. R and Z value not valid.
 
         if( batmon_getMeasure().voltage > 0 || waitForBatteryMonitorDataCounter > 10)
         {
@@ -576,20 +587,7 @@ const void mainTask(void)
       if( loraTransmitReady == true )
       {
 
-#if VERBOSE_LEVEL == VLEVEL_H
-        //extra measure for debug, print values after transmit
-        batmon_measure(); //save battery monitor data
-
-        APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor data: %dmV, %dmA, %d%%, %u.%u%cC, Z:%umOhm, R:%umOhm\r\n",
-            batmon_getMeasure().voltage,
-            batmon_getMeasure().current,
-            batmon_getMeasure().stateOfHealth,
-            batmon_getMeasure().temperature/10, batmon_getMeasure().temperature%10, 176,
-            batmon_getMeasure().MeasuredZ,
-            batmon_getMeasure().ScaledR
-            );
-#endif
-
+        executeBatteryMeasure(); //do a battery measurement for battery supply, battery current (of TX) and temperature. R and Z value not valid.
 
         UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
         UTIL_TIMER_Time_t forcedInterval = 0;
@@ -700,6 +698,7 @@ const void mainTask(void)
         //wait battery monitor saved data internally
         if( batmon_isReady() )
         {
+          executeBatteryMeasure();//do a battery measurement for battery supply, battery current, temperature, R and Z impedances ( the gauges must be stopped to get valid R and Z impedances).
           batmon_disable(); //switch off battery monitor
           mainTask_state = WAIT_FOR_SLEEP;
         }
