@@ -552,8 +552,11 @@ const void mainTask(void)
 
     case SAVE_DATA:
 
-      writeNewLog(stMFM_sensorModuleData.sensorModuleSlotId, stMFM_sensorModuleData.sensorModuleTypeId, stMFM_sensorModuleData.sensorModuleProtocolId, &stMFM_sensorModuleData.sensorModuleData[0], stMFM_sensorModuleData.sensorModuleDataSize); //write log data to dataflash.
+      {
+
+        writeNewLog_old(stMFM_sensorModuleData.sensorModuleSlotId, stMFM_sensorModuleData.sensorModuleTypeId, stMFM_sensorModuleData.sensorModuleProtocolId, &stMFM_sensorModuleData.sensorModuleData[0], stMFM_sensorModuleData.sensorModuleDataSize); //write log data to dataflash.
       mainTask_state = SEND_LORA_DATA; //next state
+      }
 
       break;
 

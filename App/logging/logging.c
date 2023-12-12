@@ -313,7 +313,7 @@ int8_t restoreLatestTimeFromLog(void)
  * @param dataLength
  * @return 0 = successful
  */
-int8_t writeNewLog( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, uint8_t protocol, uint8_t * sensorData, uint8_t dataLength )
+int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, uint8_t protocol, uint8_t * sensorData, uint8_t dataLength )
 {
   int8_t result;
   bool turnoverAndErased = false;
