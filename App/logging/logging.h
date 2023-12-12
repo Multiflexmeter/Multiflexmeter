@@ -11,25 +11,40 @@
 #ifndef LOGGING_LOGGING_H_
 #define LOGGING_LOGGING_H_
 
+#define MAX_SENSOR_DATASIZE 36
+
 #define MAX_SIZE_LOGDATA  0x100 //max of 256 bytes, pagesize of flash
 
 typedef struct __attribute__((packed)){
-    uint32_t measurementId;
-    uint32_t timestamp;
-    uint8_t sensorModuleSlotId;
-    uint8_t sensorModuleType;
-    uint8_t sensorModuleProtocol;
-    uint8_t sensorModuleDatasize;
-    uint8_t sensorModuleData[36];
-    uint16_t crc;
-    uint8_t spare[206];
-
+  uint32_t measurementId;
+  uint32_t timestamp;
+  uint8_t sensorModuleSlotId;
+  uint8_t sensorModuleType;
+  uint8_t sensorModuleProtocol;
+  uint8_t sensorModuleDatasize;
+  uint8_t sensorModuleData[36];
+  uint16_t crc;
+  uint8_t spare[206];
 }STRUCT_logdata;
 
 typedef union{
-    uint8_t logdata[MAX_SIZE_LOGDATA];
-    STRUCT_logdata log;
+  uint8_t logdata[MAX_SIZE_LOGDATA];
+  STRUCT_logdata log;
 }UNION_logdata;
+
+typedef struct __attribute__((packed))
+{
+  uint8_t sensorModuleSlotId;
+  uint8_t sensorModuleTypeId;
+  uint8_t sensorModuleProtocolId;
+  uint8_t sensorModuleDataSize;
+  uint8_t sensorModuleData[MAX_SENSOR_DATASIZE];
+}struct_MFM_sensorModuleData;
+
+typedef struct __attribute__((packed))
+{
+  uint8_t batteryStateEos;
+}struct_MFM_baseData;
 
 int8_t restoreLatestLogId(void);
 int8_t restoreLatestTimeFromLog(void);
