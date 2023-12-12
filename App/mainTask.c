@@ -62,6 +62,7 @@ static volatile uint32_t systemActiveTime_sec;
 
 static uint8_t dataBuffer[25];
 static struct_MFM_sensorModuleData stMFM_sensorModuleData;
+static struct_MFM_baseData stMFM_baseData;
 static uint8_t sensorModuleId = 0;
 static bool sensorModuleEnabled = false;
 static uint8_t numberOfsensorModules = 0;
@@ -552,11 +553,10 @@ const void mainTask(void)
 
     case SAVE_DATA:
 
-      {
+        stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
+        writeNewLog(0, &stMFM_sensorModuleData, &stMFM_baseData);
+        mainTask_state = SEND_LORA_DATA; //next state
 
-        writeNewLog_old(stMFM_sensorModuleData.sensorModuleSlotId, stMFM_sensorModuleData.sensorModuleTypeId, stMFM_sensorModuleData.sensorModuleProtocolId, &stMFM_sensorModuleData.sensorModuleData[0], stMFM_sensorModuleData.sensorModuleDataSize); //write log data to dataflash.
-      mainTask_state = SEND_LORA_DATA; //next state
-      }
 
       break;
 
