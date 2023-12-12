@@ -130,9 +130,9 @@ uint16_t bq35100_getMeasuredZ(void)
  *
  * @return The state of health in a percentage.
  */
-uint16_t bq35100_getStateOfHealth(void)
+uint8_t bq35100_getStateOfHealth(void)
 {
-  uint16_t stateOfHealth;
+  uint8_t stateOfHealth;
   uint8_t data[2];
 
   HAL_I2C_Mem_Read(bq35100Handle, BQ35100_ADDRESS, REG_STATE_OF_HEALTH, 1, data, 2, BQ35100_I2C_WAIT);

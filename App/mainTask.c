@@ -60,7 +60,9 @@ static UTIL_TIMER_Object_t systemActive_Timer;
 static UTIL_TIMER_Time_t period_1sec = 1000;
 static volatile uint32_t systemActiveTime_sec;
 
-static uint8_t dataBuffer[100];
+static uint8_t dataBuffer[25];
+static struct_MFM_sensorModuleData stMFM_sensorModuleData;
+static struct_MFM_baseData stMFM_baseData;
 static uint8_t sensorModuleId = 0;
 static bool sensorModuleEnabled = false;
 static uint8_t numberOfsensorModules = 0;
@@ -411,6 +413,9 @@ const void mainTask(void)
       {
         sensorStartMeasurement(sensorModuleId); //start measure
 
+        memset(stMFM_sensorModuleData.sensorModuleData, 0x00, sizeof(stMFM_sensorModuleData.sensorModuleData));
+        stMFM_sensorModuleData.sensorModuleSlotId = sensorModuleId; //save slotId
+
         memset(dataBuffer, 0x00, sizeof(dataBuffer));
         sensorFirmwareVersion(sensorModuleId, dataBuffer, sizeof(dataBuffer));
 
@@ -420,10 +425,12 @@ const void mainTask(void)
         sensorProtocol = 0; //reset first
         result = sensorProtocolVersion(sensorModuleId, &sensorProtocol);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module protocol version: %d, %d\r\n", sensorModuleId, result == SENSOR_OK ? sensorProtocol : -1); //print protocol version
+        stMFM_sensorModuleData.sensorModuleProtocolId = sensorProtocol; //save value
 
         sensorType = 0; //reset first
         result = sensorReadType(sensorModuleId, &sensorType);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module type: %d, %d\r\n", sensorModuleId, sensorType ); //print sensor type
+        stMFM_sensorModuleData.sensorModuleTypeId = sensorType; //save value
 
         uint16_t sensorSetupTime = 0;
         result = sensorReadSetupTime(sensorModuleId, &sensorSetupTime);
@@ -458,14 +465,15 @@ const void mainTask(void)
     case READ_SENSOR_DATA: //read senor module measurement
 
       {
-        SensorError newstatus = sensorReadMeasurement(sensorModuleId, dataBuffer, sizeof(dataBuffer));
+        SensorError newstatus = sensorReadMeasurement(sensorModuleId, &stMFM_sensorModuleData.sensorModuleDataSize, sizeof(stMFM_sensorModuleData.sensorModuleData) + 1);
         if( newstatus == SENSOR_OK )
         {
-          APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d, %d, 0x%02x", sensorModuleId, newstatus, dataBuffer[0] ); //print sensor type
+          APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d, %d, 0x%02x", sensorModuleId, newstatus, stMFM_sensorModuleData.sensorModuleDataSize ); //print sensor type
 
-          for(int i=0; i < dataBuffer[0]; i++)
+
+          for(int i=0; i < stMFM_sensorModuleData.sensorModuleDataSize; i++)
           {
-            APP_LOG(TS_OFF, VLEVEL_H, ", 0x%02x", dataBuffer[i+1] ); //print data
+            APP_LOG(TS_OFF, VLEVEL_H, ", 0x%02x", stMFM_sensorModuleData.sensorModuleData[i] ); //print data
           }
           APP_LOG(TS_OFF, VLEVEL_H, "\r\n" ); //print end
 
@@ -475,7 +483,7 @@ const void mainTask(void)
             uint8_t unitTemp[] = " C";
             unitTemp[0] = 176; //overwrite degree sign to ascii 176
 
-            structDataPressureSensor * pSensorData = (structDataPressureSensor*)&dataBuffer[0];
+            structDataPressureSensor * pSensorData = (structDataPressureSensor*)&stMFM_sensorModuleData.sensorModuleDataSize;
             APP_LOG(TS_OFF, VLEVEL_H, "Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n",
                 (int)pSensorData->pressure1, getDecimal(pSensorData->pressure1, 2), unitPress,
                 (int)pSensorData->temperature1, getDecimal(pSensorData->temperature1, 2), unitTemp,
@@ -511,7 +519,6 @@ const void mainTask(void)
               break;
 
             }
-            memset(dataBuffer, 0x00, sizeof(dataBuffer));
         }
 
         slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
@@ -546,8 +553,10 @@ const void mainTask(void)
 
     case SAVE_DATA:
 
-      writeNewLog(sensorModuleId, sensorType, sensorProtocol, &dataBuffer[1], dataBuffer[0]); //write log data to dataflash.
-      mainTask_state = SEND_LORA_DATA; //next state
+        stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
+        writeNewLog(0, &stMFM_sensorModuleData, &stMFM_baseData);
+        mainTask_state = SEND_LORA_DATA; //next state
+
 
       break;
 
