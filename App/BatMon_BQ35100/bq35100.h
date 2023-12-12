@@ -102,7 +102,7 @@ int16_t bq35100_getExternalTemp(void);
 int16_t bq35100_getInternalTemp(void);
 uint16_t bq35100_getScaledR(void);
 uint16_t bq35100_getMeasuredZ(void);
-uint16_t bq35100_getStateOfHealth(void);
+uint8_t bq35100_getStateOfHealth(void);
 //todo accumulated capacity testen
 uint16_t bq35100_getDesignCapacity(void);
 uint32_t bq35100_getRemainingCapacity(void);
