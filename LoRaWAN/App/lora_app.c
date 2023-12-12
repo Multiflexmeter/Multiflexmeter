@@ -557,14 +557,52 @@ void LoRaWAN_Init(void)
 
   UTIL_TIMER_Start(&JoinLedTimer);
 
-  if( LmHandlerSetAdrEnable(false) == LORAMAC_HANDLER_ERROR )
+  /* get current join status */
+  LmHandlerFlagStatus_t joinStatus = LmHandlerJoinStatus();
+  APP_LOG(TS_OFF, VLEVEL_M, "JOIN = %s\r\n", joinStatus == LORAMAC_HANDLER_SET ? "TRUE" : "FALSE" );
+
+  /* get current ADR setting */
+  bool setting_AdrEnabled;
+  if( LmHandlerGetAdrEnable(&setting_AdrEnabled) == LORAMAC_HANDLER_SUCCESS )
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "###### FAIL init adrEnable\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "ADR = %s\r\n", setting_AdrEnabled ? "TRUE" : "FALSE" );
+  }
+  else
+  {
+    APP_LOG(TS_OFF, VLEVEL_M, "ADR = failed\r\n" );
   }
 
-  if( LmHandlerSetTxDatarate(DR_2) == LORAMAC_HANDLER_ERROR )
+  /* set ADR enabled if join is found */
+  if( joinStatus == LORAMAC_HANDLER_SET )
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "###### FAIL init datarate\r\n");
+    /* check ADR is disabled, enable it then */
+    if( setting_AdrEnabled == false )
+    {
+      if( LmHandlerSetAdrEnable(true) == LORAMAC_HANDLER_ERROR )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, "###### FAIL init adrEnable\r\n");
+      }
+      else
+      {
+        APP_LOG(TS_OFF, VLEVEL_M, "set ADR is TRUE\r\n" );
+      }
+    }
+    else
+    {
+      //nothing
+    }
+  }
+  else /*set DR_2 if no join is found */
+  {
+    if( LmHandlerSetTxDatarate(DR_2) == LORAMAC_HANDLER_ERROR )
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, "###### FAIL init datarate\r\n");
+    }
+    else
+    {
+      APP_LOG(TS_OFF, VLEVEL_M, "set Tx Datarate to DR_2\r\n" );
+    }
+
   }
 
   nextRequestTime = readBackupRegister( BACKUP_REGISTER_LAST_TIME_SYNC ); //get value from backup register
