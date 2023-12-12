@@ -303,6 +303,91 @@ int8_t restoreLatestTimeFromLog(void)
 
   return 0;
 }
+/**
+ * @fn int8_t writeNewLog(uint8_t, uint8_t*, uint8_t)
+ * @brief function to write a new log
+ *
+ * @param sensorModuleType
+ * @param sensorData
+ * @param dataLength
+ * @return 0 = successful
+ */
+int8_t writeNewLog( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorModuleData, struct_MFM_baseData * MFM_data)
+{
+  int8_t result;
+  bool turnoverAndErased = false;
+
+  assert_param( logReady == true ); //check logging is possible
+  assert_param( sensorModuleData != 0 ); //check pointer is not zero
+  assert_param( MFM_data != 0 ); //check pointer is not zero
+  assert_param( sensorModuleData->sensorModuleDataSize <= sizeof(sensorModuleData->sensorModuleData) ); //check maximum supported datasize.
+
+  if (sensorModuleData == 0)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "LOG: sensor module data pointer is zero\r\n");
+    return -1;
+  }
+
+  if (sensorModuleData->sensorModuleDataSize > sizeof(sensorModuleData->sensorModuleData))
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "LOG: sensor module data too large\r\n");
+    return -2;
+  }
+
+  if( logReady == false )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "LOG: Logging is not possible\r\n");
+    return -3;
+  }
+
+  if (MFM_data == 0)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "LOG: MFM_data pointer is zero\r\n");
+    return -4;
+  }
+
+  logdata.measurementId = newLogId; //set new log ID.
+  logdata.timestamp = SysTimeGet().Seconds; //get system time, if time not yet in sync start from 0, otherwise unix timestamp
+
+  logdata.protocolMFM = MFM_protocol;
+
+  memcpy(&logdata.sensorModuleData, sensorModuleData, sizeof(logdata.sensorModuleData)); //copy sensor module data.
+
+  //check if not all bytes are used in sensorModuleData buffer
+  if( sensorModuleData->sensorModuleDataSize < sizeof(logdata.sensorModuleData) )
+  {
+    memset(&logdata.sensorModuleData.sensorModuleData[sensorModuleData->sensorModuleDataSize], 0xFF, sizeof(logdata.sensorModuleData.sensorModuleData) - sensorModuleData->sensorModuleDataSize); //fill in remaining empty sensor data.
+  }
+
+  logdata.sensorModuleData_crc = calculateCRC_CCITT(logdata.sensorModuleData.sensorModuleData, logdata.sensorModuleData.sensorModuleDataSize); //calculate CRC on sensordata
+
+  memset( logdata.spare, 0xFF, sizeof(logdata.spare)); //set 0xFF (blank) in spare array
+
+  turnoverAndErased = checkLogTurnoverAndErase(logdata.measurementId); //check dataflash ringbuffer is turnover and a block of 4k is erased.
+  if( turnoverAndErased == true )
+  {
+    writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, readBackupRegister(BACKUP_REGISTER_OLDEST_LOG) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer
+  }
+
+  result = writeLogInDataflash(logdata.measurementId, (uint8_t*)&logdata, sizeof(logdata)); //write new log to dataflash
+
+  //check result
+  if( result == 0 ) //success
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Log ID %u written to dataflash\r\n", newLogId );
+    newLogId++;
+    writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newLogId);
+  }
+
+  else //failed
+  {
+    assert_param(1);
+    APP_LOG(TS_OFF, VLEVEL_H, "Restore logging ID failes\r\n" );
+    return -5;//failed to write log
+  }
+
+  return 0;
+}
 
 /**
  * @fn int8_t writeNewLog(uint8_t, uint8_t*, uint8_t)
