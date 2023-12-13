@@ -254,7 +254,7 @@ const void mainTask(void)
 
       if( getWakeupBatStatus(1) )
       {
-        restoreLatestTimeFromMeasurement(); //time in RTC not valid, set time from last log
+        restoreLatestTimeFromMeasurement(); //time in RTC not valid, set time from last measurement
         setRequestTime(); //request a time sync to server
       }
       else
