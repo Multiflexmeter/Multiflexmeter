@@ -638,6 +638,13 @@ void LoRaWAN_Init(void)
 
   nextRequestTime = readBackupRegister( BACKUP_REGISTER_LAST_TIME_SYNC ); //get value from backup register
 
+  ForceRejoin = getRejoinAtNextInterval(); //get setting for forced rejoin.
+
+  if( ForceRejoin == true )
+  {
+    APP_LOG(TS_OFF, VLEVEL_M, "Force REJOIN\r\n");
+  }
+
   /* USER CODE END LoRaWAN_Init_2 */
 
   LmHandlerJoin(ActivationType, ForceRejoin);
