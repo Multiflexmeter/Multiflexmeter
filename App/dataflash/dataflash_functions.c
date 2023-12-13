@@ -145,7 +145,7 @@ int8_t writeMeasurementInDataflash(uint32_t measurementId, uint8_t * data, uint3
   }
 
   uint64_t pageAddress = (measurementId * PAGE_SIZE_DATAFLASH);
-  pageAddress %= LOG_MEMEORY_SIZE;
+  pageAddress %= MEASUREMENT_MEMEORY_SIZE;
 
   return writePageInDataflash((uint32_t)pageAddress, data, length);
 }
@@ -160,7 +160,7 @@ int8_t writeMeasurementInDataflash(uint32_t measurementId, uint8_t * data, uint3
 bool checkMeasurementMemoryTurnoverAndErase(uint32_t measurementId)
 {
   uint64_t pageAddress = (measurementId * PAGE_SIZE_DATAFLASH);
-  pageAddress %= LOG_MEMEORY_SIZE;
+  pageAddress %= MEASUREMENT_MEMEORY_SIZE;
 
   //check measurementId in turnover
   if( measurementId >= NUMBER_PAGES_FOR_MEASUREMENTS )
@@ -235,7 +235,7 @@ int8_t readMeasurementFromDataflash(uint32_t measurementId, uint8_t * data, uint
   }
 
   uint64_t pageAddress = (measurementId * PAGE_SIZE_DATAFLASH);
-  pageAddress %= LOG_MEMEORY_SIZE;
+  pageAddress %= MEASUREMENT_MEMEORY_SIZE;
 
   return readPageFromDataflash(pageAddress, data, length);
 }
@@ -357,7 +357,7 @@ const int8_t chipEraseDataflash(void)
 int8_t clearLogInDataflash(uint32_t measurementId)
 {
   uint64_t pageAddress = (measurementId * PAGE_SIZE_DATAFLASH);
-  pageAddress %= LOG_MEMEORY_SIZE;
+  pageAddress %= MEASUREMENT_MEMEORY_SIZE;
 
   blockErase4kDataflash((uint32_t)pageAddress);
 
