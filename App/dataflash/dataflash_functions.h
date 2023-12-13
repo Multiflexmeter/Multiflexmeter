@@ -29,7 +29,7 @@
 #define RESERVED_MEMORY               ( PAGE_SIZE_DATAFLASH * NUMBER_OF_RESERVED_PAGES )
 
 int8_t init_dataflash(void);
-int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length);
+int8_t writeMeasurementInDataflash(uint32_t logId, uint8_t * data, uint32_t length);
 bool checkMeasurementMemoryTurnoverAndErase(uint32_t logId);
 int8_t readPageFromDataflash(uint32_t pageAddress, uint8_t * data, uint32_t length);
 int8_t readMeasurementFromDataflash(uint32_t logId, uint8_t * data, uint32_t length);

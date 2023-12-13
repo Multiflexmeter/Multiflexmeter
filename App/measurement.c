@@ -373,7 +373,7 @@ int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorMo
     writeBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID, readBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer
   }
 
-  result = writeLogInDataflash(measurement.measurementId, (uint8_t*)&measurement, sizeof(measurement)); //write new log to dataflash
+  result = writeMeasurementInDataflash(measurement.measurementId, (uint8_t*)&measurement, sizeof(measurement)); //write new log to dataflash
 
   //check result
   if( result == 0 ) //success
@@ -453,7 +453,7 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
     writeBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID, readBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer
   }
 
-  result = writeLogInDataflash(measurement.measurementId, (uint8_t*)&measurement, sizeof(measurement)); //write new log to dataflash
+  result = writeMeasurementInDataflash(measurement.measurementId, (uint8_t*)&measurement, sizeof(measurement)); //write new log to dataflash
 
   //check result
   if( result == 0 ) //success

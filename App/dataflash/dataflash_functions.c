@@ -115,15 +115,15 @@ int8_t writePageInDataflash(uint32_t pageAddress, uint8_t * data, uint32_t lengt
 }
 
 /**
- * @fn int8_t writeLogInDataflash(uint32_t, uint8_t*, uint32_t)
+ * @fn int8_t writeMeasurementInDataflash(uint32_t, uint8_t*, uint32_t)
  * @brief function to write a log item "logId" in the dataflash ringbuffer.
  *
- * @param logId log nummer starts from 0 - 4294967296
+ * @param measurementId log nummer starts from 0 - 4294967296
  * @param data array of data
  * @param length of data array to write, limit to 256 (\ref PAGE_SIZE_DATAFLASH).
  * @return 0 = successful, -1 = data pointer is zero, -2 = length is zero, -3 = length is larger then one page size \ref PAGE_SIZE_DATAFLASH
  */
-int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length)
+int8_t writeMeasurementInDataflash(uint32_t measurementId, uint8_t * data, uint32_t length)
 {
   assert_param(data != 0 ); //check pointer is not zero
   assert_param(length != 0 ); //check length is not zero
@@ -144,7 +144,7 @@ int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length)
     return -3;
   }
 
-  uint64_t pageAddress = (logId * PAGE_SIZE_DATAFLASH);
+  uint64_t pageAddress = (measurementId * PAGE_SIZE_DATAFLASH);
   pageAddress %= LOG_MEMEORY_SIZE;
 
   return writePageInDataflash((uint32_t)pageAddress, data, length);
