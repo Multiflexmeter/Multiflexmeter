@@ -89,7 +89,7 @@ typedef enum TxEventType_e
 #define LORAWAN_NVM_BASE_ADDRESS                    ((void *)0x0803F000UL)
 
 /* USER CODE BEGIN PD */
-static uint8_t measurement[MAX_SIZE_LOGDATA];
+static uint8_t measurement[MAX_SIZE_MEASUREMENTDATA];
 static const char *slotStrings[] = { "1", "2", "C", "C_MC", "P", "P_MC" };
 static bool requestTime = 0;
 static uint32_t nextRequestTime = 0;

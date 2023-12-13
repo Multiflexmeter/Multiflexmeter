@@ -319,7 +319,7 @@ int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorMo
 
   static_assert (sizeof(struct_MFM_sensorModuleData) == MAX_SENSOR_MODULE_DATA, "Size struct_MFM_sensorModuleData is not correct");
   static_assert (sizeof(struct_MFM_baseData) == MAX_BASE_MODULE_DATA, "Size struct_MFM_baseData is not correct");
-  static_assert (sizeof(STRUCT_measurementData) == MAX_SIZE_LOGDATA, "Size STRUCT_logdata is not correct");
+  static_assert (sizeof(STRUCT_measurementData) == MAX_SIZE_MEASUREMENTDATA, "Size STRUCT_logdata is not correct");
 
   assert_param( readyForMeasurement == true ); //check logging is possible
   assert_param( sensorModuleData != 0 ); //check pointer is not zero

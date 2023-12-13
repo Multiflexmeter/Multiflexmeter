@@ -15,7 +15,7 @@
 #define MAX_SENSOR_MODULE_DATA (MAX_SENSOR_DATASIZE + 4 ) //36 databytes + 4 bytes header
 #define MAX_BASE_MODULE_DATA    9 // + 1 byte protocol type
 
-#define MAX_SIZE_LOGDATA  0x100 //max of 256 bytes, pagesize of flash
+#define MAX_SIZE_MEASUREMENTDATA  0x100 //max of 256 bytes, pagesize of flash
 
 
 typedef struct __attribute__((packed))
@@ -44,7 +44,7 @@ typedef struct __attribute__((packed)){
 }STRUCT_measurementData;
 
 typedef union{
-  uint8_t logdata[MAX_SIZE_LOGDATA];
+  uint8_t logdata[MAX_SIZE_MEASUREMENTDATA];
   STRUCT_measurementData measurementData;
 }UNION_logdata;
 
