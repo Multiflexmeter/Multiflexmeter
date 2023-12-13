@@ -480,6 +480,37 @@ const void setRequestTime(void)
   requestTime = true;
 }
 
+/**
+ * @fn const void setRejoinAtNextInterval(void)
+ * @brief function to set a rejoin for next interval
+ *
+ */
+const void setRejoinAtNextInterval(void)
+{
+  writeBackupRegister(BACKUP_REGISTER_REJOIN, true);
+}
+
+/**
+ * @fn const void clearRejoinAtNextInterval(void)
+ * @brief function to reset a rejoin status for next interval
+ *
+ */
+const void clearRejoinAtNextInterval(void)
+{
+  writeBackupRegister(BACKUP_REGISTER_REJOIN, false);
+}
+
+/**
+ * @fn const bool getRejoinAtNextInterval(void)
+ * @brief get current rejoin status.
+ *
+ * @return
+ */
+const bool getRejoinAtNextInterval(void)
+{
+  return (readBackupRegister(BACKUP_REGISTER_REJOIN) == true);
+}
+
 /* USER CODE END EF */
 
 void LoRaWAN_Init(void)
