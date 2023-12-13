@@ -189,7 +189,7 @@ int8_t restoreLatestLogId(void)
       newLogId = readLatestIdFromBackupRegister;
       logReady = true;
 
-      APP_LOG(TS_OFF, VLEVEL_H, "New logging ID from backup register: %u\r\n", newLogId);
+      APP_LOG(TS_OFF, VLEVEL_H, "New measurument ID from backup register: %u\r\n", newLogId);
 
       return 1;
     }
@@ -213,7 +213,7 @@ int8_t restoreLatestLogId(void)
   if( result < 0 ) //check on error
   {
     assert_param(1);
-    APP_LOG(TS_OFF, VLEVEL_H, "Restore logging ID failes\r\n" );
+    APP_LOG(TS_OFF, VLEVEL_H, "Restore measurement ID failes\r\n" );
     return -1;
   }
 
@@ -231,7 +231,7 @@ int8_t restoreLatestLogId(void)
 
   writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newLogId); //save new value in backup register
 
-  APP_LOG(TS_OFF, VLEVEL_H, "New logging ID by searching: %u\r\n", newLogId);
+  APP_LOG(TS_OFF, VLEVEL_H, "New measurement ID by searching: %u\r\n", newLogId);
 
   return 0;
 }
@@ -386,7 +386,7 @@ int8_t writeNewLog( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorMo
   else //failed
   {
     assert_param(1);
-    APP_LOG(TS_OFF, VLEVEL_H, "Restore logging ID failes\r\n" );
+    APP_LOG(TS_OFF, VLEVEL_H, "Restore measurement ID failes\r\n" );
     return -5;//failed to write log
   }
 
@@ -466,7 +466,7 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
   else //failed
   {
     assert_param(1);
-    APP_LOG(TS_OFF, VLEVEL_H, "Restore logging ID failes\r\n" );
+    APP_LOG(TS_OFF, VLEVEL_H, "Restore measurement ID failes\r\n" );
     return -5;//failed to write log
   }
 
