@@ -192,14 +192,12 @@ const void setLedTest(int8_t test)
     case 0: //led test off
 
       setLed(LED_1, LED_ON_OFF, LED_OFF, 100, 0, 0);
-      setLed(LED_2, LED_ON_OFF, LED_OFF, 100, 0, 0);
 
       break;
 
     case 1: //led test blink
 
       setLed(LED_1, LED_BLINK, LED_ON, 0,5,5); //Blink led, start directly.
-      setLed(LED_2, LED_BLINK, LED_ON, 5,5,5); //Blink led, start after 5x interval
 
       break;
 
@@ -212,7 +210,6 @@ const void setLedTest(int8_t test)
     case 99:
 
       setLed(LED_1, LED_DISABLED, 0, 0,0,0); //Disable LED control, for direct I/O control
-      setLed(LED_2, LED_DISABLED, 0, 0,0,0); //Disable LED control, for direct I/O control
 
       break;
 
