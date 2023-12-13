@@ -367,7 +367,7 @@ int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorMo
 
   memset( measurement.spare, 0xFF, sizeof(measurement.spare)); //set 0xFF (blank) in spare array
 
-  turnoverAndErased = checkLogTurnoverAndErase(measurement.measurementId); //check dataflash ringbuffer is turnover and a block of 4k is erased.
+  turnoverAndErased = checkMeasurementMemoryTurnoverAndErase(measurement.measurementId); //check dataflash ringbuffer is turnover and a block of 4k is erased.
   if( turnoverAndErased == true )
   {
     writeBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID, readBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer
@@ -447,7 +447,7 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
 
   memset( measurement.spare, 0xFF, sizeof(measurement.spare)); //set 0xFF (blank) in spare array
 
-  turnoverAndErased = checkLogTurnoverAndErase(measurement.measurementId); //check dataflash ringbuffer is turnover and a block of 4k is erased.
+  turnoverAndErased = checkMeasurementMemoryTurnoverAndErase(measurement.measurementId); //check dataflash ringbuffer is turnover and a block of 4k is erased.
   if( turnoverAndErased == true )
   {
     writeBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID, readBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer

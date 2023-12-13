@@ -151,13 +151,13 @@ int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length)
 }
 
 /**
- * @fn bool checkLogTurnoverAndErase(uint32_t)
- * @brief function to check log is turnover and next block needs to be erased
+ * @fn bool checkMeasurementMemoryTurnoverAndErase(uint32_t)
+ * @brief function to check measurement memory is turnover and next block needs to be erased
  *
  * @param logId
  * @return true if block is erased.
  */
-bool checkLogTurnoverAndErase(uint32_t logId)
+bool checkMeasurementMemoryTurnoverAndErase(uint32_t logId)
 {
   uint64_t pageAddress = (logId * PAGE_SIZE_DATAFLASH);
   pageAddress %= LOG_MEMEORY_SIZE;
