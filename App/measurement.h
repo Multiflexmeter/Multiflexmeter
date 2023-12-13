@@ -48,13 +48,12 @@ typedef union{
   STRUCT_logdata log;
 }UNION_logdata;
 
-int8_t restoreLatestLogId(void);
-int8_t restoreLatestTimeFromLog(void);
-int8_t searchLatestLogInDataflash( uint32_t * logId );
-int8_t writeNewLog( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorModuleData, struct_MFM_baseData * MFM_data);
-int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, uint8_t protocol, uint8_t * sensorData, uint8_t dataLength );
-int8_t readLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength );
-uint32_t getLatestLogId(void);
-uint32_t getOldestLogId(void);
+int8_t restoreLatestMeasurementId(void);
+int8_t restoreLatestTimeFromMeasurement(void);
+int8_t searchLatestMeasurementInDataflash( uint32_t * logId );
+int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorModuleData, struct_MFM_baseData * MFM_data);
+int8_t readMeasurementFromDataflash( uint32_t logId, uint8_t * buffer, uint32_t bufferLength );
+uint32_t getLatestMeasurementId(void);
+uint32_t getOldestMeasurementId(void);
 
 #endif /* LOGGING_LOGGING_H_ */

@@ -24,19 +24,19 @@
 static STRUCT_logdata logdata;
 static bool logReady = 0;
 
-static uint32_t newLogId = 0;
+static uint32_t newMeasurementId = 0;
 
 /**
- * @fn int8_t searchLatestLogInDataflash(uint32_t*)
- * @brief function to search the latest log record.
+ * @fn int8_t searchLatestMeasurementInDataflash(uint32_t*)
+ * @brief function to search the latest measurement record.
  * a derivative of binary search algorithm is used.
  * Based on the first item in dataflash and latest item is filled the algorithm start searching for the highest.
  * When the item is found a check is done to make sure the next item is smaller or empty.
  *
- * @param logId destionation of found log record
+ * @param measurementId destionation of found log record
  * @return 0 = succesfull found, 1 = empty dataflash
  */
-int8_t searchLatestLogInDataflash( uint32_t * logId )
+int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
 {
   uint32_t boundaryStart = 0;
   uint32_t boundaryEnd = NUMBER_PAGES_FOR_LOGGING;
@@ -60,7 +60,7 @@ int8_t searchLatestLogInDataflash( uint32_t * logId )
   if( firstRecordMeasurementId == 0xFFFFFFFFUL && lastRecordMeasurementId == 0xFFFFFFFFUL )
   {
     //empty dataflash
-    *logId = 0;
+    *measurementId = 0;
 
     APP_LOG(TS_OFF, VLEVEL_H, "Empty dataflash.\r\n");
 
@@ -78,7 +78,7 @@ int8_t searchLatestLogInDataflash( uint32_t * logId )
   else if ( firstRecordMeasurementId == 0xFFFFFFFFUL )
   {
     //overflow, first line empty
-    *logId = lastRecordMeasurementId;
+    *measurementId = lastRecordMeasurementId;
 
     APP_LOG(TS_OFF, VLEVEL_H, "First line empty in dataflash, last line %u with ID %u.\r\n", NUMBER_PAGES_FOR_LOGGING - 1, lastRecordMeasurementId);
 
@@ -134,7 +134,7 @@ int8_t searchLatestLogInDataflash( uint32_t * logId )
         } while( pLog->log.measurementId != 0xFFFFFFFF && pLog->log.measurementId >= highestMeasurementId && timeout >=0);
 
 
-        *logId = highestMeasurementId;
+        *measurementId = highestMeasurementId;
         return 0;
       }
     }
@@ -149,20 +149,20 @@ int8_t searchLatestLogInDataflash( uint32_t * logId )
     APP_LOG(TS_OFF, VLEVEL_H, "Search between address %u and address %u, highest found ID %u, last read ID %u.\r\n", boundaryStart, boundaryEnd, highestMeasurementId, pLog->log.measurementId );
   }
 
-  *logId = highestMeasurementId;
+  *measurementId = highestMeasurementId;
 
   return 0;
 
 }
 
 /**
- * @fn int8_t restoreLatestLogId(void)
- * @brief function to read the latest log ID from backup memory or dataflash
+ * @fn int8_t restoreLatestMeasurementId(void)
+ * @brief function to read the latest measurement ID from backup memory or dataflash
  * result is stored locally in "measurement.c"
  *
  * @return 1= successful from backup register, 0 = successful from dataflash search, -1 failed
  */
-int8_t restoreLatestLogId(void)
+int8_t restoreLatestMeasurementId(void)
 {
   uint32_t readLatestId = 0;
   uint32_t readLatestIdFromBackupRegister = 0;
@@ -186,10 +186,10 @@ int8_t restoreLatestLogId(void)
     readLogFromDataflash(readLatestIdFromBackupRegister - 1, (uint8_t *) &logdata, sizeof(logdata));
     if( pLog->log.measurementId == readLatestIdFromBackupRegister - 1)
     {
-      newLogId = readLatestIdFromBackupRegister;
+      newMeasurementId = readLatestIdFromBackupRegister;
       logReady = true;
 
-      APP_LOG(TS_OFF, VLEVEL_H, "New measurument ID from backup register: %u\r\n", newLogId);
+      APP_LOG(TS_OFF, VLEVEL_H, "New measurument ID from backup register: %u\r\n", newMeasurementId);
 
       return 1;
     }
@@ -208,7 +208,7 @@ int8_t restoreLatestLogId(void)
 
 
   //Power on reset or backup register corrupted
-  result = searchLatestLogInDataflash( &readLatestId );
+  result = searchLatestMeasurementInDataflash( &readLatestId );
 
   if( result < 0 ) //check on error
   {
@@ -219,33 +219,33 @@ int8_t restoreLatestLogId(void)
 
   else if ( result > 0 ) //check on empty dataflash
   {
-    newLogId = 0;
+    newMeasurementId = 0;
     logReady = true;
   }
 
   else //okay, used read id.
   {
-    newLogId = readLatestId + 1;
+    newMeasurementId = readLatestId + 1;
     logReady = true;
   }
 
-  writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newLogId); //save new value in backup register
+  writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newMeasurementId); //save new value in backup register
 
-  APP_LOG(TS_OFF, VLEVEL_H, "New measurement ID by searching: %u\r\n", newLogId);
+  APP_LOG(TS_OFF, VLEVEL_H, "New measurement ID by searching: %u\r\n", newMeasurementId);
 
   return 0;
 }
 
 /**
- * @fn int8_t restoreLatestTimeFromLog(void)
- * @brief function to load system time from latest dataflash value
+ * @fn int8_t restoreLatestTimeFromMeasurement(void)
+ * @brief function to load system time from latest dataflash measurement
  *
  * @return 0 = successful.
  */
-int8_t restoreLatestTimeFromLog(void)
+int8_t restoreLatestTimeFromMeasurement(void)
 {
   assert_param( logReady == false ); //check logging is possible
-  assert_param( newLogId == 0 ); //check previous logging exist.
+  assert_param( newMeasurementId == 0 ); //check previous logging exist.
 
   //check log is ready
   if( logReady == false )
@@ -254,13 +254,13 @@ int8_t restoreLatestTimeFromLog(void)
   }
 
   //check current log ID is not zero, then no previous registrations
-  if( newLogId == 0 )
+  if( newMeasurementId == 0 )
   {
     return -2;
   }
 
-  //read the previous logId.
-  if( readLogFromDataflash(newLogId - 1, (uint8_t*)&logdata, sizeof(logdata)) == 0)
+  //read the previous measurementId.
+  if( readLogFromDataflash(newMeasurementId - 1, (uint8_t*)&logdata, sizeof(logdata)) == 0)
   {
     //check the ID is not zero and not 0xFFFFFFFF
     if( logdata.measurementId > 0 && logdata.measurementId != 0xFFFFFFFF )
@@ -304,15 +304,15 @@ int8_t restoreLatestTimeFromLog(void)
   return 0;
 }
 /**
- * @fn int8_t writeNewLog(uint8_t, uint8_t*, uint8_t)
- * @brief function to write a new log
+ * @fn int8_t writeNewMeasurementToDataflash(uint8_t, uint8_t*, uint8_t)
+ * @brief function to write a new measurement to dataflash
  *
  * @param sensorModuleType
  * @param sensorData
  * @param dataLength
  * @return 0 = successful
  */
-int8_t writeNewLog( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorModuleData, struct_MFM_baseData * MFM_data)
+int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorModuleData, struct_MFM_baseData * MFM_data)
 {
   int8_t result;
   bool turnoverAndErased = false;
@@ -350,7 +350,7 @@ int8_t writeNewLog( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorMo
     return -4;
   }
 
-  logdata.measurementId = newLogId; //set new log ID.
+  logdata.measurementId = newMeasurementId; //set new log ID.
   logdata.timestamp = SysTimeGet().Seconds; //get system time, if time not yet in sync start from 0, otherwise unix timestamp
 
   logdata.protocolMFM = MFM_protocol;
@@ -378,9 +378,9 @@ int8_t writeNewLog( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorMo
   //check result
   if( result == 0 ) //success
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "Log ID %u written to dataflash\r\n", newLogId );
-    newLogId++;
-    writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newLogId);
+    APP_LOG(TS_OFF, VLEVEL_H, "Log ID %u written to dataflash\r\n", newMeasurementId );
+    newMeasurementId++;
+    writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newMeasurementId);
   }
 
   else //failed
@@ -427,7 +427,7 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
     return -3;
   }
 
-  logdata.measurementId = newLogId; //set new log ID.
+  logdata.measurementId = newMeasurementId; //set new log ID.
   logdata.timestamp = SysTimeGet().Seconds; //get system time, if time not yet in sync start from 0, otherwise unix timestamp
 
   logdata.sensorModuleData.sensorModuleSlotId = sensorModuleSlotId; //set sensor module slot ID
@@ -458,9 +458,9 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
   //check result
   if( result == 0 ) //success
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "Log ID %u written to dataflash\r\n", newLogId );
-    newLogId++;
-    writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newLogId);
+    APP_LOG(TS_OFF, VLEVEL_H, "Log ID %u written to dataflash\r\n", newMeasurementId );
+    newMeasurementId++;
+    writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newMeasurementId);
   }
 
   else //failed
@@ -474,15 +474,15 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
 }
 
 /**
- * @fn int8_t readLog(uint32_t, uint8_t*, uint32_t)
- * @brief function to read log from dataflash
+ * @fn int8_t readMeasurementFromDataflash(uint32_t, uint8_t*, uint32_t)
+ * @brief function to read measurement data from dataflash
  *
- * @param logId
+ * @param measurementId
  * @param buffer
  * @param bufferLength
  * @return
  */
-int8_t readLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength )
+int8_t readMeasurementFromDataflash( uint32_t measurementId, uint8_t * buffer, uint32_t bufferLength )
 {
   assert_param( buffer == 0);
   assert_param( bufferLength == 0);
@@ -497,21 +497,21 @@ int8_t readLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength )
     return -2;
   }
 
-  return readLogFromDataflash(logId, buffer, bufferLength);
+  return readLogFromDataflash(measurementId, buffer, bufferLength);
 }
 
 /**
- * @fn int32_t printLog(uint32_t, uint8_t*, uint32_t)
+ * @fn int32_t printMeasurementData(uint32_t, uint8_t*, uint32_t)
  * @brief function to print a log to a given buffer
  *
- * @param logId
+ * @param measurementId
  * @param buffer
  * @param bufferLength
  * @return
  */
-int32_t printLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength )
+int32_t printMeasurementData( uint32_t measurementId, uint8_t * buffer, uint32_t bufferLength )
 {
-  readLog(logId, (uint8_t*)&logdata, sizeof(logdata));
+  readMeasurementFromDataflash(measurementId, (uint8_t*)&logdata, sizeof(logdata));
 
   int length = 0;
 
@@ -544,25 +544,25 @@ int32_t printLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength )
 }
 
 /**
- * @fn uint32_t getLatestLogId(void)
+ * @fn uint32_t getLatestMeasurementId(void)
  * @brief function to return the latest Log ID
  *
  * @return latest log ID.
  */
-uint32_t getLatestLogId(void)
+uint32_t getLatestMeasurementId(void)
 {
-  return newLogId;
+  return newMeasurementId;
 }
 
 /**
- * @fn uint32_t getOldestLogId(void)
+ * @fn uint32_t getOldestMeasurementId(void)
  * @brief function to return the oldest Log ID
  *
  * @return Oldest log ID.
  */
-uint32_t getOldestLogId(void)
+uint32_t getOldestMeasurementId(void)
 {
-  if( newLogId < NUMBER_PAGES_FOR_LOGGING )
+  if( newMeasurementId < NUMBER_PAGES_FOR_LOGGING )
   {
     return 0;
   }
@@ -582,7 +582,7 @@ uint32_t getOldestLogId(void)
  */
 const uint16_t getNumberOfMeasures(void)
 {
-  uint32_t latestId = newLogId; //newLogId is the next ID, start with 0, so when newLogId = 1, there is 1 log item.
+  uint32_t latestId = newMeasurementId; //newMeasurementId is the next ID, start with 0, so when newMeasurementId = 1, there is 1 log item.
   uint32_t oldestId = readBackupRegister(BACKUP_REGISTER_OLDEST_LOG);
   if( latestId > NUMBER_PAGES_FOR_LOGGING )
   {
@@ -603,12 +603,12 @@ const uint16_t getNumberOfMeasures(void)
 }
 
 /**
- * @fn int8_t eraseCompleteLog(void)
+ * @fn int8_t eraseCompleteMeasurementLog(void)
  * @brief function to erase all logs depending on reserverd memory of logs it choose the right block size to erase.
  *
  * @return >= 0 okay, < 0 error not erased.
  */
-const uint8_t eraseCompleteLog( void )
+const uint8_t eraseCompleteMeasurementLog( void )
 {
   int returnValue = -1;
 
@@ -652,7 +652,7 @@ const uint8_t eraseCompleteLog( void )
   {
     writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, 0);
     writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, 0);
-    newLogId = 0;
+    newMeasurementId = 0;
   }
 
   return returnValue;
@@ -660,12 +660,12 @@ const uint8_t eraseCompleteLog( void )
 }
 
 /**
- * @fn int8_t eraseCompleteLog(void)
+ * @fn int8_t eraseCompleteMeasurementBlockByBlock(void)
  * @brief function to erase all logs depending on reserverd memory of logs it choose the right block size to erase.
  *
  * @return >= 0 okay, < 0 error not erased.
  */
-const int8_t eraseCompleteLogBlockByBlock( uint32_t * startAddress )
+const int8_t eraseCompleteMeasurementBlockByBlock( uint32_t * startAddress )
 {
   int returnValue = -1;
 
@@ -712,7 +712,7 @@ const int8_t eraseCompleteLogBlockByBlock( uint32_t * startAddress )
     {
       writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, 0);
       writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, 0);
-      newLogId = 0;
+      newMeasurementId = 0;
       returnValue = 1;
     }
   }

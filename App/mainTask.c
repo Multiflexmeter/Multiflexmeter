@@ -254,7 +254,7 @@ const void mainTask(void)
 
       if( getWakeupBatStatus(1) )
       {
-        restoreLatestTimeFromLog(); //time in RTC not valid, set time from last log
+        restoreLatestTimeFromMeasurement(); //time in RTC not valid, set time from last log
         setRequestTime(); //request a time sync to server
       }
       else
@@ -554,7 +554,7 @@ const void mainTask(void)
     case SAVE_DATA:
 
         stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
-        writeNewLog(0, &stMFM_sensorModuleData, &stMFM_baseData);
+        writeNewMeasurementToDataflash(0, &stMFM_sensorModuleData, &stMFM_baseData);
         mainTask_state = SEND_LORA_DATA; //next state
 
 

@@ -163,7 +163,7 @@ int main(void)
   }
 #endif
 
-  restoreLatestLogId();
+  restoreLatestMeasurementId();
   reloadSettingsFromVirtualEEPROM();
 
   init_mainTask();
