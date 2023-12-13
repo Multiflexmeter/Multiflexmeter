@@ -46,15 +46,15 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
   uint32_t lastRecordMeasurementId;
   uint32_t newReadingId;
 
-  UNION_measurementData * pLog = (UNION_measurementData *)&measurement;
+  UNION_measurementData * pMeasurment = (UNION_measurementData *)&measurement;
 
   //read first record
   readLogFromDataflash(0, (uint8_t *) &measurement, sizeof(measurement));
-  firstRecordMeasurementId = pLog->measurementData.measurementId;
+  firstRecordMeasurementId = pMeasurment->measurementData.measurementId;
 
   //read latest record
   readLogFromDataflash(NUMBER_PAGES_FOR_MEASUREMENTS - 1, (uint8_t *) &measurement, sizeof(measurement));
-  lastRecordMeasurementId = pLog->measurementData.measurementId;
+  lastRecordMeasurementId = pMeasurment->measurementData.measurementId;
 
   //determine ringbuffer is in overflow
   if( firstRecordMeasurementId == 0xFFFFFFFFUL && lastRecordMeasurementId == 0xFFFFFFFFUL )
@@ -100,19 +100,19 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
     //read page
     readLogFromDataflash(newReadingId, (uint8_t *) &measurement, sizeof(measurement));
 
-    if( pLog->measurementData.measurementId != 0xFFFFFFFF )
+    if( pMeasurment->measurementData.measurementId != 0xFFFFFFFF )
     {
       //page contain log, new value is further
-      if (pLog->measurementData.measurementId < highestMeasurementId)
+      if (pMeasurment->measurementData.measurementId < highestMeasurementId)
       {
         //value on newReadingId is smaller, then decrease the end boundary
         boundaryEnd = newReadingId - 1;
       }
 
-      else if (pLog->measurementData.measurementId > highestMeasurementId)
+      else if (pMeasurment->measurementData.measurementId > highestMeasurementId)
       {
         //value larger then previous, then increase the start boundary.
-        highestMeasurementId = pLog->measurementData.measurementId;
+        highestMeasurementId = pMeasurment->measurementData.measurementId;
         boundaryStart = newReadingId + 1;
       }
 
@@ -124,14 +124,14 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
         do
         {
           readLogFromDataflash(newReadingId + 1, (uint8_t *) &measurement, sizeof(measurement));
-          if (pLog->measurementData.measurementId != 0xFFFFFFFF && pLog->measurementData.measurementId > highestMeasurementId)
+          if (pMeasurment->measurementData.measurementId != 0xFFFFFFFF && pMeasurment->measurementData.measurementId > highestMeasurementId)
           {
             //value larger then previous, then take over this value
-            highestMeasurementId = pLog->measurementData.measurementId;
+            highestMeasurementId = pMeasurment->measurementData.measurementId;
             newReadingId++;
           }
           timeout--;
-        } while( pLog->measurementData.measurementId != 0xFFFFFFFF && pLog->measurementData.measurementId >= highestMeasurementId && timeout >=0);
+        } while( pMeasurment->measurementData.measurementId != 0xFFFFFFFF && pMeasurment->measurementData.measurementId >= highestMeasurementId && timeout >=0);
 
 
         *measurementId = highestMeasurementId;
@@ -146,7 +146,7 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
     }
 
 
-    APP_LOG(TS_OFF, VLEVEL_H, "Search between address %u and address %u, highest found ID %u, last read ID %u.\r\n", boundaryStart, boundaryEnd, highestMeasurementId, pLog->measurementData.measurementId );
+    APP_LOG(TS_OFF, VLEVEL_H, "Search between address %u and address %u, highest found ID %u, last read ID %u.\r\n", boundaryStart, boundaryEnd, highestMeasurementId, pMeasurment->measurementData.measurementId );
   }
 
   *measurementId = highestMeasurementId;
