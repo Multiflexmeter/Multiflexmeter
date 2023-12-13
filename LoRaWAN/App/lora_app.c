@@ -847,15 +847,12 @@ static void SendTxData(void)
 {
   /* USER CODE BEGIN SendTxData_1 */
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
-  uint8_t batteryLevel = GetBatteryLevel();
   UTIL_TIMER_Time_t nextTxIn = 0;
   STRUCT_logdata *logdata = (STRUCT_logdata *)&measurement[0];
 
   if (LmHandlerIsBusy() == false)
   {
     uint32_t i = 0;
-
-    APP_LOG(TS_ON, VLEVEL_M, "VDDA: %d\r\n", batteryLevel);
 
     AppData.Port = LORAWAN_USER_APP_PORT;
 
@@ -881,7 +878,7 @@ static void SendTxData(void)
     /* copy sensordata max 36 bytes */
     memcpy(&AppData.Buffer[i],logdata->sensorModuleData.sensorModuleData, sensorDataSize );
     i+=sensorDataSize;
-    AppData.Buffer[i++] = batteryLevel;
+
 
 
 //////////////////////////////////////////////////////////////////
