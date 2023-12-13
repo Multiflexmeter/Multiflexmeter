@@ -49,11 +49,11 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
   UNION_measurementData * pMeasurment = (UNION_measurementData *)&measurement;
 
   //read first record
-  readLogFromDataflash(0, (uint8_t *) &measurement, sizeof(measurement));
+  readMeasurementFromDataflash(0, (uint8_t *) &measurement, sizeof(measurement));
   firstRecordMeasurementId = pMeasurment->measurementData.measurementId;
 
   //read latest record
-  readLogFromDataflash(NUMBER_PAGES_FOR_MEASUREMENTS - 1, (uint8_t *) &measurement, sizeof(measurement));
+  readMeasurementFromDataflash(NUMBER_PAGES_FOR_MEASUREMENTS - 1, (uint8_t *) &measurement, sizeof(measurement));
   lastRecordMeasurementId = pMeasurment->measurementData.measurementId;
 
   //determine ringbuffer is in overflow
@@ -98,7 +98,7 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
     newReadingId = (boundaryStart + boundaryEnd) >> 1;
 
     //read page
-    readLogFromDataflash(newReadingId, (uint8_t *) &measurement, sizeof(measurement));
+    readMeasurementFromDataflash(newReadingId, (uint8_t *) &measurement, sizeof(measurement));
 
     if( pMeasurment->measurementData.measurementId != 0xFFFFFFFF )
     {
@@ -123,7 +123,7 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
         //verify next item is not higher
         do
         {
-          readLogFromDataflash(newReadingId + 1, (uint8_t *) &measurement, sizeof(measurement));
+          readMeasurementFromDataflash(newReadingId + 1, (uint8_t *) &measurement, sizeof(measurement));
           if (pMeasurment->measurementData.measurementId != 0xFFFFFFFF && pMeasurment->measurementData.measurementId > highestMeasurementId)
           {
             //value larger then previous, then take over this value
@@ -183,7 +183,7 @@ int8_t restoreLatestMeasurementId(void)
     readLatestIdFromBackupRegister = readBackupRegister( BACKUP_REGISTER_LATEST_LOG ); //get value from backup register
 
     //verify dataflash read
-    readLogFromDataflash(readLatestIdFromBackupRegister - 1, (uint8_t *) &measurement, sizeof(measurement));
+    readMeasurementFromDataflash(readLatestIdFromBackupRegister - 1, (uint8_t *) &measurement, sizeof(measurement));
     if( pLog->measurementData.measurementId == readLatestIdFromBackupRegister - 1)
     {
       newMeasurementId = readLatestIdFromBackupRegister;
@@ -260,7 +260,7 @@ int8_t restoreLatestTimeFromMeasurement(void)
   }
 
   //read the previous measurementId.
-  if( readLogFromDataflash(newMeasurementId - 1, (uint8_t*)&measurement, sizeof(measurement)) == 0)
+  if( readMeasurementFromDataflash(newMeasurementId - 1, (uint8_t*)&measurement, sizeof(measurement)) == 0)
   {
     //check the ID is not zero and not 0xFFFFFFFF
     if( measurement.measurementId > 0 && measurement.measurementId != 0xFFFFFFFF )
@@ -497,7 +497,7 @@ int8_t readMeasurement( uint32_t measurementId, uint8_t * buffer, uint32_t buffe
     return -2;
   }
 
-  return readLogFromDataflash(measurementId, buffer, bufferLength);
+  return readMeasurementFromDataflash(measurementId, buffer, bufferLength);
 }
 
 /**

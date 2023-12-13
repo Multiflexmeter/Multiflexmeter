@@ -219,7 +219,7 @@ int8_t readPageFromDataflash(uint32_t pageAddress, uint8_t * data, uint32_t leng
  * @param length : length of data to write, must be > 0
  * @return < 0 is error, 0 is success.
  */
-int8_t readLogFromDataflash(uint32_t logId, uint8_t * data, uint32_t length)
+int8_t readMeasurementFromDataflash(uint32_t logId, uint8_t * data, uint32_t length)
 {
   assert_param(data != 0 ); //check pointer is not zero
   assert_param(length != 0 ); //check length is not zero
