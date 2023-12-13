@@ -856,7 +856,7 @@ static void SendTxData(void)
 
     AppData.Port = LORAWAN_USER_APP_PORT;
 
-    /* read latest log data */
+    /* read latest measurement data */
     readMeasurementFromDataflash(getLatestMeasurementId() > 0 ? getLatestMeasurementId() - 1 : 0, measurement, sizeof(measurement));
 
     /* get sensor module data size */
@@ -868,7 +868,7 @@ static void SendTxData(void)
       sensorDataSize = sizeof(measurementData->sensorModuleData); //Maximize on 36 bytes
     }
 
-    /* fill in log data */
+    /* fill in measurement data */
     AppData.Buffer[i++] = measurementData->protocolMFM; //protocol MFM
     AppData.Buffer[i++] = measurementData->sensorModuleData.sensorModuleSlotId;
     AppData.Buffer[i++] = measurementData->sensorModuleData.sensorModuleTypeId;
