@@ -34,17 +34,6 @@ static const struct_LedConfig ledConfigDefault[]=
         .toggleTimer = 0,
         .toggleState = LED_OFF,
     }
-    ,
-    {
-        .item = INT_IO_DEBUG_LED2,
-        .state = LED_OFF,
-        .mode = LED_ON_OFF,
-        .toggleInterval = 100,
-        .blinkOnTime = 0,
-        .blinkOffTime = 0,
-        .toggleTimer = 0,
-        .toggleState = LED_OFF,
-    }
 };
 
 /**
