@@ -895,6 +895,13 @@ static void SendTxData(void)
 
     AppData.BufferSize = i;
 
+    /* verify data fitted in buffer */
+    assert_param(AppData.BufferSize <= sizeof(AppDataBuffer));
+
+    if( AppData.BufferSize > sizeof(AppDataBuffer) )
+    {
+      APP_LOG(TS_ON, VLEVEL_L, "SENDTXDATA: message larger then buffer\r\n");
+    }
 
     if ((JoinLedTimer.IsRunning) && (LmHandlerJoinStatus() == LORAMAC_HANDLER_SET))
     {
