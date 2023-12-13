@@ -53,7 +53,7 @@
 #include "../../App/mainTask.h"
 #include "../../App/CommConfig.h"
 #include "../../App/dataflash/dataflash_functions.h"
-#include "../../App/logging/logging.h"
+#include "../../App/measurement.h"
 #include "../../App/MFMconfiguration.h"
 #include "../../App/common/common.h"
 /* USER CODE END Includes */
@@ -163,7 +163,7 @@ int main(void)
   }
 #endif
 
-  restoreLatestLogId();
+  restoreLatestMeasurementId();
   reloadSettingsFromVirtualEEPROM();
 
   init_mainTask();

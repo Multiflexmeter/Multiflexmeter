@@ -115,15 +115,15 @@ int8_t writePageInDataflash(uint32_t pageAddress, uint8_t * data, uint32_t lengt
 }
 
 /**
- * @fn int8_t writeLogInDataflash(uint32_t, uint8_t*, uint32_t)
- * @brief function to write a log item "logId" in the dataflash ringbuffer.
+ * @fn int8_t writeMeasurementInDataflash(uint32_t, uint8_t*, uint32_t)
+ * @brief function to write a measurement item "measurementId" in the dataflash ringbuffer.
  *
- * @param logId log nummer starts from 0 - 4294967296
+ * @param measurementId number starts from 0 - 4294967296
  * @param data array of data
  * @param length of data array to write, limit to 256 (\ref PAGE_SIZE_DATAFLASH).
  * @return 0 = successful, -1 = data pointer is zero, -2 = length is zero, -3 = length is larger then one page size \ref PAGE_SIZE_DATAFLASH
  */
-int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length)
+int8_t writeMeasurementInDataflash(uint32_t measurementId, uint8_t * data, uint32_t length)
 {
   assert_param(data != 0 ); //check pointer is not zero
   assert_param(length != 0 ); //check length is not zero
@@ -144,26 +144,26 @@ int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length)
     return -3;
   }
 
-  uint64_t pageAddress = (logId * PAGE_SIZE_DATAFLASH);
-  pageAddress %= LOG_MEMEORY_SIZE;
+  uint64_t pageAddress = (measurementId * PAGE_SIZE_DATAFLASH);
+  pageAddress %= MEASUREMENT_MEMEORY_SIZE;
 
   return writePageInDataflash((uint32_t)pageAddress, data, length);
 }
 
 /**
- * @fn bool checkLogTurnoverAndErase(uint32_t)
- * @brief function to check log is turnover and next block needs to be erased
+ * @fn bool checkMeasurementMemoryTurnoverAndErase(uint32_t)
+ * @brief function to check measurement memory is turnover and next block needs to be erased
  *
- * @param logId
+ * @param measurementId
  * @return true if block is erased.
  */
-bool checkLogTurnoverAndErase(uint32_t logId)
+bool checkMeasurementMemoryTurnoverAndErase(uint32_t measurementId)
 {
-  uint64_t pageAddress = (logId * PAGE_SIZE_DATAFLASH);
-  pageAddress %= LOG_MEMEORY_SIZE;
+  uint64_t pageAddress = (measurementId * PAGE_SIZE_DATAFLASH);
+  pageAddress %= MEASUREMENT_MEMEORY_SIZE;
 
-  //check logging in turnover
-  if( logId >= NUMBER_PAGES_FOR_LOGGING )
+  //check measurementId in turnover
+  if( measurementId >= NUMBER_PAGES_FOR_MEASUREMENTS )
   {
     //check pageAddress is first of new block
     if( (pageAddress % 0x1000) == 0)
@@ -211,15 +211,15 @@ int8_t readPageFromDataflash(uint32_t pageAddress, uint8_t * data, uint32_t leng
 }
 
 /**
- * @fn int8_t readLogFromDataflash(uint32_t, uint8_t*, uint32_t)
- * @brief function to read a log from flash
+ * @fn int8_t readMeasurementFromDataflash(uint32_t, uint8_t*, uint32_t)
+ * @brief function to read a measurement from flash
  *
- * @param logId : number of log record to write
+ * @param measurementId : number of measurement record to write
  * @param data : pointer to data buffer to write
  * @param length : length of data to write, must be > 0
  * @return < 0 is error, 0 is success.
  */
-int8_t readLogFromDataflash(uint32_t logId, uint8_t * data, uint32_t length)
+int8_t readMeasurementFromDataflash(uint32_t measurementId, uint8_t * data, uint32_t length)
 {
   assert_param(data != 0 ); //check pointer is not zero
   assert_param(length != 0 ); //check length is not zero
@@ -234,8 +234,8 @@ int8_t readLogFromDataflash(uint32_t logId, uint8_t * data, uint32_t length)
     return -2;
   }
 
-  uint64_t pageAddress = (logId * PAGE_SIZE_DATAFLASH);
-  pageAddress %= LOG_MEMEORY_SIZE;
+  uint64_t pageAddress = (measurementId * PAGE_SIZE_DATAFLASH);
+  pageAddress %= MEASUREMENT_MEMEORY_SIZE;
 
   return readPageFromDataflash(pageAddress, data, length);
 }
@@ -348,16 +348,16 @@ const int8_t chipEraseDataflash(void)
 }
 
 /**
- * @fn int8_t clearLogInDataflash(uint32_t)
- * @brief function to clear a 4k block of the logId
+ * @fn int8_t clearMeasurementsInDataflash(uint32_t)
+ * @brief function to clear a 4k block of the measurementId
  *
- * @param logId sequence number of log.
- * @return 0 is succesful
+ * @param measurementId sequence number of measurement.
+ * @return 0 is successful
  */
-int8_t clearLogInDataflash(uint32_t logId)
+int8_t clearMeasurementsInDataflash(uint32_t measurementId)
 {
-  uint64_t pageAddress = (logId * PAGE_SIZE_DATAFLASH);
-  pageAddress %= LOG_MEMEORY_SIZE;
+  uint64_t pageAddress = (measurementId * PAGE_SIZE_DATAFLASH);
+  pageAddress %= MEASUREMENT_MEMEORY_SIZE;
 
   blockErase4kDataflash((uint32_t)pageAddress);
 

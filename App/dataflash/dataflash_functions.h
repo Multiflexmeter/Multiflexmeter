@@ -23,16 +23,16 @@
 #define NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH  ( BLOCK_64K_SIZE_DATAFLASH / PAGE_SIZE_DATAFLASH )
 
 #define MAX_ADDRESS_OF_DATAFLASH      ( 0x7FFFFFUL )
-#define NUMBER_PAGES_FOR_LOGGING      ( NUMBER_PAGES_DATAFLASH - NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH )
-#define NUMBER_OF_RESERVED_PAGES      ( NUMBER_PAGES_DATAFLASH - NUMBER_PAGES_FOR_LOGGING )
-#define LOG_MEMEORY_SIZE              ( PAGE_SIZE_DATAFLASH * NUMBER_PAGES_FOR_LOGGING )
+#define NUMBER_PAGES_FOR_MEASUREMENTS      ( NUMBER_PAGES_DATAFLASH - NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH )
+#define NUMBER_OF_RESERVED_PAGES      ( NUMBER_PAGES_DATAFLASH - NUMBER_PAGES_FOR_MEASUREMENTS )
+#define MEASUREMENT_MEMEORY_SIZE              ( PAGE_SIZE_DATAFLASH * NUMBER_PAGES_FOR_MEASUREMENTS )
 #define RESERVED_MEMORY               ( PAGE_SIZE_DATAFLASH * NUMBER_OF_RESERVED_PAGES )
 
 int8_t init_dataflash(void);
-int8_t writeLogInDataflash(uint32_t logId, uint8_t * data, uint32_t length);
-bool checkLogTurnoverAndErase(uint32_t logId);
+int8_t writeMeasurementInDataflash(uint32_t logId, uint8_t * data, uint32_t length);
+bool checkMeasurementMemoryTurnoverAndErase(uint32_t logId);
 int8_t readPageFromDataflash(uint32_t pageAddress, uint8_t * data, uint32_t length);
-int8_t readLogFromDataflash(uint32_t logId, uint8_t * data, uint32_t length);
+int8_t readMeasurementFromDataflash(uint32_t logId, uint8_t * data, uint32_t length);
 int8_t blockErase4kDataflash( uint32_t address );
 int8_t blockErase32kDataflash( uint32_t address );
 int8_t blockErase64kDataflash( uint32_t address );

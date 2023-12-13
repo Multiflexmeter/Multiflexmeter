@@ -28,7 +28,7 @@
 #include "IO/led.h"
 #include "FRAM/FRAM_functions.h"
 #include "I2CMaster/SensorFunctions.h"
-#include "logging/logging.h"
+#include "measurement.h"
 #include "BatMon_BQ35100/BatMon_functions.h"
 #include "RTC_AM1805/RTC_functions.h"
 #include "CommConfig.h"
@@ -254,7 +254,7 @@ const void mainTask(void)
 
       if( getWakeupBatStatus(1) )
       {
-        restoreLatestTimeFromLog(); //time in RTC not valid, set time from last log
+        restoreLatestTimeFromMeasurement(); //time in RTC not valid, set time from last measurement
         setRequestTime(); //request a time sync to server
       }
       else
@@ -554,7 +554,7 @@ const void mainTask(void)
     case SAVE_DATA:
 
         stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
-        writeNewLog(0, &stMFM_sensorModuleData, &stMFM_baseData);
+        writeNewMeasurement(0, &stMFM_sensorModuleData, &stMFM_baseData);
         mainTask_state = SEND_LORA_DATA; //next state
 
 

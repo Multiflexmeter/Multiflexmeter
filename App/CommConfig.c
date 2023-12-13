@@ -305,45 +305,45 @@ __weak const void setAlwaysOn(bool state)
 }
 
 /**
- * @brief weak function eraseCompleteLog(), can be override in application code.
+ * @brief weak function eraseCompleteMeasurementLog(), can be override in application code.
  *
  * @return erase status
  */
-__weak const int8_t eraseCompleteLog(void)
+__weak const int8_t eraseCompleteMeasurementMemory(void)
 {
   return 0;
 }
 
 /**
- * @fn const uint8_t eraseCompleteLogBlockByBlock(uint32_t*)
- * @brief weak function eraseCompleteLogBlockByBlock(), can must override in application
+ * @fn const uint8_t eraseCompleteMeasurementBlockByBlock(uint32_t*)
+ * @brief weak function eraseCompleteMeasurementBlockByBlock(), can must override in application
  *
  * @param startAddress
  * @return
  */
-__weak const int8_t eraseCompleteLogBlockByBlock( uint32_t * startAddress )
+__weak const int8_t eraseCompleteMeasurementBlockByBlock( uint32_t * startAddress )
 {
   return 0;
 }
 
 /**
- * @fn uint32_t getLatestLogId(void)
- * @brief weak function getLatestLogId(), can be override in application code
+ * @fn uint32_t getLatestMeasurementId(void)
+ * @brief weak function getLatestMeasurementId(), can be override in application code
  *
  * @return
  */
-__weak const uint32_t getLatestLogId(void)
+__weak const uint32_t getLatestMeasurementId(void)
 {
   return 0;
 }
 
 /**
- * @fn uint32_t getOldestLogId(void)
- * @brief weak function getOldestLogId(), can be override in application code
+ * @fn uint32_t getOldestMeasurementId(void)
+ * @brief weak function getOldestMeasurementId(), can be override in application code
  *
  * @return
  */
-__weak const uint32_t getOldestLogId(void)
+__weak const uint32_t getOldestMeasurementId(void)
 {
   return 0;
 }
@@ -994,8 +994,8 @@ void configUartHandler(void)
   static int step = 0;
   int8_t result;
   static uint16_t numberOfMeasures = 0;
-  static uint32_t latestLog = 0;
-  static uint32_t currentLog = 0;
+  static uint32_t latestMeasurment = 0;
+  static uint32_t currentMeasurement = 0;
   static uint32_t previousTimeMs = 0;
   uint32_t currentTimeMs;
   bool updateRate = false;
@@ -1034,10 +1034,10 @@ void configUartHandler(void)
         if( dataDump ) // data command received
         {
           numberOfMeasures = getNumberOfMeasures(); //get number of log items
-          latestLog = getLatestLogId(); //get latest log ID
-          currentLog = getOldestLogId(); //get oldest log ID
+          latestMeasurment = getLatestMeasurementId(); //get latest measurement ID
+          currentMeasurement = getOldestMeasurementId(); //get oldest measurement ID
 
-          snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:count: %d, oldest: %lu, latest: %lu\r\n", cmdDataDump, numberOfMeasures, currentLog, latestLog);
+          snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:count: %d, oldest: %lu, latest: %lu\r\n", cmdDataDump, numberOfMeasures, currentMeasurement, latestMeasurment);
           uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
           //check command is not dump  ALL
@@ -1046,7 +1046,7 @@ void configUartHandler(void)
             if( numberOffDumpRecords < numberOfMeasures ) //check if number of measures needs to be limit by input parameter
             {
               numberOfMeasures = numberOffDumpRecords;
-              currentLog = latestLog - numberOfMeasures; //calculate new start offset
+              currentMeasurement = latestMeasurment - numberOfMeasures; //calculate new start offset
             }
           }
 
@@ -1056,7 +1056,7 @@ void configUartHandler(void)
         else if( dataErase ) //data erase command received
         {
           dataErase = false;
-          currentLog = 0; //set address to 0 (use currentLog variable)
+          currentMeasurement = 0; //set address to 0 (use currentMeasurement variable)
           step = 10;
         }
 
@@ -1076,7 +1076,7 @@ void configUartHandler(void)
 
         if( numberOfMeasures ) //check items need to print
         {
-          sendDataLine(currentLog++); //print current log item
+          sendDataLine(currentMeasurement++); //print current log item
           numberOfMeasures--;         //decrement
 
         }
@@ -1097,7 +1097,7 @@ void configUartHandler(void)
 
       case 10:
 
-        result = eraseCompleteLogBlockByBlock(&currentLog); //erase one block
+        result = eraseCompleteMeasurementBlockByBlock(&currentMeasurement); //erase one block
 
         if( result < 0 )
         { //error
@@ -1108,12 +1108,12 @@ void configUartHandler(void)
         { //busy
           if( updateRate) //check update rate flag is active
           {
-            sendProgressLine(getProgressFromAddress(currentLog), cmdErase); //send progress line
+            sendProgressLine(getProgressFromAddress(currentMeasurement), cmdErase); //send progress line
           }
         }
         else
         { //ready
-          sendProgressLine(getProgressFromAddress(currentLog), cmdErase);//send 100%
+          sendProgressLine(getProgressFromAddress(currentMeasurement), cmdErase);//send 100%
           step = 11; //got to send ready
         }
 
@@ -1657,7 +1657,7 @@ void sendDataDump(int arguments, const char * format, ...)
   dataDump = true;  //trigger dataDump in handler
 }
 
-__weak int32_t printLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength )
+__weak int32_t printMeasurementData( uint32_t measurementId, uint8_t * buffer, uint32_t bufferLength )
 {
   return 0;
 }
@@ -1667,12 +1667,12 @@ __weak int32_t printLog( uint32_t logId, uint8_t * buffer, uint32_t bufferLength
  *
  * @param arguments not used
  */
-void sendDataLine( uint32_t logId  )
+void sendDataLine( uint32_t measurementId  )
 {
   int length = 0;
 
-  //get data from log ID
-  length = printLog( logId, bufferTxConfig, sizeof(bufferTxConfig) );
+  //get data from measurement ID
+  length = printMeasurementData( measurementId, bufferTxConfig, sizeof(bufferTxConfig) );
 
   if( length > 0 )
   {

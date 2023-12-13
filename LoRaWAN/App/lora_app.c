@@ -36,7 +36,7 @@
 #include "flash_if.h"
 
 /* USER CODE BEGIN Includes */
-#include "../../../App/logging/logging.h"
+#include "../../../App/measurement.h"
 #include "../../../App/common/common.h"
 /* USER CODE END Includes */
 
@@ -89,7 +89,7 @@ typedef enum TxEventType_e
 #define LORAWAN_NVM_BASE_ADDRESS                    ((void *)0x0803F000UL)
 
 /* USER CODE BEGIN PD */
-static uint8_t measurement[MAX_SIZE_LOGDATA];
+static uint8_t measurement[MAX_SIZE_MEASUREMENTDATA];
 static const char *slotStrings[] = { "1", "2", "C", "C_MC", "P", "P_MC" };
 static bool requestTime = 0;
 static uint32_t nextRequestTime = 0;
@@ -848,7 +848,7 @@ static void SendTxData(void)
   /* USER CODE BEGIN SendTxData_1 */
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
   UTIL_TIMER_Time_t nextTxIn = 0;
-  STRUCT_logdata *logdata = (STRUCT_logdata *)&measurement[0];
+  STRUCT_measurementData *measurementData = (STRUCT_measurementData *)&measurement[0];
 
   if (LmHandlerIsBusy() == false)
   {
@@ -856,31 +856,31 @@ static void SendTxData(void)
 
     AppData.Port = LORAWAN_USER_APP_PORT;
 
-    /* read latest log data */
-    readLog(getLatestLogId() > 0 ? getLatestLogId() - 1 : 0, measurement, sizeof(measurement));
+    /* read latest measurement data */
+    readMeasurement(getLatestMeasurementId() > 0 ? getLatestMeasurementId() - 1 : 0, measurement, sizeof(measurement));
 
     /* get sensor module data size */
-    uint8_t sensorDataSize = logdata->sensorModuleData.sensorModuleDataSize;
+    uint8_t sensorDataSize = measurementData->sensorModuleData.sensorModuleDataSize;
 
     /* check if size is within limit of 36 bytes */
-    if( sensorDataSize >= sizeof(logdata->sensorModuleData) )
+    if( sensorDataSize >= sizeof(measurementData->sensorModuleData) )
     {
-      sensorDataSize = sizeof(logdata->sensorModuleData); //Maximize on 36 bytes
+      sensorDataSize = sizeof(measurementData->sensorModuleData); //Maximize on 36 bytes
     }
 
-    /* fill in log data */
-    AppData.Buffer[i++] = logdata->protocolMFM; //protocol MFM
-    AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleSlotId;
-    AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleTypeId;
-    AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleProtocolId;
+    /* fill in measurement data */
+    AppData.Buffer[i++] = measurementData->protocolMFM; //protocol MFM
+    AppData.Buffer[i++] = measurementData->sensorModuleData.sensorModuleSlotId;
+    AppData.Buffer[i++] = measurementData->sensorModuleData.sensorModuleTypeId;
+    AppData.Buffer[i++] = measurementData->sensorModuleData.sensorModuleProtocolId;
     AppData.Buffer[i++] = sensorDataSize;
 
     /* copy sensordata max 36 bytes */
-    memcpy(&AppData.Buffer[i],logdata->sensorModuleData.sensorModuleData, sensorDataSize );
+    memcpy(&AppData.Buffer[i],measurementData->sensorModuleData.sensorModuleData, sensorDataSize );
     i+=sensorDataSize;
 
     /* battery EOS status */
-    AppData.Buffer[i++] = logdata->MFM_baseData.batteryStateEos;
+    AppData.Buffer[i++] = measurementData->MFM_baseData.batteryStateEos;
 
 
 //////////////////////////////////////////////////////////////////
