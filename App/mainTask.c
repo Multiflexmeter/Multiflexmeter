@@ -645,6 +645,10 @@ const void mainTask(void)
         }
         else
         {
+          if( getRejoinAtNextInterval() ) //check value is set, then reset is when join is active.
+          {
+            clearRejoinAtNextInterval();
+          }
           mainTask_state = SWITCH_OFF_VSYS; //increment again, to skip retry for join.
         }
       }
@@ -997,7 +1001,11 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
           {
             //trigger rejoin
             APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Rejoin received\r\n" ); //print no sensor slot enabled
+#ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+            setRejoinAtNextInterval(); //set a rejoin for next interval
+#else
             setDelayReJoin(10000); //set a delay ReJoin after 10 seconds. At Join the NVM is read. NVM needs to be saved before new join starts.
+#endif
           }
           else
           {
