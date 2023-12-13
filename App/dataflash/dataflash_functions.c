@@ -349,7 +349,7 @@ const int8_t chipEraseDataflash(void)
 
 /**
  * @fn int8_t clearMeasurementsInDataflash(uint32_t)
- * @brief function to clear a 4k block of the logId
+ * @brief function to clear a 4k block of the measurementId
  *
  * @param measurementId sequence number of measurement.
  * @return 0 is successful
