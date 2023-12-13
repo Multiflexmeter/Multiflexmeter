@@ -189,7 +189,7 @@ int8_t restoreLatestMeasurementId(void)
       newMeasurementId = readLatestIdFromBackupRegister;
       readyForMeasurement = true;
 
-      APP_LOG(TS_OFF, VLEVEL_H, "New measurument ID from backup register: %u\r\n", newMeasurementId);
+      APP_LOG(TS_OFF, VLEVEL_H, "New measurement ID from backup register: %u\r\n", newMeasurementId);
 
       return 1;
     }
@@ -244,16 +244,16 @@ int8_t restoreLatestMeasurementId(void)
  */
 int8_t restoreLatestTimeFromMeasurement(void)
 {
-  assert_param( readyForMeasurement == false ); //check logging is possible
-  assert_param( newMeasurementId == 0 ); //check previous logging exist.
+  assert_param( readyForMeasurement == false ); //check saving measurements is possible
+  assert_param( newMeasurementId == 0 ); //check previous measurement ID exist.
 
-  //check log is ready
+  //check saving measurements is possible
   if( readyForMeasurement == false )
   {
     return -1;
   }
 
-  //check current log ID is not zero, then no previous registrations
+  //check current measurement ID is not zero, then no previous registrations
   if( newMeasurementId == 0 )
   {
     return -2;
@@ -279,7 +279,7 @@ int8_t restoreLatestTimeFromMeasurement(void)
          struct tm stTime;
          SysTimeLocalTime(SysTimeGet().Seconds, &stTime); //get system time
          strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &stTime); //make date/time string
-         APP_LOG(TS_OFF, VLEVEL_H, "Time: restored from log: %s\r\n", timeStringNow);
+         APP_LOG(TS_OFF, VLEVEL_H, "Time: restored from latest measurement: %s\r\n", timeStringNow);
 
 #endif
       }
@@ -319,38 +319,38 @@ int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorMo
 
   static_assert (sizeof(struct_MFM_sensorModuleData) == MAX_SENSOR_MODULE_DATA, "Size struct_MFM_sensorModuleData is not correct");
   static_assert (sizeof(struct_MFM_baseData) == MAX_BASE_MODULE_DATA, "Size struct_MFM_baseData is not correct");
-  static_assert (sizeof(STRUCT_measurementData) == MAX_SIZE_MEASUREMENTDATA, "Size STRUCT_logdata is not correct");
+  static_assert (sizeof(STRUCT_measurementData) == MAX_SIZE_MEASUREMENTDATA, "Size STRUCT_measurementData is not correct");
 
-  assert_param( readyForMeasurement == true ); //check logging is possible
+  assert_param( readyForMeasurement == true ); //check saving measurements is possible
   assert_param( sensorModuleData != 0 ); //check pointer is not zero
   assert_param( MFM_data != 0 ); //check pointer is not zero
   assert_param( sensorModuleData->sensorModuleDataSize <= sizeof(sensorModuleData->sensorModuleData) ); //check maximum supported datasize.
 
   if (sensorModuleData == 0)
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "LOG: sensor module data pointer is zero\r\n");
+    APP_LOG(TS_OFF, VLEVEL_H, "MEASUREMENT: sensor module data pointer is zero\r\n");
     return -1;
   }
 
   if (sensorModuleData->sensorModuleDataSize > sizeof(sensorModuleData->sensorModuleData))
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "LOG: sensor module data too large\r\n");
+    APP_LOG(TS_OFF, VLEVEL_H, "MEASUREMENT: sensor module data too large\r\n");
     return -2;
   }
 
   if( readyForMeasurement == false )
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "LOG: Logging is not possible\r\n");
+    APP_LOG(TS_OFF, VLEVEL_H, "MEASUREMENT: saving measurements is not possible\r\n");
     return -3;
   }
 
   if (MFM_data == 0)
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "LOG: MFM_data pointer is zero\r\n");
+    APP_LOG(TS_OFF, VLEVEL_H, "MEASUREMENT: MFM_data pointer is zero\r\n");
     return -4;
   }
 
-  measurement.measurementId = newMeasurementId; //set new log ID.
+  measurement.measurementId = newMeasurementId; //set new measurement ID.
   measurement.timestamp = SysTimeGet().Seconds; //get system time, if time not yet in sync start from 0, otherwise unix timestamp
 
   measurement.protocolMFM = MFM_protocol;
@@ -407,7 +407,7 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
   int8_t result;
   bool turnoverAndErased = false;
 
-  assert_param( readyForMeasurement == false ); //check logging is possible
+  assert_param( readyForMeasurement == false ); //check saving measurements is possible
   assert_param( sensorData == 0 ); //check pointer is not zero
   assert_param( dataLength > sizeof(measurement.sensorModuleData) ); //check maximum supported datasize.
 
@@ -423,11 +423,11 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
 
   if( readyForMeasurement == false )
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "Logging is not possible\r\n");
+    APP_LOG(TS_OFF, VLEVEL_H, "Saving measurements is not possible\r\n");
     return -3;
   }
 
-  measurement.measurementId = newMeasurementId; //set new log ID.
+  measurement.measurementId = newMeasurementId; //set new measurement ID.
   measurement.timestamp = SysTimeGet().Seconds; //get system time, if time not yet in sync start from 0, otherwise unix timestamp
 
   measurement.sensorModuleData.sensorModuleSlotId = sensorModuleSlotId; //set sensor module slot ID
@@ -458,7 +458,7 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
   //check result
   if( result == 0 ) //success
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "Log ID %u written to dataflash\r\n", newMeasurementId );
+    APP_LOG(TS_OFF, VLEVEL_H, "Measurement ID %u written to dataflash\r\n", newMeasurementId );
     newMeasurementId++;
     writeBackupRegister(BACKUP_REGISTER_LATEST_MEASUREMENT_ID, newMeasurementId);
   }
@@ -467,7 +467,7 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
   {
     assert_param(1);
     APP_LOG(TS_OFF, VLEVEL_H, "Restore measurement ID failes\r\n" );
-    return -5;//failed to write log
+    return -5;//failed to write measurement
   }
 
   return 0;
@@ -502,7 +502,7 @@ int8_t readMeasurement( uint32_t measurementId, uint8_t * buffer, uint32_t buffe
 
 /**
  * @fn int32_t printMeasurementData(uint32_t, uint8_t*, uint32_t)
- * @brief function to print a log to a given buffer
+ * @brief function to print a measurement to a given buffer
  *
  * @param measurementId
  * @param buffer
@@ -545,9 +545,9 @@ int32_t printMeasurementData( uint32_t measurementId, uint8_t * buffer, uint32_t
 
 /**
  * @fn uint32_t getLatestMeasurementId(void)
- * @brief function to return the latest Log ID
+ * @brief function to return the latest measurement ID
  *
- * @return latest log ID.
+ * @return latest measurement ID.
  */
 uint32_t getLatestMeasurementId(void)
 {
@@ -556,9 +556,9 @@ uint32_t getLatestMeasurementId(void)
 
 /**
  * @fn uint32_t getOldestMeasurementId(void)
- * @brief function to return the oldest Log ID
+ * @brief function to return the oldest measurement ID
  *
- * @return Oldest log ID.
+ * @return Oldest measurement ID.
  */
 uint32_t getOldestMeasurementId(void)
 {
@@ -568,21 +568,21 @@ uint32_t getOldestMeasurementId(void)
   }
   else
   {
-    //todo return real logging items, skip erased block,
+    //todo return real measurement items, skip erased block,
     return NUMBER_PAGES_FOR_MEASUREMENTS;
   }
 }
 
 /**
  * @fn const uint16_t getNumberOfMeasures(void)
- * @brief override function to return the number of log items
+ * @brief override function to return the number of measurement items
  * todo skip erased remaining block which is empty.
  *
- * @return  number of log items
+ * @return  number of measurement items
  */
 const uint16_t getNumberOfMeasures(void)
 {
-  uint32_t latestId = newMeasurementId; //newMeasurementId is the next ID, start with 0, so when newMeasurementId = 1, there is 1 log item.
+  uint32_t latestId = newMeasurementId; //newMeasurementId is the next ID, start with 0, so when newMeasurementId = 1, there is 1 measurement item.
   uint32_t oldestId = readBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID);
   if( latestId > NUMBER_PAGES_FOR_MEASUREMENTS )
   {
@@ -644,7 +644,7 @@ const uint8_t eraseCompleteMeasurementLog( void )
   else
   {
     //error
-    APP_LOG(TS_OFF, VLEVEL_L, "Log erase not possible\r\n");
+    APP_LOG(TS_OFF, VLEVEL_L, "Measurement erase not possible\r\n");
     returnValue = -1;
   }
 
@@ -661,7 +661,7 @@ const uint8_t eraseCompleteMeasurementLog( void )
 
 /**
  * @fn int8_t eraseCompleteMeasurementBlockByBlock(void)
- * @brief function to erase all logs depending on reserverd memory of logs it choose the right block size to erase.
+ * @brief function to erase all measurement depending on reserverd memory of measurement it choose the right block size to erase.
  *
  * @return >= 0 okay, < 0 error not erased.
  */
@@ -702,7 +702,7 @@ const int8_t eraseCompleteMeasurementBlockByBlock( uint32_t * startAddress )
   else
   {
     //error
-    APP_LOG(TS_OFF, VLEVEL_L, "Log erase not possible\r\n");
+    APP_LOG(TS_OFF, VLEVEL_L, "Measurement erase not possible\r\n");
     returnValue = -1;
   }
 
