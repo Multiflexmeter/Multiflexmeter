@@ -102,7 +102,7 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
 
     if( pMeasurment->measurementData.measurementId != 0xFFFFFFFF )
     {
-      //page contain log, new value is further
+      //page contain measurement, new value is further
       if (pMeasurment->measurementData.measurementId < highestMeasurementId)
       {
         //value on newReadingId is smaller, then decrease the end boundary
