@@ -21,7 +21,7 @@
 #include "dataflash/dataflash_functions.h"
 #include "measurement.h"
 
-static STRUCT_logdata logdata;
+static STRUCT_measurementData measurement;
 static bool logReady = 0;
 
 static uint32_t newMeasurementId = 0;
@@ -46,15 +46,15 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
   uint32_t lastRecordMeasurementId;
   uint32_t newReadingId;
 
-  UNION_logdata * pLog = (UNION_logdata *)&logdata;
+  UNION_logdata * pLog = (UNION_logdata *)&measurement;
 
   //read first record
-  readLogFromDataflash(0, (uint8_t *) &logdata, sizeof(logdata));
-  firstRecordMeasurementId = pLog->log.measurementId;
+  readLogFromDataflash(0, (uint8_t *) &measurement, sizeof(measurement));
+  firstRecordMeasurementId = pLog->measurementData.measurementId;
 
   //read latest record
-  readLogFromDataflash(NUMBER_PAGES_FOR_LOGGING - 1, (uint8_t *) &logdata, sizeof(logdata));
-  lastRecordMeasurementId = pLog->log.measurementId;
+  readLogFromDataflash(NUMBER_PAGES_FOR_LOGGING - 1, (uint8_t *) &measurement, sizeof(measurement));
+  lastRecordMeasurementId = pLog->measurementData.measurementId;
 
   //determine ringbuffer is in overflow
   if( firstRecordMeasurementId == 0xFFFFFFFFUL && lastRecordMeasurementId == 0xFFFFFFFFUL )
@@ -98,21 +98,21 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
     newReadingId = (boundaryStart + boundaryEnd) >> 1;
 
     //read page
-    readLogFromDataflash(newReadingId, (uint8_t *) &logdata, sizeof(logdata));
+    readLogFromDataflash(newReadingId, (uint8_t *) &measurement, sizeof(measurement));
 
-    if( pLog->log.measurementId != 0xFFFFFFFF )
+    if( pLog->measurementData.measurementId != 0xFFFFFFFF )
     {
       //page contain log, new value is further
-      if (pLog->log.measurementId < highestMeasurementId)
+      if (pLog->measurementData.measurementId < highestMeasurementId)
       {
         //value on newReadingId is smaller, then decrease the end boundary
         boundaryEnd = newReadingId - 1;
       }
 
-      else if (pLog->log.measurementId > highestMeasurementId)
+      else if (pLog->measurementData.measurementId > highestMeasurementId)
       {
         //value larger then previous, then increase the start boundary.
-        highestMeasurementId = pLog->log.measurementId;
+        highestMeasurementId = pLog->measurementData.measurementId;
         boundaryStart = newReadingId + 1;
       }
 
@@ -123,15 +123,15 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
         //verify next item is not higher
         do
         {
-          readLogFromDataflash(newReadingId + 1, (uint8_t *) &logdata, sizeof(logdata));
-          if (pLog->log.measurementId != 0xFFFFFFFF && pLog->log.measurementId > highestMeasurementId)
+          readLogFromDataflash(newReadingId + 1, (uint8_t *) &measurement, sizeof(measurement));
+          if (pLog->measurementData.measurementId != 0xFFFFFFFF && pLog->measurementData.measurementId > highestMeasurementId)
           {
             //value larger then previous, then take over this value
-            highestMeasurementId = pLog->log.measurementId;
+            highestMeasurementId = pLog->measurementData.measurementId;
             newReadingId++;
           }
           timeout--;
-        } while( pLog->log.measurementId != 0xFFFFFFFF && pLog->log.measurementId >= highestMeasurementId && timeout >=0);
+        } while( pLog->measurementData.measurementId != 0xFFFFFFFF && pLog->measurementData.measurementId >= highestMeasurementId && timeout >=0);
 
 
         *measurementId = highestMeasurementId;
@@ -146,7 +146,7 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
     }
 
 
-    APP_LOG(TS_OFF, VLEVEL_H, "Search between address %u and address %u, highest found ID %u, last read ID %u.\r\n", boundaryStart, boundaryEnd, highestMeasurementId, pLog->log.measurementId );
+    APP_LOG(TS_OFF, VLEVEL_H, "Search between address %u and address %u, highest found ID %u, last read ID %u.\r\n", boundaryStart, boundaryEnd, highestMeasurementId, pLog->measurementData.measurementId );
   }
 
   *measurementId = highestMeasurementId;
@@ -168,7 +168,7 @@ int8_t restoreLatestMeasurementId(void)
   uint32_t readLatestIdFromBackupRegister = 0;
   int8_t result;
 
-  UNION_logdata * pLog = (UNION_logdata *)&logdata;
+  UNION_logdata * pLog = (UNION_logdata *)&measurement;
 
   APP_LOG(TS_OFF, VLEVEL_H, "Reset cause: %x\r\n", getResetSource() );
 
@@ -183,8 +183,8 @@ int8_t restoreLatestMeasurementId(void)
     readLatestIdFromBackupRegister = readBackupRegister( BACKUP_REGISTER_LATEST_LOG ); //get value from backup register
 
     //verify dataflash read
-    readLogFromDataflash(readLatestIdFromBackupRegister - 1, (uint8_t *) &logdata, sizeof(logdata));
-    if( pLog->log.measurementId == readLatestIdFromBackupRegister - 1)
+    readLogFromDataflash(readLatestIdFromBackupRegister - 1, (uint8_t *) &measurement, sizeof(measurement));
+    if( pLog->measurementData.measurementId == readLatestIdFromBackupRegister - 1)
     {
       newMeasurementId = readLatestIdFromBackupRegister;
       logReady = true;
@@ -260,16 +260,16 @@ int8_t restoreLatestTimeFromMeasurement(void)
   }
 
   //read the previous measurementId.
-  if( readLogFromDataflash(newMeasurementId - 1, (uint8_t*)&logdata, sizeof(logdata)) == 0)
+  if( readLogFromDataflash(newMeasurementId - 1, (uint8_t*)&measurement, sizeof(measurement)) == 0)
   {
     //check the ID is not zero and not 0xFFFFFFFF
-    if( logdata.measurementId > 0 && logdata.measurementId != 0xFFFFFFFF )
+    if( measurement.measurementId > 0 && measurement.measurementId != 0xFFFFFFFF )
     {
       //check saved timestamp is larger than current time
-      if( logdata.timestamp > SysTimeGet().Seconds )
+      if( measurement.timestamp > SysTimeGet().Seconds )
       {
         SysTime_t newTime;
-        newTime.Seconds = logdata.timestamp;
+        newTime.Seconds = measurement.timestamp;
         newTime.SubSeconds = 0;
         SysTimeSet( newTime );
 
@@ -319,7 +319,7 @@ int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorMo
 
   static_assert (sizeof(struct_MFM_sensorModuleData) == MAX_SENSOR_MODULE_DATA, "Size struct_MFM_sensorModuleData is not correct");
   static_assert (sizeof(struct_MFM_baseData) == MAX_BASE_MODULE_DATA, "Size struct_MFM_baseData is not correct");
-  static_assert (sizeof(STRUCT_logdata) == MAX_SIZE_LOGDATA, "Size STRUCT_logdata is not correct");
+  static_assert (sizeof(STRUCT_measurementData) == MAX_SIZE_LOGDATA, "Size STRUCT_logdata is not correct");
 
   assert_param( logReady == true ); //check logging is possible
   assert_param( sensorModuleData != 0 ); //check pointer is not zero
@@ -350,30 +350,30 @@ int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorMo
     return -4;
   }
 
-  logdata.measurementId = newMeasurementId; //set new log ID.
-  logdata.timestamp = SysTimeGet().Seconds; //get system time, if time not yet in sync start from 0, otherwise unix timestamp
+  measurement.measurementId = newMeasurementId; //set new log ID.
+  measurement.timestamp = SysTimeGet().Seconds; //get system time, if time not yet in sync start from 0, otherwise unix timestamp
 
-  logdata.protocolMFM = MFM_protocol;
+  measurement.protocolMFM = MFM_protocol;
 
-  memcpy(&logdata.sensorModuleData, sensorModuleData, sizeof(logdata.sensorModuleData)); //copy sensor module data.
+  memcpy(&measurement.sensorModuleData, sensorModuleData, sizeof(measurement.sensorModuleData)); //copy sensor module data.
 
   //check if not all bytes are used in sensorModuleData buffer
-  if( sensorModuleData->sensorModuleDataSize < sizeof(logdata.sensorModuleData) )
+  if( sensorModuleData->sensorModuleDataSize < sizeof(measurement.sensorModuleData) )
   {
-    memset(&logdata.sensorModuleData.sensorModuleData[sensorModuleData->sensorModuleDataSize], 0xFF, sizeof(logdata.sensorModuleData.sensorModuleData) - sensorModuleData->sensorModuleDataSize); //fill in remaining empty sensor data.
+    memset(&measurement.sensorModuleData.sensorModuleData[sensorModuleData->sensorModuleDataSize], 0xFF, sizeof(measurement.sensorModuleData.sensorModuleData) - sensorModuleData->sensorModuleDataSize); //fill in remaining empty sensor data.
   }
 
-  logdata.sensorModuleData_crc = calculateCRC_CCITT(logdata.sensorModuleData.sensorModuleData, logdata.sensorModuleData.sensorModuleDataSize); //calculate CRC on sensordata
+  measurement.sensorModuleData_crc = calculateCRC_CCITT(measurement.sensorModuleData.sensorModuleData, measurement.sensorModuleData.sensorModuleDataSize); //calculate CRC on sensordata
 
-  memset( logdata.spare, 0xFF, sizeof(logdata.spare)); //set 0xFF (blank) in spare array
+  memset( measurement.spare, 0xFF, sizeof(measurement.spare)); //set 0xFF (blank) in spare array
 
-  turnoverAndErased = checkLogTurnoverAndErase(logdata.measurementId); //check dataflash ringbuffer is turnover and a block of 4k is erased.
+  turnoverAndErased = checkLogTurnoverAndErase(measurement.measurementId); //check dataflash ringbuffer is turnover and a block of 4k is erased.
   if( turnoverAndErased == true )
   {
     writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, readBackupRegister(BACKUP_REGISTER_OLDEST_LOG) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer
   }
 
-  result = writeLogInDataflash(logdata.measurementId, (uint8_t*)&logdata, sizeof(logdata)); //write new log to dataflash
+  result = writeLogInDataflash(measurement.measurementId, (uint8_t*)&measurement, sizeof(measurement)); //write new log to dataflash
 
   //check result
   if( result == 0 ) //success
@@ -407,53 +407,53 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
   int8_t result;
   bool turnoverAndErased = false;
 
-  assert_param( logReady == false ); //check logging is possible
+  assert_param( readyForMeasurement == false ); //check logging is possible
   assert_param( sensorData == 0 ); //check pointer is not zero
-  assert_param( dataLength > sizeof(logdata.sensorModuleData) ); //check maximum supported datasize.
+  assert_param( dataLength > sizeof(measurement.sensorModuleData) ); //check maximum supported datasize.
 
   if (sensorData == 0)
   {
     return -1;
   }
 
-  if (dataLength > sizeof(logdata.sensorModuleData))
+  if (dataLength > sizeof(measurement.sensorModuleData))
   {
     return -2;
   }
 
-  if( logReady == false )
+  if( readyForMeasurement == false )
   {
     APP_LOG(TS_OFF, VLEVEL_H, "Logging is not possible\r\n");
     return -3;
   }
 
-  logdata.measurementId = newMeasurementId; //set new log ID.
-  logdata.timestamp = SysTimeGet().Seconds; //get system time, if time not yet in sync start from 0, otherwise unix timestamp
+  measurement.measurementId = newMeasurementId; //set new log ID.
+  measurement.timestamp = SysTimeGet().Seconds; //get system time, if time not yet in sync start from 0, otherwise unix timestamp
 
-  logdata.sensorModuleData.sensorModuleSlotId = sensorModuleSlotId; //set sensor module slot ID
-  logdata.sensorModuleData.sensorModuleTypeId = sensorModuleType; //set sensor module type
-  logdata.sensorModuleData.sensorModuleProtocolId = protocol; //set sensor module protocol
-  memcpy(logdata.sensorModuleData.sensorModuleData, sensorData, dataLength); //copy sensor data
+  measurement.sensorModuleData.sensorModuleSlotId = sensorModuleSlotId; //set sensor module slot ID
+  measurement.sensorModuleData.sensorModuleTypeId = sensorModuleType; //set sensor module type
+  measurement.sensorModuleData.sensorModuleProtocolId = protocol; //set sensor module protocol
+  memcpy(measurement.sensorModuleData.sensorModuleData, sensorData, dataLength); //copy sensor data
 
   //check if not all bytes are used in sensorModuleData buffer
-  if( dataLength < sizeof(logdata.sensorModuleData) )
+  if( dataLength < sizeof(measurement.sensorModuleData) )
   {
-    memset(&logdata.sensorModuleData.sensorModuleData[dataLength], 0xFF, sizeof(logdata.sensorModuleData.sensorModuleData) - dataLength); //fill in remaining empty sensor data.
+    memset(&measurement.sensorModuleData.sensorModuleData[dataLength], 0xFF, sizeof(measurement.sensorModuleData.sensorModuleData) - dataLength); //fill in remaining empty sensor data.
   }
 
-  logdata.sensorModuleData.sensorModuleDataSize = dataLength; //set used datasize
+  measurement.sensorModuleData.sensorModuleDataSize = dataLength; //set used datasize
 
-  logdata.sensorModuleData_crc = calculateCRC_CCITT(logdata.sensorModuleData.sensorModuleData, logdata.sensorModuleData.sensorModuleDataSize); //calculate CRC on sensordata
+  measurement.sensorModuleData_crc = calculateCRC_CCITT(measurement.sensorModuleData.sensorModuleData, measurement.sensorModuleData.sensorModuleDataSize); //calculate CRC on sensordata
 
-  memset( logdata.spare, 0xFF, sizeof(logdata.spare)); //set 0xFF (blank) in spare array
+  memset( measurement.spare, 0xFF, sizeof(measurement.spare)); //set 0xFF (blank) in spare array
 
-  turnoverAndErased = checkLogTurnoverAndErase(logdata.measurementId); //check dataflash ringbuffer is turnover and a block of 4k is erased.
+  turnoverAndErased = checkLogTurnoverAndErase(measurement.measurementId); //check dataflash ringbuffer is turnover and a block of 4k is erased.
   if( turnoverAndErased == true )
   {
     writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, readBackupRegister(BACKUP_REGISTER_OLDEST_LOG) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer
   }
 
-  result = writeLogInDataflash(logdata.measurementId, (uint8_t*)&logdata, sizeof(logdata)); //write new log to dataflash
+  result = writeLogInDataflash(measurement.measurementId, (uint8_t*)&measurement, sizeof(measurement)); //write new log to dataflash
 
   //check result
   if( result == 0 ) //success
@@ -511,23 +511,23 @@ int8_t readMeasurementFromDataflash( uint32_t measurementId, uint8_t * buffer, u
  */
 int32_t printMeasurementData( uint32_t measurementId, uint8_t * buffer, uint32_t bufferLength )
 {
-  readMeasurementFromDataflash(measurementId, (uint8_t*)&logdata, sizeof(logdata));
+  readMeasurementFromDataflash(measurementId, (uint8_t*)&measurement, sizeof(measurement));
 
   int length = 0;
 
-  length += snprintf((char*) buffer + length, bufferLength - length, "%lu;%lu;%u;", logdata.measurementId, logdata.timestamp, logdata.sensorModuleData.sensorModuleTypeId);
+  length += snprintf((char*) buffer + length, bufferLength - length, "%lu;%lu;%u;", measurement.measurementId, measurement.timestamp, measurement.sensorModuleData.sensorModuleTypeId);
 
   if( length >= bufferLength )
     return -1;
 
-  for (int i = 0; i < logdata.sensorModuleData.sensorModuleDataSize; i++)
+  for (int i = 0; i < measurement.sensorModuleData.sensorModuleDataSize; i++)
   {
-    length += snprintf((char*) buffer + length, bufferLength - length, "0x%02x", logdata.sensorModuleData.sensorModuleData[i]);
+    length += snprintf((char*) buffer + length, bufferLength - length, "0x%02x", measurement.sensorModuleData.sensorModuleData[i]);
 
     if( length >= bufferLength )
         return -1;
 
-    if (i < (logdata.sensorModuleData.sensorModuleDataSize - 1))
+    if (i < (measurement.sensorModuleData.sensorModuleDataSize - 1))
     {
       length += snprintf((char*) buffer + length, bufferLength, ",");
     }

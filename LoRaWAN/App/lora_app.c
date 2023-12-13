@@ -848,7 +848,7 @@ static void SendTxData(void)
   /* USER CODE BEGIN SendTxData_1 */
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
   UTIL_TIMER_Time_t nextTxIn = 0;
-  STRUCT_logdata *logdata = (STRUCT_logdata *)&measurement[0];
+  STRUCT_measurementData *measurementData = (STRUCT_measurementData *)&measurement[0];
 
   if (LmHandlerIsBusy() == false)
   {
@@ -860,27 +860,27 @@ static void SendTxData(void)
     readMeasurementFromDataflash(getLatestMeasurementId() > 0 ? getLatestMeasurementId() - 1 : 0, measurement, sizeof(measurement));
 
     /* get sensor module data size */
-    uint8_t sensorDataSize = logdata->sensorModuleData.sensorModuleDataSize;
+    uint8_t sensorDataSize = measurementData->sensorModuleData.sensorModuleDataSize;
 
     /* check if size is within limit of 36 bytes */
-    if( sensorDataSize >= sizeof(logdata->sensorModuleData) )
+    if( sensorDataSize >= sizeof(measurementData->sensorModuleData) )
     {
-      sensorDataSize = sizeof(logdata->sensorModuleData); //Maximize on 36 bytes
+      sensorDataSize = sizeof(measurementData->sensorModuleData); //Maximize on 36 bytes
     }
 
     /* fill in log data */
-    AppData.Buffer[i++] = logdata->protocolMFM; //protocol MFM
-    AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleSlotId;
-    AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleTypeId;
-    AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleProtocolId;
+    AppData.Buffer[i++] = measurementData->protocolMFM; //protocol MFM
+    AppData.Buffer[i++] = measurementData->sensorModuleData.sensorModuleSlotId;
+    AppData.Buffer[i++] = measurementData->sensorModuleData.sensorModuleTypeId;
+    AppData.Buffer[i++] = measurementData->sensorModuleData.sensorModuleProtocolId;
     AppData.Buffer[i++] = sensorDataSize;
 
     /* copy sensordata max 36 bytes */
-    memcpy(&AppData.Buffer[i],logdata->sensorModuleData.sensorModuleData, sensorDataSize );
+    memcpy(&AppData.Buffer[i],measurementData->sensorModuleData.sensorModuleData, sensorDataSize );
     i+=sensorDataSize;
 
     /* battery EOS status */
-    AppData.Buffer[i++] = logdata->MFM_baseData.batteryStateEos;
+    AppData.Buffer[i++] = measurementData->MFM_baseData.batteryStateEos;
 
 
 //////////////////////////////////////////////////////////////////

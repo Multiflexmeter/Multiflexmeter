@@ -41,11 +41,11 @@ typedef struct __attribute__((packed)){
   uint16_t sensorModuleData_crc;
   struct_MFM_baseData MFM_baseData;
   uint8_t spare[196];
-}STRUCT_logdata;
+}STRUCT_measurementData;
 
 typedef union{
   uint8_t logdata[MAX_SIZE_LOGDATA];
-  STRUCT_logdata log;
+  STRUCT_measurementData measurementData;
 }UNION_logdata;
 
 int8_t restoreLatestMeasurementId(void);
