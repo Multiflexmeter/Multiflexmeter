@@ -168,7 +168,7 @@ int8_t restoreLatestMeasurementId(void)
   uint32_t readLatestIdFromBackupRegister = 0;
   int8_t result;
 
-  UNION_measurementData * pLog = (UNION_measurementData *)&measurement;
+  UNION_measurementData * pUnMeasurement = (UNION_measurementData *)&measurement;
 
   APP_LOG(TS_OFF, VLEVEL_H, "Reset cause: %x\r\n", getResetSource() );
 
@@ -184,7 +184,7 @@ int8_t restoreLatestMeasurementId(void)
 
     //verify dataflash read
     readMeasurementFromDataflash(readLatestIdFromBackupRegister - 1, (uint8_t *) &measurement, sizeof(measurement));
-    if( pLog->measurementData.measurementId == readLatestIdFromBackupRegister - 1)
+    if( pUnMeasurement->measurementData.measurementId == readLatestIdFromBackupRegister - 1)
     {
       newMeasurementId = readLatestIdFromBackupRegister;
       readyForMeasurement = true;
