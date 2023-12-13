@@ -879,6 +879,8 @@ static void SendTxData(void)
     memcpy(&AppData.Buffer[i],logdata->sensorModuleData.sensorModuleData, sensorDataSize );
     i+=sensorDataSize;
 
+    /* battery EOS status */
+    AppData.Buffer[i++] = logdata->MFM_baseData.batteryStateEos;
 
 
 //////////////////////////////////////////////////////////////////
