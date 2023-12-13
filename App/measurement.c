@@ -373,12 +373,12 @@ int8_t writeNewMeasurement( uint8_t MFM_protocol, struct_MFM_sensorModuleData * 
     writeBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID, readBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer
   }
 
-  result = writeMeasurementInDataflash(measurement.measurementId, (uint8_t*)&measurement, sizeof(measurement)); //write new log to dataflash
+  result = writeMeasurementInDataflash(measurement.measurementId, (uint8_t*)&measurement, sizeof(measurement)); //write new measurement to dataflash
 
   //check result
   if( result == 0 ) //success
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "Log ID %u written to dataflash\r\n", newMeasurementId );
+    APP_LOG(TS_OFF, VLEVEL_H, "Measurement ID %u written to dataflash\r\n", newMeasurementId );
     newMeasurementId++;
     writeBackupRegister(BACKUP_REGISTER_LATEST_MEASUREMENT_ID, newMeasurementId);
   }
@@ -387,7 +387,7 @@ int8_t writeNewMeasurement( uint8_t MFM_protocol, struct_MFM_sensorModuleData * 
   {
     assert_param(1);
     APP_LOG(TS_OFF, VLEVEL_H, "Restore measurement ID failes\r\n" );
-    return -5;//failed to write log
+    return -5;//failed to write measurement
   }
 
   return 0;
@@ -512,7 +512,7 @@ const uint16_t getNumberOfMeasures(void)
     }
     else
     {
-      APP_LOG(TS_OFF, VLEVEL_H, "latestId is smaller then oldest, not possible!\r\n" );
+      APP_LOG(TS_OFF, VLEVEL_H, "Measurement latestId is smaller then oldest, not possible!\r\n" );
       return NUMBER_PAGES_FOR_MEASUREMENTS;
     }
   }
