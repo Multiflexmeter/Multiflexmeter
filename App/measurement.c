@@ -523,12 +523,12 @@ const uint16_t getNumberOfMeasures(void)
 }
 
 /**
- * @fn int8_t eraseCompleteMeasurementLog(void)
- * @brief function to erase all logs depending on reserverd memory of logs it choose the right block size to erase.
+ * @fn int8_t eraseCompleteMeasurementMemory(void)
+ * @brief function to erase all measurements depending on reserved memory for measurements it choose the right block size to erase.
  *
  * @return >= 0 okay, < 0 error not erased.
  */
-const uint8_t eraseCompleteMeasurementLog( void )
+const uint8_t eraseCompleteMeasurementMemory( void )
 {
   int returnValue = -1;
 

@@ -309,7 +309,7 @@ __weak const void setAlwaysOn(bool state)
  *
  * @return erase status
  */
-__weak const int8_t eraseCompleteMeasurementLog(void)
+__weak const int8_t eraseCompleteMeasurementMemory(void)
 {
   return 0;
 }
