@@ -51,7 +51,7 @@ typedef union{
 int8_t restoreLatestMeasurementId(void);
 int8_t restoreLatestTimeFromMeasurement(void);
 int8_t searchLatestMeasurementInDataflash( uint32_t * logId );
-int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorModuleData, struct_MFM_baseData * MFM_data);
+int8_t writeNewMeasurement( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorModuleData, struct_MFM_baseData * MFM_data);
 int8_t readMeasurement( uint32_t logId, uint8_t * buffer, uint32_t bufferLength );
 uint32_t getLatestMeasurementId(void);
 uint32_t getOldestMeasurementId(void);

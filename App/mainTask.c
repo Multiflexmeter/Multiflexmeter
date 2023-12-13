@@ -554,7 +554,7 @@ const void mainTask(void)
     case SAVE_DATA:
 
         stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
-        writeNewMeasurementToDataflash(0, &stMFM_sensorModuleData, &stMFM_baseData);
+        writeNewMeasurement(0, &stMFM_sensorModuleData, &stMFM_baseData);
         mainTask_state = SEND_LORA_DATA; //next state
 
 

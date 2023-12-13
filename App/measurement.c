@@ -304,15 +304,15 @@ int8_t restoreLatestTimeFromMeasurement(void)
   return 0;
 }
 /**
- * @fn int8_t writeNewMeasurementToDataflash(uint8_t, uint8_t*, uint8_t)
- * @brief function to write a new measurement to dataflash
+ * @fn int8_t writeNewMeasurement(uint8_t, uint8_t*, uint8_t)
+ * @brief function to write a new measurement
  *
  * @param sensorModuleType
  * @param sensorData
  * @param dataLength
  * @return 0 = successful
  */
-int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorModuleData, struct_MFM_baseData * MFM_data)
+int8_t writeNewMeasurement( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorModuleData, struct_MFM_baseData * MFM_data)
 {
   int8_t result;
   bool turnoverAndErased = false;
