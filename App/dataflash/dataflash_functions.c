@@ -212,7 +212,7 @@ int8_t readPageFromDataflash(uint32_t pageAddress, uint8_t * data, uint32_t leng
 
 /**
  * @fn int8_t readMeasurementFromDataflash(uint32_t, uint8_t*, uint32_t)
- * @brief function to read a log from flash
+ * @brief function to read a measurement from flash
  *
  * @param measurementId : number of measurement record to write
  * @param data : pointer to data buffer to write
@@ -348,13 +348,13 @@ const int8_t chipEraseDataflash(void)
 }
 
 /**
- * @fn int8_t clearLogInDataflash(uint32_t)
+ * @fn int8_t clearMeasurementsInDataflash(uint32_t)
  * @brief function to clear a 4k block of the logId
  *
  * @param measurementId sequence number of measurement.
- * @return 0 is succesful
+ * @return 0 is successful
  */
-int8_t clearLogInDataflash(uint32_t measurementId)
+int8_t clearMeasurementsInDataflash(uint32_t measurementId)
 {
   uint64_t pageAddress = (measurementId * PAGE_SIZE_DATAFLASH);
   pageAddress %= MEASUREMENT_MEMEORY_SIZE;
