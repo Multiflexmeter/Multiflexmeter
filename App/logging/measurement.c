@@ -2,8 +2,8 @@
   ******************************************************************************
   * @addtogroup     : App
   * @{
-  * @file           : logging.c
-  * @brief          : user level log functions
+  * @file           : measurement.c
+  * @brief          : user level measurement functions
   * @author         : P.Kwekkeboom
   * @date           : Aug 30, 2023
   * @copyright      : 2023 Dekimo Goes
@@ -19,7 +19,7 @@
 #include "../common/crc16.h"
 #include "../common/common.h"
 #include "../dataflash/dataflash_functions.h"
-#include "logging.h"
+#include "measurement.h"
 
 static STRUCT_logdata logdata;
 static bool logReady = 0;
@@ -158,7 +158,7 @@ int8_t searchLatestLogInDataflash( uint32_t * logId )
 /**
  * @fn int8_t restoreLatestLogId(void)
  * @brief function to read the latest log ID from backup memory or dataflash
- * result is stored locally in "logging.c"
+ * result is stored locally in "measurement.c"
  *
  * @return 1= successful from backup register, 0 = successful from dataflash search, -1 failed
  */

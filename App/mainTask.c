@@ -28,7 +28,7 @@
 #include "IO/led.h"
 #include "FRAM/FRAM_functions.h"
 #include "I2CMaster/SensorFunctions.h"
-#include "logging/logging.h"
+#include "logging/measurement.h"
 #include "BatMon_BQ35100/BatMon_functions.h"
 #include "RTC_AM1805/RTC_functions.h"
 #include "CommConfig.h"

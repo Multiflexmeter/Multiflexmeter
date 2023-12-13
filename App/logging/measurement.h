@@ -1,15 +1,15 @@
 /**
   ******************************************************************************
-  * @file           : logging.h
-  * @brief          : Header for logging.c file.
+  * @file           : measurement.h
+  * @brief          : Header for measurement.c file.
   * @author         : P.Kwekkeboom
   * @date           : Aug 30, 2023
   * @copyright      : 2023 Dekimo Goes
   ******************************************************************************
   */
 
-#ifndef LOGGING_LOGGING_H_
-#define LOGGING_LOGGING_H_
+#ifndef MEASUREMENT_MEASUREMENT_H_
+#define MEASUREMENT_MEASUREMENT_H_
 
 #define MAX_SENSOR_DATASIZE     36
 #define MAX_SENSOR_MODULE_DATA (MAX_SENSOR_DATASIZE + 4 ) //36 databytes + 4 bytes header

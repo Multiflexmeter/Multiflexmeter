@@ -36,7 +36,7 @@
 #include "flash_if.h"
 
 /* USER CODE BEGIN Includes */
-#include "../../../App/logging/logging.h"
+#include "../../../App/logging/measurement.h"
 #include "../../../App/common/common.h"
 /* USER CODE END Includes */
 
