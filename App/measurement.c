@@ -22,7 +22,7 @@
 #include "measurement.h"
 
 static STRUCT_measurementData measurement;
-static bool logReady = 0;
+static bool readyForMeasurement = 0;
 
 static uint32_t newMeasurementId = 0;
 
@@ -187,7 +187,7 @@ int8_t restoreLatestMeasurementId(void)
     if( pLog->measurementData.measurementId == readLatestIdFromBackupRegister - 1)
     {
       newMeasurementId = readLatestIdFromBackupRegister;
-      logReady = true;
+      readyForMeasurement = true;
 
       APP_LOG(TS_OFF, VLEVEL_H, "New measurument ID from backup register: %u\r\n", newMeasurementId);
 
@@ -220,13 +220,13 @@ int8_t restoreLatestMeasurementId(void)
   else if ( result > 0 ) //check on empty dataflash
   {
     newMeasurementId = 0;
-    logReady = true;
+    readyForMeasurement = true;
   }
 
   else //okay, used read id.
   {
     newMeasurementId = readLatestId + 1;
-    logReady = true;
+    readyForMeasurement = true;
   }
 
   writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newMeasurementId); //save new value in backup register
@@ -244,11 +244,11 @@ int8_t restoreLatestMeasurementId(void)
  */
 int8_t restoreLatestTimeFromMeasurement(void)
 {
-  assert_param( logReady == false ); //check logging is possible
+  assert_param( readyForMeasurement == false ); //check logging is possible
   assert_param( newMeasurementId == 0 ); //check previous logging exist.
 
   //check log is ready
-  if( logReady == false )
+  if( readyForMeasurement == false )
   {
     return -1;
   }
@@ -321,7 +321,7 @@ int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorMo
   static_assert (sizeof(struct_MFM_baseData) == MAX_BASE_MODULE_DATA, "Size struct_MFM_baseData is not correct");
   static_assert (sizeof(STRUCT_measurementData) == MAX_SIZE_LOGDATA, "Size STRUCT_logdata is not correct");
 
-  assert_param( logReady == true ); //check logging is possible
+  assert_param( readyForMeasurement == true ); //check logging is possible
   assert_param( sensorModuleData != 0 ); //check pointer is not zero
   assert_param( MFM_data != 0 ); //check pointer is not zero
   assert_param( sensorModuleData->sensorModuleDataSize <= sizeof(sensorModuleData->sensorModuleData) ); //check maximum supported datasize.
@@ -338,7 +338,7 @@ int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorMo
     return -2;
   }
 
-  if( logReady == false )
+  if( readyForMeasurement == false )
   {
     APP_LOG(TS_OFF, VLEVEL_H, "LOG: Logging is not possible\r\n");
     return -3;
