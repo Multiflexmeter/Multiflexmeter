@@ -16,9 +16,9 @@
 #include "main.h"
 #include "sys_app.h"
 #include "timer_if.h"
-#include "../common/crc16.h"
-#include "../common/common.h"
-#include "../dataflash/dataflash_functions.h"
+#include "common/crc16.h"
+#include "common/common.h"
+#include "dataflash/dataflash_functions.h"
 #include "measurement.h"
 
 static STRUCT_logdata logdata;
