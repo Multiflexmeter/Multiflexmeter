@@ -46,7 +46,7 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
   uint32_t lastRecordMeasurementId;
   uint32_t newReadingId;
 
-  UNION_logdata * pLog = (UNION_logdata *)&measurement;
+  UNION_measurementData * pLog = (UNION_measurementData *)&measurement;
 
   //read first record
   readLogFromDataflash(0, (uint8_t *) &measurement, sizeof(measurement));
@@ -168,7 +168,7 @@ int8_t restoreLatestMeasurementId(void)
   uint32_t readLatestIdFromBackupRegister = 0;
   int8_t result;
 
-  UNION_logdata * pLog = (UNION_logdata *)&measurement;
+  UNION_measurementData * pLog = (UNION_measurementData *)&measurement;
 
   APP_LOG(TS_OFF, VLEVEL_H, "Reset cause: %x\r\n", getResetSource() );
 

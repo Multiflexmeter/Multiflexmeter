@@ -44,9 +44,9 @@ typedef struct __attribute__((packed)){
 }STRUCT_measurementData;
 
 typedef union{
-  uint8_t logdata[MAX_SIZE_MEASUREMENTDATA];
+  uint8_t dataBuffer[MAX_SIZE_MEASUREMENTDATA];
   STRUCT_measurementData measurementData;
-}UNION_logdata;
+}UNION_measurementData;
 
 int8_t restoreLatestMeasurementId(void);
 int8_t restoreLatestTimeFromMeasurement(void);
