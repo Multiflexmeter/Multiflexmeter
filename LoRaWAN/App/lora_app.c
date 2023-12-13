@@ -857,7 +857,7 @@ static void SendTxData(void)
     AppData.Port = LORAWAN_USER_APP_PORT;
 
     /* read latest measurement data */
-    readMeasurementFromDataflash(getLatestMeasurementId() > 0 ? getLatestMeasurementId() - 1 : 0, measurement, sizeof(measurement));
+    readMeasurement(getLatestMeasurementId() > 0 ? getLatestMeasurementId() - 1 : 0, measurement, sizeof(measurement));
 
     /* get sensor module data size */
     uint8_t sensorDataSize = measurementData->sensorModuleData.sensorModuleDataSize;

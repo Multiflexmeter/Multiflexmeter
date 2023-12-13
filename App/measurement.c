@@ -474,7 +474,7 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
 }
 
 /**
- * @fn int8_t readMeasurementFromDataflash(uint32_t, uint8_t*, uint32_t)
+ * @fn int8_t readMeasurement(uint32_t, uint8_t*, uint32_t)
  * @brief function to read measurement data from dataflash
  *
  * @param measurementId
@@ -482,7 +482,7 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
  * @param bufferLength
  * @return
  */
-int8_t readMeasurementFromDataflash( uint32_t measurementId, uint8_t * buffer, uint32_t bufferLength )
+int8_t readMeasurement( uint32_t measurementId, uint8_t * buffer, uint32_t bufferLength )
 {
   assert_param( buffer == 0);
   assert_param( bufferLength == 0);
@@ -511,7 +511,7 @@ int8_t readMeasurementFromDataflash( uint32_t measurementId, uint8_t * buffer, u
  */
 int32_t printMeasurementData( uint32_t measurementId, uint8_t * buffer, uint32_t bufferLength )
 {
-  readMeasurementFromDataflash(measurementId, (uint8_t*)&measurement, sizeof(measurement));
+  readMeasurement(measurementId, (uint8_t*)&measurement, sizeof(measurement));
 
   int length = 0;
 
