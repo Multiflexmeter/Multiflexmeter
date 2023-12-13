@@ -869,7 +869,7 @@ static void SendTxData(void)
     }
 
     /* fill in log data */
-    AppData.Buffer[i++] = 0; //protocol MFM
+    AppData.Buffer[i++] = logdata->protocolMFM; //protocol MFM
     AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleSlotId;
     AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleTypeId;
     AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleProtocolId;
