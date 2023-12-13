@@ -180,7 +180,7 @@ int8_t restoreLatestMeasurementId(void)
   //check no power on reset
   if( getResetBackup() == false )
   {
-    readLatestIdFromBackupRegister = readBackupRegister( BACKUP_REGISTER_LATEST_LOG ); //get value from backup register
+    readLatestIdFromBackupRegister = readBackupRegister( BACKUP_REGISTER_LATEST_MEASUREMENT_ID ); //get value from backup register
 
     //verify dataflash read
     readMeasurementFromDataflash(readLatestIdFromBackupRegister - 1, (uint8_t *) &measurement, sizeof(measurement));
@@ -229,7 +229,7 @@ int8_t restoreLatestMeasurementId(void)
     readyForMeasurement = true;
   }
 
-  writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newMeasurementId); //save new value in backup register
+  writeBackupRegister(BACKUP_REGISTER_LATEST_MEASUREMENT_ID, newMeasurementId); //save new value in backup register
 
   APP_LOG(TS_OFF, VLEVEL_H, "New measurement ID by searching: %u\r\n", newMeasurementId);
 
@@ -370,7 +370,7 @@ int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorMo
   turnoverAndErased = checkLogTurnoverAndErase(measurement.measurementId); //check dataflash ringbuffer is turnover and a block of 4k is erased.
   if( turnoverAndErased == true )
   {
-    writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, readBackupRegister(BACKUP_REGISTER_OLDEST_LOG) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer
+    writeBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID, readBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer
   }
 
   result = writeLogInDataflash(measurement.measurementId, (uint8_t*)&measurement, sizeof(measurement)); //write new log to dataflash
@@ -380,7 +380,7 @@ int8_t writeNewMeasurementToDataflash( uint8_t MFM_protocol, struct_MFM_sensorMo
   {
     APP_LOG(TS_OFF, VLEVEL_H, "Log ID %u written to dataflash\r\n", newMeasurementId );
     newMeasurementId++;
-    writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newMeasurementId);
+    writeBackupRegister(BACKUP_REGISTER_LATEST_MEASUREMENT_ID, newMeasurementId);
   }
 
   else //failed
@@ -450,7 +450,7 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
   turnoverAndErased = checkLogTurnoverAndErase(measurement.measurementId); //check dataflash ringbuffer is turnover and a block of 4k is erased.
   if( turnoverAndErased == true )
   {
-    writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, readBackupRegister(BACKUP_REGISTER_OLDEST_LOG) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer
+    writeBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID, readBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID) + NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH);  //increment oldest pointer
   }
 
   result = writeLogInDataflash(measurement.measurementId, (uint8_t*)&measurement, sizeof(measurement)); //write new log to dataflash
@@ -460,7 +460,7 @@ int8_t writeNewLog_old( uint8_t sensorModuleSlotId, uint8_t sensorModuleType, ui
   {
     APP_LOG(TS_OFF, VLEVEL_H, "Log ID %u written to dataflash\r\n", newMeasurementId );
     newMeasurementId++;
-    writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, newMeasurementId);
+    writeBackupRegister(BACKUP_REGISTER_LATEST_MEASUREMENT_ID, newMeasurementId);
   }
 
   else //failed
@@ -583,7 +583,7 @@ uint32_t getOldestMeasurementId(void)
 const uint16_t getNumberOfMeasures(void)
 {
   uint32_t latestId = newMeasurementId; //newMeasurementId is the next ID, start with 0, so when newMeasurementId = 1, there is 1 log item.
-  uint32_t oldestId = readBackupRegister(BACKUP_REGISTER_OLDEST_LOG);
+  uint32_t oldestId = readBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID);
   if( latestId > NUMBER_PAGES_FOR_MEASUREMENTS )
   {
     if( latestId >= oldestId)
@@ -650,8 +650,8 @@ const uint8_t eraseCompleteMeasurementLog( void )
 
   if( returnValue >= 0 )
   {
-    writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, 0);
-    writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, 0);
+    writeBackupRegister(BACKUP_REGISTER_LATEST_MEASUREMENT_ID, 0);
+    writeBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID, 0);
     newMeasurementId = 0;
   }
 
@@ -710,8 +710,8 @@ const int8_t eraseCompleteMeasurementBlockByBlock( uint32_t * startAddress )
   {
     if( *startAddress >= NUMBER_PAGES_FOR_MEASUREMENTS * PAGE_SIZE_DATAFLASH )
     {
-      writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, 0);
-      writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, 0);
+      writeBackupRegister(BACKUP_REGISTER_LATEST_MEASUREMENT_ID, 0);
+      writeBackupRegister(BACKUP_REGISTER_OLDEST_MEASUREMENT_ID, 0);
       newMeasurementId = 0;
       returnValue = 1;
     }
