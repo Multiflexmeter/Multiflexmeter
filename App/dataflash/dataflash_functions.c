@@ -163,7 +163,7 @@ bool checkLogTurnoverAndErase(uint32_t logId)
   pageAddress %= LOG_MEMEORY_SIZE;
 
   //check logging in turnover
-  if( logId >= NUMBER_PAGES_FOR_LOGGING )
+  if( logId >= NUMBER_PAGES_FOR_MEASUREMENTS )
   {
     //check pageAddress is first of new block
     if( (pageAddress % 0x1000) == 0)

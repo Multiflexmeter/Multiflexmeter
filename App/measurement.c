@@ -33,13 +33,13 @@ static uint32_t newMeasurementId = 0;
  * Based on the first item in dataflash and latest item is filled the algorithm start searching for the highest.
  * When the item is found a check is done to make sure the next item is smaller or empty.
  *
- * @param measurementId destionation of found log record
+ * @param measurementId destionation of found measurement record
  * @return 0 = succesfull found, 1 = empty dataflash
  */
 int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
 {
   uint32_t boundaryStart = 0;
-  uint32_t boundaryEnd = NUMBER_PAGES_FOR_LOGGING;
+  uint32_t boundaryEnd = NUMBER_PAGES_FOR_MEASUREMENTS;
 
   uint32_t highestMeasurementId;
   uint32_t firstRecordMeasurementId;
@@ -53,7 +53,7 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
   firstRecordMeasurementId = pLog->measurementData.measurementId;
 
   //read latest record
-  readLogFromDataflash(NUMBER_PAGES_FOR_LOGGING - 1, (uint8_t *) &measurement, sizeof(measurement));
+  readLogFromDataflash(NUMBER_PAGES_FOR_MEASUREMENTS - 1, (uint8_t *) &measurement, sizeof(measurement));
   lastRecordMeasurementId = pLog->measurementData.measurementId;
 
   //determine ringbuffer is in overflow
@@ -80,7 +80,7 @@ int8_t searchLatestMeasurementInDataflash( uint32_t * measurementId )
     //overflow, first line empty
     *measurementId = lastRecordMeasurementId;
 
-    APP_LOG(TS_OFF, VLEVEL_H, "First line empty in dataflash, last line %u with ID %u.\r\n", NUMBER_PAGES_FOR_LOGGING - 1, lastRecordMeasurementId);
+    APP_LOG(TS_OFF, VLEVEL_H, "First line empty in dataflash, last line %u with ID %u.\r\n", NUMBER_PAGES_FOR_MEASUREMENTS - 1, lastRecordMeasurementId);
 
     return 0;
   }
@@ -562,14 +562,14 @@ uint32_t getLatestMeasurementId(void)
  */
 uint32_t getOldestMeasurementId(void)
 {
-  if( newMeasurementId < NUMBER_PAGES_FOR_LOGGING )
+  if( newMeasurementId < NUMBER_PAGES_FOR_MEASUREMENTS )
   {
     return 0;
   }
   else
   {
     //todo return real logging items, skip erased block,
-    return NUMBER_PAGES_FOR_LOGGING;
+    return NUMBER_PAGES_FOR_MEASUREMENTS;
   }
 }
 
@@ -584,7 +584,7 @@ const uint16_t getNumberOfMeasures(void)
 {
   uint32_t latestId = newMeasurementId; //newMeasurementId is the next ID, start with 0, so when newMeasurementId = 1, there is 1 log item.
   uint32_t oldestId = readBackupRegister(BACKUP_REGISTER_OLDEST_LOG);
-  if( latestId > NUMBER_PAGES_FOR_LOGGING )
+  if( latestId > NUMBER_PAGES_FOR_MEASUREMENTS )
   {
     if( latestId >= oldestId)
     {
@@ -593,7 +593,7 @@ const uint16_t getNumberOfMeasures(void)
     else
     {
       APP_LOG(TS_OFF, VLEVEL_H, "latestId is smaller then oldest, not possible!\r\n" );
-      return NUMBER_PAGES_FOR_LOGGING;
+      return NUMBER_PAGES_FOR_MEASUREMENTS;
     }
   }
   else
@@ -612,30 +612,30 @@ const uint8_t eraseCompleteMeasurementLog( void )
 {
   int returnValue = -1;
 
-  if( NUMBER_PAGES_FOR_LOGGING == NUMBER_PAGES_DATAFLASH ) //complete flash is used, chip erase can be executed
+  if( NUMBER_PAGES_FOR_MEASUREMENTS == NUMBER_PAGES_DATAFLASH ) //complete flash is used, chip erase can be executed
   {
     chipEraseDataflash();
     returnValue = 0;
   }
-  else if( (NUMBER_PAGES_FOR_LOGGING % NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH) == 0 )
+  else if( (NUMBER_PAGES_FOR_MEASUREMENTS % NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH) == 0 )
   {
-    for(int i = 0; i< NUMBER_PAGES_FOR_LOGGING/NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH; i++)
+    for(int i = 0; i< NUMBER_PAGES_FOR_MEASUREMENTS/NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH; i++)
     {
       blockErase64kDataflash( i * PAGE_SIZE_DATAFLASH * NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH );
     }
     returnValue = 0;
   }
-  else if( (NUMBER_PAGES_FOR_LOGGING % NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH) == 0 )
+  else if( (NUMBER_PAGES_FOR_MEASUREMENTS % NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH) == 0 )
   {
-    for(int i = 0; i< NUMBER_PAGES_FOR_LOGGING/NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH; i++)
+    for(int i = 0; i< NUMBER_PAGES_FOR_MEASUREMENTS/NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH; i++)
     {
       blockErase32kDataflash( i * PAGE_SIZE_DATAFLASH * NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH );
     }
     returnValue = 0;
   }
-  else if( (NUMBER_PAGES_FOR_LOGGING % NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) == 0 )
+  else if( (NUMBER_PAGES_FOR_MEASUREMENTS % NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) == 0 )
   {
-    for(int i = 0; i< NUMBER_PAGES_FOR_LOGGING/NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH; i++)
+    for(int i = 0; i< NUMBER_PAGES_FOR_MEASUREMENTS/NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH; i++)
     {
       blockErase4kDataflash( i * PAGE_SIZE_DATAFLASH * NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH );
     }
@@ -669,13 +669,13 @@ const int8_t eraseCompleteMeasurementBlockByBlock( uint32_t * startAddress )
 {
   int returnValue = -1;
 
-  if( NUMBER_PAGES_FOR_LOGGING == NUMBER_PAGES_DATAFLASH ) //complete flash is used, chip erase can be executed
+  if( NUMBER_PAGES_FOR_MEASUREMENTS == NUMBER_PAGES_DATAFLASH ) //complete flash is used, chip erase can be executed
   {
     chipEraseDataflash();
     *startAddress += NUMBER_PAGES_DATAFLASH * PAGE_SIZE_DATAFLASH;
     returnValue = 0;
   }
-  else if( (NUMBER_PAGES_FOR_LOGGING % NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH) == 0 )
+  else if( (NUMBER_PAGES_FOR_MEASUREMENTS % NUMBER_OF_PAGES_IN_64K_BLOCK_DATAFLASH) == 0 )
   {
 
     blockErase64kDataflash( *startAddress );
@@ -683,7 +683,7 @@ const int8_t eraseCompleteMeasurementBlockByBlock( uint32_t * startAddress )
 
     returnValue = 0;
   }
-  else if( (NUMBER_PAGES_FOR_LOGGING % NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH) == 0 )
+  else if( (NUMBER_PAGES_FOR_MEASUREMENTS % NUMBER_OF_PAGES_IN_32K_BLOCK_DATAFLASH) == 0 )
   {
 
     blockErase32kDataflash( *startAddress );
@@ -691,7 +691,7 @@ const int8_t eraseCompleteMeasurementBlockByBlock( uint32_t * startAddress )
 
     returnValue = 0;
   }
-  else if( (NUMBER_PAGES_FOR_LOGGING % NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) == 0 )
+  else if( (NUMBER_PAGES_FOR_MEASUREMENTS % NUMBER_OF_PAGES_IN_4K_BLOCK_DATAFLASH) == 0 )
   {
 
     blockErase4kDataflash( *startAddress );
@@ -708,7 +708,7 @@ const int8_t eraseCompleteMeasurementBlockByBlock( uint32_t * startAddress )
 
   if( returnValue >= 0 )
   {
-    if( *startAddress >= NUMBER_PAGES_FOR_LOGGING * PAGE_SIZE_DATAFLASH )
+    if( *startAddress >= NUMBER_PAGES_FOR_MEASUREMENTS * PAGE_SIZE_DATAFLASH )
     {
       writeBackupRegister(BACKUP_REGISTER_LATEST_LOG, 0);
       writeBackupRegister(BACKUP_REGISTER_OLDEST_LOG, 0);
@@ -723,5 +723,5 @@ const int8_t eraseCompleteMeasurementBlockByBlock( uint32_t * startAddress )
 
 const uint getProgressFromAddress( uint32_t address )
 {
-  return (address * 100) / (NUMBER_PAGES_FOR_LOGGING * PAGE_SIZE_DATAFLASH);
+  return (address * 100) / (NUMBER_PAGES_FOR_MEASUREMENTS * PAGE_SIZE_DATAFLASH);
 }
