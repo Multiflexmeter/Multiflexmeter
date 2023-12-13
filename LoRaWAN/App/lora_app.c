@@ -847,15 +847,12 @@ static void SendTxData(void)
 {
   /* USER CODE BEGIN SendTxData_1 */
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
-  uint8_t batteryLevel = GetBatteryLevel();
   UTIL_TIMER_Time_t nextTxIn = 0;
   STRUCT_logdata *logdata = (STRUCT_logdata *)&measurement[0];
 
   if (LmHandlerIsBusy() == false)
   {
     uint32_t i = 0;
-
-    APP_LOG(TS_ON, VLEVEL_M, "VDDA: %d\r\n", batteryLevel);
 
     AppData.Port = LORAWAN_USER_APP_PORT;
 
@@ -872,7 +869,7 @@ static void SendTxData(void)
     }
 
     /* fill in log data */
-    AppData.Buffer[i++] = 0; //protocol MFM
+    AppData.Buffer[i++] = logdata->protocolMFM; //protocol MFM
     AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleSlotId;
     AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleTypeId;
     AppData.Buffer[i++] = logdata->sensorModuleData.sensorModuleProtocolId;
@@ -881,7 +878,9 @@ static void SendTxData(void)
     /* copy sensordata max 36 bytes */
     memcpy(&AppData.Buffer[i],logdata->sensorModuleData.sensorModuleData, sensorDataSize );
     i+=sensorDataSize;
-    AppData.Buffer[i++] = batteryLevel;
+
+    /* battery EOS status */
+    AppData.Buffer[i++] = logdata->MFM_baseData.batteryStateEos;
 
 
 //////////////////////////////////////////////////////////////////
@@ -896,6 +895,13 @@ static void SendTxData(void)
 
     AppData.BufferSize = i;
 
+    /* verify data fitted in buffer */
+    assert_param(AppData.BufferSize <= sizeof(AppDataBuffer));
+
+    if( AppData.BufferSize > sizeof(AppDataBuffer) )
+    {
+      APP_LOG(TS_ON, VLEVEL_L, "SENDTXDATA: message larger then buffer\r\n");
+    }
 
     if ((JoinLedTimer.IsRunning) && (LmHandlerJoinStatus() == LORAMAC_HANDLER_SET))
     {

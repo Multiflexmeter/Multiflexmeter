@@ -317,6 +317,10 @@ int8_t writeNewLog( uint8_t MFM_protocol, struct_MFM_sensorModuleData * sensorMo
   int8_t result;
   bool turnoverAndErased = false;
 
+  static_assert (sizeof(struct_MFM_sensorModuleData) == MAX_SENSOR_MODULE_DATA, "Size struct_MFM_sensorModuleData is not correct");
+  static_assert (sizeof(struct_MFM_baseData) == MAX_BASE_MODULE_DATA, "Size struct_MFM_baseData is not correct");
+  static_assert (sizeof(STRUCT_logdata) == MAX_SIZE_LOGDATA, "Size STRUCT_logdata is not correct");
+
   assert_param( logReady == true ); //check logging is possible
   assert_param( sensorModuleData != 0 ); //check pointer is not zero
   assert_param( MFM_data != 0 ); //check pointer is not zero
