@@ -279,10 +279,11 @@ const void mainTask(void)
 
     case INIT_SLEEP: //init after Sleep
 
+#ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
       if( UTIL_TIMER_IsRunning(&measurement_Timer) == 0)
       {
 
-#ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+
         systemActiveTime_sec = 0; //reset //only when no RTC is used, overwrite boottime.
 #endif
 
@@ -293,14 +294,17 @@ const void mainTask(void)
           uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
         }
 
-#ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
-        loraJoinRetryCounter = 0; //reset, not needed for shutdown, beacause variable is always 0.
+#ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+        loraJoinRetryCounter = 0; //reset, not needed for shutdown, because variable is always 0.
 #endif
 
-        setWait(100); //set wait timeout 250ms
+        setWait(100); //set wait timeout 100ms
 
         mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE;
+
+#ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
         }
+#endif
       break;
 
     case WAIT_BATTERY_GAUGE_IS_ALIVE:
