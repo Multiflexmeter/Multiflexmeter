@@ -382,6 +382,14 @@ int8_t writeNewMeasurement( uint8_t MFM_protocol, struct_MFM_sensorModuleData * 
   if( result == 0 ) //success
   {
     APP_LOG(TS_OFF, VLEVEL_H, "Measurement ID %u written to dataflash\r\n", newMeasurementId );
+    uint32_t measurementId = measurement.measurementId;
+    readMeasurementFromDataflash(measurementId, (uint8_t*)&measurement, sizeof(measurement));
+
+    if( measurementId != measurement.measurementId)
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, "Measurement failed to write dataflash: %u vs %u\r\n", measurementId, measurement.measurementId );
+    }
+
     newMeasurementId++;
     writeBackupRegister(BACKUP_REGISTER_LATEST_MEASUREMENT_ID, newMeasurementId);
   }
