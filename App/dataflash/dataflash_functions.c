@@ -99,6 +99,18 @@ int8_t writePageInDataflash(uint32_t pageAddress, uint8_t * data, uint32_t lengt
   //enable io needed for dataflash
   setup_io_for_dataflash(true);
 
+  //set pageBuffer as empty value
+  memset(writePageBuffer, 0xff, sizeof(writePageBuffer));
+
+  //read dataflash block
+  standardflashReadArrayLowFreq(pageAddress, dataRead, length < sizeof(dataRead) ? length : sizeof(dataRead));
+
+  //check if location is empty
+  if (memcmp( dataRead, writePageBuffer, sizeof(writePageBuffer)) )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Page %d is not empty.\r\n", pageAddress);
+  }
+
   //enable write
   standardflashWriteEnable();
 
