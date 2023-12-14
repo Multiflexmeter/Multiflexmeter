@@ -300,7 +300,7 @@ const void mainTask(void)
         loraJoinRetryCounter = 0; //reset, not needed for shutdown, because variable is always 0.
 #endif
 
-        setWait(100); //set wait timeout 100ms
+        setWait(250); //set wait timeout 250ms, wait time for powerup battery monitor
 
         mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE;
 
@@ -321,7 +321,7 @@ const void mainTask(void)
          mainTask_state = WAIT_GAUGE_IS_ACTIVE;
        }
 
-       setWait(100); //set wait timeout 1s
+       setWait(200); //set wait 200ms
      }
 
       break;
@@ -337,7 +337,7 @@ const void mainTask(void)
           mainTask_state = CHECK_LORA_JOIN;
         }
 
-        setWait(100); //set wait timeout 1s
+        setWait(200); //set wait 200ms
       }
 
       break;
