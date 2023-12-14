@@ -592,6 +592,16 @@ void LoRaWAN_Init(void)
   LmHandlerFlagStatus_t joinStatus = LmHandlerJoinStatus();
   APP_LOG(TS_OFF, VLEVEL_M, "JOIN = %s\r\n", joinStatus == LORAMAC_HANDLER_SET ? "TRUE" : "FALSE" );
 
+  /* get rejoin status flag */
+  ForceRejoin = getRejoinAtNextInterval(); //get setting for forced rejoin.
+
+  if( ForceRejoin == true )
+  {
+    APP_LOG(TS_OFF, VLEVEL_M, "Force REJOIN\r\n");
+    // if rejoin is active, the reset current join status.
+    joinStatus = LORAMAC_HANDLER_RESET; //this forces the DR set back to 2.
+  }
+
   /* get current ADR setting */
   bool setting_AdrEnabled;
   if( LmHandlerGetAdrEnable(&setting_AdrEnabled) == LORAMAC_HANDLER_SUCCESS )
@@ -637,13 +647,6 @@ void LoRaWAN_Init(void)
   }
 
   nextRequestTime = readBackupRegister( BACKUP_REGISTER_LAST_TIME_SYNC ); //get value from backup register
-
-  ForceRejoin = getRejoinAtNextInterval(); //get setting for forced rejoin.
-
-  if( ForceRejoin == true )
-  {
-    APP_LOG(TS_OFF, VLEVEL_M, "Force REJOIN\r\n");
-  }
 
   /* USER CODE END LoRaWAN_Init_2 */
 
