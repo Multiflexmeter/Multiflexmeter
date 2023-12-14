@@ -700,17 +700,7 @@ const void mainTask(void)
       deinit_IO_Expander(IO_EXPANDER_BUS_INT);
       disableVsys();
       loraJoinRetryCounter = 0; //reset
-      mainTask_state = CHECK_LORA_REJOIN; //next state
-
-      break;
-
-    case CHECK_LORA_REJOIN:
-
-      //check rejoin is not active
-      if( !UTIL_TIMER_IsRunning(&rejoin_Timer))
-      {
-        mainTask_state = WAIT_LORA_RECEIVE_READY;
-      }
+      mainTask_state = WAIT_LORA_RECEIVE_READY; //next state
 
       break;
 
