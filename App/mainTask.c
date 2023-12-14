@@ -682,40 +682,24 @@ const void mainTask(void)
         }
 
         MainPeriodSleep = newLoraInterval;
-        setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
 
-        //check JOIN is not active
-        if (LmHandlerJoinStatus() == LORAMAC_HANDLER_RESET) // JOIN is not active
-        { //retry it after ..
-          setWait(10000);  //set wait time 10sec
-          mainTask_state = CHECK_LORA_JOINED; //next state
-        }
-        else
+#ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+        setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
+#endif
+
+        /* check join is active */
+        if( LmHandlerJoinStatus() == LORAMAC_HANDLER_SET)
         {
           if( getRejoinAtNextInterval() ) //check value is set, then reset is when join is active.
           {
             clearRejoinAtNextInterval();
           }
-          mainTask_state = SWITCH_OFF_VSYS; //increment again, to skip retry for join.
-        }
-      }
-
-      break;
-
-    case CHECK_LORA_JOINED:
-
-      if( waiting == false ) //check wait time is expired
-      {
-        if( LmHandlerJoinStatus() == LORAMAC_HANDLER_SET || loraJoinRetryCounter > 5 )
-        {
-          mainTask_state = SWITCH_OFF_VSYS; //next state
         }
         else
-        { //try again
-          loraJoinRetryCounter++;
-          triggerSendTxData(); //trigger Lora transmit
-          mainTask_state = WAIT_LORA_TRANSMIT_READY; //previous state
+        {
+          //nothing
         }
+        mainTask_state = SWITCH_OFF_VSYS; //go to next state.
       }
 
       break;
