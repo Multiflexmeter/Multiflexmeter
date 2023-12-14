@@ -38,6 +38,8 @@
 #define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
 #define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled. //if enabled jumper on J11 1-2 must be placed.
 
+#define LORA_REJOIN_NUMBER_OF_RETRIES   5
+
 static volatile bool mainTaskActive;
 static uint32_t mainTask_tmr;
 static int mainTask_state;
@@ -291,6 +293,10 @@ const void mainTask(void)
           uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
         }
 
+#ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+        loraJoinRetryCounter = 0; //reset, not needed for shutdown, beacause variable is always 0.
+#endif
+
         setWait(100); //set wait timeout 250ms
 
         mainTask_state = WAIT_BATTERY_GAUGE_INIT;
@@ -320,10 +326,35 @@ const void mainTask(void)
         if( batmon_isGaugeActive() )
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: gauge active\r\n");
-          mainTask_state = ENABLE_VSYS;
+
+          APP_LOG(TS_OFF, VLEVEL_H, "DevNonce %u\r\n", getDevNonce());
+          mainTask_state = CHECK_LORA_JOIN;
         }
 
         setWait(100); //set wait timeout 1s
+      }
+
+      break;
+
+    case CHECK_LORA_JOIN:
+
+      if( LmHandlerJoinStatus() == LORAMAC_HANDLER_SET  )
+      {
+        //normal flow, start measuring
+        mainTask_state = ENABLE_VSYS;
+      }
+
+      else if( loraJoinRetryCounter > LORA_REJOIN_NUMBER_OF_RETRIES ) //check number of retries exceeded.
+      {
+        //go further normal way, so save a  measure in dataflash
+        mainTask_state = ENABLE_VSYS;
+      }
+
+      else if( waiting == false )
+      {
+        loraJoinRetryCounter++;
+        triggerSendTxData(); //trigger Lora transmit, also triggers a join
+        setWait(10000); //set wait timeout 10s, for possible next join
       }
 
       break;
@@ -562,11 +593,27 @@ const void mainTask(void)
 
     case SEND_LORA_DATA:
 
-      loraTransmitReady = false; //reset before new transmit
-      loraReceiveReady = false; //reset before new transmit
+        if( waiting == false )
+        {
+          if( LmHandlerJoinStatus() == LORAMAC_HANDLER_SET              //check join is active
+              ||                                                        //or
+              loraJoinRetryCounter > LORA_REJOIN_NUMBER_OF_RETRIES )    //no join and number of retries exceeded.
+          {
+            loraTransmitReady = false; //reset before new transmit
+            loraReceiveReady = false; //reset before new transmit
 
-      triggerSendTxData(); //trigger Lora transmit
-      mainTask_state = NEXT_SENSOR_MODULE; //next state
+            triggerSendTxData(); //trigger Lora transmit
+            mainTask_state = NEXT_SENSOR_MODULE; //next state
+          }
+
+          else
+          { //join is not active,
+            loraJoinRetryCounter++;
+            triggerSendTxData(); //trigger Lora transmit, also trig
+            setWait(10000);  //set wait time 10sec
+          }
+
+        }
 
       break;
 
