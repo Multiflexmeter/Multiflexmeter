@@ -316,7 +316,7 @@ const void mainTask(void)
          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
 
          batmon_enable_gauge(); //enable gauging
-         mainTask_state = WAIT_GAUGE_ENABLED;
+         mainTask_state = WAIT_GAUGE_IS_ACTIVE;
        }
 
        setWait(100); //set wait timeout 1s
@@ -324,7 +324,7 @@ const void mainTask(void)
 
       break;
 
-    case WAIT_GAUGE_ENABLED:
+    case WAIT_GAUGE_IS_ACTIVE:
       if( waiting == false )
       {
         if( batmon_isGaugeActive() )
