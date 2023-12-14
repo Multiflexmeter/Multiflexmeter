@@ -345,13 +345,13 @@ const void mainTask(void)
       if( LmHandlerJoinStatus() == LORAMAC_HANDLER_SET  )
       {
         //normal flow, start measuring
-        mainTask_state = ENABLE_VSYS;
+        mainTask_state = SWITCH_ON_VSYS;
       }
 
       else if( loraJoinRetryCounter > LORA_REJOIN_NUMBER_OF_RETRIES ) //check number of retries exceeded.
       {
         //go further normal way, so save a  measure in dataflash
-        mainTask_state = ENABLE_VSYS;
+        mainTask_state = SWITCH_ON_VSYS;
       }
 
       else if( waiting == false )
@@ -363,7 +363,7 @@ const void mainTask(void)
 
       break;
 
-    case ENABLE_VSYS:
+    case SWITCH_ON_VSYS:
 
       enableVsys(); //enable supply for I/O expander
       init_board_io_device(IO_EXPANDER_BUS_INT);
