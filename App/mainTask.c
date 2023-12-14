@@ -389,8 +389,6 @@ const void mainTask(void)
 
       if( sensorModuleEnabled )
       {
-        mainTask_state = ENABLE_SLOTPOWER; //at least one active sensor module slot
-
         getFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //read out FRAM setting module ID
 
         if( sensorModuleId < 0 || sensorModuleId >= MAX_SENSOR_MODULE )
@@ -415,6 +413,10 @@ const void mainTask(void)
           setRequestTime();
         }
 
+        slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
+        setWait(10); //set wait time 10ms
+        mainTask_state = START_SENSOR_MEASURE; //next state
+
       }
       else
       {
@@ -422,22 +424,6 @@ const void mainTask(void)
         UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
         mainTask_state = STOP_MAINTASK; //no sensor slot is active
-      }
-
-      break;
-
-    case ENABLE_SLOTPOWER: //enable sensor supply
-
-      if( startMeasure == true )
-      {
-        slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
-        setWait(10); //set wait time 10ms
-        mainTask_state = START_SENSOR_MEASURE; //next state
-      }
-
-      else
-      {
-        //keep waiting.
       }
 
       break;
