@@ -735,7 +735,8 @@ const void mainTask(void)
           batmon_disable(); //switch off battery monitor
           mainTask_state = WAIT_FOR_SLEEP;
         }
-        setWait(100);  //set wait time 100ms
+        setWait(1000);  //set wait time 1000ms
+
       }
 
       break;
