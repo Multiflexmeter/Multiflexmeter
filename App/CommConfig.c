@@ -1576,7 +1576,7 @@ void sendMeasureTime(int arguments, const char * format, ...)
 {
   char *ptr; //dummy pointer
   int sensorId = -1;
-  int32_t measureTime = -1;
+  uint16_t measureTime = -1;
 
   if( format[0] == '=' && format[2] == '\r' && format[3] == '\n') //check index 0 is "=" and index 2 is "\r" and index 3 is "\n"
   {
@@ -1585,7 +1585,7 @@ void sendMeasureTime(int arguments, const char * format, ...)
 
   measureTime = getMeasureTime(sensorId);
 
-  if( measureTime >= 0 )
+  if( measureTime >= 0 && measureTime <= 60000 )
   {
     snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getMeasureTime(sensorId) );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));

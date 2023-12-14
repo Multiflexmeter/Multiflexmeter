@@ -480,6 +480,37 @@ const void setRequestTime(void)
   requestTime = true;
 }
 
+/**
+ * @fn const void setRejoinAtNextInterval(void)
+ * @brief function to set a rejoin for next interval
+ *
+ */
+const void setRejoinAtNextInterval(void)
+{
+  writeBackupRegister(BACKUP_REGISTER_REJOIN, true);
+}
+
+/**
+ * @fn const void clearRejoinAtNextInterval(void)
+ * @brief function to reset a rejoin status for next interval
+ *
+ */
+const void clearRejoinAtNextInterval(void)
+{
+  writeBackupRegister(BACKUP_REGISTER_REJOIN, false);
+}
+
+/**
+ * @fn const bool getRejoinAtNextInterval(void)
+ * @brief get current rejoin status.
+ *
+ * @return
+ */
+const bool getRejoinAtNextInterval(void)
+{
+  return (readBackupRegister(BACKUP_REGISTER_REJOIN) == true);
+}
+
 /* USER CODE END EF */
 
 void LoRaWAN_Init(void)
@@ -561,6 +592,16 @@ void LoRaWAN_Init(void)
   LmHandlerFlagStatus_t joinStatus = LmHandlerJoinStatus();
   APP_LOG(TS_OFF, VLEVEL_M, "JOIN = %s\r\n", joinStatus == LORAMAC_HANDLER_SET ? "TRUE" : "FALSE" );
 
+  /* get rejoin status flag */
+  ForceRejoin = getRejoinAtNextInterval(); //get setting for forced rejoin.
+
+  if( ForceRejoin == true )
+  {
+    APP_LOG(TS_OFF, VLEVEL_M, "Force REJOIN\r\n");
+    // if rejoin is active, the reset current join status.
+    joinStatus = LORAMAC_HANDLER_RESET; //this forces the DR set back to 2.
+  }
+
   /* get current ADR setting */
   bool setting_AdrEnabled;
   if( LmHandlerGetAdrEnable(&setting_AdrEnabled) == LORAMAC_HANDLER_SUCCESS )
@@ -572,27 +613,19 @@ void LoRaWAN_Init(void)
     APP_LOG(TS_OFF, VLEVEL_M, "ADR = failed\r\n" );
   }
 
-  /* set ADR enabled if join is found */
-  if( joinStatus == LORAMAC_HANDLER_SET )
+  /* set enable ADR based on join status */
+  bool enableAdr = joinStatus == LORAMAC_HANDLER_SET ? true : false;
+  if( LmHandlerSetAdrEnable(enableAdr) == LORAMAC_HANDLER_ERROR )
   {
-    /* check ADR is disabled, enable it then */
-    if( setting_AdrEnabled == false )
-    {
-      if( LmHandlerSetAdrEnable(true) == LORAMAC_HANDLER_ERROR )
-      {
-        APP_LOG(TS_OFF, VLEVEL_H, "###### FAIL init adrEnable\r\n");
-      }
-      else
-      {
-        APP_LOG(TS_OFF, VLEVEL_M, "set ADR is TRUE\r\n" );
-      }
-    }
-    else
-    {
-      //nothing
-    }
+    APP_LOG(TS_OFF, VLEVEL_H, "###### FAIL init adrEnable\r\n");
   }
-  else /*set DR_2 if no join is found */
+  else
+  {
+    APP_LOG(TS_OFF, VLEVEL_M, "set ADR is %s\r\n", enableAdr ? "TRUE" : "FALSE" );
+  }
+
+  /* set DR_2 only if join is not active or forced rejoin active */
+  if( joinStatus == LORAMAC_HANDLER_RESET )
   {
     if( LmHandlerSetTxDatarate(DR_2) == LORAMAC_HANDLER_ERROR )
     {
@@ -602,7 +635,6 @@ void LoRaWAN_Init(void)
     {
       APP_LOG(TS_OFF, VLEVEL_M, "set Tx Datarate to DR_2\r\n" );
     }
-
   }
 
   nextRequestTime = readBackupRegister( BACKUP_REGISTER_LAST_TIME_SYNC ); //get value from backup register

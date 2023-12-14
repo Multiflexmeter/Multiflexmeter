@@ -38,6 +38,8 @@
 #define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
 #define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled. //if enabled jumper on J11 1-2 must be placed.
 
+#define LORA_REJOIN_NUMBER_OF_RETRIES   5
+
 static volatile bool mainTaskActive;
 static uint32_t mainTask_tmr;
 static int mainTask_state;
@@ -277,10 +279,11 @@ const void mainTask(void)
 
     case INIT_SLEEP: //init after Sleep
 
+#ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
       if( UTIL_TIMER_IsRunning(&measurement_Timer) == 0)
       {
 
-#ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+
         systemActiveTime_sec = 0; //reset //only when no RTC is used, overwrite boottime.
 #endif
 
@@ -291,13 +294,20 @@ const void mainTask(void)
           uartListen(); //activate the config uart to process command, temporary consturction //todo change only listen when USB is attachted.
         }
 
-        setWait(100); //set wait timeout 250ms
+#ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+        loraJoinRetryCounter = 0; //reset, not needed for shutdown, because variable is always 0.
+#endif
 
-        mainTask_state = WAIT_BATTERY_GAUGE_INIT;
+        setWait(100); //set wait timeout 100ms
+
+        mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE;
+
+#ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
         }
+#endif
       break;
 
-    case WAIT_BATTERY_GAUGE_INIT:
+    case WAIT_BATTERY_GAUGE_IS_ALIVE:
 
      if( waiting == false  )
      {
@@ -306,7 +316,7 @@ const void mainTask(void)
          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
 
          batmon_enable_gauge(); //enable gauging
-         mainTask_state = WAIT_GAUGE_ENABLED;
+         mainTask_state = WAIT_GAUGE_IS_ACTIVE;
        }
 
        setWait(100); //set wait timeout 1s
@@ -314,13 +324,15 @@ const void mainTask(void)
 
       break;
 
-    case WAIT_GAUGE_ENABLED:
+    case WAIT_GAUGE_IS_ACTIVE:
       if( waiting == false )
       {
         if( batmon_isGaugeActive() )
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: gauge active\r\n");
-          mainTask_state = ENABLE_VSYS;
+
+          APP_LOG(TS_OFF, VLEVEL_H, "DevNonce %u\r\n", getDevNonce());
+          mainTask_state = CHECK_LORA_JOIN;
         }
 
         setWait(100); //set wait timeout 1s
@@ -328,17 +340,40 @@ const void mainTask(void)
 
       break;
 
-    case ENABLE_VSYS:
+    case CHECK_LORA_JOIN:
+
+      if( LmHandlerJoinStatus() == LORAMAC_HANDLER_SET  )
+      {
+        //normal flow, start measuring
+        mainTask_state = SWITCH_ON_VSYS;
+      }
+
+      else if( loraJoinRetryCounter > LORA_REJOIN_NUMBER_OF_RETRIES ) //check number of retries exceeded.
+      {
+        //go further normal way, so save a  measure in dataflash
+        mainTask_state = SWITCH_ON_VSYS;
+      }
+
+      else if( waiting == false )
+      {
+        loraJoinRetryCounter++;
+        triggerSendTxData(); //trigger Lora transmit, also triggers a join
+        setWait(10000); //set wait timeout 10s, for possible next join
+      }
+
+      break;
+
+    case SWITCH_ON_VSYS:
 
       enableVsys(); //enable supply for I/O expander
       init_board_io_device(IO_EXPANDER_BUS_INT);
       init_board_io_device(IO_EXPANDER_BUS_EXT);
 
-      mainTask_state = CHECK_SENSOR_SLOT;
+      mainTask_state = SWITCH_SENSOR_SLOT;
 
       break;
 
-    case CHECK_SENSOR_SLOT:
+    case SWITCH_SENSOR_SLOT:
 
       numberOfsensorModules = 0;
       sensorModuleEnabled = false;
@@ -354,8 +389,6 @@ const void mainTask(void)
 
       if( sensorModuleEnabled )
       {
-        mainTask_state = ENABLE_SLOTPOWER; //at least one active sensor module slot
-
         getFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //read out FRAM setting module ID
 
         if( sensorModuleId < 0 || sensorModuleId >= MAX_SENSOR_MODULE )
@@ -380,6 +413,10 @@ const void mainTask(void)
           setRequestTime();
         }
 
+        slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
+        setWait(10); //set wait time 10ms
+        mainTask_state = START_SENSOR_MEASURE; //next state
+
       }
       else
       {
@@ -387,22 +424,6 @@ const void mainTask(void)
         UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
         mainTask_state = STOP_MAINTASK; //no sensor slot is active
-      }
-
-      break;
-
-    case ENABLE_SLOTPOWER: //enable sensor supply
-
-      if( startMeasure == true )
-      {
-        slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
-        setWait(10); //set wait time 10ms
-        mainTask_state = START_SENSOR_MEASURE; //next state
-      }
-
-      else
-      {
-        //keep waiting.
       }
 
       break;
@@ -562,11 +583,27 @@ const void mainTask(void)
 
     case SEND_LORA_DATA:
 
-      loraTransmitReady = false; //reset before new transmit
-      loraReceiveReady = false; //reset before new transmit
+        if( waiting == false )
+        {
+          if( LmHandlerJoinStatus() == LORAMAC_HANDLER_SET              //check join is active
+              ||                                                        //or
+              loraJoinRetryCounter > LORA_REJOIN_NUMBER_OF_RETRIES )    //no join and number of retries exceeded.
+          {
+            loraTransmitReady = false; //reset before new transmit
+            loraReceiveReady = false; //reset before new transmit
 
-      triggerSendTxData(); //trigger Lora transmit
-      mainTask_state = NEXT_SENSOR_MODULE; //next state
+            triggerSendTxData(); //trigger Lora transmit
+            mainTask_state = NEXT_SENSOR_MODULE; //next state
+          }
+
+          else
+          { //join is not active,
+            loraJoinRetryCounter++;
+            triggerSendTxData(); //trigger Lora transmit, also trig
+            setWait(10000);  //set wait time 10sec
+          }
+
+        }
 
       break;
 
@@ -635,36 +672,24 @@ const void mainTask(void)
         }
 
         MainPeriodSleep = newLoraInterval;
+
+#ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
+#endif
 
-        //check JOIN is not active
-        if (LmHandlerJoinStatus() == LORAMAC_HANDLER_RESET) // JOIN is not active
-        { //retry it after ..
-          setWait(10000);  //set wait time 10sec
-          mainTask_state = CHECK_LORA_JOINED; //next state
+        /* check join is active */
+        if( LmHandlerJoinStatus() == LORAMAC_HANDLER_SET)
+        {
+          if( getRejoinAtNextInterval() ) //check value is set, then reset is when join is active.
+          {
+            clearRejoinAtNextInterval();
+          }
         }
         else
         {
-          mainTask_state = SWITCH_OFF_VSYS; //increment again, to skip retry for join.
+          //nothing
         }
-      }
-
-      break;
-
-    case CHECK_LORA_JOINED:
-
-      if( waiting == false ) //check wait time is expired
-      {
-        if( LmHandlerJoinStatus() == LORAMAC_HANDLER_SET || loraJoinRetryCounter > 5 )
-        {
-          mainTask_state = SWITCH_OFF_VSYS; //next state
-        }
-        else
-        { //try again
-          loraJoinRetryCounter++;
-          triggerSendTxData(); //trigger Lora transmit
-          mainTask_state = WAIT_LORA_TRANSMIT_READY; //previous state
-        }
+        mainTask_state = SWITCH_OFF_VSYS; //go to next state.
       }
 
       break;
@@ -675,17 +700,7 @@ const void mainTask(void)
       deinit_IO_Expander(IO_EXPANDER_BUS_INT);
       disableVsys();
       loraJoinRetryCounter = 0; //reset
-      mainTask_state = CHECK_LORA_REJOIN; //next state
-
-      break;
-
-    case CHECK_LORA_REJOIN:
-
-      //check rejoin is not active
-      if( !UTIL_TIMER_IsRunning(&rejoin_Timer))
-      {
-        mainTask_state = WAIT_LORA_RECEIVE_READY;
-      }
+      mainTask_state = WAIT_LORA_RECEIVE_READY; //next state
 
       break;
 
@@ -997,7 +1012,11 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
           {
             //trigger rejoin
             APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Rejoin received\r\n" ); //print no sensor slot enabled
+#ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+            setRejoinAtNextInterval(); //set a rejoin for next interval
+#else
             setDelayReJoin(10000); //set a delay ReJoin after 10 seconds. At Join the NVM is read. NVM needs to be saved before new join starts.
+#endif
           }
           else
           {
