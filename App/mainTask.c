@@ -19,6 +19,7 @@
 #include "stm32_seq.h"
 #include "stm32_timer.h"
 #include "stm32_systime.h"
+#include "timer_if.h"
 
 #include "lora_app.h"
 #include "LoRaMac.h"
@@ -37,6 +38,7 @@
 
 #define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
 #define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled. //if enabled jumper on J11 1-2 must be placed.
+#define DEBUG_SLEEP_MAINTASK //comment if feature must be disabled
 
 #define LORA_REJOIN_NUMBER_OF_RETRIES   5
 
@@ -298,7 +300,7 @@ const void mainTask(void)
         loraJoinRetryCounter = 0; //reset, not needed for shutdown, because variable is always 0.
 #endif
 
-        setWait(100); //set wait timeout 100ms
+        setWait(250); //set wait timeout 250ms, wait time for powerup battery monitor
 
         mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE;
 
@@ -319,7 +321,7 @@ const void mainTask(void)
          mainTask_state = WAIT_GAUGE_IS_ACTIVE;
        }
 
-       setWait(100); //set wait timeout 1s
+       setWait(200); //set wait 200ms
      }
 
       break;
@@ -335,7 +337,7 @@ const void mainTask(void)
           mainTask_state = CHECK_LORA_JOIN;
         }
 
-        setWait(100); //set wait timeout 1s
+        setWait(200); //set wait 200ms
       }
 
       break;
@@ -457,7 +459,16 @@ const void mainTask(void)
         result = sensorReadSetupTime(sensorModuleId, &sensorSetupTime);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module setup time: %d, %u\r\n", sensorModuleId, sensorSetupTime ); //print sensor setup time
 
-        setWait(250);  //set wait time 250ms
+        uint16_t measureTime = getMeasureTime(sensorModuleId + 1); //get configured wait time of sensor
+
+        if( measureTime == 65535) //check error value
+        {
+          measureTime = 250; //use default wait time
+        }
+
+        setWait(measureTime);  //set wait time of sensor
+
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor wait %ums (read %ums)\r\n", measureTime, getMeasureTime(sensorModuleId + 1) ); //print measure time
 
         mainTask_state = WAIT_FOR_SENSOR_DATA; //next state
       }
@@ -726,7 +737,8 @@ const void mainTask(void)
           batmon_disable(); //switch off battery monitor
           mainTask_state = WAIT_FOR_SLEEP;
         }
-        setWait(100);  //set wait time 100ms
+        setWait(1000);  //set wait time 1000ms
+
       }
 
       break;
@@ -774,7 +786,19 @@ const void mainTask(void)
   //or if USB is connected
   if( mainTaskActive ||  getInput_board_io(EXT_IOUSB_CONNECTED) )
   {
-    setNextPeriod(MainPeriodNormal);
+    if( wait_Timer.Timestamp > MainPeriodNormal )
+    {
+#ifdef DEBUG_SLEEP_MAINTASK
+      APP_LOG(TS_OFF, VLEVEL_H, "MainTask sleep tick: %u, time: %ums, state %d\r\n", wait_Timer.Timestamp, TIMER_IF_Convert_Tick2ms(wait_Timer.Timestamp), mainTask_state );
+#endif
+      setNextPeriod(TIMER_IF_Convert_Tick2ms(wait_Timer.Timestamp));
+    }
+
+    else
+    {
+      setNextPeriod(MainPeriodNormal);
+    }
+
   }
   else
   {
