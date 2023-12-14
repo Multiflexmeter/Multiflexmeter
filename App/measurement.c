@@ -197,6 +197,7 @@ int8_t restoreLatestMeasurementId(void)
     else
     {
       APP_LOG(TS_OFF, VLEVEL_H, "Mismatch in backup register\r\n" );
+      readMeasurementFromDataflash(readLatestIdFromBackupRegister - 1, (uint8_t *) &measurement, sizeof(measurement));
     }
   }
 
@@ -209,6 +210,8 @@ int8_t restoreLatestMeasurementId(void)
 
   //Power on reset or backup register corrupted
   result = searchLatestMeasurementInDataflash( &readLatestId );
+
+  readMeasurementFromDataflash(readLatestId, (uint8_t *) &measurement, sizeof(measurement));
 
   if( result < 0 ) //check on error
   {
