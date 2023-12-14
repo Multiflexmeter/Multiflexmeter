@@ -19,6 +19,7 @@
 #include "stm32_seq.h"
 #include "stm32_timer.h"
 #include "stm32_systime.h"
+#include "timer_if.h"
 
 #include "lora_app.h"
 #include "LoRaMac.h"
@@ -784,7 +785,19 @@ const void mainTask(void)
   //or if USB is connected
   if( mainTaskActive ||  getInput_board_io(EXT_IOUSB_CONNECTED) )
   {
-    setNextPeriod(MainPeriodNormal);
+    if( wait_Timer.Timestamp > MainPeriodNormal )
+    {
+#ifdef DEBUG_SLEEP_MAINTASK
+      APP_LOG(TS_OFF, VLEVEL_H, "MainTask sleep tick: %u, time: %ums, state %d\r\n", wait_Timer.Timestamp, TIMER_IF_Convert_Tick2ms(wait_Timer.Timestamp), mainTask_state );
+#endif
+      setNextPeriod(TIMER_IF_Convert_Tick2ms(wait_Timer.Timestamp));
+    }
+
+    else
+    {
+      setNextPeriod(MainPeriodNormal);
+    }
+
   }
   else
   {
