@@ -37,6 +37,7 @@
 #include "mainTask.h"
 
 #define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
+#define LORA_PERIODICALLY_REQUEST_TIME //comment if feature must be disabled.
 #define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled. //if enabled jumper on J11 1-2 must be placed.
 #define DEBUG_SLEEP_MAINTASK //comment if feature must be disabled
 
@@ -410,10 +411,12 @@ const void mainTask(void)
         }
 #endif
 
+#ifdef LORA_PERIODICALLY_REQUEST_TIME
         if( getDevNonce() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
         {
           setRequestTime();
         }
+#endif
 
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
         setWait(10); //set wait time 10ms
