@@ -299,11 +299,11 @@ const void mainTask(void)
 
         setWait(100); //set wait timeout 250ms
 
-        mainTask_state = WAIT_BATTERY_GAUGE_INIT;
+        mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE;
         }
       break;
 
-    case WAIT_BATTERY_GAUGE_INIT:
+    case WAIT_BATTERY_GAUGE_IS_ALIVE:
 
      if( waiting == false  )
      {
