@@ -369,11 +369,11 @@ const void mainTask(void)
       init_board_io_device(IO_EXPANDER_BUS_INT);
       init_board_io_device(IO_EXPANDER_BUS_EXT);
 
-      mainTask_state = CHECK_SENSOR_SLOT;
+      mainTask_state = SWITCH_SENSOR_SLOT;
 
       break;
 
-    case CHECK_SENSOR_SLOT:
+    case SWITCH_SENSOR_SLOT:
 
       numberOfsensorModules = 0;
       sensorModuleEnabled = false;
