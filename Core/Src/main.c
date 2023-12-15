@@ -66,9 +66,6 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-//#define ERASE_DATAFLASH       //enable for erasing dataflash
-//#define ERASE_VIRTUAL_EEPROM  //enable for erasing virtual EEPROM
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
