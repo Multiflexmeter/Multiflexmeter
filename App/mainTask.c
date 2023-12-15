@@ -275,7 +275,7 @@ const void mainTask(void)
       init_vAlwaysOn();
       executeAlwaysOn(); //execute Always on config value.
 
-      initBatMon(); //initialize and enable battery gauge
+      initBatMon(); //initialize I2C peripheral for battery monitor
 
       mainTask_state = INIT_SLEEP;
       break;
@@ -703,8 +703,15 @@ const void mainTask(void)
         {
           //nothing
         }
-        mainTask_state = SWITCH_OFF_VSYS; //go to next state.
+        mainTask_state = GAUGE_DISABLE; //go to next state.
       }
+
+      break;
+
+    case GAUGE_DISABLE:
+
+      batmon_disable_gauge();
+      mainTask_state = SWITCH_OFF_VSYS; //go to next state.
 
       break;
 
@@ -722,7 +729,7 @@ const void mainTask(void)
 
       if( loraReceiveReady == true || !LoRaMacIsBusy() )
       {
-        batmon_disable_gauge();
+
         mainTask_state = WAIT_BATTERY_MONITOR_READY;
         setWait(100);  //set wait time 100msec
       }
