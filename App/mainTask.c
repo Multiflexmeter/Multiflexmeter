@@ -52,6 +52,7 @@ static UTIL_TIMER_Object_t MainTimer;
 static UTIL_TIMER_Time_t MainPeriodSleep = 60000;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
 static bool enableListenUart;
+static bool measureEOS_enabled;
 
 static UTIL_TIMER_Object_t wait_Timer;
 static volatile bool waiting = false;
@@ -296,7 +297,13 @@ const void mainTask(void)
       init_vAlwaysOn();
       executeAlwaysOn(); //execute Always on config value.
 
-      initBatMon(); //initialize I2C peripheral for battery monitor
+      measureEOS_enabled = getBatteryEos() >> 8;
+
+      if( measureEOS_enabled ) //only if measureEOS is enabled this round
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, "Measure battery EOS\r\n" ); //print info
+        initBatMon(); //initialize I2C peripheral for battery monitor
+      }
 
       mainTask_state = INIT_SLEEP;
       break;
@@ -311,7 +318,10 @@ const void mainTask(void)
         systemActiveTime_sec = 0; //reset //only when no RTC is used, overwrite boottime.
 #endif
 
-        batmon_enable(); //enable battery monitor, takes a while until batmon is ready.
+        if( measureEOS_enabled ) //only if measureEOS is enabled this round
+        {
+          batmon_enable(); //enable battery monitor, takes a while until batmon is ready.
+        }
 
         if( enableListenUart )
         {
@@ -404,6 +414,13 @@ const void mainTask(void)
         }
 #endif
 
+        //only measure battery EOS once every 24 measures.
+        if( getDevNonce() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+        {
+          saveBatteryEos(true, (uint8_t)getBatteryEos()); //request next interval EOS battery
+          APP_LOG(TS_OFF, VLEVEL_H, "Next interval measure battery EOS\r\n" ); //print info
+        }
+
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
         setWait(10); //set wait time 10ms
         mainTask_state = START_SENSOR_MEASURE; //next state
@@ -473,7 +490,14 @@ const void mainTask(void)
 
         if( newStatus != MEASUREMENT_ACTIVE )
         {
-          mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE; //next state
+          if (measureEOS_enabled) //only if measureEOS is enabled this round
+          {
+            mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE; //next state
+          }
+          else
+          {
+            mainTask_state = READ_SENSOR_DATA;//skip battery
+          }
         }
         else
         {
@@ -485,18 +509,18 @@ const void mainTask(void)
 
     case WAIT_BATTERY_GAUGE_IS_ALIVE:
 
-     if( waiting == false  )
-     {
-       if( batmon_isInitComplet()) //wait battery monitor is ready
-       {
-         APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
+      if (waiting == false)
+      {
+        if (batmon_isInitComplet()) //wait battery monitor is ready
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
 
-         batmon_enable_gauge(); //enable gauging
-         mainTask_state = READ_SENSOR_DATA;
-       }
+          batmon_enable_gauge(); //enable gauging
+          mainTask_state = READ_SENSOR_DATA;
+        }
 
-       setWait(200); //set wait 200ms
-     }
+        setWait(200); //set wait 200ms
+      }
 
       break;
 
@@ -563,7 +587,14 @@ const void mainTask(void)
 
         waitForBatteryMonitorDataCounter = 0; //reset
 
-        mainTask_state = WAIT_GAUGE_IS_ACTIVE; //next state
+        if (measureEOS_enabled) //only if measureEOS is enabled this round
+        {
+          mainTask_state = WAIT_GAUGE_IS_ACTIVE; //next state
+        }
+        else
+        {
+          mainTask_state = SAVE_DATA; //Skip battery state
+        }
       }
 
       break;
@@ -588,11 +619,11 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
-
         executeBatteryMeasure(); //do a battery measurement for battery supply, battery current and temperature. R and Z value not valid.
 
         if( batmon_getMeasure().voltage > 0 || waitForBatteryMonitorDataCounter > 10)
         {
+          saveBatteryEos(false, batmon_getMeasure().stateOfHealth);
           mainTask_state = SAVE_DATA; //next state
         }
         else
@@ -607,7 +638,15 @@ const void mainTask(void)
 
     case SAVE_DATA:
 
-        stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
+        if (measureEOS_enabled) //only if measureEOS is enabled this round
+        {
+          stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
+        }
+        else
+        {
+          stMFM_baseData.batteryStateEos = (uint8_t)getBatteryEos(); //only use the first 8 bits.
+        }
+
         writeNewMeasurement(0, &stMFM_sensorModuleData, &stMFM_baseData);
         mainTask_state = SEND_LORA_DATA; //next state
 
@@ -665,8 +704,10 @@ const void mainTask(void)
       //wait on transmit ready flag
       if( loraTransmitReady == true )
       {
-
-        executeBatteryMeasure(); //do a battery measurement for battery supply, battery current (of TX) and temperature. R and Z value not valid.
+        if (measureEOS_enabled) //only if measureEOS is enabled this round
+        {
+          executeBatteryMeasure(); //do a battery measurement for battery supply, battery current (of TX) and temperature. R and Z value not valid.
+        }
 
         UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
         UTIL_TIMER_Time_t forcedInterval = 0;
@@ -722,7 +763,15 @@ const void mainTask(void)
         {
           //nothing
         }
-        mainTask_state = GAUGE_DISABLE; //go to next state.
+
+        if (measureEOS_enabled) //only if measureEOS is enabled this round
+        {
+          mainTask_state = GAUGE_DISABLE; //go to next state.
+        }
+        else
+        {
+          mainTask_state = SWITCH_OFF_VSYS; //Skip battery gauge
+        }
       }
 
       break;
@@ -748,8 +797,15 @@ const void mainTask(void)
 
       if( loraReceiveReady == true || !LoRaMacIsBusy() )
       {
+        if (measureEOS_enabled) //only if measureEOS is enabled this round
+        {
+          mainTask_state = WAIT_BATTERY_MONITOR_READY; //go to next state.
+        }
+        else
+        {
+          mainTask_state = WAIT_FOR_SLEEP; //Skip battery gauge
+        }
 
-        mainTask_state = WAIT_BATTERY_MONITOR_READY;
         setWait(100);  //set wait time 100msec
       }
 
@@ -765,9 +821,12 @@ const void mainTask(void)
           executeBatteryMeasure();//do a battery measurement for battery supply, battery current, temperature, R and Z impedances ( the gauges must be stopped to get valid R and Z impedances).
           batmon_disable(); //switch off battery monitor
           mainTask_state = WAIT_FOR_SLEEP;
+          setWait(100);  //set wait time 100ms
         }
-        setWait(1000);  //set wait time 1000ms
-
+        else
+        {
+          setWait(1000);  //set wait time 1000ms
+        }
       }
 
       break;
