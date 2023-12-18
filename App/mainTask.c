@@ -301,8 +301,6 @@ const void mainTask(void)
         loraJoinRetryCounter = 0; //reset, not needed for shutdown, because variable is always 0.
 #endif
 
-        setWait(250); //set wait timeout 250ms, wait time for powerup battery monitor
-
         mainTask_state = CHECK_LORA_JOIN;
 
 #ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
@@ -440,40 +438,7 @@ const void mainTask(void)
 
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor wait %ums (read %ums)\r\n", measureTime, getMeasureTime(sensorModuleId + 1) ); //print measure time
 
-        mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE; //next state
-      }
-
-      break;
-
-    case WAIT_BATTERY_GAUGE_IS_ALIVE:
-
-     if( waiting == false  )
-     {
-       if( batmon_isInitComplet()) //wait battery monitor is ready
-       {
-         APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
-
-         batmon_enable_gauge(); //enable gauging
-         mainTask_state = WAIT_GAUGE_IS_ACTIVE;
-       }
-
-       setWait(200); //set wait 200ms
-     }
-
-      break;
-
-    case WAIT_GAUGE_IS_ACTIVE:
-      if( waiting == false )
-      {
-        if( batmon_isGaugeActive() )
-        {
-          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: gauge active\r\n");
-
-          APP_LOG(TS_OFF, VLEVEL_H, "DevNonce %u\r\n", getDevNonce());
-          mainTask_state = WAIT_FOR_SENSOR_DATA;
-        }
-
-        setWait(200); //set wait 200ms
+        mainTask_state = WAIT_FOR_SENSOR_DATA; //next state
       }
 
       break;
@@ -487,13 +452,30 @@ const void mainTask(void)
 
         if( newStatus != MEASUREMENT_ACTIVE )
         {
-          mainTask_state = READ_SENSOR_DATA; //next state
+          mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE; //next state
         }
         else
         {
-          setWait(100);  //set wait time 100ms
+          setWait(50);  //set wait time 50ms
         }
       }
+
+      break;
+
+    case WAIT_BATTERY_GAUGE_IS_ALIVE:
+
+     if( waiting == false  )
+     {
+       if( batmon_isInitComplet()) //wait battery monitor is ready
+       {
+         APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
+
+         batmon_enable_gauge(); //enable gauging
+         mainTask_state = READ_SENSOR_DATA;
+       }
+
+       setWait(200); //set wait 200ms
+     }
 
       break;
 
@@ -560,7 +542,23 @@ const void mainTask(void)
 
         waitForBatteryMonitorDataCounter = 0; //reset
 
-        mainTask_state = WAIT_BATMON_DATA; //next state
+        mainTask_state = WAIT_GAUGE_IS_ACTIVE; //next state
+      }
+
+      break;
+
+    case WAIT_GAUGE_IS_ACTIVE:
+      if( waiting == false )
+      {
+        if( batmon_isGaugeActive() )
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: gauge active\r\n");
+
+          APP_LOG(TS_OFF, VLEVEL_H, "DevNonce %u\r\n", getDevNonce());
+          mainTask_state = WAIT_BATMON_DATA;
+        }
+
+        setWait(200); //set wait 200ms
       }
 
       break;
