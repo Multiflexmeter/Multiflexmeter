@@ -223,6 +223,27 @@ uint32_t getActiveTime(void)
 }
 
 /**
+ * @fn const void saveBatteryEos(uint32_t value)
+ * @brief function to save the battery EOS to the backup registers
+ *
+ */
+const void saveBatteryEos(bool measureNextInterval, uint8_t batteryEos)
+{
+  uint32_t newValue = (measureNextInterval << 8) | batteryEos;
+  writeBackupRegister(BACKUP_REGISTER_BATTERY_EOS, newValue);
+}
+
+/**
+ * @fn const uint32_t getBatteryEos(void)
+ * @brief function to get the battery EOS from the backup registers
+ *
+ */
+const uint32_t getBatteryEos(void)
+{
+  return readBackupRegister(BACKUP_REGISTER_BATTERY_EOS);
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
