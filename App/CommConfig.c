@@ -1288,20 +1288,10 @@ void sendModuleInfo(int arguments, const char * format, ...)
  */
 void sendSensorInfo(int arguments, const char * format, ...)
 {
-  int sensorId = 0;
-  if( format[0] == '=' && format[2] == '\r' && format[3] == '\n')
-  {
-    sensorId = atoi(&format[1]);
-  }
-  //check sensor range
-  if( sensorId >= 1 && sensorId <= 6 )
+  for(int sensorId=1; sensorId<=6; sensorId++)
   {
     snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%u,%s\r\n", cmdSensorInfo, sensorId, getProtocolSensorboard(sensorId-1), getSoftwareSensorboard(sensorId-1));
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
-  }
-  else
-  {
-    sendError(0,0);
   }
 }
 
