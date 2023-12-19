@@ -13,13 +13,13 @@
 #include "softwareVersion.h"
 
 
-#define MFM_SOFTWARE_VERSION  "0.0.00"
-#define MFM_CONFIG_PROTOCOL_VERSION  "00"
-#define MFM_SENSOR_PROTOCOL_VERSION  "00"
+#define MFM_SOFTWARE_VERSION  "0.0.01"
+#define MFM_CONFIG_PROTOCOL_VERSION  "0"
+#define MFM_SENSOR_PROTOCOL_VERSION  "0"
 
 const char softwareVersionMFM[] = MFM_SOFTWARE_VERSION;
-const char configProtocolVersionMFM[] = MFM_CONFIG_PROTOCOL_VERSION;
-const char sensorProtocolVersionMFM[] = MFM_SENSOR_PROTOCOL_VERSION;
+const char configProtocolVersionMFM[1] = MFM_CONFIG_PROTOCOL_VERSION;
+const char sensorProtocolVersionMFM[1] = MFM_SENSOR_PROTOCOL_VERSION;
 
 /**
  * @fn const char getSoftwareVersionMFM*(void)
