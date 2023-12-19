@@ -465,7 +465,7 @@ const void mainTask(void)
 
 #ifdef LORA_PERIODICALLY_CONFIRMED_MSG
         /* get DevNonce for set confirmed / unconfirmed messages */
-        if( getDevNonce() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+        if( getUpFCounter() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
         {
           setTxConfirmed(LORAMAC_HANDLER_CONFIRMED_MSG);
         }
@@ -476,7 +476,7 @@ const void mainTask(void)
 #endif
 
 #ifdef LORA_PERIODICALLY_REQUEST_TIME
-        if( getDevNonce() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+        if( getUpFCounter() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
         {
           setRequestTime();
         }
