@@ -167,6 +167,42 @@ static const uint16_t getDevNonce(void)
 }
 
 /**
+ * @fn const uint16_t getDownFCounter(void)
+ * @brief function to get the down frame counter
+ *
+ * @return
+ */
+static const uint16_t getDownFCounter(void)
+{
+  /* get UplinkCounter */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    return nvm->Crypto.LastDownFCnt;
+}
+
+/**
+ * @fn const uint16_t getUpFCounter(void)
+ * @brief function to get the up frame counter
+ *
+ * @return
+ */
+static const uint16_t getUpFCounter(void)
+{
+  /* get UplinkCounter */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    return nvm->Crypto.FCntList.FCntUp;
+}
+
+/**
  * @fn const void executeBatteryMeasure(void)
  * @brief helper function to read the battery monitor data and print a debug line
  *
