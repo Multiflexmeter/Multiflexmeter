@@ -458,6 +458,8 @@ const void mainTask(void)
           APP_LOG(TS_OFF, VLEVEL_H, "Next interval measure battery EOS\r\n" ); //print info
         }
 
+        APP_LOG(TS_OFF, VLEVEL_H, "DevNonce: %u DnFcnt: %u UpFcnt: %u\r\n", getDevNonce(), getDownFCounter(), getUpFCounter());
+
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
         setWait(10); //set wait time 10ms
         mainTask_state = START_SENSOR_MEASURE; //next state
@@ -643,7 +645,6 @@ const void mainTask(void)
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: gauge active\r\n");
 
-          APP_LOG(TS_OFF, VLEVEL_H, "DevNonce %u\r\n", getDevNonce());
           mainTask_state = WAIT_BATMON_DATA;
         }
 
