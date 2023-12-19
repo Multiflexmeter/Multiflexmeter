@@ -80,6 +80,7 @@ static uint16_t sensorType;
 static uint8_t sensorProtocol;
 
 static uint8_t waitForBatteryMonitorDataCounter = 0;
+static struct_FRAM_settings FRAM_Settings;
 
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
@@ -374,6 +375,8 @@ const void mainTask(void)
 
     case SWITCH_SENSOR_SLOT:
 
+      restoreLoraSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
+
       numberOfsensorModules = 0;
       sensorModuleEnabled = false;
       //check if at least one sensor module is enabled
@@ -388,8 +391,6 @@ const void mainTask(void)
 
       if( sensorModuleEnabled )
       {
-        getFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //read out FRAM setting module ID
-
         if( sensorModuleId < 0 || sensorModuleId >= MAX_SENSOR_MODULE )
         {
           sensorModuleId = 0; //force to first.
@@ -690,8 +691,7 @@ const void mainTask(void)
 
         }while (getSensorStatus(sensorModuleId + 1) == false && escape--);
 
-
-        setFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //save last sensor Moudle ID
+        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save last sensor Moudle ID
 
 
         mainTask_state = WAIT_LORA_TRANSMIT_READY;
