@@ -282,6 +282,37 @@ const uint32_t getBatteryEos(void)
 }
 
 /**
+ * @fn const uint32_t getNextBatteryEOStime(void)
+ * @brief
+ *
+ * @return next timestamp for EOS battery meaasurement
+ */
+const uint32_t getNextBatteryEOStime(uint32_t timestampNow)
+{
+  uint32_t timestampNext = (timestampNow / TM_SECONDS_IN_1DAY) * TM_SECONDS_IN_1DAY; //get this day 00:00
+
+  //check current time is before 12:00
+  if( (timestampNow % TM_SECONDS_IN_1DAY) < (TM_SECONDS_IN_1DAY>>1) )
+  { //current time of the day before 12:00
+    timestampNext+= (60L*60*12); //set this day 12:00
+  }
+  else
+  { //current time of the day after 12:00
+    timestampNext+= (60L*60*36); //set next day day 12:00. 12 + 24 hours from 00:00
+  }
+
+#if VERBOSE_LEVEL == VLEVEL_H
+  char timeString[30];
+  struct tm structTime;
+  SysTimeLocalTime(timestampNext, &structTime);
+  strftime(timeString, sizeof(timeString), "%H:%M:%S %d-%m-%y", &structTime);
+  APP_LOG(TS_OFF, VLEVEL_H, "Next: %s, %u, delta: %u\r\n", timeString, timestampNext, timestampNext - timestampNow);
+#endif
+
+  return timestampNext;
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -450,11 +481,11 @@ const void mainTask(void)
           setRequestTime();
         }
 #endif
-
-        //only measure battery EOS once every 24 measures.
-        if( getDevNonce() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+        //check next battery measurement interval is active. Set flag in battery backup registers to measure next round the EOS from powerup.
+        if( FRAM_Settings.nextIntervalBatteryEOS <= SysTimeGet().Seconds )
         {
           saveBatteryEos(true, (uint8_t)getBatteryEos()); //request next interval EOS battery
+          FRAM_Settings.nextIntervalBatteryEOS = getNextBatteryEOStime(SysTimeGet().Seconds); //set new interval
           APP_LOG(TS_OFF, VLEVEL_H, "Next interval measure battery EOS\r\n" ); //print info
         }
 
