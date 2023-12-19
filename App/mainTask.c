@@ -411,7 +411,7 @@ const void mainTask(void)
 
     case SWITCH_SENSOR_SLOT:
 
-      restoreLoraSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
+      restoreFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
 
       numberOfsensorModules = 0;
       sensorModuleEnabled = false;
