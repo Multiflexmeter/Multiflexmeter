@@ -1155,6 +1155,20 @@ void configUartHandler(void)
 }
 
 /**
+ * @fn uint8_t getLengthCommand(const char*)
+ * @brief helper function to get the length of the command
+ *
+ * @param data
+ * @return
+ */
+uint8_t getLengthCommand(const char * data)
+{
+  char test[]="=\r\n";
+  uint8_t result = strcspn(data, test);
+  return result;
+}
+
+/**
  * @brief callback function for character match to process the received data.
  *
  * @param huart current uart pointer, must be "config_uart"
@@ -1182,7 +1196,7 @@ void user_uart1_characterMatchDetect_Callback(UART_HandleTypeDef *huart, uint32_
 		  /*
 		   * check command is found, use strncasecmp() to ignore the case sensitivity
 		   */
-		  if( strncasecmp( (char*)bufferRxConfig + strlen(cmdSet), stCommandsSet[i].command, stCommandsSet[i].commandLength ) == 0 )
+		  if( strncasecmp( (char*)bufferRxConfig + strlen(cmdSet), stCommandsSet[i].command, stCommandsSet[i].commandLength ) == 0 && getLengthCommand((char*)bufferRxConfig + strlen(cmdSet)) == stCommandsSet[i].commandLength )
 		  {
 		    /*
 		     * command is founded, then execute the callback fucntion.
@@ -1211,7 +1225,7 @@ void user_uart1_characterMatchDetect_Callback(UART_HandleTypeDef *huart, uint32_
       /*
        * check command is found, use strncasecmp() to ignore the case sensitivity
        */
-      if( strncasecmp( (char*)bufferRxConfig + strlen(cmdGet), stCommandsGet[i].command, stCommandsGet[i].commandLength ) == 0 )
+      if( strncasecmp( (char*)bufferRxConfig + strlen(cmdGet), stCommandsGet[i].command, stCommandsGet[i].commandLength ) == 0 && getLengthCommand((char*)bufferRxConfig + strlen(cmdGet)) == stCommandsGet[i].commandLength)
       {
         /*
          * command is founded, then execute the callback fucntion.
