@@ -343,6 +343,27 @@ const int32_t getSensorType(int32_t sensorId)
 }
 
 /**
+ * @fn int setSensorType(int32_t)
+ * @brief override function setSensorType(), can be override in application code
+ *
+ * @param sensorId : 1 to /ref NR_OF_SLOTS
+ * @return
+ */
+const int32_t setSensorType(int32_t sensorId, uint16_t moduleType)
+{
+  assert_param(sensorId >= 1 && sensorId <= NR_OF_SLOTS );
+
+  if( sensorId < 1 || sensorId > NR_OF_SLOTS ) //Verify argument
+  {
+    return -1;
+  }
+
+  MFM_settings.slotModuleSettings[ sensorId - 1 ].moduleType = moduleType;
+
+  return (int32_t)MFM_settings.slotModuleSettings[ sensorId - 1 ].moduleType;
+}
+
+/**
  * @brief override function getLoraInterval().
  *
  * @return Interval time in minutes, force minimum of 5 minutes.

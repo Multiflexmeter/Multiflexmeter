@@ -547,6 +547,11 @@ const void mainTask(void)
         result = sensorReadType(sensorModuleId, &sensorType);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module type: %d, %d\r\n", sensorModuleId, sensorType ); //print sensor type
         stMFM_sensorModuleData.sensorModuleTypeId = sensorType; //save value
+        if( getSensorType(sensorModuleId) != sensorType )
+        {
+          setSensorType(sensorModuleId, sensorType); //save to configuration
+          saveSettingsToVirtualEEPROM();
+        }
 
         uint16_t sensorSetupTime = 0;
         result = sensorReadSetupTime(sensorModuleId, &sensorSetupTime);
