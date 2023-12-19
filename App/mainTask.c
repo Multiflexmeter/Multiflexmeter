@@ -66,6 +66,9 @@ static UTIL_TIMER_Object_t systemActive_Timer;
 static UTIL_TIMER_Time_t period_1sec = 1000;
 static volatile uint32_t systemActiveTime_sec;
 
+static UTIL_TIMER_Object_t timeout_Timer;
+static volatile bool timeout = false;
+
 static uint8_t dataBuffer[25];
 static struct_MFM_sensorModuleData stMFM_sensorModuleData;
 static struct_MFM_baseData stMFM_baseData;
@@ -146,6 +149,18 @@ const void setNewMeasureTime(int periodMs)
 const void setDelayReJoin(int periodMs)
 {
   UTIL_TIMER_StartWithPeriod(&rejoin_Timer, periodMs); //set timer
+}
+
+/**
+ * @fn void setTimeout(int)
+ * @brief function to set a new timeout
+ *
+ * @param periodMs
+ */
+static void setTimeout(int periodMs)
+{
+  timeout = false; //reset
+  UTIL_TIMER_StartWithPeriod(&timeout_Timer, periodMs); //set timer
 }
 
 /**
@@ -1040,6 +1055,17 @@ static const void trigger_systemActiveTime(void *context)
 }
 
 /**
+ * @fn const void trigger_timeout(void*)
+ * @brief function to trigger after timeout timer is finished.
+ *
+ * @param context
+ */
+static const void trigger_timeout(void *context)
+{
+  timeout = true;
+}
+
+/**
  * @fn const void init_mainTask(void)
  * @brief function to initialize the mainTask
  *
@@ -1072,6 +1098,8 @@ const void init_mainTask(void)
 
   UTIL_TIMER_Create(&systemActive_Timer, period_1sec, UTIL_TIMER_PERIODIC, trigger_systemActiveTime, NULL); //create timer
   UTIL_TIMER_Start(&systemActive_Timer); //start timer
+
+  UTIL_TIMER_Create(&timeout_Timer, 0, UTIL_TIMER_ONESHOT, trigger_timeout, NULL); //create timer
 
 }
 
