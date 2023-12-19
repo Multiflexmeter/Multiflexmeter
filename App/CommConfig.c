@@ -130,6 +130,26 @@ __weak const char * getSoftwareVersionMFM(void)
 }
 
 /**
+ * @brief weak function getSoftwareSensorboard(), needs to be override by real functions
+ *
+ * @return
+ */
+__weak const char * getSoftwareSensorboard(int value)
+{
+  return defaultVersion;
+}
+
+/**
+ * @brief weak function getProtocolSensorboard(), needs to be override by real functions
+ *
+ * @return
+ */
+__weak const uint8_t getProtocolSensorboard(int sensorModuleId)
+{
+  return 0;
+}
+
+/**
  * @brief weak function getJoinId(), can be override in application code.
  *
  * @return
@@ -1276,7 +1296,7 @@ void sendSensorInfo(int arguments, const char * format, ...)
   //check sensor range
   if( sensorId >= 1 && sensorId <= 6 )
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%s,%s\r\n", cmdSensorInfo, sensorId, getProtocolVersionSensor(), getSoftwareVersionMFM()); //todo get protocol sensor module
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%u,%s\r\n", cmdSensorInfo, sensorId, getProtocolSensorboard(sensorId-1), getSoftwareSensorboard(sensorId-1));
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else

@@ -532,6 +532,7 @@ const void mainTask(void)
 
         memset(dataBuffer, 0x00, sizeof(dataBuffer));
         sensorFirmwareVersion(sensorModuleId, dataBuffer, sizeof(dataBuffer));
+        strncpy(FRAM_Settings.modules[sensorModuleId].version, (char*)dataBuffer, sizeof(FRAM_Settings.modules[sensorModuleId].version)); //copy data to save to FRAM
 
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module firmware: %d, %s\r\n", sensorModuleId, dataBuffer ); //print VERSION
 
@@ -540,6 +541,7 @@ const void mainTask(void)
         result = sensorProtocolVersion(sensorModuleId, &sensorProtocol);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module protocol version: %d, %d\r\n", sensorModuleId, result == SENSOR_OK ? sensorProtocol : -1); //print protocol version
         stMFM_sensorModuleData.sensorModuleProtocolId = sensorProtocol; //save value
+        FRAM_Settings.sensorModuleProtocol[sensorModuleId] = sensorProtocol; //save value to FRAM
 
         sensorType = 0; //reset first
         result = sensorReadType(sensorModuleId, &sensorType);
@@ -1302,4 +1304,32 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
 const void rxDataReady(void)
 {
   loraReceiveReady = true;
+}
+
+/**
+ * @brief override function getSoftwareSensorboard(), needs to be override by real functions
+ *
+ * @return
+ */
+const char * getSoftwareSensorboard(int sensorModuleId)
+{
+  if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
+  {
+    return 0;
+  }
+  return FRAM_Settings.modules[sensorModuleId].version;
+}
+
+/**
+ * @brief override function getProtocolSensorboard(), needs to be override by real functions
+ *
+ * @return
+ */
+const uint8_t getProtocolSensorboard(int sensorModuleId)
+{
+  if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
+  {
+    return 0;
+  }
+  return FRAM_Settings.sensorModuleProtocol[sensorModuleId];
 }
