@@ -218,8 +218,23 @@ void am1805_autocal_set(uint8_t ui8Period);
 uint8_t am1805_ext_address_get(uint8_t ui8Address);
 uint8_t am1805_ram_read(uint8_t ui8Address);
 void am1805_ram_write(uint8_t ui8Address, uint8_t ui8Data);
+void am1805_enable_wdi_ex1_interrupt(void);
+void am1805_disable_wdi_ex1_interrupt(void);
 void am1805_enable_wdi_ex2_interrupt(void);
+void am1805_disable_wdi_ex2_interrupt(void);
+void am1805_ex2p_rising_edge_interrupt(void);
+void am1805_ex2p_faling_edge_interrupt(void);
+void am1805_enable_pwgt(void);
+void am1805_disable_pwgt(void);
 uint8_t am1805_get_status(uint8_t clear);
+bool am1805_get_wdin_status(void);
+bool am1805_get_exin_status(void);
+uint8_t am1805_get_interrupt_mask(void);
+uint8_t am1805_get_sleep_control(void);
+uint8_t am1805_get_osc_control(void);
+uint8_t am1805_get_output_control(void);
+void am1805_set_output_control(void);
+void am1805_clear_output_control(void);
 
 #ifdef __cplusplus
 }

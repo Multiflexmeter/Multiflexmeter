@@ -44,6 +44,7 @@
 //
 //*****************************************************************************
 
+#include <stdbool.h>
 #include "am1805.h"
 
 
@@ -1311,31 +1312,214 @@ void am1805_ram_write(uint8_t ui8Address, uint8_t ui8Data)
 }
 
 /**
+ * @fn void am1805_enable_wdi_ex1_interrupt(void)
+ * @brief enable the XT2 interrupt for the WDI input pin.
+ * The EXTI input pin will generate the XT1 interrupt when the edge specified by EX1P occurs
+ *
+ */
+void am1805_enable_wdi_ex1_interrupt(void)
+{
+  am1805_reg_set(AM1805_INT_MASK, 0x01); //set EX1E bit to enable
+}
+
+/**
+ * @fn void am1805_disable_wdi_ex1_interrupt(void)
+ * @brief enable the XT2 interrupt for the WDI input pin.
+ * The EXTI input pin will generate the XT1 interrupt when the edge specified by EX1P occurs
+ *
+ */
+void am1805_disable_wdi_ex1_interrupt(void)
+{
+  am1805_reg_clear(AM1805_INT_MASK, 0x01); //set EX1E bit to enable
+}
+
+/**
  * @fn void am1805_enable_wdi_ex2_interrupt(void)
  * @brief enable the XT2 interrupt for the WDI input pin.
+ * The WDI input pin will generate the XT2 interrupt when the edge spec- ified by EX2P occurs.
  *
  */
 void am1805_enable_wdi_ex2_interrupt(void)
 {
-  //The WDI input pin will generate the XT2 interrupt when the edge spec- ified by EX2P occurs.
-
   am1805_reg_set(AM1805_INT_MASK, 0x02); //set EX2E bit to enable
 }
 
 /**
- * @fn uint8_t am1805_get_status(uint8_t clear)
- * @brief function to read status register
+ * @fn void am1805_disable_wdi_ex2_interrupt(void)
+ * @brief enable the XT2 interrupt for the WDI input pin.
+ * The WDI input pin will generate the XT2 interrupt when the edge spec- ified by EX2P occurs.
  *
+ */
+void am1805_disable_wdi_ex2_interrupt(void)
+{
+  am1805_reg_clear(AM1805_INT_MASK, 0x02); //clear EX2E bit to enable
+}
+
+/**
+ * @fn void am1805_ex2p_rising_edge_interrupt(void)
+ * @brief set XT2 interrupt as rising edge
+ * When 1, the external interrupt XT2 will trigger on a rising edge of the WDI pin
+ *
+ */
+void am1805_ex2p_rising_edge_interrupt(void)
+{
+  am1805_reg_set(AM1805_SLEEP_CTRL, 0x20); //set Ex2P bit
+}
+
+/**
+ * @fn void am1805_ex2p_faling_edge_interrupt(void)
+ * @brief set XT2 interrupt as failing edge
+ * When 0, the external interrupt XT2 will trigger on a falling edge of the WDI pin
+ *
+ */
+void am1805_ex2p_faling_edge_interrupt(void)
+{
+  am1805_reg_clear(AM1805_SLEEP_CTRL, 0x20); //clear Ex2P bit
+}
+
+/**
+ * @fn void am1805_am1805_enable_pwgt(void)
+ * @brief set pwgt bit
+ * When 1, the I/O interface will be disabled when the power switch is active and disabled.
+ */
+void am1805_enable_pwgt(void)
+{
+  am1805_reg_set(AM1805_SLEEP_CTRL, 0x20); //set PWGT bit
+}
+
+/**
+ * @fn void am1805_am1805_disable_pwgt(void)
+ * @brief clear the pwgt bit in Sleep control register (0x17)
+ * When 0, the I/O interface will be enabled when the power switch is active and disabled.
+ */
+void am1805_disable_pwgt(void)
+{
+  am1805_reg_clear(AM1805_SLEEP_CTRL, 0x20); //clear PWGT bit
+}
+
+/**
+ * @fn uint8_t am1805_get_status(uint8_t)
+ * @brief function to read status register (0x0F)
+ *
+ * @param clear : bits to be cleared
  * @return
  */
 uint8_t am1805_get_status(uint8_t clear)
 {
-  uint8_t status = am1805_reg_read(AM1805_STATUS);
+  uint8_t status = am1805_reg_read(AM1805_STATUS); //read status flags
 
   if( clear )
   {
-    am1805_reg_clear(AM1805_STATUS, clear);
+    am1805_reg_clear(AM1805_STATUS, clear); //write to clear flags
   }
 
   return status;
+}
+
+/**
+ * @fn bool am1805_get_wdin_status(void)
+ * @brief function to read WDIN status from Extended address register (0x3F)
+ *
+ * @return
+ */
+bool am1805_get_wdin_status(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_EXTENDED_ADDR);
+
+  return status & (1<<5) ? true : false;
+}
+
+/**
+ * @fn bool am1805_get_exin_status(void)
+ * @brief function to read EXIN status from Extended address register (0x3F)
+ *
+ * @return
+ */
+bool am1805_get_exin_status(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_EXTENDED_ADDR);
+
+  return status & (1<<4) ? true : false;
+}
+
+/**
+ * @fn uint8_t am1805_get_interrupt_mask(void)
+ * @brief function to read Interrupt mask register (0x12)
+ *
+ * @return
+ */
+uint8_t am1805_get_interrupt_mask(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_INT_MASK);
+
+  return status;
+}
+
+/**
+ * @fn uint8_t am1805_get_sleep_control(void)
+ * @brief function to read the sleep control register (0x17)
+ *
+ * @return
+ */
+uint8_t am1805_get_sleep_control(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_SLEEP_CTRL);
+
+  return status;
+}
+
+/**
+ * @fn uint8_t am1805_get_osc_control(void)
+ * @brief function to read the Oscillator control register (0x1C)
+ *
+ * @return
+ */
+uint8_t am1805_get_osc_control(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_OSC_CONTROL);
+
+  return status;
+}
+
+/**
+ * @fn uint8_t am1805_get_output_control(void)
+ * @brief function to read the output control register (0x30)
+ *
+ * @return
+ */
+uint8_t am1805_get_output_control(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_OUTPUT_CTRL);
+
+  return status;
+}
+
+/**
+ * @fn void am1805_set_output_control(void)
+ * @brief function to set output control register (0x30) to value 0xC0.
+ * To access, first write 0x9D to the config key register (0x1F)
+ *
+ */
+void am1805_set_output_control(void)
+{
+  // Enable output control Register writes.
+  // Write the Key register.
+  am1805_reg_write(AM1805_CONFIG_KEY, AM1805_CONFIG_KEY_9D);
+
+  am1805_reg_set(AM1805_OUTPUT_CTRL, 0xC0);
+}
+
+/**
+ * @fn void am1805_clear_output_control(void)
+ * @brief function to clear output control from value 0xC0
+ * To access, first write 0x9D to the config key register (0x1F)
+ *
+ */
+void am1805_clear_output_control(void)
+{
+  // Enable output control Register writes.
+  // Write the Key register.
+  am1805_reg_write(AM1805_CONFIG_KEY, AM1805_CONFIG_KEY_9D);
+
+  am1805_reg_clear(AM1805_OUTPUT_CTRL, 0xC0);
 }
