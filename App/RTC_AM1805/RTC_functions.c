@@ -384,6 +384,9 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
 
   switch( sleepStatus )
   {
+    case SLEEP_RETURN_ACCEPTED_AFTER_RETRY:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: Retry, Cleared IRQ first\r\n" );
+      //no break;
     case SLEEP_RETURN_ACCEPTED:
       APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ACTIVE\r\n" );
       break;

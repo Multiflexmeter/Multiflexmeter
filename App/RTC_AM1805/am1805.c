@@ -1023,6 +1023,8 @@ uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
     uint8_t ui8Temp1;
     uint8_t sleepControlReg;
 
+    bool retry = false;
+
     if( ui8Mode != SLEEP_MODE_nRST_LOW && ui8Mode != SLEEP_MODE_PSW_LOW && ui8Mode != SLEEP_MODE_nRST_LOW_AND_PSW_HIGH)
     {
       return SLEEP_RETURN_ILLEGAL_INPUT;
@@ -1064,6 +1066,7 @@ uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
     //work around for strange pulse on WDI input pin, probably caused by RTC internal
     if (ui8Temp0 == 0)
     { //failed, try again, first clear IRQ
+      retry = true;
       ui8Temp0 = am1805_get_status(0x7f); //clear IRQ
       am1805_reg_write(AM1805_SLEEP_CTRL, sleepControlReg);
 
@@ -1096,7 +1099,7 @@ uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
     else
     {
         // SLEEP request successful.
-        return SLEEP_RETURN_ACCEPTED;
+      return retry == true ? SLEEP_RETURN_ACCEPTED_AFTER_RETRY : SLEEP_RETURN_ACCEPTED;
     }
 }
 

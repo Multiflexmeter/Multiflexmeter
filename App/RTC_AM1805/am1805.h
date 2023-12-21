@@ -137,6 +137,7 @@ extern "C"
 #define SLEEP_MODE_nRST_LOW_AND_PSW_HIGH    0x02//2 => nRST pulled low and PSW/nIRQ2 pulled high on sleep
 
 #define SLEEP_RETURN_ACCEPTED               0x00 //0 => sleep request accepted, sleep mode will be initiated in ui8Timeout seconds
+#define SLEEP_RETURN_ACCEPTED_AFTER_RETRY   0xAA //170 => sleep request accepted after retry, sleep mode will be initiated in ui8Timeout seconds
 #define SLEEP_RETURN_ILLEGAL_INPUT          0x01 //1 => illegal input values
 #define SLEEP_RETURN_DECLINED_ACTIVE_IRQ    0x02 //2 => sleep request declined, interrupt is currently pending
 #define SLEEP_RETURN_DECLINED_NO_SLEEP_IRQ  0x03 //3 => sleep request declined, no sleep trigger interrupt enabled
