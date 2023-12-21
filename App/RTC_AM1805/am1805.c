@@ -1021,6 +1021,16 @@ uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
     uint8_t ui8SLRES;
     uint8_t ui8Temp0, ui8Temp1;
 
+    if( ui8Mode != SLEEP_MODE_nRST_LOW && ui8Mode != SLEEP_MODE_PSW_LOW && ui8Mode != SLEEP_MODE_nRST_LOW_AND_PSW_HIGH)
+    {
+      return SLEEP_RETURN_ILLEGAL_INPUT;
+    }
+
+    if( ui8Timeout >= 0 && ui8Timeout <= 7 )
+    {
+      return SLEEP_RETURN_ILLEGAL_INPUT;
+    }
+
     if (ui8Mode > 0)
     {
         // Sleep to PSW/nIRQ2.
@@ -1060,18 +1070,18 @@ uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
                                ((ui8Temp1 & 0x80) == 0x80)))
         {
             // No trigger interrupts enabled.
-            return 3;
+            return SLEEP_RETURN_DECLINED_NO_SLEEP_IRQ;
         }
         else
         {
             // Interrupt pending.
-            return 2;
+            return SLEEP_RETURN_DECLINED_ACTIVE_IRQ;
         }
     }
     else
     {
         // SLEEP request successful.
-        return 0;
+        return SLEEP_RETURN_ACCEPTED;
     }
 }
 
