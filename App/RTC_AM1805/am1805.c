@@ -1577,3 +1577,21 @@ void am1805_clear_output_control(void)
 
   am1805_reg_clear(AM1805_OUTPUT_CTRL, 0xC0);
 }
+
+/**
+ * @fn am1805_time_t am1805_read_current_alarm(void)
+ * @brief function to read the alarm time from RTC
+ *
+ * @return
+ */
+am1805_time_t am1805_read_current_alarm(void)
+{
+  am1805_time_t getAlarm = {0};
+  getAlarm.ui8Second = bcd_to_dec(am1805_reg_read(AM1805_ALARM_SECONDS) & 0x7F);
+  getAlarm.ui8Minute = bcd_to_dec(am1805_reg_read(AM1805_ALARM_MINUTES) & 0x7F);
+  getAlarm.ui8Hour = bcd_to_dec(am1805_reg_read(AM1805_ALARM_HOURS) & 0x3F); //assuming 24 hour notation
+  getAlarm.ui8Date = bcd_to_dec(am1805_reg_read(AM1805_ALARM_DATE) & 0x3F);
+  getAlarm.ui8Month = bcd_to_dec(am1805_reg_read(AM1805_ALARM_MONTH) & 0x1F);
+
+  return getAlarm;
+}

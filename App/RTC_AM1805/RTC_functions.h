@@ -27,5 +27,6 @@ const bool getWakeupEx1Status(bool clear);
 const bool getWakeupEx2Status(bool clear);
 const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks);
 const void disableSleep(void);
+const uint32_t get_current_alarm(void);
 
 #endif /* RTC_AM1805_RTC_FUNCTIONS_H_ */

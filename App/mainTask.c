@@ -398,6 +398,15 @@ const void mainTask(void)
         initBatMon(); //initialize I2C peripheral for battery monitor
       }
 
+      //detect if awake is normal, or by USB
+      uint32_t currentAlarm = get_current_alarm();
+      uint32_t currentTime = SysTimeGet().Seconds;
+      if( currentAlarm > currentTime )
+      {
+        setNewMeasureTime( (currentAlarm - currentTime) * 1000L); //set measure time
+        mainTask_state = WAIT_USB_DISCONNECT; //go to next state
+      }
+
       mainTask_state = INIT_SLEEP;
       break;
 

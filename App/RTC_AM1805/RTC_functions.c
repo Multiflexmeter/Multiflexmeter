@@ -496,3 +496,42 @@ const void disableSleep(void)
   am1805_countdown_set(CNTDWN_RANGE_SEC, 0, CNTDWN_IRQ_SINGLE_PULSED_1_64S, CNTDOWN_DISABLE_CNT_DOWN_TMR);
   am1805_alarm_set(alarmTime, ALARM_INTERVAL_DISABLE, ALARM_IRQ_LEVEL, ALARM_PIN_PSW);
 }
+
+/**
+ * @fn const uint32_t get_current_alarm(uint16_t, uint8_t)
+ * @brief function to get the current alarm time
+ *
+ * @param currentYear
+ * @param currentMonth
+ * @return
+ */
+const uint32_t get_current_alarm(void)
+{
+  uint32_t timestamp;
+
+  am1805_time_t currentTime;
+  am1805_time_get(&currentTime);
+
+  uint16_t currentYear = START_YEAR + currentTime.ui8Year;
+
+  am1805_time_t currentAlarm = am1805_read_current_alarm();
+
+  if( currentTime.ui8Month == 12 && currentAlarm.ui8Month == 1 ) //detect next alarm is next year, increment
+  {
+    currentYear++;
+  }
+
+  struct tm stAlarm;
+
+  stAlarm.tm_mday = currentAlarm.ui8Date;
+  stAlarm.tm_hour = currentAlarm.ui8Hour;
+  stAlarm.tm_min = currentAlarm.ui8Minute;
+  stAlarm.tm_mon = currentAlarm.ui8Month;
+  stAlarm.tm_sec = currentAlarm.ui8Second;
+  stAlarm.tm_year = currentYear;
+
+
+  timestamp = SysTimeMkTime(&stAlarm); //convert to unixtimestamp
+
+  return timestamp;
+}

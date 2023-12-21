@@ -250,6 +250,7 @@ uint8_t am1805_get_control1(void);
 uint8_t am1805_get_control2(void);
 void am1805_set_output_control(void);
 void am1805_clear_output_control(void);
+am1805_time_t am1805_read_current_alarm(void);
 
 #ifdef __cplusplus
 }
