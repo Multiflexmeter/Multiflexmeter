@@ -1523,6 +1523,32 @@ uint8_t am1805_get_output_control(void)
 }
 
 /**
+ * @fn uint8_t am1805_get_control1(void)
+ * @brief function to get control 1 register
+ *
+ * @return
+ */
+uint8_t am1805_get_control1(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_CONTROL_1);
+
+  return status;
+}
+
+/**
+ * @fn uint8_t am1805_get_control2(void)
+ * @brief function to get control 2 register
+ *
+ * @return
+ */
+uint8_t am1805_get_control2(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_CONTROL_2);
+
+  return status;
+}
+
+/**
  * @fn void am1805_set_output_control(void)
  * @brief function to set output control register (0x30) to value 0xC0.
  * To access, first write 0x9D to the config key register (0x1F)

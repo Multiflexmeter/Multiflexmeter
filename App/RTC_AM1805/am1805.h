@@ -234,6 +234,8 @@ uint8_t am1805_get_interrupt_mask(void);
 uint8_t am1805_get_sleep_control(void);
 uint8_t am1805_get_osc_control(void);
 uint8_t am1805_get_output_control(void);
+uint8_t am1805_get_control1(void);
+uint8_t am1805_get_control2(void);
 void am1805_set_output_control(void);
 void am1805_clear_output_control(void);
 
