@@ -352,10 +352,16 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
 
   APP_LOG(TS_OFF, VLEVEL_H, "Output CTRL: %x\r\n", am1805_get_output_control());
 
+  //am1805_clear_output_control();
+  //am1805_set_output_control();
+
   am1805_ex2p_rising_edge_interrupt();
 
   am1805_enable_wdi_ex1_interrupt(); //low active, Batlow + Sensor module
   am1805_enable_wdi_ex2_interrupt(); //high active, USB + box sensor
+
+  am1805_enable_pwgt(); //make sure I/O interface is disabled in sleep mode
+//  am1805_disable_pwgt();
 
 #if VERBOSE_LEVEL == VLEVEL_H
   strftime(timeStringNow, sizeof(timeStringNow), "%H:%M:%S", &struct_time);
