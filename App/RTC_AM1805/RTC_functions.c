@@ -376,11 +376,14 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
 
   APP_LOG(TS_OFF, VLEVEL_H, "OSC: %x\r\n", am1805_get_osc_control()); //read oscillator control register
 
-  APP_LOG(TS_OFF, VLEVEL_H, "Output CTRL: %x\r\n", am1805_get_output_control()); //read output control register
+  APP_LOG(TS_OFF, VLEVEL_H, "Output CTRL: %x\r\n", am1805_get_output_control());
+  APP_LOG(TS_OFF, VLEVEL_H, "Control 1: %x\r\n", am1805_get_control1()); //read control1 register
+  APP_LOG(TS_OFF, VLEVEL_H, "Control 2: %x\r\n", am1805_get_control2()); //read control2 register
 
 
   //enable the sleepmode
   uint32_t sleepStatus = am1805_sleep_set(waitTimeTicks, SLEEP_MODE_nRST_LOW_AND_PSW_HIGH);
+
 
   switch( sleepStatus )
   {
