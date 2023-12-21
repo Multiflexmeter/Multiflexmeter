@@ -370,6 +370,13 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
 
   APP_LOG(TS_OFF, VLEVEL_H, "IRQ mask: %x\r\n", am1805_get_interrupt_mask()); //read IRQ mask register
 
+  APP_LOG(TS_OFF, VLEVEL_H, "Sleep: %x\r\n", am1805_get_sleep_control()); //read sleep control register
+
+  APP_LOG(TS_OFF, VLEVEL_H, "OSC: %x\r\n", am1805_get_osc_control()); //read oscillator control register
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Output CTRL: %x\r\n", am1805_get_output_control()); //read output control register
+
+
   //enable the sleepmode
   uint32_t sleepStatus = am1805_sleep_set(waitTimeTicks, SLEEP_MODE_nRST_LOW_AND_PSW_HIGH);
 
