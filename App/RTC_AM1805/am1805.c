@@ -1030,7 +1030,7 @@ uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
       return SLEEP_RETURN_ILLEGAL_INPUT;
     }
 
-    if( ui8Timeout >= 0 && ui8Timeout <= 7 )
+    if( ui8Timeout > 7 )
     {
       return SLEEP_RETURN_ILLEGAL_INPUT;
     }
