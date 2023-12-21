@@ -359,6 +359,16 @@ const void mainTask(void)
         APP_LOG(TS_OFF, VLEVEL_H, ", ALARM");
       }
 
+      if( getWakeupEx1Status(0) )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, ", SENSOR");
+      }
+
+      if( getWakeupEx2Status(0) )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, ", USB or BOX-OPEN");
+      }
+
       APP_LOG(TS_OFF, VLEVEL_H, "\r\n");
 #endif
 
