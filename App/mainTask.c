@@ -991,6 +991,7 @@ const void mainTask(void)
       //check measure time expired
       if( startMeasure )
       {
+        systemActiveTime_sec = 0; //reset //only when not in off mode
         mainTask_state = INIT_SLEEP;
       }
       //check USB disconnected
