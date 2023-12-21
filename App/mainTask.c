@@ -970,7 +970,16 @@ const void mainTask(void)
 
     case WAIT_FOR_SLEEP:
 
-      if( waiting == false ) //check wait time is expired
+#ifndef DEBUG_USB_ATTACHED
+      // if USB attached, not going off mode
+      if( getInput_board_io(EXT_IOUSB_CONNECTED) )
+      {
+        setNewMeasureTime(getNextWake( MainPeriodSleep, systemActiveTime_sec) * 1000L); //set measure time
+        mainTask_state = WAIT_USB_DISCONNECT; //go to next state
+      }
+#endif
+
+      else if( waiting == false ) //check wait time is expired
       {
 
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
@@ -984,6 +993,21 @@ const void mainTask(void)
 
         mainTask_state = INIT_SLEEP; //go back to init after sleep, for next measure
 #endif
+      }
+
+      break;
+
+    case WAIT_USB_DISCONNECT:
+
+      //check measure time expired
+      if( startMeasure )
+      {
+        mainTask_state = INIT_SLEEP;
+      }
+      //check USB disconnected
+      else if( !getInput_board_io(EXT_IOUSB_CONNECTED) )
+      {
+        mainTask_state = WAIT_FOR_SLEEP;
       }
 
       break;
