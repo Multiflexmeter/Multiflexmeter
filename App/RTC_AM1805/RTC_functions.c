@@ -291,6 +291,31 @@ const bool getWakeupBatStatus(bool clear)
   return getBitStatusRegisterRtc(AM1805_mask_BAT, clear);
 }
 
+/**
+ * @fn const bool getWakeupEx1Status(bool)
+ * @brief get wakeup EX1 status
+ * Set when the EX1 interrupt is triggered by the EXTI input.
+ *
+ * @param clear
+ * @return
+ */
+const bool getWakeupEx1Status(bool clear)
+{
+  return getBitStatusRegisterRtc(AM1805_mask_EX1, clear);
+}
+
+/**
+ * @fn const bool getWakeupEx2Status(bool)
+ * @brief get wakeup EX2 status
+ * Set when the EX2 interrupt is triggered by the WDI input.
+ *
+ * @param clear
+ * @return
+ */
+const bool getWakeupEx2Status(bool clear)
+{
+  return getBitStatusRegisterRtc(AM1805_mask_EX2, clear);
+}
 
 /**
  * @fn const void goIntoSleep(uint32_t, uint8_t)

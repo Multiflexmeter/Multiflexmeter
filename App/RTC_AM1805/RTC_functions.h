@@ -23,6 +23,8 @@ uint8_t readStatusRegisterRtc(void);
 const bool getWakeupWdtStatus(bool clear);
 const bool getWakeupAlarmStatus(bool clear);
 const bool getWakeupBatStatus(bool clear);
+const bool getWakeupEx1Status(bool clear);
+const bool getWakeupEx2Status(bool clear);
 const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks);
 const void disableSleep(void);
 
