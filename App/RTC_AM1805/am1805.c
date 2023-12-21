@@ -1384,7 +1384,7 @@ void am1805_ex2p_faling_edge_interrupt(void)
  */
 void am1805_enable_pwgt(void)
 {
-  am1805_reg_set(AM1805_SLEEP_CTRL, 0x20); //set PWGT bit
+  am1805_reg_set(AM1805_OSC_CONTROL, 0x04); //set PWGT bit
 }
 
 /**
@@ -1394,7 +1394,7 @@ void am1805_enable_pwgt(void)
  */
 void am1805_disable_pwgt(void)
 {
-  am1805_reg_clear(AM1805_SLEEP_CTRL, 0x20); //clear PWGT bit
+  am1805_reg_clear(AM1805_OSC_CONTROL, 0x04); //clear PWGT bit
 }
 
 /**
