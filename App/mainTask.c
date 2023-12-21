@@ -935,7 +935,7 @@ const void mainTask(void)
         }
         else
         {
-          mainTask_state = WAIT_FOR_SLEEP; //Skip battery gauge
+          mainTask_state = CHECK_USB_CONNECTED; //Skip battery gauge
         }
 
         setWait(100);  //set wait time 100msec
@@ -957,7 +957,7 @@ const void mainTask(void)
 
           executeBatteryMeasure();//do a battery measurement for battery supply, battery current, temperature, R and Z impedances ( the gauges must be stopped to get valid R and Z impedances).
           batmon_disable(); //switch off battery monitor
-          mainTask_state = WAIT_FOR_SLEEP;
+          mainTask_state = CHECK_USB_CONNECTED;
           setWait(100);  //set wait time 100ms
         }
         else
@@ -968,31 +968,20 @@ const void mainTask(void)
 
       break;
 
-    case WAIT_FOR_SLEEP:
-
+    case CHECK_USB_CONNECTED:
 #ifndef DEBUG_USB_ATTACHED
       // if USB attached, not going off mode
-      if( getInput_board_io(EXT_IOUSB_CONNECTED) )
+      if( getInput_board_io(EXT_IOUSB_CONNECTED) ) //todo: verify on 2nd proto board, USB Suspend (old proto) is delayed
       {
+        APP_LOG(TS_OFF, VLEVEL_H, "USB connected, no off mode.\r\n" );
         setNewMeasureTime(getNextWake( MainPeriodSleep, systemActiveTime_sec) * 1000L); //set measure time
         mainTask_state = WAIT_USB_DISCONNECT; //go to next state
       }
+      else
 #endif
-
-      else if( waiting == false ) //check wait time is expired
       {
-
-#ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
-
-        goIntoSleep(getNextWake( MainPeriodSleep, systemActiveTime_sec), 1);
-        //will stop here
-#else
-        pause_mainTask();
-
-        APP_LOG(TS_OFF, VLEVEL_H, "WAIT: %u\r\n",  getNextWake( MainPeriodSleep, systemActiveTime_sec) );
-
-        mainTask_state = INIT_SLEEP; //go back to init after sleep, for next measure
-#endif
+        APP_LOG(TS_OFF, VLEVEL_H, "No USB found\r\n" );
+        mainTask_state = WAIT_FOR_SLEEP;
       }
 
       break;
@@ -1007,7 +996,28 @@ const void mainTask(void)
       //check USB disconnected
       else if( !getInput_board_io(EXT_IOUSB_CONNECTED) )
       {
+        APP_LOG(TS_OFF, VLEVEL_H, "USB disconnected, enter off mode.\r\n" );
         mainTask_state = WAIT_FOR_SLEEP;
+      }
+
+      break;
+
+    case WAIT_FOR_SLEEP:
+
+      if( waiting == false ) //check wait time is expired
+      {
+
+#ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+
+        goIntoSleep(getNextWake( MainPeriodSleep, systemActiveTime_sec), 1);
+        //will stop here
+#else
+        pause_mainTask();
+
+        APP_LOG(TS_OFF, VLEVEL_H, "WAIT: %u\r\n",  getNextWake( MainPeriodSleep, systemActiveTime_sec) );
+
+        mainTask_state = INIT_SLEEP; //go back to init after sleep, for next measure
+#endif
       }
 
       break;
@@ -1038,8 +1048,7 @@ const void mainTask(void)
   }
 
   //check boolean mainTaskActive, then set short period for triggering, if not set long period for triggering.
-  //or if USB is connected
-  if( mainTaskActive ||  getInput_board_io(EXT_IOUSB_CONNECTED) )
+  if( mainTaskActive )
   {
     if( wait_Timer.Timestamp > MainPeriodNormal )
     {
