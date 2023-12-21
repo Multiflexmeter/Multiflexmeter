@@ -1019,7 +1019,9 @@ void am1805_sqw_set(uint8_t ui8SQFS, uint8_t ui8Pin)
 uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
 {
     uint8_t ui8SLRES;
-    uint8_t ui8Temp0, ui8Temp1;
+    uint8_t ui8Temp0;
+    uint8_t ui8Temp1;
+    uint8_t sleepControlReg;
 
     if( ui8Mode != SLEEP_MODE_nRST_LOW && ui8Mode != SLEEP_MODE_PSW_LOW && ui8Mode != SLEEP_MODE_nRST_LOW_AND_PSW_HIGH)
     {
@@ -1051,13 +1053,26 @@ uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
 
     // Assemble SLEEP register value.
     // Write to the register.
-    ui8Temp0 = ui8Timeout | (ui8SLRES << 6) | 0x80;
-    am1805_reg_write(AM1805_SLEEP_CTRL, ui8Temp0);
+    sleepControlReg = ui8Timeout | (ui8SLRES << 6) | 0x80;
+    am1805_reg_write(AM1805_SLEEP_CTRL, sleepControlReg);
 
     // Determine if SLEEP was accepted:
     // Get SLP bit.
     ui8Temp0 = am1805_reg_read(AM1805_SLEEP_CTRL) & 0x80;
 
+    //check sleep result
+    //work around for strange pulse on WDI input pin, probably caused by RTC internal
+    if (ui8Temp0 == 0)
+    { //failed, try again, first clear IRQ
+      ui8Temp0 = am1805_get_status(0x7f); //clear IRQ
+      am1805_reg_write(AM1805_SLEEP_CTRL, sleepControlReg);
+
+      // Determine if SLEEP was accepted:
+      // Get SLP bit.
+      ui8Temp0 = am1805_reg_read(AM1805_SLEEP_CTRL) & 0x80;
+    }
+
+    //check sleep result
     if (ui8Temp0 == 0)
     {
         // SLEEP did not happen. Determine why and return reason:
