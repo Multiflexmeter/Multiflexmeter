@@ -350,6 +350,11 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   //setup the alarm
   am1805_alarm_set(alarmTime, ALARM_INTERVAL_MONTH, ALARM_IRQ_PULSE_1_64S, ALARM_PIN_PSW);
 
+  am1805_ex2p_rising_edge_interrupt();
+
+  am1805_enable_wdi_ex1_interrupt(); //low active, Batlow + Sensor module
+  am1805_enable_wdi_ex2_interrupt(); //high active, USB + box sensor
+
 #if VERBOSE_LEVEL == VLEVEL_H
   strftime(timeStringNow, sizeof(timeStringNow), "%H:%M:%S", &struct_time);
   strftime(timeStringWake, sizeof(timeStringWake), "%H:%M:%S", sleepTime);
