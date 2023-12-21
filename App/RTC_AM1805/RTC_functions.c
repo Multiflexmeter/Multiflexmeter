@@ -350,6 +350,8 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   //setup the alarm
   am1805_alarm_set(alarmTime, ALARM_INTERVAL_MONTH, ALARM_IRQ_PULSE_1_64S, ALARM_PIN_PSW);
 
+  APP_LOG(TS_OFF, VLEVEL_H, "Output CTRL: %x\r\n", am1805_get_output_control());
+
   am1805_ex2p_rising_edge_interrupt();
 
   am1805_enable_wdi_ex1_interrupt(); //low active, Batlow + Sensor module
@@ -360,6 +362,13 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   strftime(timeStringWake, sizeof(timeStringWake), "%H:%M:%S", sleepTime);
   APP_LOG(TS_OFF, VLEVEL_H, "Sleep time; %u, NOW: %s, WAKE: %s\r\n", sleepTime_sec, timeStringNow, timeStringWake );
 #endif
+
+  APP_LOG(TS_OFF, VLEVEL_H, "WDIN: %d, EXIN: %d\r\n", am1805_get_wdin_status(), am1805_get_exin_status()); //print input status WDI + EXT1
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Status: %x\r\n", am1805_get_status(0x7f)); //read status register, reset all flags
+  APP_LOG(TS_OFF, VLEVEL_H, "Status: %x\r\n", am1805_get_status(0x7f)); //read again status register, reset all flags
+
+  APP_LOG(TS_OFF, VLEVEL_H, "IRQ mask: %x\r\n", am1805_get_interrupt_mask()); //read IRQ mask register
 
   //enable the sleepmode
   uint32_t sleepStatus = am1805_sleep_set(waitTimeTicks, SLEEP_MODE_nRST_LOW_AND_PSW_HIGH);
