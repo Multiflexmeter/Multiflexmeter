@@ -37,6 +37,12 @@ const uint16_t getVbusSupply(void)
 {
   uint32_t measure = SYS_GetAdc(CHANNEL_4_ADC);
   uint16_t supply_mV = SYS_GetVoltage(CHANNEL_4_ADC, measure);
+
+  const int32_t R18 = 1000;
+  const int32_t R19 = 100;
+
+  supply_mV *= (R18 + R19)/R19;
+
   return supply_mV;
 }
 
