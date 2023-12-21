@@ -41,7 +41,7 @@ const void syncRTC_withSysTime(void)
   SysTimeLocalTime(sysTime.Seconds, &stTime); //convert to date time
 
   timeWrite.ui8Mode = AM1805_24HR_MODE;
-  timeWrite.ui8Century = ((stTime.tm_year / 100)) % 2;
+  timeWrite.ui8Century = ((stTime.tm_year / 100)) % 2; //0 = 2000, 1 = 2100
   timeWrite.ui8Date = stTime.tm_mday;
   timeWrite.ui8Month = stTime.tm_mon + 1;
   timeWrite.ui8Year = stTime.tm_year % 100;
@@ -117,7 +117,7 @@ const void convert_am1805time_to_dateTime(am1805_time_t * timeSrc, struct_dateTi
   timeDst->hour = timeSrc->ui8Hour;
   timeDst->minute = timeSrc->ui8Minute;
   timeDst->second = timeSrc->ui8Second;
-  timeDst->century = timeSrc->ui8Century;
+  timeDst->century = timeSrc->ui8Century;  //0 = 2000, 1 = 2100
 }
 
 /**

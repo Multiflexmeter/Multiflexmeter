@@ -216,12 +216,12 @@ void am1805_time_get(am1805_time_t *time)
 
   time->ui8Hundredth = bcd_to_dec(psTempBuff[0]);
   time->ui8Second = bcd_to_dec(psTempBuff[1]);
-  time->ui8Minute = bcd_to_dec(psTempBuff[2]);
+  time->ui8Minute = bcd_to_dec(psTempBuff[2] & 0x7F);
   time->ui8Hour = psTempBuff[3];
-  time->ui8Date = bcd_to_dec(psTempBuff[4]);
-  time->ui8Month = bcd_to_dec(psTempBuff[5]);
+  time->ui8Date = bcd_to_dec(psTempBuff[4] & 0x3F);
+  time->ui8Month = bcd_to_dec(psTempBuff[5] & 0x1F);
   time->ui8Year = bcd_to_dec(psTempBuff[6]);
-  time->ui8Weekday = bcd_to_dec(psTempBuff[7]);
+  time->ui8Weekday = bcd_to_dec(psTempBuff[7] & 0x07);
 
   // Get the current hours format mode 12:24.
   psTempBuff[0] = am1805_reg_read(AM1805_CONTROL_1);

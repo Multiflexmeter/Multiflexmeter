@@ -61,8 +61,20 @@ extern "C"
 //
 //*****************************************************************************
 #define AM1805_HUNDREDTHS                 0x00
+#define AM1805_SECONDS                    0x01
+#define AM1805_MINUTES                    0x02
+#define AM1805_HOURS                      0x03
+#define AM1805_DATE                       0x04
+#define AM1805_MONTH                      0x05
 #define AM1805_YEARS                      0x06
+#define AM1805_WEEKDAY                    0x07
 #define AM1805_ALARM_HUNDRS               0x08
+#define AM1805_ALARM_SECONDS              0x09
+#define AM1805_ALARM_MINUTES              0x0A
+#define AM1805_ALARM_HOURS                0x0B
+#define AM1805_ALARM_DATE                 0x0C
+#define AM1805_ALARM_MONTH                0x0D
+#define AM1805_ALARM_WEEKDAY              0x0E
 #define AM1805_STATUS                     0x0F
 #define AM1805_CONTROL_1                  0x10
 #define AM1805_CONTROL_2                  0x11
