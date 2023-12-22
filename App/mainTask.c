@@ -737,7 +737,11 @@ const void mainTask(void)
           }
         }
         else
-        {
+        { //error
+          stMFM_sensorModuleData.sensorModuleTypeId = 0; //reset
+          stMFM_sensorModuleData.sensorModuleProtocolId = 0; //reset
+          stMFM_sensorModuleData.sensorModuleDataSize = 0; //reset
+
           APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: ERROR, " ); //print error
           switch (newstatus)
           {
