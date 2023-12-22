@@ -390,6 +390,8 @@ const void mainTask(void)
       init_vAlwaysOn();
       executeAlwaysOn(); //execute Always on config value.
 
+      MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
+
       measureEOS_enabled = getBatteryEos() >> 8;
 
       if( measureEOS_enabled ) //only if measureEOS is enabled this round
