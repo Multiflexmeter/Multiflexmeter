@@ -1021,6 +1021,7 @@ const void mainTask(void)
       else if( !getInput_board_io(EXT_IOUSB_CONNECTED) )
       {
         APP_LOG(TS_OFF, VLEVEL_H, "USB disconnected, enter off mode.\r\n" );
+        setWait(100);  //set wait time 100ms
         mainTask_state = WAIT_FOR_SLEEP;
       }
 
