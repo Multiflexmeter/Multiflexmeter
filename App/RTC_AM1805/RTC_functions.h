@@ -13,6 +13,7 @@
 #include "am1805.h"
 
 #define START_YEAR  2000
+#define UNIX_TIME_START_APP 1700000000L
 
 const void syncRTC_withSysTime(void);
 const void syncSystemTime_withRTC(void);

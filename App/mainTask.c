@@ -328,6 +328,60 @@ const uint32_t getNextBatteryEOStime(uint32_t timestampNow)
 }
 
 /**
+ * @fn const bool alarmNotYetTriggered(void)
+ * @brief function to detect an alarm is active but not yet triggered.
+ *
+ * @return true = active alarm found, false = no active alarm found.
+ */
+const bool alarmNotYetTriggered(void)
+{
+  //detect if awake is by alarm, or by other f.e. USB
+   uint32_t currentAlarm = get_current_alarm(); //get alarm time from RTC
+   uint32_t currentTime = SysTimeGet().Seconds; //get current time from controller
+
+#if VERBOSE_LEVEL == VLEVEL_H
+   struct tm stTime;
+   SysTimeLocalTime(currentAlarm, &stTime); //get alarm time
+   APP_LOG(TS_OFF, VLEVEL_H, "Wake, no measure. Next alarm: %02d-%02d-%02d %02d:%02d;%02d\r\n", stTime.tm_mday, stTime.tm_mon, stTime.tm_year, stTime.tm_hour, stTime.tm_min, stTime.tm_sec ); //print info
+#endif
+
+   //check current time is before valid time
+   if( currentTime < UNIX_TIME_START_APP )
+   {
+     return false;
+   }
+
+   //check current alarm is before valid time
+   if( currentAlarm < UNIX_TIME_START_APP )
+   {
+     return false;
+   }
+
+   //check current alarm is in future
+   if( currentAlarm > currentTime )
+   {
+     APP_LOG(TS_OFF, VLEVEL_H, "Wake, no measure. Time: %u, next: %u, delta: %u\r\n", currentTime, currentAlarm, currentAlarm - currentTime ); //print info
+
+     //check remaining time is smaller then interval
+     if( (getLoraInterval() * TM_SECONDS_IN_1MINUTE) > (currentAlarm - currentTime) )
+     {
+       systemActiveTime_sec = (getLoraInterval() * TM_SECONDS_IN_1MINUTE) - (currentAlarm - currentTime); //set active time
+       setNewMeasureTime( (currentAlarm - currentTime) * 1000L); //set remaining time in measure time
+       return true; //valid alarm time found
+     }
+     else
+     { //some mistake, alarm is more in future compare to the current interval, force a direct measurement
+       systemActiveTime_sec = 0;
+       return false;
+     }
+   }
+   else
+   {
+     return false;
+   }
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -400,28 +454,16 @@ const void mainTask(void)
         initBatMon(); //initialize I2C peripheral for battery monitor
       }
 
-      //detect if awake is by alarm, or by other f.e. USB
-      uint32_t currentAlarm = get_current_alarm();
-      uint32_t currentTime = SysTimeGet().Seconds;
-
-      struct tm stTime;
-      SysTimeLocalTime(currentAlarm, &stTime); //get alarm time
-      APP_LOG(TS_OFF, VLEVEL_H, "Wake, no measure. Next alarm: %02d-%02d-%02d %02d:%02d;%02d\r\n", stTime.tm_mday, stTime.tm_mon, stTime.tm_year, stTime.tm_hour, stTime.tm_min, stTime.tm_sec ); //print info
-
-      if( currentAlarm > currentTime && currentTime > 1700000000L && currentAlarm > 1700000000L )
+      //check wakeup source is a valid alarm
+      if( alarmNotYetTriggered() )
       {
-        APP_LOG(TS_OFF, VLEVEL_H, "Wake, no measure. Time: %u, next: %u, delta: %u\r\n", currentTime, currentAlarm, currentAlarm - currentTime ); //print info
-        setNewMeasureTime( (currentAlarm - currentTime) * 1000L); //set measure time
-        if( (getLoraInterval() * TM_SECONDS_IN_1MINUTE) > (currentAlarm - currentTime) )
-        {
-          systemActiveTime_sec = (getLoraInterval() * TM_SECONDS_IN_1MINUTE) - (currentAlarm - currentTime);
-        }
-        mainTask_state = WAIT_USB_DISCONNECT; //go to next state
+        mainTask_state = WAIT_USB_DISCONNECT; //other wake-up, USB or other (not implemented) go to wait state
       }
       else
       {
-        mainTask_state = INIT_SLEEP;
+        mainTask_state = INIT_SLEEP; //Wake-up by alarm or normal power-up.
       }
+
       break;
 
     case INIT_SLEEP: //init after Sleep
