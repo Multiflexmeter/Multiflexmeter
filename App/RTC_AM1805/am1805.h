@@ -61,8 +61,20 @@ extern "C"
 //
 //*****************************************************************************
 #define AM1805_HUNDREDTHS                 0x00
+#define AM1805_SECONDS                    0x01
+#define AM1805_MINUTES                    0x02
+#define AM1805_HOURS                      0x03
+#define AM1805_DATE                       0x04
+#define AM1805_MONTH                      0x05
 #define AM1805_YEARS                      0x06
+#define AM1805_WEEKDAY                    0x07
 #define AM1805_ALARM_HUNDRS               0x08
+#define AM1805_ALARM_SECONDS              0x09
+#define AM1805_ALARM_MINUTES              0x0A
+#define AM1805_ALARM_HOURS                0x0B
+#define AM1805_ALARM_DATE                 0x0C
+#define AM1805_ALARM_MONTH                0x0D
+#define AM1805_ALARM_WEEKDAY              0x0E
 #define AM1805_STATUS                     0x0F
 #define AM1805_CONTROL_1                  0x10
 #define AM1805_CONTROL_2                  0x11
@@ -137,6 +149,7 @@ extern "C"
 #define SLEEP_MODE_nRST_LOW_AND_PSW_HIGH    0x02//2 => nRST pulled low and PSW/nIRQ2 pulled high on sleep
 
 #define SLEEP_RETURN_ACCEPTED               0x00 //0 => sleep request accepted, sleep mode will be initiated in ui8Timeout seconds
+#define SLEEP_RETURN_ACCEPTED_AFTER_RETRY   0xAA //170 => sleep request accepted after retry, sleep mode will be initiated in ui8Timeout seconds
 #define SLEEP_RETURN_ILLEGAL_INPUT          0x01 //1 => illegal input values
 #define SLEEP_RETURN_DECLINED_ACTIVE_IRQ    0x02 //2 => sleep request declined, interrupt is currently pending
 #define SLEEP_RETURN_DECLINED_NO_SLEEP_IRQ  0x03 //3 => sleep request declined, no sleep trigger interrupt enabled
@@ -218,8 +231,26 @@ void am1805_autocal_set(uint8_t ui8Period);
 uint8_t am1805_ext_address_get(uint8_t ui8Address);
 uint8_t am1805_ram_read(uint8_t ui8Address);
 void am1805_ram_write(uint8_t ui8Address, uint8_t ui8Data);
+void am1805_enable_wdi_ex1_interrupt(void);
+void am1805_disable_wdi_ex1_interrupt(void);
 void am1805_enable_wdi_ex2_interrupt(void);
+void am1805_disable_wdi_ex2_interrupt(void);
+void am1805_ex2p_rising_edge_interrupt(void);
+void am1805_ex2p_faling_edge_interrupt(void);
+void am1805_enable_pwgt(void);
+void am1805_disable_pwgt(void);
 uint8_t am1805_get_status(uint8_t clear);
+bool am1805_get_wdin_status(void);
+bool am1805_get_exin_status(void);
+uint8_t am1805_get_interrupt_mask(void);
+uint8_t am1805_get_sleep_control(void);
+uint8_t am1805_get_osc_control(void);
+uint8_t am1805_get_output_control(void);
+uint8_t am1805_get_control1(void);
+uint8_t am1805_get_control2(void);
+void am1805_set_output_control(void);
+void am1805_clear_output_control(void);
+am1805_time_t am1805_read_current_alarm(void);
 
 #ifdef __cplusplus
 }

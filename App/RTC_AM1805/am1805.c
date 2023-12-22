@@ -44,6 +44,7 @@
 //
 //*****************************************************************************
 
+#include <stdbool.h>
 #include "am1805.h"
 
 
@@ -215,12 +216,12 @@ void am1805_time_get(am1805_time_t *time)
 
   time->ui8Hundredth = bcd_to_dec(psTempBuff[0]);
   time->ui8Second = bcd_to_dec(psTempBuff[1]);
-  time->ui8Minute = bcd_to_dec(psTempBuff[2]);
+  time->ui8Minute = bcd_to_dec(psTempBuff[2] & 0x7F);
   time->ui8Hour = psTempBuff[3];
-  time->ui8Date = bcd_to_dec(psTempBuff[4]);
-  time->ui8Month = bcd_to_dec(psTempBuff[5]);
+  time->ui8Date = bcd_to_dec(psTempBuff[4] & 0x3F);
+  time->ui8Month = bcd_to_dec(psTempBuff[5] & 0x1F);
   time->ui8Year = bcd_to_dec(psTempBuff[6]);
-  time->ui8Weekday = bcd_to_dec(psTempBuff[7]);
+  time->ui8Weekday = bcd_to_dec(psTempBuff[7] & 0x07);
 
   // Get the current hours format mode 12:24.
   psTempBuff[0] = am1805_reg_read(AM1805_CONTROL_1);
@@ -1018,7 +1019,21 @@ void am1805_sqw_set(uint8_t ui8SQFS, uint8_t ui8Pin)
 uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
 {
     uint8_t ui8SLRES;
-    uint8_t ui8Temp0, ui8Temp1;
+    uint8_t ui8Temp0;
+    uint8_t ui8Temp1;
+    uint8_t sleepControlReg;
+
+    bool retry = false;
+
+    if( ui8Mode != SLEEP_MODE_nRST_LOW && ui8Mode != SLEEP_MODE_PSW_LOW && ui8Mode != SLEEP_MODE_nRST_LOW_AND_PSW_HIGH)
+    {
+      return SLEEP_RETURN_ILLEGAL_INPUT;
+    }
+
+    if( ui8Timeout > 7 )
+    {
+      return SLEEP_RETURN_ILLEGAL_INPUT;
+    }
 
     if (ui8Mode > 0)
     {
@@ -1040,13 +1055,27 @@ uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
 
     // Assemble SLEEP register value.
     // Write to the register.
-    ui8Temp0 = ui8Timeout | (ui8SLRES << 6) | 0x80;
-    am1805_reg_write(AM1805_SLEEP_CTRL, ui8Temp0);
+    sleepControlReg = ui8Timeout | (ui8SLRES << 6) | 0x80;
+    am1805_reg_write(AM1805_SLEEP_CTRL, sleepControlReg);
 
     // Determine if SLEEP was accepted:
     // Get SLP bit.
     ui8Temp0 = am1805_reg_read(AM1805_SLEEP_CTRL) & 0x80;
 
+    //check sleep result
+    //work around for strange pulse on WDI input pin, probably caused by RTC internal
+    if (ui8Temp0 == 0)
+    { //failed, try again, first clear IRQ
+      retry = true;
+      ui8Temp0 = am1805_get_status(0x7f); //clear IRQ
+      am1805_reg_write(AM1805_SLEEP_CTRL, sleepControlReg);
+
+      // Determine if SLEEP was accepted:
+      // Get SLP bit.
+      ui8Temp0 = am1805_reg_read(AM1805_SLEEP_CTRL) & 0x80;
+    }
+
+    //check sleep result
     if (ui8Temp0 == 0)
     {
         // SLEEP did not happen. Determine why and return reason:
@@ -1059,18 +1088,18 @@ uint32_t am1805_sleep_set(uint8_t ui8Timeout, uint8_t ui8Mode)
                                ((ui8Temp1 & 0x80) == 0x80)))
         {
             // No trigger interrupts enabled.
-            return 3;
+            return SLEEP_RETURN_DECLINED_NO_SLEEP_IRQ;
         }
         else
         {
             // Interrupt pending.
-            return 2;
+            return SLEEP_RETURN_DECLINED_ACTIVE_IRQ;
         }
     }
     else
     {
         // SLEEP request successful.
-        return 0;
+      return retry == true ? SLEEP_RETURN_ACCEPTED_AFTER_RETRY : SLEEP_RETURN_ACCEPTED;
     }
 }
 
@@ -1311,31 +1340,258 @@ void am1805_ram_write(uint8_t ui8Address, uint8_t ui8Data)
 }
 
 /**
+ * @fn void am1805_enable_wdi_ex1_interrupt(void)
+ * @brief enable the XT2 interrupt for the WDI input pin.
+ * The EXTI input pin will generate the XT1 interrupt when the edge specified by EX1P occurs
+ *
+ */
+void am1805_enable_wdi_ex1_interrupt(void)
+{
+  am1805_reg_set(AM1805_INT_MASK, 0x01); //set EX1E bit to enable
+}
+
+/**
+ * @fn void am1805_disable_wdi_ex1_interrupt(void)
+ * @brief enable the XT2 interrupt for the WDI input pin.
+ * The EXTI input pin will generate the XT1 interrupt when the edge specified by EX1P occurs
+ *
+ */
+void am1805_disable_wdi_ex1_interrupt(void)
+{
+  am1805_reg_clear(AM1805_INT_MASK, 0x01); //set EX1E bit to enable
+}
+
+/**
  * @fn void am1805_enable_wdi_ex2_interrupt(void)
  * @brief enable the XT2 interrupt for the WDI input pin.
+ * The WDI input pin will generate the XT2 interrupt when the edge spec- ified by EX2P occurs.
  *
  */
 void am1805_enable_wdi_ex2_interrupt(void)
 {
-  //The WDI input pin will generate the XT2 interrupt when the edge spec- ified by EX2P occurs.
-
   am1805_reg_set(AM1805_INT_MASK, 0x02); //set EX2E bit to enable
 }
 
 /**
- * @fn uint8_t am1805_get_status(uint8_t clear)
- * @brief function to read status register
+ * @fn void am1805_disable_wdi_ex2_interrupt(void)
+ * @brief enable the XT2 interrupt for the WDI input pin.
+ * The WDI input pin will generate the XT2 interrupt when the edge spec- ified by EX2P occurs.
  *
+ */
+void am1805_disable_wdi_ex2_interrupt(void)
+{
+  am1805_reg_clear(AM1805_INT_MASK, 0x02); //clear EX2E bit to enable
+}
+
+/**
+ * @fn void am1805_ex2p_rising_edge_interrupt(void)
+ * @brief set XT2 interrupt as rising edge
+ * When 1, the external interrupt XT2 will trigger on a rising edge of the WDI pin
+ *
+ */
+void am1805_ex2p_rising_edge_interrupt(void)
+{
+  am1805_reg_set(AM1805_SLEEP_CTRL, 0x20); //set Ex2P bit
+}
+
+/**
+ * @fn void am1805_ex2p_faling_edge_interrupt(void)
+ * @brief set XT2 interrupt as failing edge
+ * When 0, the external interrupt XT2 will trigger on a falling edge of the WDI pin
+ *
+ */
+void am1805_ex2p_faling_edge_interrupt(void)
+{
+  am1805_reg_clear(AM1805_SLEEP_CTRL, 0x20); //clear Ex2P bit
+}
+
+/**
+ * @fn void am1805_am1805_enable_pwgt(void)
+ * @brief set pwgt bit
+ * When 1, the I/O interface will be disabled when the power switch is active and disabled.
+ */
+void am1805_enable_pwgt(void)
+{
+  am1805_reg_set(AM1805_OSC_CONTROL, 0x04); //set PWGT bit
+}
+
+/**
+ * @fn void am1805_am1805_disable_pwgt(void)
+ * @brief clear the pwgt bit in Sleep control register (0x17)
+ * When 0, the I/O interface will be enabled when the power switch is active and disabled.
+ */
+void am1805_disable_pwgt(void)
+{
+  am1805_reg_clear(AM1805_OSC_CONTROL, 0x04); //clear PWGT bit
+}
+
+/**
+ * @fn uint8_t am1805_get_status(uint8_t)
+ * @brief function to read status register (0x0F)
+ *
+ * @param clear : bits to be cleared
  * @return
  */
 uint8_t am1805_get_status(uint8_t clear)
 {
-  uint8_t status = am1805_reg_read(AM1805_STATUS);
+  uint8_t status = am1805_reg_read(AM1805_STATUS); //read status flags
 
   if( clear )
   {
-    am1805_reg_clear(AM1805_STATUS, clear);
+    am1805_reg_clear(AM1805_STATUS, clear); //write to clear flags
   }
 
   return status;
+}
+
+/**
+ * @fn bool am1805_get_wdin_status(void)
+ * @brief function to read WDIN status from Extended address register (0x3F)
+ *
+ * @return
+ */
+bool am1805_get_wdin_status(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_EXTENDED_ADDR);
+
+  return status & (1<<5) ? true : false;
+}
+
+/**
+ * @fn bool am1805_get_exin_status(void)
+ * @brief function to read EXIN status from Extended address register (0x3F)
+ *
+ * @return
+ */
+bool am1805_get_exin_status(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_EXTENDED_ADDR);
+
+  return status & (1<<4) ? true : false;
+}
+
+/**
+ * @fn uint8_t am1805_get_interrupt_mask(void)
+ * @brief function to read Interrupt mask register (0x12)
+ *
+ * @return
+ */
+uint8_t am1805_get_interrupt_mask(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_INT_MASK);
+
+  return status;
+}
+
+/**
+ * @fn uint8_t am1805_get_sleep_control(void)
+ * @brief function to read the sleep control register (0x17)
+ *
+ * @return
+ */
+uint8_t am1805_get_sleep_control(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_SLEEP_CTRL);
+
+  return status;
+}
+
+/**
+ * @fn uint8_t am1805_get_osc_control(void)
+ * @brief function to read the Oscillator control register (0x1C)
+ *
+ * @return
+ */
+uint8_t am1805_get_osc_control(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_OSC_CONTROL);
+
+  return status;
+}
+
+/**
+ * @fn uint8_t am1805_get_output_control(void)
+ * @brief function to read the output control register (0x30)
+ *
+ * @return
+ */
+uint8_t am1805_get_output_control(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_OUTPUT_CTRL);
+
+  return status;
+}
+
+/**
+ * @fn uint8_t am1805_get_control1(void)
+ * @brief function to get control 1 register
+ *
+ * @return
+ */
+uint8_t am1805_get_control1(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_CONTROL_1);
+
+  return status;
+}
+
+/**
+ * @fn uint8_t am1805_get_control2(void)
+ * @brief function to get control 2 register
+ *
+ * @return
+ */
+uint8_t am1805_get_control2(void)
+{
+  uint8_t status = am1805_reg_read(AM1805_CONTROL_2);
+
+  return status;
+}
+
+/**
+ * @fn void am1805_set_output_control(void)
+ * @brief function to set output control register (0x30) to value 0xC0.
+ * To access, first write 0x9D to the config key register (0x1F)
+ *
+ */
+void am1805_set_output_control(void)
+{
+  // Enable output control Register writes.
+  // Write the Key register.
+  am1805_reg_write(AM1805_CONFIG_KEY, AM1805_CONFIG_KEY_9D);
+
+  am1805_reg_set(AM1805_OUTPUT_CTRL, 0xC0);
+}
+
+/**
+ * @fn void am1805_clear_output_control(void)
+ * @brief function to clear output control from value 0xC0
+ * To access, first write 0x9D to the config key register (0x1F)
+ *
+ */
+void am1805_clear_output_control(void)
+{
+  // Enable output control Register writes.
+  // Write the Key register.
+  am1805_reg_write(AM1805_CONFIG_KEY, AM1805_CONFIG_KEY_9D);
+
+  am1805_reg_clear(AM1805_OUTPUT_CTRL, 0xC0);
+}
+
+/**
+ * @fn am1805_time_t am1805_read_current_alarm(void)
+ * @brief function to read the alarm time from RTC
+ *
+ * @return
+ */
+am1805_time_t am1805_read_current_alarm(void)
+{
+  am1805_time_t getAlarm = {0};
+  getAlarm.ui8Second = bcd_to_dec(am1805_reg_read(AM1805_ALARM_SECONDS) & 0x7F);
+  getAlarm.ui8Minute = bcd_to_dec(am1805_reg_read(AM1805_ALARM_MINUTES) & 0x7F);
+  getAlarm.ui8Hour = bcd_to_dec(am1805_reg_read(AM1805_ALARM_HOURS) & 0x3F); //assuming 24 hour notation
+  getAlarm.ui8Date = bcd_to_dec(am1805_reg_read(AM1805_ALARM_DATE) & 0x3F);
+  getAlarm.ui8Month = bcd_to_dec(am1805_reg_read(AM1805_ALARM_MONTH) & 0x1F);
+
+  return getAlarm;
 }

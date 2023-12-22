@@ -9,19 +9,26 @@
 #ifndef FRAM_FRAM_FUNCTIONS_H_
 #define FRAM_FRAM_FUNCTIONS_H_
 
-typedef enum
+typedef struct __attribute__((packed))
 {
-  FRAM_SETTING_MODEMID = 1,
-}ENUM_FRAM_SETTING;
+    char version[10];
+}struct_sensorModuleFirmwareVersion;
+
+typedef struct __attribute__((packed))
+{
+    uint8_t sensorModuleId;
+    uint32_t nextIntervalBatteryEOS;
+    struct_sensorModuleFirmwareVersion modules[6];
+    uint8_t sensorModuleProtocol[6];
+}struct_FRAM_settings;
+
+
 
 const void saveLoraSettings( const void *pSource, size_t length );
 const void restoreLoraSettings( const void *pSource, size_t length);
 
 const void saveFramSettings( const void *pSource, size_t length );
 const void restoreFramSettings( const void *pSource, size_t length);
-
-const int8_t setFramSetting( ENUM_FRAM_SETTING setting, void * value, bool forceWrite );
-const int8_t getFramSetting( ENUM_FRAM_SETTING setting, void * value, bool forceRead );
 
 
 #endif /* FRAM_FRAM_FUNCTIONS_H_ */

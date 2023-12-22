@@ -1385,9 +1385,18 @@ static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
 {
   /* USER CODE BEGIN OnRestoreContextRequest_1 */
 #ifdef FRAM_USED_FOR_NVM_DATA
+
+#ifdef ERASE_FRAM_NVM
+#warning NVM data is not read at powerup, equal to erasing the NVM data
+  //do not read, just return emty array
+  memset(nvm, 0x00, nvm_size);
+  return; //prevent to execute read from internal flash
+#else
+
   //read data to FRAM
   restoreLoraSettings((const void *)nvm, nvm_size);
   return; //prevent to execute read from internal flash, cycles of 10k too less
+#endif
 #endif
   /* USER CODE END OnRestoreContextRequest_1 */
   FLASH_IF_Read(nvm, LORAWAN_NVM_BASE_ADDRESS, nvm_size);

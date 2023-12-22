@@ -37,6 +37,7 @@
 #include "mainTask.h"
 
 #define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
+#define LORA_PERIODICALLY_REQUEST_TIME //comment if feature must be disabled.
 #define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled. //if enabled jumper on J11 1-2 must be placed.
 #define DEBUG_SLEEP_MAINTASK //comment if feature must be disabled
 
@@ -51,6 +52,7 @@ static UTIL_TIMER_Object_t MainTimer;
 static UTIL_TIMER_Time_t MainPeriodSleep = 60000;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
 static bool enableListenUart;
+static bool measureEOS_enabled;
 
 static UTIL_TIMER_Object_t wait_Timer;
 static volatile bool waiting = false;
@@ -63,6 +65,9 @@ static UTIL_TIMER_Object_t rejoin_Timer;
 static UTIL_TIMER_Object_t systemActive_Timer;
 static UTIL_TIMER_Time_t period_1sec = 1000;
 static volatile uint32_t systemActiveTime_sec;
+
+static UTIL_TIMER_Object_t timeout_Timer;
+static volatile bool timeout = false;
 
 static uint8_t dataBuffer[25];
 static struct_MFM_sensorModuleData stMFM_sensorModuleData;
@@ -78,6 +83,7 @@ static uint16_t sensorType;
 static uint8_t sensorProtocol;
 
 static uint8_t waitForBatteryMonitorDataCounter = 0;
+static struct_FRAM_settings FRAM_Settings;
 
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
@@ -146,6 +152,18 @@ const void setDelayReJoin(int periodMs)
 }
 
 /**
+ * @fn void setTimeout(int)
+ * @brief function to set a new timeout
+ *
+ * @param periodMs
+ */
+static void setTimeout(int periodMs)
+{
+  timeout = false; //reset
+  UTIL_TIMER_StartWithPeriod(&timeout_Timer, periodMs); //set timer
+}
+
+/**
  * @fn const uint16_t getDevNonce(void)
  * @brief function to get the DevNonce counter
  *
@@ -161,6 +179,42 @@ static const uint16_t getDevNonce(void)
     nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
 
     return nvm->Crypto.DevNonce;
+}
+
+/**
+ * @fn const uint16_t getDownFCounter(void)
+ * @brief function to get the down frame counter
+ *
+ * @return
+ */
+static const uint16_t getDownFCounter(void)
+{
+  /* get UplinkCounter */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    return nvm->Crypto.LastDownFCnt;
+}
+
+/**
+ * @fn const uint16_t getUpFCounter(void)
+ * @brief function to get the up frame counter
+ *
+ * @return
+ */
+static const uint16_t getUpFCounter(void)
+{
+  /* get UplinkCounter */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    return nvm->Crypto.FCntList.FCntUp;
 }
 
 /**
@@ -222,6 +276,112 @@ uint32_t getActiveTime(void)
 }
 
 /**
+ * @fn const void saveBatteryEos(uint32_t value)
+ * @brief function to save the battery EOS to the backup registers
+ *
+ */
+const void saveBatteryEos(bool measureNextInterval, uint8_t batteryEos)
+{
+  uint32_t newValue = (measureNextInterval << 8) | batteryEos;
+  writeBackupRegister(BACKUP_REGISTER_BATTERY_EOS, newValue);
+}
+
+/**
+ * @fn const uint32_t getBatteryEos(void)
+ * @brief function to get the battery EOS from the backup registers
+ *
+ */
+const uint32_t getBatteryEos(void)
+{
+  return readBackupRegister(BACKUP_REGISTER_BATTERY_EOS);
+}
+
+/**
+ * @fn const uint32_t getNextBatteryEOStime(void)
+ * @brief
+ *
+ * @return next timestamp for EOS battery meaasurement
+ */
+const uint32_t getNextBatteryEOStime(uint32_t timestampNow)
+{
+  uint32_t timestampNext = (timestampNow / TM_SECONDS_IN_1DAY) * TM_SECONDS_IN_1DAY; //get this day 00:00
+
+  //check current time is before 12:00
+  if( (timestampNow % TM_SECONDS_IN_1DAY) < (TM_SECONDS_IN_1DAY>>1) )
+  { //current time of the day before 12:00
+    timestampNext+= (60L*60*12); //set this day 12:00
+  }
+  else
+  { //current time of the day after 12:00
+    timestampNext+= (60L*60*36); //set next day day 12:00. 12 + 24 hours from 00:00
+  }
+
+#if VERBOSE_LEVEL == VLEVEL_H
+  char timeString[30];
+  struct tm structTime;
+  SysTimeLocalTime(timestampNext, &structTime);
+  strftime(timeString, sizeof(timeString), "%H:%M:%S %d-%m-%y", &structTime);
+  APP_LOG(TS_OFF, VLEVEL_H, "Next: %s, %u, delta: %u\r\n", timeString, timestampNext, timestampNext - timestampNow);
+#endif
+
+  return timestampNext;
+}
+
+/**
+ * @fn const bool alarmNotYetTriggered(void)
+ * @brief function to detect an alarm is active but not yet triggered.
+ *
+ * @return true = active alarm found, false = no active alarm found.
+ */
+const bool alarmNotYetTriggered(void)
+{
+  //detect if awake is by alarm, or by other f.e. USB
+   uint32_t currentAlarm = get_current_alarm(); //get alarm time from RTC
+   uint32_t currentTime = SysTimeGet().Seconds; //get current time from controller
+
+#if VERBOSE_LEVEL == VLEVEL_H
+   struct tm stTime;
+   SysTimeLocalTime(currentAlarm, &stTime); //get alarm time
+   APP_LOG(TS_OFF, VLEVEL_H, "Wake, no measure. Next alarm: %02d-%02d-%02d %02d:%02d;%02d\r\n", stTime.tm_mday, stTime.tm_mon, stTime.tm_year, stTime.tm_hour, stTime.tm_min, stTime.tm_sec ); //print info
+#endif
+
+   //check current time is before valid time
+   if( currentTime < UNIX_TIME_START_APP )
+   {
+     return false;
+   }
+
+   //check current alarm is before valid time
+   if( currentAlarm < UNIX_TIME_START_APP )
+   {
+     return false;
+   }
+
+   //check current alarm is in future
+   if( currentAlarm > currentTime )
+   {
+     APP_LOG(TS_OFF, VLEVEL_H, "Wake, no measure. Time: %u, next: %u, delta: %u\r\n", currentTime, currentAlarm, currentAlarm - currentTime ); //print info
+
+     //check remaining time is smaller then interval
+     if( (getLoraInterval() * TM_SECONDS_IN_1MINUTE) > (currentAlarm - currentTime) )
+     {
+       systemActiveTime_sec = (getLoraInterval() * TM_SECONDS_IN_1MINUTE) - (currentAlarm - currentTime); //set active time
+       setNewMeasureTime( (currentAlarm - currentTime) * 1000L); //set remaining time in measure time
+       return true; //valid alarm time found
+     }
+     else
+     { //some mistake, alarm is more in future compare to the current interval, force a direct measurement
+       systemActiveTime_sec = 0;
+       return false;
+     }
+   }
+   else
+   {
+     return false;
+   }
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -253,6 +413,16 @@ const void mainTask(void)
         APP_LOG(TS_OFF, VLEVEL_H, ", ALARM");
       }
 
+      if( getWakeupEx1Status(0) )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, ", SENSOR");
+      }
+
+      if( getWakeupEx2Status(0) )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, ", USB or BOX-OPEN");
+      }
+
       APP_LOG(TS_OFF, VLEVEL_H, "\r\n");
 #endif
 
@@ -274,9 +444,26 @@ const void mainTask(void)
       init_vAlwaysOn();
       executeAlwaysOn(); //execute Always on config value.
 
-      initBatMon(); //initialize and enable battery gauge
+      MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
 
-      mainTask_state = INIT_SLEEP;
+      measureEOS_enabled = getBatteryEos() >> 8;
+
+      if( measureEOS_enabled ) //only if measureEOS is enabled this round
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, "Measure battery EOS\r\n" ); //print info
+        initBatMon(); //initialize I2C peripheral for battery monitor
+      }
+
+      //check wakeup source is a valid alarm
+      if( alarmNotYetTriggered() )
+      {
+        mainTask_state = WAIT_USB_DISCONNECT; //other wake-up, USB or other (not implemented) go to wait state
+      }
+      else
+      {
+        mainTask_state = INIT_SLEEP; //Wake-up by alarm or normal power-up.
+      }
+
       break;
 
     case INIT_SLEEP: //init after Sleep
@@ -289,7 +476,10 @@ const void mainTask(void)
         systemActiveTime_sec = 0; //reset //only when no RTC is used, overwrite boottime.
 #endif
 
-        batmon_enable(); //enable battery monitor, takes a while until batmon is ready.
+        if( measureEOS_enabled ) //only if measureEOS is enabled this round
+        {
+          batmon_enable(); //enable battery monitor, takes a while until batmon is ready.
+        }
 
         if( enableListenUart )
         {
@@ -300,46 +490,11 @@ const void mainTask(void)
         loraJoinRetryCounter = 0; //reset, not needed for shutdown, because variable is always 0.
 #endif
 
-        setWait(250); //set wait timeout 250ms, wait time for powerup battery monitor
-
-        mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE;
+        mainTask_state = CHECK_LORA_JOIN;
 
 #ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
         }
 #endif
-      break;
-
-    case WAIT_BATTERY_GAUGE_IS_ALIVE:
-
-     if( waiting == false  )
-     {
-       if( batmon_isInitComplet()) //wait battery monitor is ready
-       {
-         APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
-
-         batmon_enable_gauge(); //enable gauging
-         mainTask_state = WAIT_GAUGE_IS_ACTIVE;
-       }
-
-       setWait(200); //set wait 200ms
-     }
-
-      break;
-
-    case WAIT_GAUGE_IS_ACTIVE:
-      if( waiting == false )
-      {
-        if( batmon_isGaugeActive() )
-        {
-          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: gauge active\r\n");
-
-          APP_LOG(TS_OFF, VLEVEL_H, "DevNonce %u\r\n", getDevNonce());
-          mainTask_state = CHECK_LORA_JOIN;
-        }
-
-        setWait(200); //set wait 200ms
-      }
-
       break;
 
     case CHECK_LORA_JOIN:
@@ -377,6 +532,8 @@ const void mainTask(void)
 
     case SWITCH_SENSOR_SLOT:
 
+      restoreFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
+
       numberOfsensorModules = 0;
       sensorModuleEnabled = false;
       //check if at least one sensor module is enabled
@@ -391,8 +548,6 @@ const void mainTask(void)
 
       if( sensorModuleEnabled )
       {
-        getFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //read out FRAM setting module ID
-
         if( sensorModuleId < 0 || sensorModuleId >= MAX_SENSOR_MODULE )
         {
           sensorModuleId = 0; //force to first.
@@ -400,7 +555,7 @@ const void mainTask(void)
 
 #ifdef LORA_PERIODICALLY_CONFIRMED_MSG
         /* get DevNonce for set confirmed / unconfirmed messages */
-        if( getDevNonce() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+        if( getUpFCounter() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
         {
           setTxConfirmed(LORAMAC_HANDLER_CONFIRMED_MSG);
         }
@@ -410,10 +565,21 @@ const void mainTask(void)
         }
 #endif
 
-        if( getDevNonce() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+#ifdef LORA_PERIODICALLY_REQUEST_TIME
+        if( getUpFCounter() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
         {
           setRequestTime();
         }
+#endif
+        //check next battery measurement interval is active. Set flag in battery backup registers to measure next round the EOS from powerup.
+        if( FRAM_Settings.nextIntervalBatteryEOS <= SysTimeGet().Seconds )
+        {
+          saveBatteryEos(true, (uint8_t)getBatteryEos()); //request next interval EOS battery
+          FRAM_Settings.nextIntervalBatteryEOS = getNextBatteryEOStime(SysTimeGet().Seconds); //set new interval
+          APP_LOG(TS_OFF, VLEVEL_H, "Next interval measure battery EOS\r\n" ); //print info
+        }
+
+        APP_LOG(TS_OFF, VLEVEL_H, "DevNonce: %u DnFcnt: %u UpFcnt: %u\r\n", getDevNonce(), getDownFCounter(), getUpFCounter());
 
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
         setWait(10); //set wait time 10ms
@@ -441,6 +607,7 @@ const void mainTask(void)
 
         memset(dataBuffer, 0x00, sizeof(dataBuffer));
         sensorFirmwareVersion(sensorModuleId, dataBuffer, sizeof(dataBuffer));
+        strncpy(FRAM_Settings.modules[sensorModuleId].version, (char*)dataBuffer, sizeof(FRAM_Settings.modules[sensorModuleId].version)); //copy data to save to FRAM
 
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module firmware: %d, %s\r\n", sensorModuleId, dataBuffer ); //print VERSION
 
@@ -449,11 +616,17 @@ const void mainTask(void)
         result = sensorProtocolVersion(sensorModuleId, &sensorProtocol);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module protocol version: %d, %d\r\n", sensorModuleId, result == SENSOR_OK ? sensorProtocol : -1); //print protocol version
         stMFM_sensorModuleData.sensorModuleProtocolId = sensorProtocol; //save value
+        FRAM_Settings.sensorModuleProtocol[sensorModuleId] = sensorProtocol; //save value to FRAM
 
         sensorType = 0; //reset first
         result = sensorReadType(sensorModuleId, &sensorType);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module type: %d, %d\r\n", sensorModuleId, sensorType ); //print sensor type
         stMFM_sensorModuleData.sensorModuleTypeId = sensorType; //save value
+        if( getSensorType(sensorModuleId + 1) != sensorType )
+        {
+          setSensorType(sensorModuleId + 1, sensorType); //save to configuration
+          saveSettingsToVirtualEEPROM();
+        }
 
         uint16_t sensorSetupTime = 0;
         result = sensorReadSetupTime(sensorModuleId, &sensorSetupTime);
@@ -467,6 +640,7 @@ const void mainTask(void)
         }
 
         setWait(measureTime);  //set wait time of sensor
+        setTimeout(10000); //10sec
 
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor wait %ums (read %ums)\r\n", measureTime, getMeasureTime(sensorModuleId + 1) ); //print measure time
 
@@ -482,14 +656,50 @@ const void mainTask(void)
         MeasurementStatus newStatus = sensorMeasurementStatus(sensorModuleId);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure status: %d, %d\r\n", sensorModuleId, newStatus ); //print sensor type
 
-        if( newStatus != MEASUREMENT_ACTIVE )
+        if( newStatus != MEASUREMENT_ACTIVE || timeout == true) //measurement ready or timeout
         {
-          mainTask_state = READ_SENSOR_DATA; //next state
+          if( timeout == true )
+          {
+            APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure: timeout\r\n");
+          }
+
+          if (measureEOS_enabled) //only if measureEOS is enabled this round
+          {
+            setTimeout(10000); //10sec
+            mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE; //next state
+          }
+          else
+          {
+            mainTask_state = READ_SENSOR_DATA;//skip battery
+          }
         }
         else
         {
-          setWait(100);  //set wait time 100ms
+          setWait(50);  //set wait time 50ms
         }
+      }
+
+      break;
+
+    case WAIT_BATTERY_GAUGE_IS_ALIVE:
+
+      if (waiting == false)
+      {
+        if (batmon_isInitComplet()  ) //wait battery monitor is ready
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
+
+          batmon_enable_gauge(); //enable gauging
+          mainTask_state = READ_SENSOR_DATA;
+        }
+        else if( timeout == true ) //timeout
+        {
+          //do not enable gauge, go further reading sensor
+          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: timeout, init\r\n");
+          mainTask_state = READ_SENSOR_DATA;
+        }
+
+        setWait(200); //set wait 200ms
       }
 
       break;
@@ -557,7 +767,36 @@ const void mainTask(void)
 
         waitForBatteryMonitorDataCounter = 0; //reset
 
-        mainTask_state = WAIT_BATMON_DATA; //next state
+        if (measureEOS_enabled) //only if measureEOS is enabled this round
+        {
+          setTimeout(10000); //10sec
+          mainTask_state = WAIT_GAUGE_IS_ACTIVE; //next state
+        }
+        else
+        {
+          mainTask_state = SAVE_DATA; //Skip battery state
+        }
+      }
+
+      break;
+
+    case WAIT_GAUGE_IS_ACTIVE:
+      if( waiting == false )
+      {
+        if( batmon_isGaugeActive() )
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: gauge active\r\n");
+
+          mainTask_state = WAIT_BATMON_DATA;
+        }
+        else if( timeout == true )
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: timeout, gauge active\r\n");
+
+          mainTask_state = WAIT_BATMON_DATA;
+        }
+
+        setWait(200); //set wait 200ms
       }
 
       break;
@@ -566,11 +805,11 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
-
         executeBatteryMeasure(); //do a battery measurement for battery supply, battery current and temperature. R and Z value not valid.
 
         if( batmon_getMeasure().voltage > 0 || waitForBatteryMonitorDataCounter > 10)
         {
+          saveBatteryEos(false, batmon_getMeasure().stateOfHealth);
           mainTask_state = SAVE_DATA; //next state
         }
         else
@@ -585,7 +824,15 @@ const void mainTask(void)
 
     case SAVE_DATA:
 
-        stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
+        if (measureEOS_enabled) //only if measureEOS is enabled this round
+        {
+          stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
+        }
+        else
+        {
+          stMFM_baseData.batteryStateEos = (uint8_t)getBatteryEos(); //only use the first 8 bits.
+        }
+
         writeNewMeasurement(0, &stMFM_sensorModuleData, &stMFM_baseData);
         mainTask_state = SEND_LORA_DATA; //next state
 
@@ -629,10 +876,9 @@ const void mainTask(void)
 
         }while (getSensorStatus(sensorModuleId + 1) == false && escape--);
 
+        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save last sensor Moudle ID
 
-        setFramSetting(FRAM_SETTING_MODEMID, (void*)&sensorModuleId, true); //save last sensor Moudle ID
-
-
+        setTimeout(10000); //10sec
         mainTask_state = WAIT_LORA_TRANSMIT_READY;
       }
 
@@ -641,10 +887,17 @@ const void mainTask(void)
     case WAIT_LORA_TRANSMIT_READY:
 
       //wait on transmit ready flag
-      if( loraTransmitReady == true )
+      if( loraTransmitReady == true || timeout == true)
       {
+        if( timeout == true )
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Lora transmit ready: timeout\r\n");
+        }
 
-        executeBatteryMeasure(); //do a battery measurement for battery supply, battery current (of TX) and temperature. R and Z value not valid.
+        if (measureEOS_enabled) //only if measureEOS is enabled this round
+        {
+          executeBatteryMeasure(); //do a battery measurement for battery supply, battery current (of TX) and temperature. R and Z value not valid.
+        }
 
         UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
         UTIL_TIMER_Time_t forcedInterval = 0;
@@ -700,8 +953,23 @@ const void mainTask(void)
         {
           //nothing
         }
-        mainTask_state = SWITCH_OFF_VSYS; //go to next state.
+
+        if (measureEOS_enabled) //only if measureEOS is enabled this round
+        {
+          mainTask_state = GAUGE_DISABLE; //go to next state.
+        }
+        else
+        {
+          mainTask_state = SWITCH_OFF_VSYS; //Skip battery gauge
+        }
       }
+
+      break;
+
+    case GAUGE_DISABLE:
+
+      batmon_disable_gauge();
+      mainTask_state = SWITCH_OFF_VSYS; //go to next state.
 
       break;
 
@@ -711,16 +979,30 @@ const void mainTask(void)
       deinit_IO_Expander(IO_EXPANDER_BUS_INT);
       disableVsys();
       loraJoinRetryCounter = 0; //reset
+      setTimeout(10000); //10sec
       mainTask_state = WAIT_LORA_RECEIVE_READY; //next state
 
       break;
 
     case WAIT_LORA_RECEIVE_READY:
 
-      if( loraReceiveReady == true || !LoRaMacIsBusy() )
+      if( loraReceiveReady == true || !LoRaMacIsBusy() || timeout == true )
       {
-        batmon_disable_gauge();
-        mainTask_state = WAIT_BATTERY_MONITOR_READY;
+        if( timeout == true )
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: timeout\r\n");
+        }
+
+        if (measureEOS_enabled) //only if measureEOS is enabled this round
+        {
+          setTimeout(10000); //10sec
+          mainTask_state = WAIT_BATTERY_MONITOR_READY; //go to next state.
+        }
+        else
+        {
+          mainTask_state = CHECK_USB_CONNECTED; //Skip battery gauge
+        }
+
         setWait(100);  //set wait time 100msec
       }
 
@@ -731,14 +1013,58 @@ const void mainTask(void)
       if( waiting == false ) //check wait time is expired
       {
         //wait battery monitor saved data internally
-        if( batmon_isReady() )
+        if( batmon_isReady() || timeout == true )
         {
+          if( timeout == true )
+          {
+            APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor isReady(): timeout\r\n");
+          }
+
           executeBatteryMeasure();//do a battery measurement for battery supply, battery current, temperature, R and Z impedances ( the gauges must be stopped to get valid R and Z impedances).
           batmon_disable(); //switch off battery monitor
-          mainTask_state = WAIT_FOR_SLEEP;
+          mainTask_state = CHECK_USB_CONNECTED;
+          setWait(100);  //set wait time 100ms
         }
-        setWait(1000);  //set wait time 1000ms
+        else
+        {
+          setWait(1000);  //set wait time 1000ms
+        }
+      }
 
+      break;
+
+    case CHECK_USB_CONNECTED:
+#ifndef DEBUG_USB_ATTACHED
+      // if USB attached, not going off mode
+      if( getInput_board_io(EXT_IOUSB_CONNECTED) ) //todo: verify on 2nd proto board, USB Suspend (old proto) is delayed
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, "USB connected, no off mode.\r\n" );
+        setNewMeasureTime(getNextWake( MainPeriodSleep, systemActiveTime_sec) * 1000L); //set measure time
+        mainTask_state = WAIT_USB_DISCONNECT; //go to next state
+      }
+      else
+#endif
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, "No USB found\r\n" );
+        mainTask_state = WAIT_FOR_SLEEP;
+      }
+
+      break;
+
+    case WAIT_USB_DISCONNECT:
+
+      //check measure time expired
+      if( startMeasure )
+      {
+        systemActiveTime_sec = 0; //reset //only when not in off mode
+        mainTask_state = INIT_SLEEP;
+      }
+      //check USB disconnected
+      else if( !getInput_board_io(EXT_IOUSB_CONNECTED) )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, "USB disconnected, enter off mode.\r\n" );
+        setWait(100);  //set wait time 100ms
+        mainTask_state = WAIT_FOR_SLEEP;
       }
 
       break;
@@ -765,7 +1091,13 @@ const void mainTask(void)
 
     case STOP_MAINTASK:
 
+#ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
+
+      goIntoSleep(TM_SECONDS_IN_1DAY, 1);
+      //will stop here
+#else
       stop_mainTask(true);
+#endif
 
       break;
 
@@ -783,8 +1115,7 @@ const void mainTask(void)
   }
 
   //check boolean mainTaskActive, then set short period for triggering, if not set long period for triggering.
-  //or if USB is connected
-  if( mainTaskActive ||  getInput_board_io(EXT_IOUSB_CONNECTED) )
+  if( mainTaskActive )
   {
     if( wait_Timer.Timestamp > MainPeriodNormal )
     {
@@ -884,6 +1215,17 @@ static const void trigger_systemActiveTime(void *context)
 }
 
 /**
+ * @fn const void trigger_timeout(void*)
+ * @brief function to trigger after timeout timer is finished.
+ *
+ * @param context
+ */
+static const void trigger_timeout(void *context)
+{
+  timeout = true;
+}
+
+/**
  * @fn const void init_mainTask(void)
  * @brief function to initialize the mainTask
  *
@@ -916,6 +1258,8 @@ const void init_mainTask(void)
 
   UTIL_TIMER_Create(&systemActive_Timer, period_1sec, UTIL_TIMER_PERIODIC, trigger_systemActiveTime, NULL); //create timer
   UTIL_TIMER_Start(&systemActive_Timer); //start timer
+
+  UTIL_TIMER_Create(&timeout_Timer, 0, UTIL_TIMER_ONESHOT, trigger_timeout, NULL); //create timer
 
 }
 
@@ -1075,4 +1419,32 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
 const void rxDataReady(void)
 {
   loraReceiveReady = true;
+}
+
+/**
+ * @brief override function getSoftwareSensorboard(), needs to be override by real functions
+ *
+ * @return
+ */
+const char * getSoftwareSensorboard(int sensorModuleId)
+{
+  if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
+  {
+    return 0;
+  }
+  return FRAM_Settings.modules[sensorModuleId].version;
+}
+
+/**
+ * @brief override function getProtocolSensorboard(), needs to be override by real functions
+ *
+ * @return
+ */
+const uint8_t getProtocolSensorboard(int sensorModuleId)
+{
+  if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
+  {
+    return 0;
+  }
+  return FRAM_Settings.sensorModuleProtocol[sensorModuleId];
 }

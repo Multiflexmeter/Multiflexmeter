@@ -89,5 +89,7 @@ const uint16_t getLoraInterval(void);
 const uint16_t getMeasureTime(int32_t sensorId);
 const bool getAlwaysOn(void);
 const bool getAlwaysOn_changed(bool reset);
+const int32_t getSensorType(int32_t sensorId);
+const int32_t setSensorType(int32_t sensorId, uint16_t moduleType);
 
 #endif /* MFMCONFIGURATION_H_ */

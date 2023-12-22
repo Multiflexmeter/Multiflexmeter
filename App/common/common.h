@@ -11,6 +11,10 @@
 #ifndef COMMON_COMMON_H_
 #define COMMON_COMMON_H_
 
+//#define ERASE_DATAFLASH       //enable for erasing dataflash
+//#define ERASE_VIRTUAL_EEPROM  //enable for erasing virtual EEPROM
+//#define ERASE_FRAM_NVM        //enable for erasing FRAM NVM
+
 typedef enum {
   BACKUP_REGISTER_SECONDS,
   BACKUP_REGISTER_SUBSECONDS,
@@ -19,6 +23,7 @@ typedef enum {
   BACKUP_REGISTER_LATEST_MEASUREMENT_ID,
   BACKUP_REGISTER_LAST_TIME_SYNC,
   BACKUP_REGISTER_REJOIN,
+  BACKUP_REGISTER_BATTERY_EOS,
 
 } ENUM_backupRegister;
 

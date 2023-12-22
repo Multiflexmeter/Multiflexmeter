@@ -41,7 +41,7 @@ const void syncRTC_withSysTime(void)
   SysTimeLocalTime(sysTime.Seconds, &stTime); //convert to date time
 
   timeWrite.ui8Mode = AM1805_24HR_MODE;
-  timeWrite.ui8Century = ((stTime.tm_year / 100)) % 2;
+  timeWrite.ui8Century = ((stTime.tm_year / 100)) % 2; //0 = 2000, 1 = 2100
   timeWrite.ui8Date = stTime.tm_mday;
   timeWrite.ui8Month = stTime.tm_mon + 1;
   timeWrite.ui8Year = stTime.tm_year % 100;
@@ -117,7 +117,7 @@ const void convert_am1805time_to_dateTime(am1805_time_t * timeSrc, struct_dateTi
   timeDst->hour = timeSrc->ui8Hour;
   timeDst->minute = timeSrc->ui8Minute;
   timeDst->second = timeSrc->ui8Second;
-  timeDst->century = timeSrc->ui8Century;
+  timeDst->century = timeSrc->ui8Century;  //0 = 2000, 1 = 2100
 }
 
 /**
@@ -291,6 +291,31 @@ const bool getWakeupBatStatus(bool clear)
   return getBitStatusRegisterRtc(AM1805_mask_BAT, clear);
 }
 
+/**
+ * @fn const bool getWakeupEx1Status(bool)
+ * @brief get wakeup EX1 status
+ * Set when the EX1 interrupt is triggered by the EXTI input.
+ *
+ * @param clear
+ * @return
+ */
+const bool getWakeupEx1Status(bool clear)
+{
+  return getBitStatusRegisterRtc(AM1805_mask_EX1, clear);
+}
+
+/**
+ * @fn const bool getWakeupEx2Status(bool)
+ * @brief get wakeup EX2 status
+ * Set when the EX2 interrupt is triggered by the WDI input.
+ *
+ * @param clear
+ * @return
+ */
+const bool getWakeupEx2Status(bool clear)
+{
+  return getBitStatusRegisterRtc(AM1805_mask_EX2, clear);
+}
 
 /**
  * @fn const void goIntoSleep(uint32_t, uint8_t)
@@ -350,17 +375,46 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   //setup the alarm
   am1805_alarm_set(alarmTime, ALARM_INTERVAL_MONTH, ALARM_IRQ_PULSE_1_64S, ALARM_PIN_PSW);
 
+  APP_LOG(TS_OFF, VLEVEL_H, "Output CTRL: %x\r\n", am1805_get_output_control());
+
+  am1805_ex2p_rising_edge_interrupt();
+
+  am1805_enable_wdi_ex1_interrupt(); //low active, Batlow + Sensor module
+  am1805_enable_wdi_ex2_interrupt(); //high active, USB + box sensor
+
+  am1805_enable_pwgt(); //make sure I/O interface is disabled in sleep mode
+
 #if VERBOSE_LEVEL == VLEVEL_H
   strftime(timeStringNow, sizeof(timeStringNow), "%H:%M:%S", &struct_time);
   strftime(timeStringWake, sizeof(timeStringWake), "%H:%M:%S", sleepTime);
   APP_LOG(TS_OFF, VLEVEL_H, "Sleep time; %u, NOW: %s, WAKE: %s\r\n", sleepTime_sec, timeStringNow, timeStringWake );
 #endif
 
+  APP_LOG(TS_OFF, VLEVEL_H, "WDIN: %d, EXIN: %d\r\n", am1805_get_wdin_status(), am1805_get_exin_status()); //print input status WDI + EXT1
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Status: %x\r\n", am1805_get_status(0x7f)); //read status register, reset all flags
+  APP_LOG(TS_OFF, VLEVEL_H, "Status: %x\r\n", am1805_get_status(0x7f)); //read again status register, reset all flags
+
+  APP_LOG(TS_OFF, VLEVEL_H, "IRQ mask: %x\r\n", am1805_get_interrupt_mask()); //read IRQ mask register
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Sleep: %x\r\n", am1805_get_sleep_control()); //read sleep control register
+
+  APP_LOG(TS_OFF, VLEVEL_H, "OSC: %x\r\n", am1805_get_osc_control()); //read oscillator control register
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Output CTRL: %x\r\n", am1805_get_output_control());
+  APP_LOG(TS_OFF, VLEVEL_H, "Control 1: %x\r\n", am1805_get_control1()); //read control1 register
+  APP_LOG(TS_OFF, VLEVEL_H, "Control 2: %x\r\n", am1805_get_control2()); //read control2 register
+
+
   //enable the sleepmode
   uint32_t sleepStatus = am1805_sleep_set(waitTimeTicks, SLEEP_MODE_nRST_LOW_AND_PSW_HIGH);
 
+
   switch( sleepStatus )
   {
+    case SLEEP_RETURN_ACCEPTED_AFTER_RETRY:
+      APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: Retry, Cleared IRQ first\r\n" );
+      //no break;
     case SLEEP_RETURN_ACCEPTED:
       APP_LOG(TS_OFF, VLEVEL_H, "SLEEP: ACTIVE\r\n" );
       break;
@@ -441,4 +495,43 @@ const void disableSleep(void)
   am1805_time_t alarmTime = {0};
   am1805_countdown_set(CNTDWN_RANGE_SEC, 0, CNTDWN_IRQ_SINGLE_PULSED_1_64S, CNTDOWN_DISABLE_CNT_DOWN_TMR);
   am1805_alarm_set(alarmTime, ALARM_INTERVAL_DISABLE, ALARM_IRQ_LEVEL, ALARM_PIN_PSW);
+}
+
+/**
+ * @fn const uint32_t get_current_alarm(uint16_t, uint8_t)
+ * @brief function to get the current alarm time
+ *
+ * @param currentYear
+ * @param currentMonth
+ * @return
+ */
+const uint32_t get_current_alarm(void)
+{
+  uint32_t timestamp;
+
+  am1805_time_t currentTime;
+  am1805_time_get(&currentTime);
+
+  uint16_t currentYear = START_YEAR + currentTime.ui8Year;
+
+  am1805_time_t currentAlarm = am1805_read_current_alarm();
+
+  if( currentTime.ui8Month == 12 && currentTime.ui8Date == 31 && currentAlarm.ui8Date == 1 ) //detect next alarm is next year, increment
+  {
+    currentYear++;
+  }
+
+  struct tm stAlarm = {0};
+  stAlarm.tm_year = currentYear > 1900 ? currentYear - 1900 : currentYear; //alarm does not contain a year
+  stAlarm.tm_mon = currentTime.ui8Month -1; //alarm does not contain a month, use month of calender. Convert from calender 1-12, to struct tm 0-11.
+  stAlarm.tm_mday = currentAlarm.ui8Date;
+  stAlarm.tm_hour = currentAlarm.ui8Hour;
+  stAlarm.tm_min = currentAlarm.ui8Minute;
+  stAlarm.tm_sec = currentAlarm.ui8Second;
+
+
+
+  timestamp = SysTimeMkTime(&stAlarm); //convert to unixtimestamp
+
+  return timestamp;
 }

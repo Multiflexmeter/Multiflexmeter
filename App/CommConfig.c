@@ -130,6 +130,26 @@ __weak const char * getSoftwareVersionMFM(void)
 }
 
 /**
+ * @brief weak function getSoftwareSensorboard(), needs to be override by real functions
+ *
+ * @return
+ */
+__weak const char * getSoftwareSensorboard(int value)
+{
+  return defaultVersion;
+}
+
+/**
+ * @brief weak function getProtocolSensorboard(), needs to be override by real functions
+ *
+ * @return
+ */
+__weak const uint8_t getProtocolSensorboard(int sensorModuleId)
+{
+  return 0;
+}
+
+/**
  * @brief weak function getJoinId(), can be override in application code.
  *
  * @return
@@ -1155,6 +1175,20 @@ void configUartHandler(void)
 }
 
 /**
+ * @fn uint8_t getLengthCommand(const char*)
+ * @brief helper function to get the length of the command
+ *
+ * @param data
+ * @return
+ */
+uint8_t getLengthCommand(const char * data)
+{
+  char test[]="=\r\n";
+  uint8_t result = strcspn(data, test);
+  return result;
+}
+
+/**
  * @brief callback function for character match to process the received data.
  *
  * @param huart current uart pointer, must be "config_uart"
@@ -1182,7 +1216,7 @@ void user_uart1_characterMatchDetect_Callback(UART_HandleTypeDef *huart, uint32_
 		  /*
 		   * check command is found, use strncasecmp() to ignore the case sensitivity
 		   */
-		  if( strncasecmp( (char*)bufferRxConfig + strlen(cmdSet), stCommandsSet[i].command, stCommandsSet[i].commandLength ) == 0 )
+		  if( strncasecmp( (char*)bufferRxConfig + strlen(cmdSet), stCommandsSet[i].command, stCommandsSet[i].commandLength ) == 0 && getLengthCommand((char*)bufferRxConfig + strlen(cmdSet)) == stCommandsSet[i].commandLength )
 		  {
 		    /*
 		     * command is founded, then execute the callback fucntion.
@@ -1211,7 +1245,7 @@ void user_uart1_characterMatchDetect_Callback(UART_HandleTypeDef *huart, uint32_
       /*
        * check command is found, use strncasecmp() to ignore the case sensitivity
        */
-      if( strncasecmp( (char*)bufferRxConfig + strlen(cmdGet), stCommandsGet[i].command, stCommandsGet[i].commandLength ) == 0 )
+      if( strncasecmp( (char*)bufferRxConfig + strlen(cmdGet), stCommandsGet[i].command, stCommandsGet[i].commandLength ) == 0 && getLengthCommand((char*)bufferRxConfig + strlen(cmdGet)) == stCommandsGet[i].commandLength)
       {
         /*
          * command is founded, then execute the callback fucntion.
@@ -1254,20 +1288,10 @@ void sendModuleInfo(int arguments, const char * format, ...)
  */
 void sendSensorInfo(int arguments, const char * format, ...)
 {
-  int sensorId = 0;
-  if( format[0] == '=' && format[2] == '\r' && format[3] == '\n')
+  for(int sensorId=1; sensorId<=6; sensorId++)
   {
-    sensorId = atoi(&format[1]);
-  }
-  //check sensor range
-  if( sensorId >= 1 && sensorId <= 6 )
-  {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%s,%s\r\n", cmdSensorInfo, sensorId, getProtocolVersionSensor(), getSoftwareVersionMFM()); //todo get protocol sensor module
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%u,%s\r\n", cmdSensorInfo, sensorId, getProtocolSensorboard(sensorId-1), getSoftwareSensorboard(sensorId-1));
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
-  }
-  else
-  {
-    sendError(0,0);
   }
 }
 

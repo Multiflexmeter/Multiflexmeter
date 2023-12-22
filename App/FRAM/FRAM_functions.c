@@ -95,6 +95,7 @@ const void restoreLoraSettings( const void *pSource, size_t length)
  */
 const void saveFramSettings( const void *pSource, size_t length )
 {
+  static_assert (sizeof(struct_FRAM_settings) <= ADDRESS_LORA_SETTINGS, "Size struct_FRAM_settings is too large");
   assert_param( ADDRESS_OTHER_SETTINGS + length < ADDRESS_LORA_SETTINGS);
 
   if( ADDRESS_OTHER_SETTINGS + length > ADDRESS_LORA_SETTINGS)
@@ -119,6 +120,7 @@ const void saveFramSettings( const void *pSource, size_t length )
  */
 const void restoreFramSettings( const void *pSource, size_t length)
 {
+  static_assert (sizeof(struct_FRAM_settings) <= ADDRESS_LORA_SETTINGS, "Size struct_FRAM_settings is too large");
   assert_param( ADDRESS_OTHER_SETTINGS + length < ADDRESS_LORA_SETTINGS);
 
   if( ADDRESS_OTHER_SETTINGS + length > ADDRESS_LORA_SETTINGS)
@@ -168,63 +170,4 @@ const int8_t testFram(uint8_t * status)
   setup_io_for_fram(false);
 
   return result;
-}
-
-/**
- * @fn const int8_t setFramSetting(ENUM_FRAM_SETTING, void*, bool)
- * @brief function to set a setting in FRAM setting struct
- *
- * @param setting : item to set
- * @param value : value to set
- * @param forceWrite : true = force write data to FRAM
- * @return
- */
-const int8_t setFramSetting( ENUM_FRAM_SETTING setting, void * value, bool forceWrite )
-{
-  switch(setting)
-  {
-    case FRAM_SETTING_MODEMID:
-      stFramSettings.sensorModuleId = *((uint8_t*)value);
-      break;
-
-    default:
-      return -1;
-      break;
-
-  }
-  if( forceWrite )
-  {
-    saveFramSettings(&stFramSettings, sizeof(stFramSettings)); //save value to FRAM
-  }
-  return 0;
-}
-
-/**
- * @fn const int8_t getFramSetting(ENUM_FRAM_SETTING, void*, bool)
- * @brief
- *
- * @param setting : item to get
- * @param value : value to get
- * @param forceRead : true = force read data to FRAM
- * @return
- */
-const int8_t getFramSetting( ENUM_FRAM_SETTING setting, void * value, bool forceRead )
-{
-  if( forceRead )
-  {
-    restoreFramSettings( &stFramSettings, sizeof(stFramSettings));
-  }
-
-  switch(setting)
-  {
-    case FRAM_SETTING_MODEMID:
-      *((uint8_t*)value) = stFramSettings.sensorModuleId;
-      break;
-
-    default:
-      return -1;
-      break;
-
-  }
-  return 0;
 }
