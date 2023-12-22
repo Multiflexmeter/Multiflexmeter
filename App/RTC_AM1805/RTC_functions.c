@@ -516,19 +516,19 @@ const uint32_t get_current_alarm(void)
 
   am1805_time_t currentAlarm = am1805_read_current_alarm();
 
-  if( currentTime.ui8Month == 12 && currentAlarm.ui8Month == 1 ) //detect next alarm is next year, increment
+  if( currentTime.ui8Month == 12 && currentTime.ui8Date == 31 && currentAlarm.ui8Date == 1 ) //detect next alarm is next year, increment
   {
     currentYear++;
   }
 
-  struct tm stAlarm;
-
+  struct tm stAlarm = {0};
+  stAlarm.tm_year = currentYear > 1900 ? currentYear - 1900 : currentYear; //alarm does not contain a year
+  stAlarm.tm_mon = currentTime.ui8Month -1; //alarm does not contain a month, use month of calender. Convert from calender 1-12, to struct tm 0-11.
   stAlarm.tm_mday = currentAlarm.ui8Date;
   stAlarm.tm_hour = currentAlarm.ui8Hour;
   stAlarm.tm_min = currentAlarm.ui8Minute;
-  stAlarm.tm_mon = currentAlarm.ui8Month;
   stAlarm.tm_sec = currentAlarm.ui8Second;
-  stAlarm.tm_year = currentYear;
+
 
 
   timestamp = SysTimeMkTime(&stAlarm); //convert to unixtimestamp
