@@ -398,16 +398,28 @@ const void mainTask(void)
         initBatMon(); //initialize I2C peripheral for battery monitor
       }
 
-      //detect if awake is normal, or by USB
+      //detect if awake is by alarm, or by other f.e. USB
       uint32_t currentAlarm = get_current_alarm();
       uint32_t currentTime = SysTimeGet().Seconds;
-      if( currentAlarm > currentTime )
+
+      struct tm stTime;
+      SysTimeLocalTime(currentAlarm, &stTime); //get alarm time
+      APP_LOG(TS_OFF, VLEVEL_H, "Wake, no measure. Next alarm: %02d-%02d-%02d %02d:%02d;%02d\r\n", stTime.tm_mday, stTime.tm_mon, stTime.tm_year, stTime.tm_hour, stTime.tm_min, stTime.tm_sec ); //print info
+
+      if( currentAlarm > currentTime && currentTime > 1700000000L && currentAlarm > 1700000000L )
       {
+        APP_LOG(TS_OFF, VLEVEL_H, "Wake, no measure. Time: %u, next: %u, delta: %u\r\n", currentTime, currentAlarm, currentAlarm - currentTime ); //print info
         setNewMeasureTime( (currentAlarm - currentTime) * 1000L); //set measure time
+        if( (getLoraInterval() * TM_SECONDS_IN_1MINUTE) > (currentAlarm - currentTime) )
+        {
+          systemActiveTime_sec = (getLoraInterval() * TM_SECONDS_IN_1MINUTE) - (currentAlarm - currentTime);
+        }
         mainTask_state = WAIT_USB_DISCONNECT; //go to next state
       }
-
-      mainTask_state = INIT_SLEEP;
+      else
+      {
+        mainTask_state = INIT_SLEEP;
+      }
       break;
 
     case INIT_SLEEP: //init after Sleep
