@@ -18,12 +18,6 @@
 #define ADDRESS_OTHER_SETTINGS 0x0000
 #define ADDRESS_LORA_SETTINGS 0x0100
 
-typedef struct
-{
-    uint8_t sensorModuleId;
-}struct_FRAM_setting;
-
-struct_FRAM_setting stFramSettings;
 
 /**
  * @fn const void setup_io_for_fram(bool)
