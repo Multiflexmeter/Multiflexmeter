@@ -33,6 +33,7 @@
 #include "BatMon_BQ35100/BatMon_functions.h"
 #include "RTC_AM1805/RTC_functions.h"
 #include "CommConfig.h"
+#include "CommConfig_usr.h"
 #include "MFMconfiguration.h"
 #include "mainTask.h"
 
@@ -830,12 +831,21 @@ const void mainTask(void)
 
         if (measureEOS_enabled) //only if measureEOS is enabled this round
         {
+          stMFM_baseData.messageType = 0x01;
           stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
+          stMFM_baseData.temperatureGauge = batmon_getMeasure().temperature; //use gauge temperature
+          stMFM_baseData.temperatureController = getTemperature(); //use controller temperature
         }
         else
         {
+          stMFM_baseData.messageType = 0x02;
           stMFM_baseData.batteryStateEos = (uint8_t)getBatteryEos(); //only use the first 8 bits.
+          stMFM_baseData.temperatureGauge = 0; //not available, set to zero
+          stMFM_baseData.temperatureController = getTemperature(); //use controller temperature
         }
+
+        APP_LOG(TS_OFF, VLEVEL_H, "Temperature controller: %u\r\n",  stMFM_baseData.temperatureController);
+
 
         writeNewMeasurement(0, &stMFM_sensorModuleData, &stMFM_baseData);
         mainTask_state = SEND_LORA_DATA; //next state
