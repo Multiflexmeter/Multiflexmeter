@@ -911,9 +911,29 @@ static void SendTxData(void)
     memcpy(&AppData.Buffer[i],measurementData->sensorModuleData.sensorModuleData, sensorDataSize );
     i+=sensorDataSize;
 
-    /* battery EOS status */
-    AppData.Buffer[i++] = measurementData->MFM_baseData.batteryStateEos;
+    /* Base data, depends on messageType */
+    AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.messageType;
+    switch( measurementData->MFM_baseData.stBaseData.messageType )
+    {
+      case 0x00:
+        //nothing
+        break;
 
+      case 0x01:
+        AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.batteryStateEos;
+        AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.temperatureGauge;
+        AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.temperatureController;
+        break;
+
+      case 0x02:
+        AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.temperatureController;
+        break;
+
+      default:
+        //nothing
+        break;
+
+    }
 
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
