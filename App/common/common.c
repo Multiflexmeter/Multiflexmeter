@@ -22,6 +22,7 @@
 
 #include "common.h"
 
+static bool adc_vref_read = false;
 static uint32_t adc_vref = VREFINT_CAL_VREF;
 
 uint32_t crossReferenceChannelAdc[]=
@@ -162,9 +163,10 @@ uint16_t SYS_GetVoltage(int channel, uint32_t adcValue)
   }
 
   //check vref is allready read, if not force to read first.
-  if( adc_vref == 0 )
+  if( adc_vref_read == false && channel != CHANNEL_VREFINT_ADC)
   {
-    SYS_GetAdc(CHANNEL_VREFINT_ADC);
+    uint32_t vref_adc = SYS_GetAdc(CHANNEL_VREFINT_ADC);
+    SYS_GetVoltage(CHANNEL_VREFINT_ADC,vref_adc);
   }
 
   //check channel is VREFINT
