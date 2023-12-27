@@ -31,8 +31,8 @@ typedef struct __attribute__((packed))
 {
   uint8_t messageType;
   uint8_t batteryStateEos;
-  uint8_t temperatureGauge;
-  uint8_t temperatureController;
+  int8_t temperatureGauge;
+  int8_t temperatureController;
   uint8_t spare[5];
 }struct_MFM_baseData;
 

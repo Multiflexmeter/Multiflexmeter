@@ -436,13 +436,13 @@ __weak const uint32_t SYS_GetAdc(int channel)
 
 
 /**
- * @fn uint16_t_t SYS_GetVoltage(uint32_t)
+ * @fn int32_t_t_t SYS_GetVoltage(uint32_t)
  * @brief weak function SYS_GetVoltage(), can be override in application code
  *
  * @param sensorId
  * @return
  */
-__weak const uint16_t SYS_GetVoltage(int channel, uint32_t adcValue)
+__weak const int32_t SYS_GetVoltage(int channel, uint32_t adcValue)
 {
   return 0;
 }
@@ -1747,7 +1747,7 @@ void sendAdc( int subTest )
   }
 
   uint32_t adcValue = SYS_GetAdc(subTest);
-  snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,0x%lx,%u%s\r\n", "ADC", subTest, adcValue, SYS_GetVoltage(subTest, adcValue), unit );
+  snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,0x%lx,%ld%s\r\n", "ADC", subTest, adcValue, SYS_GetVoltage(subTest, adcValue), unit );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 

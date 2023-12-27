@@ -833,7 +833,7 @@ const void mainTask(void)
         {
           stMFM_baseData.messageType = 0x01;
           stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
-          stMFM_baseData.temperatureGauge = batmon_getMeasure().temperature; //use gauge temperature
+          stMFM_baseData.temperatureGauge = (int8_t)batmon_getMeasure().temperature; //use gauge temperature
           stMFM_baseData.temperatureController = getTemperature(); //use controller temperature
         }
         else
@@ -844,7 +844,7 @@ const void mainTask(void)
           stMFM_baseData.temperatureController = getTemperature(); //use controller temperature
         }
 
-        APP_LOG(TS_OFF, VLEVEL_H, "Temperature controller: %u\r\n",  stMFM_baseData.temperatureController);
+        APP_LOG(TS_OFF, VLEVEL_H, "Temperature controller: %d\r\n",  stMFM_baseData.temperatureController);
 
 
         writeNewMeasurement(0, &stMFM_sensorModuleData, &stMFM_baseData);

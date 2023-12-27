@@ -12,7 +12,7 @@
 
 const uint16_t getBatterijSupply(void);
 const uint16_t getVbusSupply(void);
-const uint8_t getTemperature(void);
+const int8_t getTemperature(void);
 
 
 #endif /* COMMCONFIG_USR_H_ */

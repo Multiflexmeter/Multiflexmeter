@@ -151,9 +151,9 @@ uint32_t SYS_GetAdc(int channel)
  * @param adcValue rough ADC measure
  * @return calculated value in mV and for temp channel in degree Celius
  */
-uint16_t SYS_GetVoltage(int channel, uint32_t adcValue)
+int32_t SYS_GetVoltage(int channel, uint32_t adcValue)
 {
-  uint16_t result = 0;
+  int32_t result = 0;
 
   assert_param(channel < MAX_CHANNEL_ADC);
 
