@@ -46,3 +46,16 @@ const uint16_t getVbusSupply(void)
   return supply_mV;
 }
 
+/**
+ * @fn const uint8_t getTemperature(void)
+ * @brief function to get temperature of controller
+ *
+ * @return temperature in degree celsius (only whole degrees and above zero).
+ */
+const uint8_t getTemperature(void)
+{
+  uint32_t measure = SYS_GetAdc(CHANNEL_TEMPSENSOR_ADC);
+  uint16_t temperature = SYS_GetVoltage(CHANNEL_TEMPSENSOR_ADC, measure);
+
+  return (uint8_t)temperature;
+}
