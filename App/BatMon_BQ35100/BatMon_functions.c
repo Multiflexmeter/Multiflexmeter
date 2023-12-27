@@ -150,6 +150,27 @@ const structBatMonData batmon_getMeasure(void)
   return measure;
 }
 
+/**
+ * @fn const int8_t convertTemperatureGaugeToByte(int16_t)
+ * @brief helper function to convert degrees in tenth of degrees to byte in whole degrees
+ *
+ * @param temperature
+ * @return
+ */
+const int8_t convertTemperatureGaugeToByte(int16_t temperature)
+{
+  //check sign for round off
+  if( temperature > 0 )
+  {
+    temperature+=5;
+  }
+  else
+  { //negative
+    temperature-=5;
+  }
+
+  return (int8_t)(temperature/10); //convert from tenth to whole degrees.
+}
 
 /**
  * @fn const void testBatMon(int, int32_t*)

@@ -833,7 +833,7 @@ const void mainTask(void)
         {
           stMFM_baseData.messageType = 0x01;
           stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
-          stMFM_baseData.temperatureGauge = (int8_t)batmon_getMeasure().temperature; //use gauge temperature
+          stMFM_baseData.temperatureGauge = convertTemperatureGaugeToByte(batmon_getMeasure().temperature); //use gauge temperature
           stMFM_baseData.temperatureController = getTemperature(); //use controller temperature
         }
         else
