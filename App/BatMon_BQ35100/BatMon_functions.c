@@ -227,6 +227,7 @@ const void testBatMon( int mode, int32_t * value )
 
   else if( mode == 9 ) //enable batmonitor
   {
+    writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET);
     writeOutput_board_io(EXT_IO_GE_EN, GPIO_PIN_SET); //enable GE_EN, to operate battery monitor
     *value = 1;
   }
