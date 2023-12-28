@@ -43,7 +43,6 @@
 
 /* External variables ---------------------------------------------------------*/
 /* USER CODE BEGIN EV */
-#define FRAM_USED_FOR_NVM_DATA
 /* USER CODE END EV */
 
 /* Private typedef -----------------------------------------------------------*/

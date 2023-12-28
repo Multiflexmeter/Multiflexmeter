@@ -9,6 +9,9 @@
 #ifndef FRAM_FRAM_FUNCTIONS_H_
 #define FRAM_FRAM_FUNCTIONS_H_
 
+#define FRAM_USED_FOR_NVM_DATA //comment if no FRAM must be used for LoRa NVM data.
+
+
 #define ADDRESS_OTHER_SETTINGS 0x0000
 #define MAX_SIZE_OTHER_SETTINGS 0x0200
 #define ADDRESS_LORA_SETTINGS 0x0200
