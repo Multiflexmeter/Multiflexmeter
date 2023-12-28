@@ -33,13 +33,13 @@
 #include "BatMon_BQ35100/BatMon_functions.h"
 #include "RTC_AM1805/RTC_functions.h"
 #include "CommConfig.h"
+#include "CommConfig_usr.h"
 #include "MFMconfiguration.h"
 #include "mainTask.h"
 
 #define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
 #define LORA_PERIODICALLY_REQUEST_TIME //comment if feature must be disabled.
 #define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled. //if enabled jumper on J11 1-2 must be placed.
-#define DEBUG_SLEEP_MAINTASK //comment if feature must be disabled
 
 #define LORA_REJOIN_NUMBER_OF_RETRIES   5
 
@@ -444,15 +444,9 @@ const void mainTask(void)
       init_vAlwaysOn();
       executeAlwaysOn(); //execute Always on config value.
 
+      initBatMon(); //initialize I2C peripheral for battery monitor
+
       MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
-
-      measureEOS_enabled = getBatteryEos() >> 8;
-
-      if( measureEOS_enabled ) //only if measureEOS is enabled this round
-      {
-        APP_LOG(TS_OFF, VLEVEL_H, "Measure battery EOS\r\n" ); //print info
-        initBatMon(); //initialize I2C peripheral for battery monitor
-      }
 
       //check wakeup source is a valid alarm
       if( alarmNotYetTriggered() )
@@ -471,13 +465,13 @@ const void mainTask(void)
 #ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
       if( UTIL_TIMER_IsRunning(&measurement_Timer) == 0)
       {
-
-
         systemActiveTime_sec = 0; //reset //only when no RTC is used, overwrite boottime.
 #endif
+        measureEOS_enabled = getBatteryEos() >> 8;
 
         if( measureEOS_enabled ) //only if measureEOS is enabled this round
         {
+          APP_LOG(TS_OFF, VLEVEL_H, "Measure battery EOS\r\n" ); //print info
           batmon_enable(); //enable battery monitor, takes a while until batmon is ready.
         }
 
@@ -572,7 +566,7 @@ const void mainTask(void)
         }
 #endif
         //check next battery measurement interval is active. Set flag in battery backup registers to measure next round the EOS from powerup.
-        if( FRAM_Settings.nextIntervalBatteryEOS <= SysTimeGet().Seconds )
+        if( FRAM_Settings.nextIntervalBatteryEOS <= SysTimeGet().Seconds || FRAM_Settings.nextIntervalBatteryEOS == -1 || FRAM_Settings.nextIntervalBatteryEOS > SysTimeGet().Seconds + 2 * TM_SECONDS_IN_1DAY )
         {
           saveBatteryEos(true, (uint8_t)getBatteryEos()); //request next interval EOS battery
           FRAM_Settings.nextIntervalBatteryEOS = getNextBatteryEOStime(SysTimeGet().Seconds); //set new interval
@@ -737,7 +731,11 @@ const void mainTask(void)
           }
         }
         else
-        {
+        { //error
+          stMFM_sensorModuleData.sensorModuleTypeId = 0; //reset
+          stMFM_sensorModuleData.sensorModuleProtocolId = 0; //reset
+          stMFM_sensorModuleData.sensorModuleDataSize = 0; //reset
+
           APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: ERROR, " ); //print error
           switch (newstatus)
           {
@@ -826,12 +824,21 @@ const void mainTask(void)
 
         if (measureEOS_enabled) //only if measureEOS is enabled this round
         {
+          stMFM_baseData.messageType = 0x01;
           stMFM_baseData.batteryStateEos = batmon_getMeasure().stateOfHealth;
+          stMFM_baseData.temperatureGauge = convertTemperatureGaugeToByte(batmon_getMeasure().temperature); //use gauge temperature
+          stMFM_baseData.temperatureController = getTemperature(); //use controller temperature
         }
         else
         {
+          stMFM_baseData.messageType = 0x02;
           stMFM_baseData.batteryStateEos = (uint8_t)getBatteryEos(); //only use the first 8 bits.
+          stMFM_baseData.temperatureGauge = 0; //not available, set to zero
+          stMFM_baseData.temperatureController = getTemperature(); //use controller temperature
         }
+
+        APP_LOG(TS_OFF, VLEVEL_H, "Temperature controller: %d\r\n",  stMFM_baseData.temperatureController);
+
 
         writeNewMeasurement(0, &stMFM_sensorModuleData, &stMFM_baseData);
         mainTask_state = SEND_LORA_DATA; //next state
@@ -876,7 +883,12 @@ const void mainTask(void)
 
         }while (getSensorStatus(sensorModuleId + 1) == false && escape--);
 
-        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save last sensor Moudle ID
+        for( int i = 0; i< (sizeof( FRAM_Settings.modules) / sizeof( FRAM_Settings.modules[0])); i++ )
+        {
+          FRAM_Settings.modules[i].nullTerminator = 0; //force null terminators
+        }
+
+        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save last sensor Module ID
 
         setTimeout(10000); //10sec
         mainTask_state = WAIT_LORA_TRANSMIT_READY;
@@ -1119,9 +1131,7 @@ const void mainTask(void)
   {
     if( wait_Timer.Timestamp > MainPeriodNormal )
     {
-#ifdef DEBUG_SLEEP_MAINTASK
       APP_LOG(TS_OFF, VLEVEL_H, "MainTask sleep tick: %u, time: %ums, state %d\r\n", wait_Timer.Timestamp, TIMER_IF_Convert_Tick2ms(wait_Timer.Timestamp), mainTask_state );
-#endif
       setNextPeriod(TIMER_IF_Convert_Tick2ms(wait_Timer.Timestamp));
     }
 

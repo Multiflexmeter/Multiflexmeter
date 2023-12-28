@@ -46,7 +46,9 @@ MEMORY
 {
   RAM    (xrw)   : ORIGIN = 0x20000000, LENGTH = 64K
   RAM2   (xrw)   : ORIGIN = 0x10000000, LENGTH = 32K
-  FLASH   (rx)   : ORIGIN = 0x08000000, LENGTH = 256K
+  FLASH   (rx)   : ORIGIN = 0x08000000, LENGTH = 244K
+  VEEPROM (rx)   : ORIGIN = 0x0803D000, LENGTH = 8K
+  NVMDATA (rx)   : ORIGIN = 0x0803F000, LENGTH = 4K
 }
 
 /* Sections */
@@ -59,6 +61,31 @@ SECTIONS
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
   } >FLASH
+
+  .veeprom :
+  {
+    . = ALIGN(4);
+    __veeprom_start__ = .;
+    *(.veeprom)
+    *(.veeprom.*)
+    __veeprom_end__ = .;
+    
+  } >VEEPROM
+
+  _veeprom_size = SIZEOF(.veeprom);
+  ASSERT( LENGTH(VEEPROM) >= (__veeprom_end__ - __veeprom_start__), "veeprom overflowed !")
+    
+  .nvmdata :
+  {
+    . = ALIGN(4);
+    __nvmdata_start__ = .;
+    *(.nvmdata)
+    *(.nvmdata.*)
+    __nvmdata_end__ = .;
+    
+  } >NVMDATA
+  _nvmdata_size = SIZEOF(.nvmdata);
+  ASSERT( LENGTH(NVMDATA) >= (__nvmdata_end__ - __nvmdata_start__), "nvmdata overflowed !")
 
   /* The program code and other data into "FLASH" Rom type memory */
   .text :

@@ -38,11 +38,11 @@
 /* USER CODE BEGIN Includes */
 #include "../../../App/measurement.h"
 #include "../../../App/common/common.h"
+#include "../../../App/FRAM/FRAM_functions.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
 /* USER CODE BEGIN EV */
-#define FRAM_USED_FOR_NVM_DATA
 /* USER CODE END EV */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -692,36 +692,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 /* Private functions ---------------------------------------------------------*/
 /* USER CODE BEGIN PrFD */
 
-#ifdef FRAM_USED_FOR_NVM_DATA
-/**
- * @fn const void saveLoraSettings(const void*, size_t)
- * @brief weak function to override in application
- *
- * @param pSource
- * @param length
- */
-__weak const void saveLoraSettings(const void *pSource, size_t length)
-{
-  UNUSED(pSource);
-  UNUSED(length);
-  return;
-}
-
-/**
- * @fn const void restoreLoraSettings(const void*, size_t)
- * @brief weak function to override in application
- *
- * @param pSource
- * @param length
- */
-__weak const void restoreLoraSettings( const void *pSource, size_t length )
-{
-  UNUSED(pSource);
-  UNUSED(length);
-  return;
-}
-#endif
-
 /**
  * @fn const uint8_t getBufferSize(void)
  * @brief weak function to get maximum buffer side.
@@ -911,9 +881,29 @@ static void SendTxData(void)
     memcpy(&AppData.Buffer[i],measurementData->sensorModuleData.sensorModuleData, sensorDataSize );
     i+=sensorDataSize;
 
-    /* battery EOS status */
-    AppData.Buffer[i++] = measurementData->MFM_baseData.batteryStateEos;
+    /* Base data, depends on messageType */
+    AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.messageType;
+    switch( measurementData->MFM_baseData.stBaseData.messageType )
+    {
+      case 0x00:
+        //nothing
+        break;
 
+      case 0x01:
+        AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.batteryStateEos;
+        AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.temperatureGauge;
+        AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.temperatureController;
+        break;
+
+      case 0x02:
+        AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.temperatureController;
+        break;
+
+      default:
+        //nothing
+        break;
+
+    }
 
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
@@ -1366,6 +1356,7 @@ static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
 
 #ifdef FRAM_USED_FOR_NVM_DATA
   //save data to FRAM
+  static_assert (sizeof(LoRaMacNvmData_t) <= MAX_SIZE_LORA_SETTINGS, "Size LoRaMacNvmData_t is too large for reserved FRAM memory");
   saveLoraSettings((const void *)nvm, nvm_size);
   return; //prevent to execute write in internal flash, cycles of 10k too less
 #endif

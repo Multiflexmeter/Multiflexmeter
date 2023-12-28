@@ -62,6 +62,31 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+  .veeprom :
+  {
+    . = ALIGN(4);
+    __veeprom_start__ = .;
+    *(.veeprom)
+    *(.veeprom.*)
+    __veeprom_end__ = .;
+    
+  } >VEEPROM
+
+  _veeprom_size = SIZEOF(.veeprom);
+  ASSERT( LENGTH(VEEPROM) >= (__veeprom_end__ - __veeprom_start__), "veeprom overflowed !")
+    
+  .nvmdata :
+  {
+    . = ALIGN(4);
+    __nvmdata_start__ = .;
+    *(.nvmdata)
+    *(.nvmdata.*)
+    __nvmdata_end__ = .;
+    
+  } >NVMDATA
+  _nvmdata_size = SIZEOF(.nvmdata);
+  ASSERT( LENGTH(NVMDATA) >= (__nvmdata_end__ - __nvmdata_start__), "nvmdata overflowed !")
+
   /* The program code and other data into "FLASH" Rom type memory */
   .text :
   {

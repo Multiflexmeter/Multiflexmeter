@@ -29,9 +29,18 @@ typedef struct __attribute__((packed))
 
 typedef struct __attribute__((packed))
 {
+  uint8_t messageType;
   uint8_t batteryStateEos;
-  uint8_t spare[8];
+  int8_t temperatureGauge;
+  int8_t temperatureController;
+  uint8_t spare[5];
 }struct_MFM_baseData;
+
+typedef union __attribute__((packed))
+{
+  uint8_t data[9];
+  struct_MFM_baseData stBaseData;
+}UNION_MFM_baseData;
 
 typedef struct __attribute__((packed)){
   uint32_t measurementId;
@@ -39,7 +48,7 @@ typedef struct __attribute__((packed)){
   uint8_t protocolMFM;
   struct_MFM_sensorModuleData sensorModuleData;
   uint16_t sensorModuleData_crc;
-  struct_MFM_baseData MFM_baseData;
+  UNION_MFM_baseData MFM_baseData;
   uint8_t spare[196];
 }STRUCT_measurementData;
 

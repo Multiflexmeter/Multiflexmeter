@@ -31,5 +31,6 @@ const void initBatMon(void);
 const void deinitBatMon(void);
 const void batmon_measure(void);
 const structBatMonData batmon_getMeasure(void);
+const int8_t convertTemperatureGaugeToByte(int16_t temperature);
 
 #endif /* BATMON_BQ35100_BATMON_FUNCTIONS_H_ */

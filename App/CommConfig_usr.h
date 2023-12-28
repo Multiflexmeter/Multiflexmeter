@@ -10,6 +10,9 @@
 #ifndef COMMCONFIG_USR_H_
 #define COMMCONFIG_USR_H_
 
+const uint16_t getBatterijSupply(void);
+const uint16_t getVbusSupply(void);
+const int8_t getTemperature(void);
 
 
 #endif /* COMMCONFIG_USR_H_ */

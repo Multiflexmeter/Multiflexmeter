@@ -36,7 +36,7 @@ const uint16_t getBatterijSupply(void)
 const uint16_t getVbusSupply(void)
 {
   uint32_t measure = SYS_GetAdc(CHANNEL_4_ADC);
-  uint16_t supply_mV = SYS_GetVoltage(CHANNEL_4_ADC, measure);
+  uint16_t supply_mV = (uint16_t)SYS_GetVoltage(CHANNEL_4_ADC, measure);
 
   const int32_t R18 = 1000;
   const int32_t R19 = 100;
@@ -46,3 +46,16 @@ const uint16_t getVbusSupply(void)
   return supply_mV;
 }
 
+/**
+ * @fn const uint8_t getTemperature(void)
+ * @brief function to get temperature of controller
+ *
+ * @return temperature in degree celsius (only whole degrees and above zero).
+ */
+const int8_t getTemperature(void)
+{
+  uint32_t measure = SYS_GetAdc(CHANNEL_TEMPSENSOR_ADC);
+  int32_t temperature = SYS_GetVoltage(CHANNEL_TEMPSENSOR_ADC, measure);
+
+  return (int8_t)temperature;
+}

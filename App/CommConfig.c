@@ -290,6 +290,16 @@ __weak const uint16_t getBatterijSupply(void)
   return 1300;
 }
 
+/**
+ * @brief weak function getBatteryEos(), must be override in application code.
+ *
+ * @return battery capacity in percent
+ */
+__weak const uint32_t getBatteryEos(void)
+{
+
+  return 101;
+}
 
 /**
  * @brief weak function getVbusSupply(), can be override in application code.
@@ -436,13 +446,13 @@ __weak const uint32_t SYS_GetAdc(int channel)
 
 
 /**
- * @fn uint16_t_t SYS_GetVoltage(uint32_t)
+ * @fn int32_t_t_t SYS_GetVoltage(uint32_t)
  * @brief weak function SYS_GetVoltage(), can be override in application code
  *
  * @param sensorId
  * @return
  */
-__weak const uint16_t SYS_GetVoltage(int channel, uint32_t adcValue)
+__weak const int32_t SYS_GetVoltage(int channel, uint32_t adcValue)
 {
   return 0;
 }
@@ -1711,8 +1721,7 @@ void sendDataLine( uint32_t measurementId  )
  */
 void sendBatterijStatus(int arguments, const char * format, ...)
 {
-
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdBat, getBatterijSupply() ); //todo battery current and capacity optional
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%u\r\n", cmdBat, getBatterijSupply(), (uint8_t)getBatteryEos() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
@@ -1747,7 +1756,7 @@ void sendAdc( int subTest )
   }
 
   uint32_t adcValue = SYS_GetAdc(subTest);
-  snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,0x%lx,%u%s\r\n", "ADC", subTest, adcValue, SYS_GetVoltage(subTest, adcValue), unit );
+  snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,0x%lx,%ld%s\r\n", "ADC", subTest, adcValue, SYS_GetVoltage(subTest, adcValue), unit );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
