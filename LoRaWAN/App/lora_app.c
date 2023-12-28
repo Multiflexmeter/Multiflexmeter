@@ -38,6 +38,7 @@
 /* USER CODE BEGIN Includes */
 #include "../../../App/measurement.h"
 #include "../../../App/common/common.h"
+#include "../../../App/FRAM/FRAM_functions.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
