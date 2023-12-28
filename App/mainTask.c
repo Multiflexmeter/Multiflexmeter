@@ -565,7 +565,7 @@ const void mainTask(void)
         }
 #endif
         //check next battery measurement interval is active. Set flag in battery backup registers to measure next round the EOS from powerup.
-        if( FRAM_Settings.nextIntervalBatteryEOS <= SysTimeGet().Seconds )
+        if( FRAM_Settings.nextIntervalBatteryEOS <= SysTimeGet().Seconds || FRAM_Settings.nextIntervalBatteryEOS == -1 || FRAM_Settings.nextIntervalBatteryEOS > SysTimeGet().Seconds + 2 * TM_SECONDS_IN_1DAY )
         {
           saveBatteryEos(true, (uint8_t)getBatteryEos()); //request next interval EOS battery
           FRAM_Settings.nextIntervalBatteryEOS = getNextBatteryEOStime(SysTimeGet().Seconds); //set new interval
