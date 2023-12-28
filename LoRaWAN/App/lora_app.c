@@ -1356,6 +1356,7 @@ static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
 
 #ifdef FRAM_USED_FOR_NVM_DATA
   //save data to FRAM
+  static_assert (sizeof(LoRaMacNvmData_t) <= MAX_SIZE_LORA_SETTINGS, "Size LoRaMacNvmData_t is too large for reserved FRAM memory");
   saveLoraSettings((const void *)nvm, nvm_size);
   return; //prevent to execute write in internal flash, cycles of 10k too less
 #endif
