@@ -290,6 +290,16 @@ __weak const uint16_t getBatterijSupply(void)
   return 1300;
 }
 
+/**
+ * @brief weak function getBatteryEos(), must be override in application code.
+ *
+ * @return battery capacity in percent
+ */
+__weak const uint32_t getBatteryEos(void)
+{
+
+  return 101;
+}
 
 /**
  * @brief weak function getVbusSupply(), can be override in application code.
@@ -1711,8 +1721,7 @@ void sendDataLine( uint32_t measurementId  )
  */
 void sendBatterijStatus(int arguments, const char * format, ...)
 {
-
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdBat, getBatterijSupply() ); //todo battery current and capacity optional
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%u\r\n", cmdBat, getBatterijSupply(), (uint8_t)getBatteryEos() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
