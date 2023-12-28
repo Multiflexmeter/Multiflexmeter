@@ -40,7 +40,6 @@
 #define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
 #define LORA_PERIODICALLY_REQUEST_TIME //comment if feature must be disabled.
 #define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled. //if enabled jumper on J11 1-2 must be placed.
-#define DEBUG_SLEEP_MAINTASK //comment if feature must be disabled
 
 #define LORA_REJOIN_NUMBER_OF_RETRIES   5
 
@@ -1133,9 +1132,7 @@ const void mainTask(void)
   {
     if( wait_Timer.Timestamp > MainPeriodNormal )
     {
-#ifdef DEBUG_SLEEP_MAINTASK
       APP_LOG(TS_OFF, VLEVEL_H, "MainTask sleep tick: %u, time: %ums, state %d\r\n", wait_Timer.Timestamp, TIMER_IF_Convert_Tick2ms(wait_Timer.Timestamp), mainTask_state );
-#endif
       setNextPeriod(TIMER_IF_Convert_Tick2ms(wait_Timer.Timestamp));
     }
 
