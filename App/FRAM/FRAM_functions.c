@@ -15,9 +15,9 @@
 #include "FRAM.h"
 #include "FRAM_functions.h"
 
-#define ADDRESS_OTHER_SETTINGS 0x0000
-#define ADDRESS_LORA_SETTINGS 0x0100
-
+static_assert (MAX_SIZE_OTHER_SETTINGS + MAX_SIZE_LORA_SETTINGS <= SIZE_FRAM, "FRAM area sizes not correct");
+static_assert (ADDRESS_OTHER_SETTINGS + MAX_SIZE_OTHER_SETTINGS <= ADDRESS_LORA_SETTINGS, "FRAM area OTHER SETTINGS not correct");
+static_assert (ADDRESS_LORA_SETTINGS + MAX_SIZE_LORA_SETTINGS <= SIZE_FRAM, "FRAM area LORA SETTINGS not correct");
 
 /**
  * @fn const void setup_io_for_fram(bool)
@@ -40,9 +40,9 @@ __weak const void setup_io_for_fram(bool state)
  */
 const void saveLoraSettings( const void *pSource, size_t length )
 {
-  assert_param( ADDRESS_LORA_SETTINGS + length < 2048);
+  assert_param( ADDRESS_LORA_SETTINGS + length < SIZE_FRAM);
 
-  if( ADDRESS_LORA_SETTINGS + length > 2048)
+  if( ADDRESS_LORA_SETTINGS + length > SIZE_FRAM)
   {
     APP_LOG(TS_OFF, VLEVEL_L, "Error FRAM lora size\r\n");
     return;
@@ -64,9 +64,9 @@ const void saveLoraSettings( const void *pSource, size_t length )
  */
 const void restoreLoraSettings( const void *pSource, size_t length)
 {
-  assert_param( ADDRESS_LORA_SETTINGS + length < 2048);
+  assert_param( ADDRESS_LORA_SETTINGS + length < SIZE_FRAM);
 
-  if( ADDRESS_LORA_SETTINGS + length > 2048)
+  if( ADDRESS_LORA_SETTINGS + length > SIZE_FRAM)
   {
     APP_LOG(TS_OFF, VLEVEL_L, "Error FRAM lora size\r\n");
     return;

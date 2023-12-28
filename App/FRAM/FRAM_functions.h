@@ -9,6 +9,12 @@
 #ifndef FRAM_FRAM_FUNCTIONS_H_
 #define FRAM_FRAM_FUNCTIONS_H_
 
+#define ADDRESS_OTHER_SETTINGS 0x0000
+#define MAX_SIZE_OTHER_SETTINGS 0x0200
+#define ADDRESS_LORA_SETTINGS 0x0200
+#define MAX_SIZE_LORA_SETTINGS 0x0600
+#define SIZE_FRAM  0x800
+
 typedef struct __attribute__((packed))
 {
     char version[10];
@@ -22,8 +28,6 @@ typedef struct __attribute__((packed))
     struct_sensorModuleFirmwareVersion modules[6];
     uint8_t sensorModuleProtocol[6];
 }struct_FRAM_settings;
-
-
 
 const void saveLoraSettings( const void *pSource, size_t length );
 const void restoreLoraSettings( const void *pSource, size_t length);
