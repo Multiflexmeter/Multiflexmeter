@@ -446,14 +446,6 @@ const void mainTask(void)
 
       MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
 
-      measureEOS_enabled = getBatteryEos() >> 8;
-
-      if( measureEOS_enabled ) //only if measureEOS is enabled this round
-      {
-        APP_LOG(TS_OFF, VLEVEL_H, "Measure battery EOS\r\n" ); //print info
-        initBatMon(); //initialize I2C peripheral for battery monitor
-      }
-
       //check wakeup source is a valid alarm
       if( alarmNotYetTriggered() )
       {
@@ -471,13 +463,14 @@ const void mainTask(void)
 #ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
       if( UTIL_TIMER_IsRunning(&measurement_Timer) == 0)
       {
-
-
         systemActiveTime_sec = 0; //reset //only when no RTC is used, overwrite boottime.
 #endif
+        measureEOS_enabled = getBatteryEos() >> 8;
 
         if( measureEOS_enabled ) //only if measureEOS is enabled this round
         {
+          APP_LOG(TS_OFF, VLEVEL_H, "Measure battery EOS\r\n" ); //print info
+          initBatMon(); //initialize I2C peripheral for battery monitor
           batmon_enable(); //enable battery monitor, takes a while until batmon is ready.
         }
 
