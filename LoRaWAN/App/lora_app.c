@@ -692,36 +692,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 /* Private functions ---------------------------------------------------------*/
 /* USER CODE BEGIN PrFD */
 
-#ifdef FRAM_USED_FOR_NVM_DATA
-/**
- * @fn const void saveLoraSettings(const void*, size_t)
- * @brief weak function to override in application
- *
- * @param pSource
- * @param length
- */
-__weak const void saveLoraSettings(const void *pSource, size_t length)
-{
-  UNUSED(pSource);
-  UNUSED(length);
-  return;
-}
-
-/**
- * @fn const void restoreLoraSettings(const void*, size_t)
- * @brief weak function to override in application
- *
- * @param pSource
- * @param length
- */
-__weak const void restoreLoraSettings( const void *pSource, size_t length )
-{
-  UNUSED(pSource);
-  UNUSED(length);
-  return;
-}
-#endif
-
 /**
  * @fn const uint8_t getBufferSize(void)
  * @brief weak function to get maximum buffer side.
