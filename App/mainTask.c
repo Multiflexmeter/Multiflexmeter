@@ -444,6 +444,8 @@ const void mainTask(void)
       init_vAlwaysOn();
       executeAlwaysOn(); //execute Always on config value.
 
+      initBatMon(); //initialize I2C peripheral for battery monitor
+
       MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
 
       //check wakeup source is a valid alarm
@@ -470,7 +472,6 @@ const void mainTask(void)
         if( measureEOS_enabled ) //only if measureEOS is enabled this round
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Measure battery EOS\r\n" ); //print info
-          initBatMon(); //initialize I2C peripheral for battery monitor
           batmon_enable(); //enable battery monitor, takes a while until batmon is ready.
         }
 
