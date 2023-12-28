@@ -12,6 +12,7 @@
 typedef struct __attribute__((packed))
 {
     char version[10];
+    char nullTerminator;
 }struct_sensorModuleFirmwareVersion;
 
 typedef struct __attribute__((packed))

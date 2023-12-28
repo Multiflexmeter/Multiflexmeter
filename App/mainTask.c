@@ -889,7 +889,12 @@ const void mainTask(void)
 
         }while (getSensorStatus(sensorModuleId + 1) == false && escape--);
 
-        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save last sensor Moudle ID
+        for( int i = 0; i< (sizeof( FRAM_Settings.modules) / sizeof( FRAM_Settings.modules[0])); i++ )
+        {
+          FRAM_Settings.modules[i].nullTerminator = 0; //force null terminators
+        }
+
+        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save last sensor Module ID
 
         setTimeout(10000); //10sec
         mainTask_state = WAIT_LORA_TRANSMIT_READY;
