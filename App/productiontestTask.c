@@ -21,9 +21,14 @@
 
 #include "common/common.h"
 #include "common/app_types.h"
+#include "common/softwareVersion.h"
 
 #include "CommConfig.h"
 #include "CommConfig_usr.h"
+
+#include "BatMon_BQ35100/BatMon_functions.h"
+#include "dataflash/dataflash_functions.h"
+#include "FRAM/FRAM_functions.h"
 
 #include "productiontestTask.h"
 
@@ -60,6 +65,55 @@ const void productiontestTask(void)
   {
     case 0:
 
+      APP_LOG(TS_OFF, VLEVEL_L, "Productiontest Task\r\n");
+      APP_LOG(TS_OFF, VLEVEL_L, "Firmware: %s\r\n", getSoftwareVersionMFM());
+
+      productiontestTask_state++;
+      break;
+
+    case 1:
+
+      APP_LOG(TS_OFF, VLEVEL_L, " - Testing NOR flash: ");
+      {
+        uint32_t value = 0;
+        int8_t result;
+        result = testDataflash(2, &value);
+
+        if( result >=0 )
+        {
+          APP_LOG(TS_OFF, VLEVEL_L, "Okay\r\n");
+
+        }
+        else
+        {
+          APP_LOG(TS_OFF, VLEVEL_L, "Failed\r\n");
+        }
+      }
+
+      productiontestTask_state++;
+
+      break;
+
+    case 2:
+
+      APP_LOG(TS_OFF, VLEVEL_L, " - Testing FRAM: ");
+      {
+        uint8_t statusRegister = 0;
+        int8_t result;
+        result = testFram(&statusRegister);
+
+        if( result >=0 )
+        {
+          APP_LOG(TS_OFF, VLEVEL_L, "Okay\r\n");
+
+        }
+        else
+        {
+          APP_LOG(TS_OFF, VLEVEL_L, "Failed\r\n");
+        }
+      }
+
+      productiontestTask_state++;
 
       break;
 
@@ -107,4 +161,6 @@ const void init_productiontestTask(void)
   UTIL_TIMER_Start(&taskTimeoutTimer); //start timer
 
   UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_Main), UTIL_SEQ_RFU, productiontestTask); //register the task at the scheduler
+
+  initBatMon(); //initialize I2C peripheral for battery monitor
 }

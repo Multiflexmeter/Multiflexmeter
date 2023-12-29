@@ -38,5 +38,6 @@ const void restoreLoraSettings( const void *pSource, size_t length);
 const void saveFramSettings( const void *pSource, size_t length );
 const void restoreFramSettings( const void *pSource, size_t length);
 
+const int8_t testFram(uint8_t * status);
 
 #endif /* FRAM_FRAM_FUNCTIONS_H_ */
