@@ -46,6 +46,7 @@ enum{
   TEST_IO_EXPANDER_INT_SYS,
   TEST_VSYS_OFF,
   TEST_VSYS_ON,
+  TEST_IO_EXPANDER_INT_SENSOR,
   TEST_DATAFLASH,
   TEST_FRAM,
 };
@@ -151,6 +152,24 @@ const void productiontestTask(void)
       writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_RESET); //disable vsys
 
       printResultTest( resultVsysOn == 1 && resultVsysOff == 0 );
+
+      productiontestTask_state++;
+
+      break;
+
+    case TEST_IO_EXPANDER_INT_SENSOR:
+
+      APP_LOG(TS_OFF, VLEVEL_L, " - Testing I/O expander U15: ");
+      {
+        int8_t result;
+        writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET); //enable vsys
+        init_board_io_device(IO_EXPANDER_BUS_INT); //init I/O expander
+        result = readInput_board_io(EXT_IOSLOT1_GPIO0); //indirect by reading an I/O pin
+        deinit_IO_Expander(IO_EXPANDER_BUS_INT); //deinit I/O expander
+        writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_RESET); //disable vsys
+
+        printResultTest( result >=0 );
+      }
 
       productiontestTask_state++;
 
