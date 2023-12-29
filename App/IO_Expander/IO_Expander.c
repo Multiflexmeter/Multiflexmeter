@@ -380,9 +380,13 @@ int8_t writeOutput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask, GPIO_P
 
   result = TCA9535WriteOutput((TCA9535Regs*) &TCA9535_Reg_map[device-1]); //update outputs
 
-  if( result != 0 && device > IO_EXPANDER_NONE )
+  if( result != 0 )
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "I/O expander output write failed: %s on address 0x%02x\r\n", IO_Expander_name[device-1], TCA9535_Reg_map[device-1].deviceAddress );
+    if( device > IO_EXPANDER_NONE )
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, "I/O expander output write failed: %s on address 0x%02x\r\n", IO_Expander_name[device-1], TCA9535_Reg_map[device-1].deviceAddress );
+    }
+    return -4; //TCA9535WriteOutput error
   }
 
   return 0;
@@ -406,9 +410,13 @@ int8_t readInput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask)
 
   int8_t result = TCA9535ReadInputReg((TCA9535Regs*)&TCA9535_Reg_map[device-1]); //read input
 
-  if( result != 0 && device > IO_EXPANDER_NONE )
+  if( result != 0 )
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "I/O expander input read failed: %s on address 0x%02x\r\n", IO_Expander_name[device-1], TCA9535_Reg_map[device-1].deviceAddress );
+    if( device > IO_EXPANDER_NONE )
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, "I/O expander input read failed: %s on address 0x%02x\r\n", IO_Expander_name[device-1], TCA9535_Reg_map[device-1].deviceAddress );
+    }
+    return -3; //TCA9535ReadInputReg error
   }
 
   return getInput_IO_Expander(device,pinMask);
