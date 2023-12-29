@@ -906,6 +906,14 @@ void executeTest(int test, int subTest, char * extraArguments)
 
   switch( test )
   {
+    case 0:
+
+      saveStatusTestmode(subTest ? true : false);
+      snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test,  subTest);
+      uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+      break;
+
     case 1: //request of software version
 
       sendModuleInfo(0, 0); //send software versions
