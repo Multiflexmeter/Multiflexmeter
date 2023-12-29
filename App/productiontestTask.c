@@ -63,6 +63,25 @@ const void setNextMainInterval( UTIL_TIMER_Time_t next )
   UTIL_TIMER_Start(&MainTimer);
 }
 
+/**
+ * @fn void printOkay(void)
+ * @brief helper function to print Okay for each test
+ *
+ */
+void printOkay(void)
+{
+  APP_LOG(TS_OFF, VLEVEL_L, "Okay\r\n");
+}
+
+/**
+ * @fn void printFailed(void)
+ * @brief helper function to print Failed for each test
+ *
+ */
+void printFailed(void)
+{
+  APP_LOG(TS_OFF, VLEVEL_L, "Failed\r\n");
+}
 
 /**
  * @fn const void productiontestTask(void)
@@ -92,12 +111,11 @@ const void productiontestTask(void)
 
         if( result >=0 )
         {
-          APP_LOG(TS_OFF, VLEVEL_L, "Okay\r\n");
-
+          printOkay();
         }
         else
         {
-          APP_LOG(TS_OFF, VLEVEL_L, "Failed\r\n");
+          printFailed();
         }
       }
 
@@ -122,18 +140,17 @@ const void productiontestTask(void)
 
       if( resultVsysOn == 1 && resultVsysOff == 0)
       {
-        APP_LOG(TS_OFF, VLEVEL_L, "Okay\r\n");
-
+        printOkay();
       }
       else
       {
-        APP_LOG(TS_OFF, VLEVEL_L, "Failed\r\n");
+        printFailed();
       }
       productiontestTask_state++;
 
       break;
 
-    case TEST_DATAFLASH:
+    case TEST_DATAFLASH: //depending on VSYS and IO_EXPANDER_INT_SYS
 
       APP_LOG(TS_OFF, VLEVEL_L, " - Testing NOR flash: ");
       {
@@ -143,12 +160,11 @@ const void productiontestTask(void)
 
         if( result >=0 )
         {
-          APP_LOG(TS_OFF, VLEVEL_L, "Okay\r\n");
-
+          printOkay();
         }
         else
         {
-          APP_LOG(TS_OFF, VLEVEL_L, "Failed\r\n");
+          printFailed();
         }
       }
 
@@ -156,7 +172,7 @@ const void productiontestTask(void)
 
       break;
 
-    case TEST_FRAM:
+    case TEST_FRAM: //depending on VSYS and IO_EXPANDER_INT_SYS
 
       APP_LOG(TS_OFF, VLEVEL_L, " - Testing FRAM: ");
       {
@@ -166,12 +182,11 @@ const void productiontestTask(void)
 
         if( result >=0 )
         {
-          APP_LOG(TS_OFF, VLEVEL_L, "Okay\r\n");
-
+          printOkay();
         }
         else
         {
-          APP_LOG(TS_OFF, VLEVEL_L, "Failed\r\n");
+          printFailed();
         }
       }
 
