@@ -86,6 +86,7 @@ static const char cmdTest[]="Test";
 static const char cmdBat[]="Bat";
 static const char cmdVbus[]="Vbus";
 static const char cmdSave[]="Save";
+static const char cmdReboot[]="Reboot";
 
 
 static const char defaultProtocol1[] = "0.0";
@@ -605,6 +606,7 @@ void rcvErase(int arguments, const char * format, ...);
 void sendProgressLine( uint8_t percent, const char * command  );
 void rcvTest(int arguments, const char * format, ...);
 void rcvSave(int arguments, const char * format, ...);
+void rcvReboot(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -749,6 +751,12 @@ struct_commands stCommandsSet[] =
         cmdSave,
         sizeof(cmdSave) - 1,
         rcvSave,
+        0,
+    },
+    {
+        cmdReboot,
+        sizeof(cmdReboot) - 1,
+        rcvReboot,
         0,
     },
     //todo complete all SET commands
@@ -2121,6 +2129,19 @@ void rcvSave(int arguments, const char * format, ...)
   }
 }
 
+/**
+ * @fn void rcvReboot(int, const char*, ...)
+ * @brief receive of reboot command
+ *
+ * @param arguments
+ * @param format
+ */
+void rcvReboot(int arguments, const char * format, ...)
+{
+  sendOkay(1,cmdReboot);
+
+  startDelayedReset();
+}
 
 /**
  * @brief function to send ERROR command
