@@ -24,6 +24,7 @@ typedef enum {
   BACKUP_REGISTER_LAST_TIME_SYNC,
   BACKUP_REGISTER_REJOIN,
   BACKUP_REGISTER_BATTERY_EOS,
+  BACKUP_REGISTER_STATUS,
 
 } ENUM_backupRegister;
 
@@ -107,5 +108,7 @@ int getDecimal(float value, int digits);
 
 const void saveBatteryEos(bool measureNextInterval, uint8_t batteryEos, uint16_t batteryVoltage);
 const struct_registerBattery getBatteryEos(void);
+const struct_registerStatus getStatusRegister(void);
+const void saveStatusTestmode( bool status );
 
 #endif /* COMMON_COMMON_H_ */

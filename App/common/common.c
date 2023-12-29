@@ -278,3 +278,33 @@ const struct_registerBattery getBatteryEos(void)
   return UNvalue.stRegBattery;
 }
 
+/**
+ * @fn const struct_registerStatus getStatusRegister(void)
+ * @brief function to get the status register
+ *
+ * @return status register
+ */
+const struct_registerStatus getStatusRegister(void)
+{
+  UNION_registerStatus UNvalue;
+  UNvalue.reg= readBackupRegister(BACKUP_REGISTER_STATUS);
+  return UNvalue.stRegStatus;
+}
+
+/**
+ * @fn const void saveStatusTestmode(bool)
+ * @brief function to enable / disable the testmode bit in the status register.
+ *
+ * @param status : true is testmode enabled, false is testmode disabled
+ */
+const void saveStatusTestmode( bool status )
+{
+  static_assert (sizeof(UNION_registerStatus) == sizeof(uint32_t), "Size UNION_registerStatus is not correct");
+
+  UNION_registerStatus UNvalue;
+
+  UNvalue.reg= readBackupRegister(BACKUP_REGISTER_STATUS); //read original register first
+  UNvalue.stRegStatus.testmodeActive = status; //set new value
+
+  writeBackupRegister(BACKUP_REGISTER_STATUS, UNvalue.reg); //write changed register back
+}
