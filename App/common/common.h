@@ -64,6 +64,21 @@ typedef struct
     uint8_t century;
 }struct_dateTime;
 
+typedef struct __attribute__((packed))
+{
+    uint8_t EOS;
+    uint16_t voltage;
+    uint8_t measureActive:1;
+    uint8_t spareBits:7;
+}struct_registerBattery;
+
+typedef union
+{
+    uint32_t reg;
+    uint8_t bytes[4];
+    struct_registerBattery stRegBattery;
+} UNION_registerBattery;
+
 void detectResetBackup(void);
 bool getResetBackup(void);
 uint32_t getResetSource(void);
@@ -76,7 +91,7 @@ int32_t SYS_GetVoltage(int channel, uint32_t adcValue);
 
 int getDecimal(float value, int digits);
 
-const void saveBatteryEos(bool measureNextInterval, uint8_t batteryEos);
-const uint32_t getBatteryEos(void);
+const void saveBatteryEos(bool measureNextInterval, uint8_t batteryEos, uint16_t batteryVoltage);
+const struct_registerBattery getBatteryEos(void);
 
 #endif /* COMMON_COMMON_H_ */

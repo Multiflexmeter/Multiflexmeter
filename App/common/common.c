@@ -220,23 +220,35 @@ int getDecimal(float value, int digits)
 }
 
 /**
- * @fn const void saveBatteryEos(uint32_t value)
+ * @fn const void saveBatteryEos(bool, uint8_t, uint16_t)
  * @brief function to save the battery EOS to the backup registers
  *
+ * @param measureNextInterval : true for activating measureming battery next interval
+ * @param batteryEos : current battery EOS percentage
+ * @param batteryVoltage : current battery voltage
  */
-const void saveBatteryEos(bool measureNextInterval, uint8_t batteryEos)
+const void saveBatteryEos(bool measureNextInterval, uint8_t batteryEos, uint16_t batteryVoltage)
 {
-  uint32_t newValue = (measureNextInterval << 8) | batteryEos;
-  writeBackupRegister(BACKUP_REGISTER_BATTERY_EOS, newValue);
+  static_assert (sizeof(UNION_registerBattery) == sizeof(uint32_t), "Size UNION_registerBattery is not correct");
+
+  UNION_registerBattery UNvalue;
+
+  UNvalue.stRegBattery.EOS = batteryEos;
+  UNvalue.stRegBattery.voltage = batteryVoltage;
+  UNvalue.stRegBattery.measureActive = measureNextInterval;
+
+  writeBackupRegister(BACKUP_REGISTER_BATTERY_EOS, UNvalue.reg);
 }
 
 /**
- * @fn const uint32_t getBatteryEos(void)
- * @brief function to get the battery EOS from the backup registers
+ * @fn const struct_registerBattery_t getBatteryEos(void)
+ * @brief function to get the battery EOS, voltage and measure status from the backup registers
  *
  */
-const uint32_t getBatteryEos(void)
+const struct_registerBattery getBatteryEos(void)
 {
-  return readBackupRegister(BACKUP_REGISTER_BATTERY_EOS);
+  UNION_registerBattery UNvalue;
+  UNvalue.reg= readBackupRegister(BACKUP_REGISTER_BATTERY_EOS);
+  return UNvalue.stRegBattery;
 }
 

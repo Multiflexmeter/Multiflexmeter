@@ -1710,7 +1710,7 @@ void sendDataLine( uint32_t measurementId  )
  */
 void sendBatterijStatus(int arguments, const char * format, ...)
 {
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%u\r\n", cmdBat, getBatterijSupply(), (uint8_t)getBatteryEos() );
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%u,%u\r\n", cmdBat, getBatteryEos().voltage, getBatteryEos().EOS );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
