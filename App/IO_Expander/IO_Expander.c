@@ -17,6 +17,13 @@
 #include "IO_Expander.h"
 
 static volatile TCA9535Regs TCA9535_Reg_map[NR_IO_EXPANDER];
+const char IO_Expander_name[][12] =
+{
+    { "System bus" },
+    { "Sensor bus" },
+    { "Sensor bus" },
+};
+
 
 /**
  * @brief I/O expander chip definition
@@ -207,7 +214,7 @@ void init_IO_ExpanderData(ENUM_IO_EXPANDER device)
 /**
  * @fn void init_IO_Expander(ENUM_IO_EXPANDER)
  * @brief function write initial config register to devices.
- * note: first initialize the registers of variable \ref TCA9535_Reg_map with \ref init_IO_ExpanderData() and \ref init_IO_ExpanderPin() function
+ * note: first initialize the registers of variable \ref TCA9535Regs TCA9535_Reg_map[] with \ref init_IO_ExpanderData() and \ref init_IO_ExpanderPin() function
  *
  * @param device
  */
@@ -228,6 +235,7 @@ void init_IO_Expander(ENUM_IO_EXPANDER device)
   }
   else
   {
+    APP_LOG(TS_OFF, VLEVEL_H, "I/O expander not found: %s on address 0x%02x\r\n", IO_Expander_name[i], TCA9535_Reg_map[i].deviceAddress );
     stIO_ExpanderChipConfig[i].enabled = false; //disable not found, disable device
   }
 }
@@ -266,14 +274,26 @@ void update_IO_Expander(bool input, bool output)
   {
     if( stIO_ExpanderChipConfig[i].enabled == true ) //only when device is enabled
     {
+
       if( output )
       {
-        TCA9535WriteOutput((TCA9535Regs*) &TCA9535_Reg_map[i]); //update outputs
+        int8_t result = TCA9535WriteOutput((TCA9535Regs*) &TCA9535_Reg_map[i]); //update outputs
+
+        if( result != 0 )
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "I/O expander update write failed: %s on address 0x%02x\r\n", IO_Expander_name[i], TCA9535_Reg_map[i].deviceAddress );
+        }
+
       }
 
       if( input )
       {
-        TCA9535ReadInputReg((TCA9535Regs*) &TCA9535_Reg_map[i]); //read inputs
+        int8_t result = TCA9535ReadInputReg((TCA9535Regs*) &TCA9535_Reg_map[i]); //read inputs
+
+        if( result != 0 )
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "I/O expander update read failed: %s on address 0x%02x\r\n", IO_Expander_name[i], TCA9535_Reg_map[i].deviceAddress );
+        }
       }
     }
   }
@@ -310,7 +330,7 @@ int8_t setOutput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask, GPIO_Pin
 }
 
 /**
- * @fn int8_t getInput(ENUM_IO_EXPANDER, uint16_t)
+ * @fn int8_t getInput_IO_Expander(ENUM_IO_EXPANDER, uint16_t)
  * @brief function to get input of IO expander variable
  * note: not forced read from device
  *
@@ -353,9 +373,17 @@ int8_t writeOutput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask, GPIO_P
   if( !IS_GPIO_PIN(pinMask) ) //check pinMask
     return -2;
 
-  setOutput_IO_Expander(device, pinMask, state); //set output
+  int8_t result = setOutput_IO_Expander(device, pinMask, state); //set output
 
-  TCA9535WriteOutput((TCA9535Regs*) &TCA9535_Reg_map[device-1]); //update outputs
+  if( result != 0 )
+    return -3;
+
+  result = TCA9535WriteOutput((TCA9535Regs*) &TCA9535_Reg_map[device-1]); //update outputs
+
+  if( result != 0 && device > IO_EXPANDER_NONE )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "I/O expander output write failed: %s on address 0x%02x\r\n", IO_Expander_name[device-1], TCA9535_Reg_map[device-1].deviceAddress );
+  }
 
   return 0;
 }
@@ -376,7 +404,12 @@ int8_t readInput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask)
   if( !IS_GPIO_PIN(pinMask) ) //check pinMask
     return -2;
 
-  TCA9535ReadInputReg((TCA9535Regs*)&TCA9535_Reg_map[device-1]); //read input
+  int8_t result = TCA9535ReadInputReg((TCA9535Regs*)&TCA9535_Reg_map[device-1]); //read input
+
+  if( result != 0 && device > IO_EXPANDER_NONE )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "I/O expander input read failed: %s on address 0x%02x\r\n", IO_Expander_name[device-1], TCA9535_Reg_map[device-1].deviceAddress );
+  }
 
   return getInput_IO_Expander(device,pinMask);
 }

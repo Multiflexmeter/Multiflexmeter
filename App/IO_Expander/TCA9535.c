@@ -60,30 +60,29 @@ int8_t I2C_Read( uint8_t Size, I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uin
   return HAL_I2C_Mem_Read(hi2c, DevAddress, registerAddress, I2C_MEMADD_SIZE_8BIT, pData, Size, TCA9535_HAL_TIMEOUT);
 }
 
-// ****************************************************************************
-//! @fn          void TCA9535InitDefault(TCA9535Regs* Regs)
-//! @brief
-//!				 Initializes the confRegs structure which is
-//!              a local mirror of the TPL7200 config registers
-//!              additional TPL7200writeConfigRegisters(confRegs) function call
-//! 			 is needed in order to get the TPL7200 registers updated
-//!
-//! TODO 		 Implement I2C return (success/failure)
-// ****************************************************************************
-void TCA9535InitDefault(TCA9535Regs* Regs){
+/**
+ * @fn void TCA9535InitDefault(TCA9535Regs*)
+ * @brief Initializes the confRegs structure which is a local mirror of the TPL7200 config registers
+ *  additional TCA9535InitI2CReg(confRegs) function call is needed in order to get the registers updated
+ *
+ * @param Regs : I/O expander struct
+ */
+void TCA9535InitDefault(TCA9535Regs* Regs)
+{
 	Regs->Output.all = 0xFFFF;
 	Regs->PolarityInversion.all = 0x0000;
 	Regs->Config.all = 0x0000;
 }
 
-
-// ****************************************************************************
-//! @fn          void TCA9535InitI2CReg(TCA9535Regs* Regs)
-//! @brief
-//!
-//! TODO 		 Implement I2C return (success/failure)
-// ****************************************************************************
-unsigned char TCA9535InitI2CReg(TCA9535Regs* Regs){
+/**
+ * @fn unsigned char TCA9535InitI2CReg(TCA9535Regs*)
+ * @brief function to initialize the I/O expander config, output and polarity registers
+ *
+ * @param Regs : I/O expander struct
+ * @return : negative value is error in arguments, 0 = successful, larger then 0 is HAL error \ref HAL_StatusTypeDef
+ */
+unsigned char TCA9535InitI2CReg(TCA9535Regs* Regs)
+{
 	int8_t result;
 
 	result = I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_CONFIG_REG0, (unsigned char*)&Regs->Config, 0);
@@ -104,55 +103,50 @@ unsigned char TCA9535InitI2CReg(TCA9535Regs* Regs){
 	return I2C_OPERATION_SUCCESSFUL;
 }
 
-// ****************************************************************************
-//! @fn          void TCA9535ReadInputReg(TCA9535Regs* Regs)
-//! @brief
-//!
-//! TODO 		 Implement I2C return (success/failure)
-// ****************************************************************************
-void TCA9535ReadInputReg(TCA9535Regs* Regs){
-	I2C_Read(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_INPUT_REG0, (unsigned char*)&Regs->Input);
-}
-
-
-// ****************************************************************************
-//! @fn          void TCA9535InitI2CReg(TCA9535Regs* Regs)
-//! @brief
-//!
-//! TODO 		 Implement I2C return (success/failure)
-// ****************************************************************************
-void TCA9535WriteReg(unsigned char address, unsigned char regaddress, unsigned short regVal)
+/**
+ * @fn int8_t TCA9535ReadInputReg(TCA9535Regs*)
+ * @brief function to read the I/O expander input register
+ *
+ * @param Regs : I/O expander struct
+ * @return : negative value is error in arguments, 0 = successful, larger then 0 is HAL error \ref HAL_StatusTypeDef
+ */
+int8_t TCA9535ReadInputReg(TCA9535Regs* Regs)
 {
-	//I2C_Write(2, address, regaddress, (regVal), 0);
-	if(NACK)
-	{
-
-
-	}
-
+	return I2C_Read(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_INPUT_REG0, (unsigned char*)&Regs->Input);
 }
 
-//unsigned char TCA9535ReadReg(unsigned char address, unsigned char regaddress)
-//{
-//	return (unsigned char) I2C_Read_Byte(address,regaddress);
-//}
-
-void TCA9535WriteConfig(TCA9535Regs * Regs)
+/**
+ * @fn int8_t TCA9535WriteConfig(TCA9535Regs*)
+ * @brief function to write the configuration register of the I/O expander
+ *
+ * @param Regs : I/O expander struct
+ * @return : negative value is error in arguments, 0 = successful, larger then 0 is HAL error \ref HAL_StatusTypeDef
+ */
+int8_t TCA9535WriteConfig(TCA9535Regs * Regs)
 {
-	I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_CONFIG_REG0, (unsigned char*)&Regs->Config, 0);
+  return I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_CONFIG_REG0, (unsigned char*)&Regs->Config, 0);
 }
 
-void TCA9535WriteOutput(TCA9535Regs * Regs)
+/**
+ * @fn int8_t TCA9535WriteOutput(TCA9535Regs*)
+ * @brief function to write the output register of the I/O expander
+ *
+ * @param Regs : I/O expander struct
+ * @return : negative value is error in arguments, 0 = successful, larger then 0 is HAL error \ref HAL_StatusTypeDef
+ */
+int8_t TCA9535WriteOutput(TCA9535Regs * Regs)
 {
-
-	I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_OUTPUT_REG0, (unsigned char*)&Regs->Output, 0);
+  return I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_OUTPUT_REG0, (unsigned char*)&Regs->Output, 0);
 }
 
-void TCA9535WritePolarity(TCA9535Regs * Regs)
+/**
+ * @fn int8_t TCA9535WritePolarity(TCA9535Regs*)
+ * @brief function to write the Polarity register of the I/O expander
+ *
+ * @param Regs : I/O expander struct
+ * @return : negative value is error in arguments, 0 = successful, larger then 0 is HAL error \ref HAL_StatusTypeDef
+ */
+int8_t TCA9535WritePolarity(TCA9535Regs * Regs)
 {
-
-	I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_POLARITY_REG0, (unsigned char*)&Regs->PolarityInversion, 0);
+  return I2C_Write(2, Regs->I2C_handle, Regs->deviceAddress<<1, TCA9535_POLARITY_REG0, (unsigned char*)&Regs->PolarityInversion, 0);
 }
-
-
-
