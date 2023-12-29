@@ -2122,6 +2122,13 @@ void rcvTest(int arguments, const char * format, ...)
   }
 }
 
+/**
+ * @fn void rcvSave(int, const char*, ...)
+ * @brief receive save command
+ *
+ * @param arguments
+ * @param format
+ */
 void rcvSave(int arguments, const char * format, ...)
 {
   int result = saveSettingsToVirtualEEPROM();
