@@ -32,6 +32,7 @@
 /* USER CODE BEGIN Includes */
 #include "sys_app.h"
 #include "../../App/mainTask.h"
+#include "../../App/productiontestTask.h"
 #include "../../App/CommConfig.h"
 #include "../../App/dataflash/dataflash_functions.h"
 #include "../../App/measurement.h"
@@ -144,7 +145,17 @@ int main(void)
   restoreLatestMeasurementId();
   reloadSettingsFromVirtualEEPROM();
 
-  init_mainTask();
+  APP_LOG(TS_OFF, VLEVEL_H, "Testmode: %d\r\n", getStatusRegister().testmodeActive);
+
+  /* check production testmode is active or normal operation mode */
+  if( getStatusRegister().testmodeActive )
+  {
+    init_productiontestTask();
+  }
+  else
+  {
+    init_mainTask();
+  }
 
   /* USER CODE END 2 */
 

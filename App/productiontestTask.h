@@ -10,6 +10,6 @@
 #ifndef PRODUCTIONTESTTASK_H_
 #define PRODUCTIONTESTTASK_H_
 
-
+const void init_productiontestTask(void);
 
 #endif /* PRODUCTIONTESTTASK_H_ */
