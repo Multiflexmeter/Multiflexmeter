@@ -84,6 +84,24 @@ void printFailed(void)
 }
 
 /**
+ * @fn void printResultTest(bool)
+ * @brief helper function to print result
+ *
+ * @param result : true = "Okay", false = "Faield"
+ */
+void printResultTest(bool result)
+{
+  if( result == true)
+  {
+    printOkay();
+  }
+  else
+  {
+    printFailed();
+  }
+}
+
+/**
  * @fn const void productiontestTask(void)
  * @brief
  *
@@ -109,14 +127,7 @@ const void productiontestTask(void)
         int8_t result;
         result = readInput_board_io(EXT_IOUSB_CONNECTED); //indirect by reading an I/O pin
 
-        if( result >=0 )
-        {
-          printOkay();
-        }
-        else
-        {
-          printFailed();
-        }
+        printResultTest( result > 0 );
       }
 
       productiontestTask_state++;
@@ -129,6 +140,7 @@ const void productiontestTask(void)
 
       resultVsysOff = checkSpiPullupsVsystem();
       writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET); //enable vsys
+
       productiontestTask_state++;
 
       break;
@@ -138,14 +150,8 @@ const void productiontestTask(void)
       resultVsysOn = checkSpiPullupsVsystem();
       writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_RESET); //disable vsys
 
-      if( resultVsysOn == 1 && resultVsysOff == 0)
-      {
-        printOkay();
-      }
-      else
-      {
-        printFailed();
-      }
+      printResultTest( resultVsysOn == 1 && resultVsysOff == 0 );
+
       productiontestTask_state++;
 
       break;
@@ -158,14 +164,7 @@ const void productiontestTask(void)
         int8_t result;
         result = testDataflash(2, &value);
 
-        if( result >=0 )
-        {
-          printOkay();
-        }
-        else
-        {
-          printFailed();
-        }
+        printResultTest( result >=0 );
       }
 
       productiontestTask_state++;
@@ -180,14 +179,7 @@ const void productiontestTask(void)
         int8_t result;
         result = testFram(&statusRegister);
 
-        if( result >=0 )
-        {
-          printOkay();
-        }
-        else
-        {
-          printFailed();
-        }
+        printResultTest( result >=0 );
       }
 
       productiontestTask_state++;
