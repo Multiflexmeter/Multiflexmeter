@@ -29,6 +29,7 @@
 #include "BatMon_BQ35100/BatMon_functions.h"
 #include "dataflash/dataflash_functions.h"
 #include "FRAM/FRAM_functions.h"
+#include "IO/board_io.h"
 
 #include "productiontestTask.h"
 
@@ -73,6 +74,28 @@ const void productiontestTask(void)
 
     case 1:
 
+      APP_LOG(TS_OFF, VLEVEL_L, " - Testing I/O expander U14: ");
+      {
+        int8_t result;
+        result = readInput_board_io(EXT_IOUSB_CONNECTED); //indirect by reading an I/O pin
+
+        if( result >=0 )
+        {
+          APP_LOG(TS_OFF, VLEVEL_L, "Okay\r\n");
+
+        }
+        else
+        {
+          APP_LOG(TS_OFF, VLEVEL_L, "Failed\r\n");
+        }
+      }
+
+      productiontestTask_state++;
+
+      break;
+
+    case 2:
+
       APP_LOG(TS_OFF, VLEVEL_L, " - Testing NOR flash: ");
       {
         uint32_t value = 0;
@@ -94,7 +117,7 @@ const void productiontestTask(void)
 
       break;
 
-    case 2:
+    case 3:
 
       APP_LOG(TS_OFF, VLEVEL_L, " - Testing FRAM: ");
       {
