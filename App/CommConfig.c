@@ -278,18 +278,6 @@ __weak const uint16_t getNumberOfMeasures(void)
   return 3;
 }
 
-
-/**
- * @brief weak function getBatterijSupply(), can be override in application code.
- *
- * @return battery supply in mV
- */
-__weak const uint16_t getBatterijSupply(void)
-{
-
-  return 1300;
-}
-
 /**
  * @brief weak function getVbusSupply(), can be override in application code.
  *
