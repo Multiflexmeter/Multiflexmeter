@@ -30,6 +30,7 @@
 #include "dataflash/dataflash_functions.h"
 #include "FRAM/FRAM_functions.h"
 #include "IO/board_io.h"
+#include "IO/board_io_test.h"
 
 #include "productiontestTask.h"
 
@@ -62,6 +63,8 @@ const void setNextMainInterval( UTIL_TIMER_Time_t next )
  */
 const void productiontestTask(void)
 {
+  static int8_t resultVsysOff;
+  static int8_t resultVsysOn;
   switch(productiontestTask_state)
   {
     case 0:
@@ -96,6 +99,34 @@ const void productiontestTask(void)
 
     case 2:
 
+      APP_LOG(TS_OFF, VLEVEL_L, " - Testing Switch VSYS (U20): ");
+
+      resultVsysOff = checkSpiPullupsVsystem();
+      writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET); //enable vsys
+      productiontestTask_state++;
+
+      break;
+
+    case 3:
+
+      resultVsysOn = checkSpiPullupsVsystem();
+      writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_RESET); //disable vsys
+
+      if( resultVsysOn == 1 && resultVsysOff == 0)
+      {
+        APP_LOG(TS_OFF, VLEVEL_L, "Okay\r\n");
+
+      }
+      else
+      {
+        APP_LOG(TS_OFF, VLEVEL_L, "Failed\r\n");
+      }
+      productiontestTask_state++;
+
+      break;
+
+    case 4:
+
       APP_LOG(TS_OFF, VLEVEL_L, " - Testing NOR flash: ");
       {
         uint32_t value = 0;
@@ -117,7 +148,7 @@ const void productiontestTask(void)
 
       break;
 
-    case 3:
+    case 5:
 
       APP_LOG(TS_OFF, VLEVEL_L, " - Testing FRAM: ");
       {
