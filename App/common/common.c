@@ -19,6 +19,7 @@
 #include "app_types.h"
 #include "usart.h"
 #include "adc_if.h"
+#include "timer_if.h"
 
 #include "common.h"
 
@@ -53,6 +54,9 @@ uint32_t crossReferenceChannelAdc[]=
 static uint32_t resetSource;
 
 static bool resetBackupDetected;
+
+static UTIL_TIMER_Object_t reset_Timer;
+static UTIL_TIMER_Time_t resetWaitTime = 1000;
 
 /**
  * @fn void detectResetBackup(void)
@@ -97,6 +101,28 @@ uint32_t getResetSource(void)
 bool powerOnReset(void)
 {
   return (getResetSource() & RCC_RESET_FLAG_PWR) ? true : false;
+}
+
+/**
+ * @fn const void trigger_reset(void*)
+ * @brief function to reset the system
+ *
+ * @param context
+ */
+static const void trigger_reset(void *context)
+{
+  NVIC_SystemReset(); //reset
+}
+
+/**
+ * @fn void startDelayedReset(void)
+ * @brief function to start a delayed reboot.
+ *
+ */
+const void startDelayedReset(void)
+{
+  UTIL_TIMER_Create(&reset_Timer, resetWaitTime, UTIL_TIMER_PERIODIC, trigger_reset, NULL); //create timer for delayed reset
+  UTIL_TIMER_Start(&reset_Timer); //start timer
 }
 
 /**

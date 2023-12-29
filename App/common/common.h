@@ -79,10 +79,24 @@ typedef union
     struct_registerBattery stRegBattery;
 } UNION_registerBattery;
 
+typedef struct __attribute__((packed))
+{
+    uint8_t testmodeActive:1;
+    uint32_t spareBits:31;
+}struct_registerStatus;
+
+typedef union
+{
+    uint32_t reg;
+    uint8_t bytes[4];
+    struct_registerStatus stRegStatus;
+} UNION_registerStatus;
+
 void detectResetBackup(void);
 bool getResetBackup(void);
 uint32_t getResetSource(void);
 bool powerOnReset(void);
+const void startDelayedReset(void);
 void writeBackupRegister(ENUM_backupRegister backupRegisterId, uint32_t value);
 uint32_t readBackupRegister(ENUM_backupRegister backupRegisterId);
 
