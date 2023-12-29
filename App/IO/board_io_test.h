@@ -10,6 +10,6 @@
 #ifndef IO_BOARD_IO_TEST_H_
 #define IO_BOARD_IO_TEST_H_
 
-
+const int8_t checkSpiPullupsVsystem(void);
 
 #endif /* IO_BOARD_IO_TEST_H_ */

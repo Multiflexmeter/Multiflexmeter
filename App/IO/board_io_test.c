@@ -104,3 +104,23 @@ const void testSystemChecks( int mode, int32_t value )
     }
   }
 }
+
+/**
+ * @fn const int8_t checkSpiPullupsVsystem(void)
+ * @brief test function to verify one of SPI lines is high by the external pull-ups, which means the vSYS is enabled.
+ *
+ * @return 1 = one SPI line is high, 0 = all SPI lines are low
+ */
+const int8_t checkSpiPullupsVsystem(void)
+{
+  GPIO_PinState pinStateSCK = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5 ); //read input SPI SCK
+  GPIO_PinState pinStateMISO = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6 ); //read input SPI MISO
+  GPIO_PinState pinStateMOSI = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7 ); //read input SPI MOSI
+
+  if ( pinStateSCK == GPIO_PIN_SET || pinStateMISO == GPIO_PIN_SET || pinStateMOSI == GPIO_PIN_SET )
+  {
+    return 1;
+  }
+
+  return 0;
+}
