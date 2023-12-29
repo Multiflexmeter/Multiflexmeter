@@ -43,7 +43,9 @@ static UTIL_TIMER_Time_t taskTimeoutTime = 120000UL; //120sec
  */
 const void setNextMainInterval( UTIL_TIMER_Time_t next )
 {
+  UTIL_TIMER_Stop(&MainTimer);
   UTIL_TIMER_SetPeriod(&MainTimer, next);
+  UTIL_TIMER_Start(&MainTimer);
 }
 
 
