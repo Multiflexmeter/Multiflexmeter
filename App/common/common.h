@@ -76,4 +76,7 @@ int32_t SYS_GetVoltage(int channel, uint32_t adcValue);
 
 int getDecimal(float value, int digits);
 
+const void saveBatteryEos(bool measureNextInterval, uint8_t batteryEos);
+const uint32_t getBatteryEos(void);
+
 #endif /* COMMON_COMMON_H_ */

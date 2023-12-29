@@ -291,17 +291,6 @@ __weak const uint16_t getBatterijSupply(void)
 }
 
 /**
- * @brief weak function getBatteryEos(), must be override in application code.
- *
- * @return battery capacity in percent
- */
-__weak const uint32_t getBatteryEos(void)
-{
-
-  return 101;
-}
-
-/**
  * @brief weak function getVbusSupply(), can be override in application code.
  *
  * @return battery supply in mV
