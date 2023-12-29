@@ -17,11 +17,11 @@
 #include "IO_Expander.h"
 
 static volatile TCA9535Regs TCA9535_Reg_map[NR_IO_EXPANDER];
-const char IO_Expander_name[][12] =
+const char IO_Expander_name[][16] =
 {
-    { "System bus" },
-    { "Sensor bus" },
-    { "Sensor bus" },
+    { "System int. bus" },
+    { "Sensor int. bus" },
+    { "Sensor ext. bus" },
 };
 
 
