@@ -41,6 +41,14 @@ static UTIL_TIMER_Time_t MainPeriodNormal = 10;
 static UTIL_TIMER_Object_t taskTimeoutTimer;
 static UTIL_TIMER_Time_t taskTimeoutTime = 120000UL; //120sec
 
+enum{
+  TEST_START = 0,
+  TEST_IO_EXPANDER_INT_SYS,
+  TEST_VSYS_OFF,
+  TEST_VSYS_ON,
+  TEST_DATAFLASH,
+  TEST_FRAM,
+};
 
 /**
  * @fn const void setNextMainInterval(UTIL_TIMER_Time_t)
@@ -67,7 +75,7 @@ const void productiontestTask(void)
   static int8_t resultVsysOn;
   switch(productiontestTask_state)
   {
-    case 0:
+    case TEST_START:
 
       APP_LOG(TS_OFF, VLEVEL_L, "Productiontest Task\r\n");
       APP_LOG(TS_OFF, VLEVEL_L, "Firmware: %s\r\n", getSoftwareVersionMFM());
@@ -75,7 +83,7 @@ const void productiontestTask(void)
       productiontestTask_state++;
       break;
 
-    case 1:
+    case TEST_IO_EXPANDER_INT_SYS:
 
       APP_LOG(TS_OFF, VLEVEL_L, " - Testing I/O expander U14: ");
       {
@@ -97,7 +105,7 @@ const void productiontestTask(void)
 
       break;
 
-    case 2:
+    case TEST_VSYS_OFF:
 
       APP_LOG(TS_OFF, VLEVEL_L, " - Testing Switch VSYS (U20): ");
 
@@ -107,7 +115,7 @@ const void productiontestTask(void)
 
       break;
 
-    case 3:
+    case TEST_VSYS_ON:
 
       resultVsysOn = checkSpiPullupsVsystem();
       writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_RESET); //disable vsys
@@ -125,7 +133,7 @@ const void productiontestTask(void)
 
       break;
 
-    case 4:
+    case TEST_DATAFLASH:
 
       APP_LOG(TS_OFF, VLEVEL_L, " - Testing NOR flash: ");
       {
@@ -148,7 +156,7 @@ const void productiontestTask(void)
 
       break;
 
-    case 5:
+    case TEST_FRAM:
 
       APP_LOG(TS_OFF, VLEVEL_L, " - Testing FRAM: ");
       {
