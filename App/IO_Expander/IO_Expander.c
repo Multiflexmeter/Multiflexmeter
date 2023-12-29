@@ -37,13 +37,13 @@ static struct_IO_ExpanderChipConfig stIO_ExpanderChipConfig[]=
     }
     ,
     { //IO_EXPANDER_BUS_INT, U15 on MFM main board
-        true,                         //enable at powerup
+        false,                         //disable at powerup
         HI2C_IO_EXPANDER_BUS,         //I2C handle of I2C sensor bus
         ADDRESS_IO_EXPANDER_BUS_INT,  //slave address of chip
     }
     ,
     { //IO_EXPANDER_BUS_EXT, U1 on MFM Expansion board
-        true,                         //enable at powerup
+        false,                         //disable at powerup
         HI2C_IO_EXPANDER_BUS,         //I2C handle of I2C sensor bus
         ADDRESS_IO_EXPANDER_BUS_EXT,  //slave address of chip
     }
