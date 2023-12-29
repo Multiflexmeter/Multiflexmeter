@@ -276,27 +276,6 @@ uint32_t getActiveTime(void)
 }
 
 /**
- * @fn const void saveBatteryEos(uint32_t value)
- * @brief function to save the battery EOS to the backup registers
- *
- */
-const void saveBatteryEos(bool measureNextInterval, uint8_t batteryEos)
-{
-  uint32_t newValue = (measureNextInterval << 8) | batteryEos;
-  writeBackupRegister(BACKUP_REGISTER_BATTERY_EOS, newValue);
-}
-
-/**
- * @fn const uint32_t getBatteryEos(void)
- * @brief function to get the battery EOS from the backup registers
- *
- */
-const uint32_t getBatteryEos(void)
-{
-  return readBackupRegister(BACKUP_REGISTER_BATTERY_EOS);
-}
-
-/**
  * @fn const uint32_t getNextBatteryEOStime(void)
  * @brief
  *
@@ -467,7 +446,7 @@ const void mainTask(void)
       {
         systemActiveTime_sec = 0; //reset //only when no RTC is used, overwrite boottime.
 #endif
-        measureEOS_enabled = getBatteryEos() >> 8;
+        measureEOS_enabled = getBatteryEos().measureActive; //get saved status of previous round from battery backup registers
 
         if( measureEOS_enabled ) //only if measureEOS is enabled this round
         {
@@ -568,7 +547,7 @@ const void mainTask(void)
         //check next battery measurement interval is active. Set flag in battery backup registers to measure next round the EOS from powerup.
         if( FRAM_Settings.nextIntervalBatteryEOS <= SysTimeGet().Seconds || FRAM_Settings.nextIntervalBatteryEOS == -1 || FRAM_Settings.nextIntervalBatteryEOS > SysTimeGet().Seconds + 2 * TM_SECONDS_IN_1DAY )
         {
-          saveBatteryEos(true, (uint8_t)getBatteryEos()); //request next interval EOS battery
+          saveBatteryEos(true, (uint8_t)getBatteryEos().EOS, getBatteryEos().voltage); //request next interval EOS battery, also save previous values.
           FRAM_Settings.nextIntervalBatteryEOS = getNextBatteryEOStime(SysTimeGet().Seconds); //set new interval
           APP_LOG(TS_OFF, VLEVEL_H, "Next interval measure battery EOS\r\n" ); //print info
         }
@@ -807,7 +786,7 @@ const void mainTask(void)
 
         if( batmon_getMeasure().voltage > 0 || waitForBatteryMonitorDataCounter > 10)
         {
-          saveBatteryEos(false, batmon_getMeasure().stateOfHealth);
+          saveBatteryEos(false, batmon_getMeasure().stateOfHealth, batmon_getMeasure().voltage);
           mainTask_state = SAVE_DATA; //next state
         }
         else
@@ -832,7 +811,7 @@ const void mainTask(void)
         else
         {
           stMFM_baseData.messageType = 0x02;
-          stMFM_baseData.batteryStateEos = (uint8_t)getBatteryEos(); //only use the first 8 bits.
+          stMFM_baseData.batteryStateEos = getBatteryEos().EOS; //get EOS value from battery backup registers
           stMFM_baseData.temperatureGauge = 0; //not available, set to zero
           stMFM_baseData.temperatureController = getTemperature(); //use controller temperature
         }

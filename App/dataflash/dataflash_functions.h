@@ -38,5 +38,6 @@ int8_t blockErase32kDataflash( uint32_t address );
 int8_t blockErase64kDataflash( uint32_t address );
 const int8_t chipEraseDataflash(void);
 int8_t testCompleteDataflash(bool restoreOrinalData );
+const int8_t testDataflash(uint8_t test, uint32_t * status);
 
 #endif /* DATAFLASH_DATAFLASH_FUNCTIONS_H_ */

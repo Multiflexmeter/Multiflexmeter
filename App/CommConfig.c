@@ -86,6 +86,7 @@ static const char cmdTest[]="Test";
 static const char cmdBat[]="Bat";
 static const char cmdVbus[]="Vbus";
 static const char cmdSave[]="Save";
+static const char cmdReboot[]="Reboot";
 
 
 static const char defaultProtocol1[] = "0.0";
@@ -276,29 +277,6 @@ __weak const uint16_t getNumberOfMeasures(void)
 {
 
   return 3;
-}
-
-
-/**
- * @brief weak function getBatterijSupply(), can be override in application code.
- *
- * @return battery supply in mV
- */
-__weak const uint16_t getBatterijSupply(void)
-{
-
-  return 1300;
-}
-
-/**
- * @brief weak function getBatteryEos(), must be override in application code.
- *
- * @return battery capacity in percent
- */
-__weak const uint32_t getBatteryEos(void)
-{
-
-  return 101;
 }
 
 /**
@@ -628,6 +606,7 @@ void rcvErase(int arguments, const char * format, ...);
 void sendProgressLine( uint8_t percent, const char * command  );
 void rcvTest(int arguments, const char * format, ...);
 void rcvSave(int arguments, const char * format, ...);
+void rcvReboot(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -772,6 +751,12 @@ struct_commands stCommandsSet[] =
         cmdSave,
         sizeof(cmdSave) - 1,
         rcvSave,
+        0,
+    },
+    {
+        cmdReboot,
+        sizeof(cmdReboot) - 1,
+        rcvReboot,
         0,
     },
     //todo complete all SET commands
@@ -921,6 +906,14 @@ void executeTest(int test, int subTest, char * extraArguments)
 
   switch( test )
   {
+    case 0:
+
+      saveStatusTestmode(subTest ? true : false);
+      snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test,  subTest);
+      uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+      break;
+
     case 1: //request of software version
 
       sendModuleInfo(0, 0); //send software versions
@@ -1721,7 +1714,7 @@ void sendDataLine( uint32_t measurementId  )
  */
 void sendBatterijStatus(int arguments, const char * format, ...)
 {
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%u\r\n", cmdBat, getBatterijSupply(), (uint8_t)getBatteryEos() );
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%u,%u\r\n", cmdBat, getBatteryEos().voltage, getBatteryEos().EOS );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
@@ -2129,6 +2122,13 @@ void rcvTest(int arguments, const char * format, ...)
   }
 }
 
+/**
+ * @fn void rcvSave(int, const char*, ...)
+ * @brief receive save command
+ *
+ * @param arguments
+ * @param format
+ */
 void rcvSave(int arguments, const char * format, ...)
 {
   int result = saveSettingsToVirtualEEPROM();
@@ -2144,6 +2144,19 @@ void rcvSave(int arguments, const char * format, ...)
   }
 }
 
+/**
+ * @fn void rcvReboot(int, const char*, ...)
+ * @brief receive of reboot command
+ *
+ * @param arguments
+ * @param format
+ */
+void rcvReboot(int arguments, const char * format, ...)
+{
+  sendOkay(1,cmdReboot);
+
+  startDelayedReset();
+}
 
 /**
  * @brief function to send ERROR command

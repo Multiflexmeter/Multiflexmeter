@@ -24,6 +24,7 @@ typedef enum {
   BACKUP_REGISTER_LAST_TIME_SYNC,
   BACKUP_REGISTER_REJOIN,
   BACKUP_REGISTER_BATTERY_EOS,
+  BACKUP_REGISTER_STATUS,
 
 } ENUM_backupRegister;
 
@@ -64,10 +65,39 @@ typedef struct
     uint8_t century;
 }struct_dateTime;
 
+typedef struct __attribute__((packed))
+{
+    uint8_t EOS;
+    uint16_t voltage;
+    uint8_t measureActive:1;
+    uint8_t spareBits:7;
+}struct_registerBattery;
+
+typedef union
+{
+    uint32_t reg;
+    uint8_t bytes[4];
+    struct_registerBattery stRegBattery;
+} UNION_registerBattery;
+
+typedef struct __attribute__((packed))
+{
+    uint8_t testmodeActive:1;
+    uint32_t spareBits:31;
+}struct_registerStatus;
+
+typedef union
+{
+    uint32_t reg;
+    uint8_t bytes[4];
+    struct_registerStatus stRegStatus;
+} UNION_registerStatus;
+
 void detectResetBackup(void);
 bool getResetBackup(void);
 uint32_t getResetSource(void);
 bool powerOnReset(void);
+const void startDelayedReset(void);
 void writeBackupRegister(ENUM_backupRegister backupRegisterId, uint32_t value);
 uint32_t readBackupRegister(ENUM_backupRegister backupRegisterId);
 
@@ -75,5 +105,10 @@ uint32_t SYS_GetAdc(int channel);
 int32_t SYS_GetVoltage(int channel, uint32_t adcValue);
 
 int getDecimal(float value, int digits);
+
+const void saveBatteryEos(bool measureNextInterval, uint8_t batteryEos, uint16_t batteryVoltage);
+const struct_registerBattery getBatteryEos(void);
+const struct_registerStatus getStatusRegister(void);
+const void saveStatusTestmode( bool status );
 
 #endif /* COMMON_COMMON_H_ */

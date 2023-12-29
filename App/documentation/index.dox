@@ -12,7 +12,7 @@ The project is made completly standalone.<br>
 </p>
 <h2>Project overview</h2>
 <p>
-The proejct specific added appliation code can be found in de \App\ folder.<br>
+The proejct specific added appliation code can be found in de \App folder.<br>
 The \subpage MainTask (mainTask.c) contains a large state machine which is handled by the application.<br>
 Basic LoRaWan functionality like TxSendData() can be found in \ref \LoRaWAN\App\lora_app.c. 
 </p>
@@ -34,12 +34,21 @@ Settings:<br>
 - Sensor module settings (6x)
 </p> 
 
-<h2>Different memory</h2>
-- Sensor measurements are saved in the dataflash chip.
-- The Lora session settings are saved in the FRAM chip.
-- Some function settings are saved in the FRAM chip, see \ref struct_FRAM_settings.
-- The configuration is saved in the controllers flash (in separate pages) with the use a the EEPROM emulation driver of ST <a href="https://www.st.com/resource/en/application_note/an4894-how-to-use-eeprom-emulation-on-stm32-mcus-stmicroelectronics.pdf" target=_blank>AN4894</a>.
-- The backup registers of the controller are used for some special items see \ref ENUM_backupRegister.
+<h2>Used memory</h2>
+- NOR Flash (SPI) : 
+  - for sensor measurements.
+- FRAM (I2C): 
+  - Lora session settings.
+  - Some function settings, see \ref struct_FRAM_settings.
+- FLASH (controller)
+  - The configuration is saved in the controllers flash (in separate pages) with the use a the EEPROM emulation driver of ST <a href="https://www.st.com/resource/en/application_note/an4894-how-to-use-eeprom-emulation-on-stm32-mcus-stmicroelectronics.pdf" target=_blank>AN4894</a>.
+- Backup register (controller)
+  - The backup registers of the controller are used for some special items see \ref ENUM_backupRegister.
 
+<h2>Flash segments</h2>
+In the linker file STM32WL55CCUX_FLASH.ld the FLASH is split up in three different sections.
+1. FLASH: for user application
+2. VEEPROM: for the virtual EEPROM driver
+3. NVMDATA: for the NVM data section used by the original LoRaWan driver (now FRAM is used).
 
 */

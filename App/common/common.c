@@ -19,6 +19,7 @@
 #include "app_types.h"
 #include "usart.h"
 #include "adc_if.h"
+#include "timer_if.h"
 
 #include "common.h"
 
@@ -53,6 +54,9 @@ uint32_t crossReferenceChannelAdc[]=
 static uint32_t resetSource;
 
 static bool resetBackupDetected;
+
+static UTIL_TIMER_Object_t reset_Timer;
+static UTIL_TIMER_Time_t resetWaitTime = 1000;
 
 /**
  * @fn void detectResetBackup(void)
@@ -97,6 +101,28 @@ uint32_t getResetSource(void)
 bool powerOnReset(void)
 {
   return (getResetSource() & RCC_RESET_FLAG_PWR) ? true : false;
+}
+
+/**
+ * @fn const void trigger_reset(void*)
+ * @brief function to reset the system
+ *
+ * @param context
+ */
+static const void trigger_reset(void *context)
+{
+  NVIC_SystemReset(); //reset
+}
+
+/**
+ * @fn void startDelayedReset(void)
+ * @brief function to start a delayed reboot.
+ *
+ */
+const void startDelayedReset(void)
+{
+  UTIL_TIMER_Create(&reset_Timer, resetWaitTime, UTIL_TIMER_PERIODIC, trigger_reset, NULL); //create timer for delayed reset
+  UTIL_TIMER_Start(&reset_Timer); //start timer
 }
 
 /**
@@ -219,3 +245,66 @@ int getDecimal(float value, int digits)
   return ((int)(value * factor)) % factor;
 }
 
+/**
+ * @fn const void saveBatteryEos(bool, uint8_t, uint16_t)
+ * @brief function to save the battery EOS to the backup registers
+ *
+ * @param measureNextInterval : true for activating measureming battery next interval
+ * @param batteryEos : current battery EOS percentage
+ * @param batteryVoltage : current battery voltage
+ */
+const void saveBatteryEos(bool measureNextInterval, uint8_t batteryEos, uint16_t batteryVoltage)
+{
+  static_assert (sizeof(UNION_registerBattery) == sizeof(uint32_t), "Size UNION_registerBattery is not correct");
+
+  UNION_registerBattery UNvalue;
+
+  UNvalue.stRegBattery.EOS = batteryEos;
+  UNvalue.stRegBattery.voltage = batteryVoltage;
+  UNvalue.stRegBattery.measureActive = measureNextInterval;
+
+  writeBackupRegister(BACKUP_REGISTER_BATTERY_EOS, UNvalue.reg);
+}
+
+/**
+ * @fn const struct_registerBattery_t getBatteryEos(void)
+ * @brief function to get the battery EOS, voltage and measure status from the backup registers
+ *
+ */
+const struct_registerBattery getBatteryEos(void)
+{
+  UNION_registerBattery UNvalue;
+  UNvalue.reg= readBackupRegister(BACKUP_REGISTER_BATTERY_EOS);
+  return UNvalue.stRegBattery;
+}
+
+/**
+ * @fn const struct_registerStatus getStatusRegister(void)
+ * @brief function to get the status register
+ *
+ * @return status register
+ */
+const struct_registerStatus getStatusRegister(void)
+{
+  UNION_registerStatus UNvalue;
+  UNvalue.reg= readBackupRegister(BACKUP_REGISTER_STATUS);
+  return UNvalue.stRegStatus;
+}
+
+/**
+ * @fn const void saveStatusTestmode(bool)
+ * @brief function to enable / disable the testmode bit in the status register.
+ *
+ * @param status : true is testmode enabled, false is testmode disabled
+ */
+const void saveStatusTestmode( bool status )
+{
+  static_assert (sizeof(UNION_registerStatus) == sizeof(uint32_t), "Size UNION_registerStatus is not correct");
+
+  UNION_registerStatus UNvalue;
+
+  UNvalue.reg= readBackupRegister(BACKUP_REGISTER_STATUS); //read original register first
+  UNvalue.stRegStatus.testmodeActive = status; //set new value
+
+  writeBackupRegister(BACKUP_REGISTER_STATUS, UNvalue.reg); //write changed register back
+}

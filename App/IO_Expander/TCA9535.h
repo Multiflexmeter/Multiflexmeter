@@ -96,12 +96,11 @@ typedef struct
   union TCA9535_uConfig Config;
 } TCA9535Regs;
 
-void TCA9535WriteConfig(TCA9535Regs * Regs);
-void TCA9535WriteOutput(TCA9535Regs * Regs);
-void TCA9535WritePolarity(TCA9535Regs * Regs);
-
 void TCA9535InitDefault(TCA9535Regs* Regs);
 unsigned char TCA9535InitI2CReg(TCA9535Regs* Regs);
-void TCA9535ReadInputReg(TCA9535Regs* Regs);
+int8_t TCA9535ReadInputReg(TCA9535Regs* Regs);
+int8_t TCA9535WriteConfig(TCA9535Regs * Regs);
+int8_t TCA9535WriteOutput(TCA9535Regs * Regs);
+int8_t TCA9535WritePolarity(TCA9535Regs * Regs);
 
 #endif
