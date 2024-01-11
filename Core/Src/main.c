@@ -122,7 +122,7 @@ int main(void)
   MX_I2C2_Init();
   MX_FATFS_Init();
   MX_LoRaWAN_Init();
-  MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
   uartInit_Config();
