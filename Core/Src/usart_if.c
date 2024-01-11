@@ -43,10 +43,10 @@ uint8_t charRx;
 
 /* USER CODE BEGIN EV */
 
-extern DMA_HandleTypeDef hdma_usart1_rx;
-extern DMA_HandleTypeDef hdma_usart1_tx;
+extern DMA_HandleTypeDef hdma_usart2_rx;
+extern DMA_HandleTypeDef hdma_usart2_tx;
 
-extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart2;
 
 /* USER CODE END EV */
 
@@ -204,18 +204,18 @@ void vcom_Resume(void)
 {
   /* USER CODE BEGIN vcom_Resume_1 */
 
-  if (HAL_UART_Init(&huart1) != HAL_OK)
+  if (HAL_UART_Init(&huart2) != HAL_OK)
   {
     Error_Handler();
   }
 
   /*to re-enable lost DMA settings*/
-  if (HAL_DMA_Init(&hdma_usart1_tx) != HAL_OK)
+  if (HAL_DMA_Init(&hdma_usart2_tx) != HAL_OK)
   {
     Error_Handler();
   }
 
-  if (HAL_DMA_Init(&hdma_usart1_rx) != HAL_OK)
+  if (HAL_DMA_Init(&hdma_usart2_rx) != HAL_OK)
    {
      Error_Handler();
    }
