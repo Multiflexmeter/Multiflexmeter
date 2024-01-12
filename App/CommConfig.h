@@ -10,7 +10,7 @@
 #ifndef COMMCONFIG_H_
 #define COMMCONFIG_H_
 
-#define config_uart huart1
+#define config_uart huart2
 
 #define SIZE_TX_BUFFER_CONFIG	250
 #define SIZE_RX_BUFFER_CONFIG	250

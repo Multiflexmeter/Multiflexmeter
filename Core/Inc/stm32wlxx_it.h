@@ -57,7 +57,7 @@ void PendSV_Handler(void);
 void SysTick_Handler(void);
 void TAMP_STAMP_LSECSS_SSRU_IRQHandler(void);
 void FLASH_IRQHandler(void);
-void EXTI0_IRQHandler(void);
+void EXTI3_IRQHandler(void);
 void DMA1_Channel3_IRQHandler(void);
 void DMA1_Channel4_IRQHandler(void);
 void DMA1_Channel5_IRQHandler(void);

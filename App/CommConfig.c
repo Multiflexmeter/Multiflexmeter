@@ -1197,7 +1197,7 @@ uint8_t getLengthCommand(const char * data)
  * @param huart current uart pointer, must be "config_uart"
  * @param nrCharsAvailable number of characters received
  */
-void user_uart1_characterMatchDetect_Callback(UART_HandleTypeDef *huart, uint32_t nrCharsAvailable)
+void user_uart2_characterMatchDetect_Callback(UART_HandleTypeDef *huart, uint32_t nrCharsAvailable)
 {
 	assert_param( huart == &config_uart );
 	assert_param( nrCharsAvailable != 0 );
