@@ -564,7 +564,7 @@ const void mainTask(void)
         APP_LOG(TS_OFF, VLEVEL_H, "No sensor module slot enabled\r\n" ); //print no sensor slot enabled
         UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
-        mainTask_state = STOP_MAINTASK; //no sensor slot is active
+        mainTask_state = CHECK_USB_CONNECTED; //no sensor slot is active
       }
 
       break;
@@ -1067,7 +1067,18 @@ const void mainTask(void)
 
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
 
-        goIntoSleep(getNextWake( MainPeriodSleep, systemActiveTime_sec), 1);
+        UTIL_TIMER_Time_t sleepTime;
+
+        if( sensorModuleEnabled ) //set sleep time when sensor is active
+        {
+          sleepTime = MainPeriodSleep;
+        }
+        else //set sleep time very long when no sensor is active.
+        {
+          sleepTime = TM_SECONDS_IN_1DAY;
+        }
+
+        goIntoSleep(getNextWake( sleepTime, systemActiveTime_sec), 1);
         //will stop here
 #else
         pause_mainTask();
@@ -1077,18 +1088,6 @@ const void mainTask(void)
         mainTask_state = INIT_SLEEP; //go back to init after sleep, for next measure
 #endif
       }
-
-      break;
-
-    case STOP_MAINTASK:
-
-#ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
-
-      goIntoSleep(TM_SECONDS_IN_1DAY, 1);
-      //will stop here
-#else
-      stop_mainTask(true);
-#endif
 
       break;
 
