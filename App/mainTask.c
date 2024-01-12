@@ -1091,18 +1091,6 @@ const void mainTask(void)
 
       break;
 
-    case STOP_MAINTASK:
-
-#ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
-
-      goIntoSleep(TM_SECONDS_IN_1DAY, 1);
-      //will stop here
-#else
-      stop_mainTask(true);
-#endif
-
-      break;
-
     default:
 
       break;
