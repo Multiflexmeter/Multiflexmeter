@@ -1,5 +1,0 @@
-(sym_lib_table
-  (lib (name project)(type Legacy)(uri ${KIPRJMOD}/lib/project.lib)(options "")(descr ""))
-  (lib (name mfm-v3-smd-rescue)(type Legacy)(uri ${KIPRJMOD}/mfm-v3-smd-rescue.lib)(options "")(descr ""))
-  (lib (name keystone-2462)(type Legacy)(uri //wsl$/UbuntuD/home/timvosch/src/mfm-v3-smd/lib/2462/2462.lib)(options "")(descr ""))
-)
