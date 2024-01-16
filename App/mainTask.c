@@ -10,6 +10,7 @@
   ******************************************************************************
   */
 
+#include <ctype.h>
 #include "main.h"
 #include "sys_app.h"
 #include "utilities.h"
@@ -36,6 +37,8 @@
 #include "CommConfig_usr.h"
 #include "MFMconfiguration.h"
 #include "mainTask.h"
+
+const char NO_VERSION[]="";
 
 #define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.
 #define LORA_PERIODICALLY_REQUEST_TIME //comment if feature must be disabled.
@@ -1416,10 +1419,24 @@ const void rxDataReady(void)
  */
 const char * getSoftwareSensorboard(int sensorModuleId)
 {
+  //check valid argument
   if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
   {
-    return 0;
+    return NO_VERSION;
   }
+
+  //check on control character, not printable
+  if( iscntrl( (int) FRAM_Settings.modules[sensorModuleId].version[0] ) )
+  {
+    return NO_VERSION;
+  }
+
+  //check on 0xFF, default value of not written flash
+  if( FRAM_Settings.modules[sensorModuleId].version[0] == 0xFF )
+  {
+    return NO_VERSION;
+  }
+
   return FRAM_Settings.modules[sensorModuleId].version;
 }
 
