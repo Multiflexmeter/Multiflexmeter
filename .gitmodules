@@ -1,0 +1,3 @@
+[submodule "lib/arduino-lmic"]
+	path = lib/arduino-lmic
+	url = git@github.com:Multiflexmeter/arduino-lmic-low-power.git
