@@ -1,0 +1,30 @@
+{
+  "build": {
+    "core": "MightyCore",
+    "extra_flags": [
+      "-DARDUINO_AVR_ATmega1284",
+      "-DBOARD_MFM_V3_M1284P",
+      "-DCFG_eu868=1",
+      "-DCFG_sx1276_radio=1"
+    ],
+    "f_cpu": "8000000L",
+    "mcu": "atmega1284p",
+    "variant": "standard"
+  },
+  "debug": {
+    "simavr_target": "atmega1284p"
+  },
+  "frameworks": [
+    "arduino"
+  ],
+  "name": "ATmega1284P",
+  "upload": {
+    "maximum_ram_size": 16384,
+    "maximum_size": 131072,
+    "protocol": "stk500",
+    "require_upload_port": true,
+    "speed": 115200
+  },
+  "url": "https://www.microchip.com/wwwproducts/en/ATmega1284p",
+  "vendor": "Microchip"
+}

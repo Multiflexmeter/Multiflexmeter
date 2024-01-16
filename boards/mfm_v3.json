@@ -1,0 +1,30 @@
+{
+  "build": {
+    "core": "MiniCore",
+    "extra_flags": [
+      "-DARDUINO_AVR_ATmega328P",
+      "-DBOARD_MFM_V3",
+      "-DCFG_eu868=1",
+      "-DCFG_sx1276_radio=1"
+    ],
+    "f_cpu": "8000000L",
+    "mcu": "atmega328p",
+    "variant": "standard"
+  },
+  "debug": {
+    "simavr_target": "atmega328p"
+  },
+  "frameworks": [
+    "arduino"
+  ],
+  "name": "ATmega328P/PA",
+  "upload": {
+    "maximum_ram_size": 2048,
+    "maximum_size": 32768,
+    "protocol": "stk500v2",
+    "require_upload_port": true,
+    "speed": 115200
+  },
+  "url": "https://www.microchip.com/wwwproducts/en/ATmega328P",
+  "vendor": "Microchip"
+}

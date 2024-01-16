@@ -1,0 +1,8 @@
+{
+  "editor.formatOnSave": false,
+  "files.associations": {
+    "lmic_bandplan.h": "c",
+    "lmic.h": "c",
+    "rom_conf.h": "c"
+  }
+}
