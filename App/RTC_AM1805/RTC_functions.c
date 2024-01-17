@@ -373,7 +373,7 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   alarmTime.ui8Second = sleepTime->tm_sec;                //overwrite seconds
 
   //setup the alarm
-  am1805_alarm_set(alarmTime, ALARM_INTERVAL_MONTH, ALARM_IRQ_PULSE_1_64S, ALARM_PIN_PSW);
+  am1805_alarm_set(alarmTime, ALARM_INTERVAL_MONTH, ALARM_IRQ_PULSE_1_64S, ALARM_PIN_INTERNAL_FLAG);
 
   APP_LOG(TS_OFF, VLEVEL_H, "Output CTRL: %x\r\n", am1805_get_output_control());
 
@@ -456,7 +456,7 @@ const void goIntoSleep_with_countdown(uint32_t sleepTime_sec, uint8_t waitTimeTi
   }
 
   //setup the sleeptime
-  am1805_countdown_set(CNTDWN_RANGE_SEC, sleepTime_sec, CNTDWN_IRQ_SINGLE_PULSED_1_64S, CNTDOWN_PIN_PSW_AND_nTIRQ_LOW);
+  am1805_countdown_set(CNTDWN_RANGE_SEC, sleepTime_sec, CNTDWN_IRQ_SINGLE_PULSED_1_64S, CNTDOWN_PIN_nTIRQ_LOW);
 
   //enable the sleepmode
   uint32_t sleepStatus = am1805_sleep_set(waitTimeTicks, SLEEP_MODE_nRST_LOW_AND_PSW_HIGH);
@@ -494,7 +494,7 @@ const void disableSleep(void)
 {
   am1805_time_t alarmTime = {0};
   am1805_countdown_set(CNTDWN_RANGE_SEC, 0, CNTDWN_IRQ_SINGLE_PULSED_1_64S, CNTDOWN_DISABLE_CNT_DOWN_TMR);
-  am1805_alarm_set(alarmTime, ALARM_INTERVAL_DISABLE, ALARM_IRQ_LEVEL, ALARM_PIN_PSW);
+  am1805_alarm_set(alarmTime, ALARM_INTERVAL_DISABLE, ALARM_IRQ_LEVEL, ALARM_PIN_INTERNAL_FLAG);
 }
 
 /**
