@@ -1076,7 +1076,7 @@ const void mainTask(void)
 
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
 
-        UTIL_TIMER_Time_t sleepTime;
+        UTIL_TIMER_Time_t sleepTime; //in ms
 
         if( sensorModuleEnabled ) //set sleep time when sensor is active
         {
@@ -1084,7 +1084,7 @@ const void mainTask(void)
         }
         else //set sleep time very long when no sensor is active.
         {
-          sleepTime = TM_SECONDS_IN_1DAY;
+          sleepTime = TM_SECONDS_IN_1DAY * 1000;
         }
 
         goIntoSleep(getNextWake( sleepTime, systemActiveTime_sec), 1);
