@@ -400,9 +400,14 @@ const void mainTask(void)
         APP_LOG(TS_OFF, VLEVEL_H, ", SENSOR");
       }
 
-      if( getWakeupEx2Status(0) )
+      if( getWakeupEx2Status(0) && readInput_board_io(INT_IO_BOX_OPEN) )
       {
-        APP_LOG(TS_OFF, VLEVEL_H, ", USB or BOX-OPEN");
+        APP_LOG(TS_OFF, VLEVEL_H, ", BOX-OPEN");
+      }
+
+      if( getWakeupEx2Status(0) && readInput_board_io(EXT_IOUSB_CONNECTED) )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, ", USB");
       }
 
       APP_LOG(TS_OFF, VLEVEL_H, "\r\n");
