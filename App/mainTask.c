@@ -504,6 +504,7 @@ const void mainTask(void)
     case SWITCH_ON_VSYS:
 
       enableVsys(); //enable supply for I/O expander
+      MX_I2C2_Init(); //initialize I2C for BUS, otherwise it could not work because power was down.
       init_board_io_device(IO_EXPANDER_BUS_INT);
       init_board_io_device(IO_EXPANDER_BUS_EXT);
 
