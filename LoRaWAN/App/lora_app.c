@@ -289,6 +289,7 @@ __weak const void rxDataReady(void)
 
 
 extern const void setGreenLedOnOf(bool ledState);
+extern const void setOrangeLedOnOf(bool ledState);
 /* USER CODE END PFP */
 
 /* Private variables ---------------------------------------------------------*/
@@ -856,6 +857,8 @@ static void SendTxData(void)
   {
     uint32_t i = 0;
 
+    setOrangeLedOnOf(true); //enable led
+
     AppData.Port = LORAWAN_USER_APP_PORT;
 
     /* read latest measurement data */
@@ -1042,6 +1045,9 @@ static void OnTxData(LmHandlerTxParams_t *params)
       triggerSaveNvmData2Fram();
     }
   }
+
+  setOrangeLedOnOf(false); //disable led
+
   /* USER CODE END OnTxData_1 */
 }
 
