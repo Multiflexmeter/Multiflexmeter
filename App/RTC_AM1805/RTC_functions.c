@@ -22,6 +22,34 @@
 static uint8_t statusRegisterRtc;
 
 /**
+ * @fn bool tm_year2Centerybit(int)
+ * @brief function to calculate centerybit for RTC from year starting from 1900.
+ *
+ * @param year : years from 1900
+ * @return 0 : 1900, 2100. 1 : 2000
+ */
+bool tm_year2Centerybit(int yearsFrom1900)
+{
+  return ((yearsFrom1900 / 100)) % 2; //time from 1900, 0-99 =>0: 1900, 100-199 => 1 = 2000, 200-299 => 0 = 2100
+}
+
+
+/**
+ * @fn bool year2Centerybit(int)
+ * @brief function to calculate centerybit for RTC from year starting from 0.
+ *
+ * @param year : years from 0
+ * @return 0 : 1900, 2100. 1 : 2000
+ */
+bool year2Centerybit(uint16_t year)
+{
+  if( year >= 1900 )
+    year -= 1900;
+
+  return tm_year2Centerybit(year - 1900); //time from 1900-1999 ->0: 1900, 2000-2099 => 1 = 2000, 2100-2199 => 0 = 2100
+}
+
+/**
  * @fn const void syncRTC_withSysTime(void)
  * @brief function to sync external RTC with internal systime
  *
@@ -43,7 +71,7 @@ const void syncRTC_withSysTime(void)
   APP_LOG(TS_OFF, VLEVEL_H, "LocalTime: %02d-%02d-%02d %02d:%02d:%02d %d\r\n", stTime.tm_mday, stTime.tm_mon + 1, stTime.tm_year + 1900, stTime.tm_hour, stTime.tm_min, stTime.tm_sec );
 
   timeWrite.ui8Mode = AM1805_24HR_MODE;
-  timeWrite.ui8Century = ((stTime.tm_year / 100)) % 2; //time from 1900, 0-99 =>0: 1900, 100-199 => 1 = 2000, 200-299 => 0 = 2100
+  timeWrite.ui8Century = tm_year2Centerybit(stTime.tm_year);
   timeWrite.ui8Date = stTime.tm_mday;
   timeWrite.ui8Month = stTime.tm_mon + 1;
   timeWrite.ui8Year = stTime.tm_year % 100;
@@ -145,7 +173,7 @@ const void testRTC( int mode, struct_dateTime * time )
   if( mode == 1 ) //write mode
   {
     timeWrite.ui8Mode = AM1805_24HR_MODE;
-    timeWrite.ui8Century = ((time->year / 100)) % 2 == 1 ? 0 : 1; //0 = 1900/2100, 1 = 2000
+    timeWrite.ui8Century = year2Centerybit(time->year); //0 = 1900/2100, 1 = 2000
     timeWrite.ui8Date = time->day;
     timeWrite.ui8Month = time->month;
     timeWrite.ui8Year = time->year % 100;
@@ -400,7 +428,7 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   //gmtime Seconds from 0 to 59, RTC expect 0 to 59
   am1805_time_t alarmTime;
   alarmTime = time_RTC; //copy original readed values
-  alarmTime.ui8Century = ((sleepTime->tm_year / 100)) % 2 == 1 ? 0 : 1; //0 = 1900/2100, 1 = 2000 //overwrite century, not used in am1804_alarm_set() function
+  alarmTime.ui8Century = tm_year2Centerybit(sleepTime->tm_year); //0 = 1900/2100, 1 = 2000 //overwrite century, not used in am1804_alarm_set() function
   alarmTime.ui8Year = sleepTime->tm_year % 100;           //overwrite year, not used in am1804_alarm_set() with mode ALARM_INTERVAL_MONTH or higher
   alarmTime.ui8Month = sleepTime->tm_mon + 1;             //overwrite month + 1
   alarmTime.ui8Date = sleepTime->tm_mday;                 //overwrite day
