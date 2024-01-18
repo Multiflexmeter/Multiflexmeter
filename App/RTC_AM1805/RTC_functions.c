@@ -22,6 +22,34 @@
 static uint8_t statusRegisterRtc;
 
 /**
+ * @fn bool tm_year2Centerybit(int)
+ * @brief function to calculate centerybit for RTC from year starting from 1900.
+ *
+ * @param year : years from 1900
+ * @return 0 : 1900, 2100. 1 : 2000
+ */
+bool tm_year2Centerybit(int yearsFrom1900)
+{
+  return ((yearsFrom1900 / 100)) % 2; //time from 1900, 0-99 =>0: 1900, 100-199 => 1 = 2000, 200-299 => 0 = 2100
+}
+
+
+/**
+ * @fn bool year2Centerybit(int)
+ * @brief function to calculate centerybit for RTC from year starting from 0.
+ *
+ * @param year : years from 0
+ * @return 0 : 1900, 2100. 1 : 2000
+ */
+bool year2Centerybit(uint16_t year)
+{
+  if( year >= 1900 )
+    year -= 1900;
+
+  return tm_year2Centerybit(year - 1900); //time from 1900-1999 ->0: 1900, 2000-2099 => 1 = 2000, 2100-2199 => 0 = 2100
+}
+
+/**
  * @fn const void syncRTC_withSysTime(void)
  * @brief function to sync external RTC with internal systime
  *
@@ -40,8 +68,10 @@ const void syncRTC_withSysTime(void)
 
   SysTimeLocalTime(sysTime.Seconds, &stTime); //convert to date time
 
+  APP_LOG(TS_OFF, VLEVEL_H, "LocalTime: %02d-%02d-%02d %02d:%02d:%02d %d\r\n", stTime.tm_mday, stTime.tm_mon + 1, stTime.tm_year + 1900, stTime.tm_hour, stTime.tm_min, stTime.tm_sec );
+
   timeWrite.ui8Mode = AM1805_24HR_MODE;
-  timeWrite.ui8Century = ((stTime.tm_year / 100)) % 2; //0 = 2000, 1 = 2100
+  timeWrite.ui8Century = tm_year2Centerybit(stTime.tm_year);
   timeWrite.ui8Date = stTime.tm_mday;
   timeWrite.ui8Month = stTime.tm_mon + 1;
   timeWrite.ui8Year = stTime.tm_year % 100;
@@ -51,8 +81,12 @@ const void syncRTC_withSysTime(void)
   timeWrite.ui8Weekday = 0;
   timeWrite.ui8Hundredth = sysTime.SubSeconds/10;
 
+  APP_LOG(TS_OFF, VLEVEL_H, "Sync RTC: %02d-%02d-%02d %02d:%02d:%02d %d\r\n", timeWrite.ui8Date, timeWrite.ui8Month, timeWrite.ui8Year, timeWrite.ui8Hour, timeWrite.ui8Minute, timeWrite.ui8Second, timeWrite.ui8Century );
+
   am1805_time_set(timeWrite, 1); //save date/time to external RTC
+
   am1805_time_get(&timeRead); //read back to verify, for debug
+  APP_LOG(TS_OFF, VLEVEL_H, "read RTC: %02d-%02d-%02d %02d:%02d:%02d %d\r\n", timeRead.ui8Date, timeRead.ui8Month, timeRead.ui8Year, timeRead.ui8Hour, timeRead.ui8Minute, timeRead.ui8Second, timeRead.ui8Century );
 
 #if VERBOSE_LEVEL == VLEVEL_H
   strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &stTime);
@@ -117,7 +151,7 @@ const void convert_am1805time_to_dateTime(am1805_time_t * timeSrc, struct_dateTi
   timeDst->hour = timeSrc->ui8Hour;
   timeDst->minute = timeSrc->ui8Minute;
   timeDst->second = timeSrc->ui8Second;
-  timeDst->century = timeSrc->ui8Century;  //0 = 2000, 1 = 2100
+  timeDst->century = timeSrc->ui8Century;  //0 = 1900/2100, 1 = 2000
 }
 
 /**
@@ -139,7 +173,7 @@ const void testRTC( int mode, struct_dateTime * time )
   if( mode == 1 ) //write mode
   {
     timeWrite.ui8Mode = AM1805_24HR_MODE;
-    timeWrite.ui8Century = ((time->year / 100)) % 2 + 1 ;
+    timeWrite.ui8Century = year2Centerybit(time->year); //0 = 1900/2100, 1 = 2000
     timeWrite.ui8Date = time->day;
     timeWrite.ui8Month = time->month;
     timeWrite.ui8Year = time->year % 100;
@@ -328,6 +362,7 @@ const bool getWakeupEx2Status(bool clear)
  */
 const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
 {
+  APP_LOG(TS_OFF, VLEVEL_H, "Sleep: SEC: %u, WAIT: %u\r\n", sleepTime_sec, waitTimeTicks);
 #if VERBOSE_LEVEL == VLEVEL_H
   char timeStringNow[20] = {0};
   char timeStringWake[20] = {0};
@@ -342,17 +377,38 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   //read current time
   am1805_time_get(&time_RTC);
 
+  APP_LOG(TS_OFF, VLEVEL_H, "Time RTC: NOW: %02d-%02d-%02d %02d:%02d:%02d %d\r\n", time_RTC.ui8Date, time_RTC.ui8Month, time_RTC.ui8Year, time_RTC.ui8Hour, time_RTC.ui8Minute, time_RTC.ui8Second, time_RTC.ui8Century );
+
   //convert to struct time
+  //RTC Year from 0 to 99, mktime expect number since 1900
+  //RTC Month from 1 to 12, mktime expect 0 to 11
+  //RTC Date from 1 to 31, mktime expect 1 to 31
+  //RTC Hours from 0 to 23, mktime expect 0 to 23
+  //RTC Minutes from 0 to 59, mktime expect 0 to 59
+  //RTC Seconds from 0 to 59, mktime expect 0 to 59
   struct tm struct_time = {0};
-  struct_time.tm_year = 2000 + time_RTC.ui8Year + time_RTC.ui8Century * 100;
-  struct_time.tm_mon = time_RTC.ui8Month;
+  if( time_RTC.ui8Century )
+  {
+    struct_time.tm_year = time_RTC.ui8Year + 100;
+  }
+  else
+  {
+    struct_time.tm_year = time_RTC.ui8Year + 200;
+  }
+
+  struct_time.tm_mon = time_RTC.ui8Month > 0 ? time_RTC.ui8Month - 1 :time_RTC.ui8Month;
   struct_time.tm_mday = time_RTC.ui8Date;
   struct_time.tm_hour = time_RTC.ui8Hour;
   struct_time.tm_min = time_RTC.ui8Minute;
   struct_time.tm_sec = time_RTC.ui8Second;
 
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Time; NOW: %02d-%02d-%04d %02d:%02d:%02d\r\n", struct_time.tm_mday, struct_time.tm_mon + 1, struct_time.tm_year + 1900, struct_time.tm_hour, struct_time.tm_min, struct_time.tm_sec );
+
   //convert struct time to seconds timestamp
   time_t timestamp = mktime(&struct_time);
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Sleep time; NOW: %u, WAKE: %u\r\n", timestamp, sleepTime_sec );
 
   //add seconds for sleep
   timestamp += sleepTime_sec;
@@ -361,16 +417,26 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   struct tm * sleepTime;
   sleepTime = gmtime(&timestamp);
 
+  APP_LOG(TS_OFF, VLEVEL_H, "New Alarm gmtime; %02d-%02d-%04d %02d:%02d:%02d\r\n", sleepTime->tm_mday, sleepTime->tm_mon + 1, sleepTime->tm_year+ 1900, sleepTime->tm_hour, sleepTime->tm_min, sleepTime->tm_sec );
+
   //set new alarm time
+  //gmtime Year number since 1900, RTC expect 0-99
+  //gmtime Month from 0 to 11, RTC expect 1 to 12
+  //gmtime Date from 1 to 31, RTC expect 1 to 31
+  //gmtime Hours from 0 to 23, RTC expect 0 to 23
+  //gmtime Minutes from 0 to 59, RTC expect 0 to 59
+  //gmtime Seconds from 0 to 59, RTC expect 0 to 59
   am1805_time_t alarmTime;
-  alarmTime = time_RTC; //copy orginal readed values
-  alarmTime.ui8Century = ((sleepTime->tm_year / 100)) % 2; //overwrite century
-  alarmTime.ui8Year = sleepTime->tm_year % 100;           //overwrite year
-  alarmTime.ui8Month = sleepTime->tm_mon;                 //overwrite month
+  alarmTime = time_RTC; //copy original readed values
+  alarmTime.ui8Century = tm_year2Centerybit(sleepTime->tm_year); //0 = 1900/2100, 1 = 2000 //overwrite century, not used in am1804_alarm_set() function
+  alarmTime.ui8Year = sleepTime->tm_year % 100;           //overwrite year, not used in am1804_alarm_set() with mode ALARM_INTERVAL_MONTH or higher
+  alarmTime.ui8Month = sleepTime->tm_mon + 1;             //overwrite month + 1
   alarmTime.ui8Date = sleepTime->tm_mday;                 //overwrite day
   alarmTime.ui8Hour = sleepTime->tm_hour;                 //overwrite year
   alarmTime.ui8Minute = sleepTime->tm_min;                //overwrite minutes
   alarmTime.ui8Second = sleepTime->tm_sec;                //overwrite seconds
+
+  APP_LOG(TS_OFF, VLEVEL_H, "New Alarm RTC; %02d-%02d-%04d %02d:%02d:%02d\r\n", alarmTime.ui8Date, alarmTime.ui8Month, alarmTime.ui8Year, alarmTime.ui8Hour, alarmTime.ui8Minute, alarmTime.ui8Second );
 
   //setup the alarm
   am1805_alarm_set(alarmTime, ALARM_INTERVAL_MONTH, ALARM_IRQ_PULSE_1_64S, ALARM_PIN_INTERNAL_FLAG);
@@ -385,8 +451,8 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   am1805_enable_pwgt(); //make sure I/O interface is disabled in sleep mode
 
 #if VERBOSE_LEVEL == VLEVEL_H
-  strftime(timeStringNow, sizeof(timeStringNow), "%H:%M:%S", &struct_time);
-  strftime(timeStringWake, sizeof(timeStringWake), "%H:%M:%S", sleepTime);
+  strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &struct_time);
+  strftime(timeStringWake, sizeof(timeStringWake), "%d-%m-%Y %H:%M:%S", sleepTime);
   APP_LOG(TS_OFF, VLEVEL_H, "Sleep time; %u, NOW: %s, WAKE: %s\r\n", sleepTime_sec, timeStringNow, timeStringWake );
 #endif
 
@@ -511,16 +577,27 @@ const uint32_t get_current_alarm(void)
 
   am1805_time_t currentTime;
   am1805_time_get(&currentTime);
+  APP_LOG(TS_OFF, VLEVEL_H, "Time reg: %02d-%02d-%02d %02d:%02d;%02d\r\n", currentTime.ui8Date, currentTime.ui8Month, currentTime.ui8Year, currentTime.ui8Hour, currentTime.ui8Minute, currentTime.ui8Second ); //print info
 
   uint16_t currentYear = START_YEAR + currentTime.ui8Year;
 
   am1805_time_t currentAlarm = am1805_read_current_alarm();
+  APP_LOG(TS_OFF, VLEVEL_H, "Alarm reg: %02d-%02d-%02d %02d:%02d;%02d\r\n", currentAlarm.ui8Date, currentAlarm.ui8Month, currentAlarm.ui8Year, currentAlarm.ui8Hour, currentAlarm.ui8Minute, currentAlarm.ui8Second ); //print info
 
   if( currentTime.ui8Month == 12 && currentTime.ui8Date == 31 && currentAlarm.ui8Date == 1 ) //detect next alarm is next year, increment
   {
     currentYear++;
   }
 
+  APP_LOG(TS_OFF, VLEVEL_H, "Year: %04d\r\n", currentYear ); //print info
+
+  //convert to struct time
+  //SysTimeMkTime() Year number since 1900, RTC expect 0-99
+  //SysTimeMkTime() Month from 0 to 11, RTC expect 1 to 12
+  //SysTimeMkTime() Date from 1 to 31, RTC expect 1 to 31
+  //SysTimeMkTime() Hours from 0 to 23, RTC expect 0 to 23
+  //SysTimeMkTime() Minutes from 0 to 59, RTC expect 0 to 59
+  //SysTimeMkTime() Seconds from 0 to 59, RTC expect 0 to 59
   struct tm stAlarm = {0};
   stAlarm.tm_year = currentYear > 1900 ? currentYear - 1900 : currentYear; //alarm does not contain a year
   stAlarm.tm_mon = currentTime.ui8Month -1; //alarm does not contain a month, use month of calender. Convert from calender 1-12, to struct tm 0-11.
@@ -530,8 +607,18 @@ const uint32_t get_current_alarm(void)
   stAlarm.tm_sec = currentAlarm.ui8Second;
 
 
+  APP_LOG(TS_OFF, VLEVEL_H, "Alarm: %02d-%02d-%04d %02d:%02d;%02d\r\n", stAlarm.tm_mday, stAlarm.tm_mon + 1, stAlarm.tm_year + 1900, stAlarm.tm_hour, stAlarm.tm_min, stAlarm.tm_sec ); //print info
 
   timestamp = SysTimeMkTime(&stAlarm); //convert to unixtimestamp
+
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Alarm timestamp: %u\r\n", timestamp ); //print info
+
+
+  struct tm localtime = {0};
+  SysTimeLocalTime(timestamp, &localtime);
+
+  APP_LOG(TS_OFF, VLEVEL_H, "SysTimeLocalTime: %02d-%02d-%02d %02d:%02d;%02d\r\n", localtime.tm_mday, localtime.tm_mon + 1, localtime.tm_year + 1900, localtime.tm_hour, localtime.tm_min, localtime.tm_sec ); //print info
 
   return timestamp;
 }
