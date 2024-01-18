@@ -85,6 +85,7 @@ static const char cmdErase[]="Erase";
 static const char cmdTest[]="Test";
 static const char cmdBat[]="Bat";
 static const char cmdVbus[]="Vbus";
+static const char cmdVcc[]="Vcc";
 static const char cmdSave[]="Save";
 static const char cmdReboot[]="Reboot";
 
@@ -288,6 +289,17 @@ __weak const uint16_t getVbusSupply(void)
 {
 
   return 1250;
+}
+
+/**
+ * @brief weak function getVccSupply(), can be override in application code.
+ *
+ * @return battery supply in mV
+ */
+__weak const uint16_t getVccSupply(void)
+{
+
+  return 3300;
 }
 
 /**
@@ -586,6 +598,7 @@ void sendDataDump(int arguments, const char * format, ...);
 void sendDataLine( uint32_t );
 void sendBatterijStatus(int arguments, const char * format, ...);
 void sendVbusStatus(int arguments, const char * format, ...);
+void sendVccStatus(int arguments, const char * format, ...);
 void sendAdc( int subTest );
 void sendTestSD( int test );
 void sendTestFRAM( int test );
@@ -683,6 +696,12 @@ struct_commands stCommandsGet[] =
         cmdVbus,
         sizeof(cmdVbus) - 1,
         sendVbusStatus,
+        0,
+    },
+    {
+        cmdVcc,
+        sizeof(cmdVcc) - 1,
+        sendVccStatus,
         0,
     },
     //todo complete all GET commands
@@ -1728,6 +1747,19 @@ void sendVbusStatus(int arguments, const char * format, ...)
 {
 
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdVbus, getVbusSupply() );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+
+}
+
+/**
+ * @brief send vcc status to config uart.
+ *
+ * @param arguments not used
+ */
+void sendVccStatus(int arguments, const char * format, ...)
+{
+
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdVcc, getVccSupply() );
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 
 }
