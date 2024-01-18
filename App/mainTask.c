@@ -324,7 +324,7 @@ const bool alarmNotYetTriggered(void)
 #if VERBOSE_LEVEL == VLEVEL_H
    struct tm stTime;
    SysTimeLocalTime(currentAlarm, &stTime); //get alarm time
-   APP_LOG(TS_OFF, VLEVEL_H, "Wake, no measure. Next alarm: %02d-%02d-%02d %02d:%02d;%02d\r\n", stTime.tm_mday, stTime.tm_mon, stTime.tm_year, stTime.tm_hour, stTime.tm_min, stTime.tm_sec ); //print info
+   APP_LOG(TS_OFF, VLEVEL_H, "Wake, no measure. Next alarm: %02d-%02d-%02d %02d:%02d;%02d\r\n", stTime.tm_mday, stTime.tm_mon + 1, stTime.tm_year + 1900, stTime.tm_hour, stTime.tm_min, stTime.tm_sec ); //print info, mday: 1-31, mon 0-11,
 #endif
 
    //check current time is before valid time
