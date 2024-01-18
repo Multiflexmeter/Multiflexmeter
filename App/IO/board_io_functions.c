@@ -311,4 +311,13 @@ const void setup_io_for_SdCard(bool state)
   setup_io_for_SPI_devices(state);
 }
 
-
+/**
+ * @fn const void control_supercap(bool)
+ * @brief function to control the supercap
+ *
+ * @param state
+ */
+const void control_supercap(bool state)
+{
+  writeOutput_board_io(EXT_IOSC_EN, state ? GPIO_PIN_SET : GPIO_PIN_RESET);
+}

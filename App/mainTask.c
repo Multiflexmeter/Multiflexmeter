@@ -1076,6 +1076,8 @@ const void mainTask(void)
       if( waiting == false ) //check wait time is expired
       {
 
+        control_supercap(false); //disable supercap before sleep
+
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
 
         UTIL_TIMER_Time_t sleepTime; //in ms
@@ -1140,6 +1142,7 @@ const void mainTask(void)
     }
   }
 
+  control_supercap( getInput_board_io(EXT_IOUSB_CONNECTED) == GPIO_PIN_SET ? false : true); //enable the supercap without USB connected, disable the supercap when USB is found
   uartKeepListen( getInput_board_io(EXT_IOUSB_CONNECTED) ); //if USB is connected, keep listen to UART.
 
   //exit, wait on next trigger.

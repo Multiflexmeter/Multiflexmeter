@@ -39,4 +39,6 @@ const void init_vAlwaysOn(void);
 const void enable_vAlwaysOn(void);
 const void disable_vAlwaysOn(void);
 
+const void control_supercap(bool state);
+
 #endif /* IO_BOARD_IO_FUNCTIONS_H_ */
