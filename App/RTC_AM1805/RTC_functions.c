@@ -43,7 +43,7 @@ const void syncRTC_withSysTime(void)
   APP_LOG(TS_OFF, VLEVEL_H, "LocalTime: %02d-%02d-%02d %02d:%02d:%02d %d\r\n", stTime.tm_mday, stTime.tm_mon + 1, stTime.tm_year + 1900, stTime.tm_hour, stTime.tm_min, stTime.tm_sec );
 
   timeWrite.ui8Mode = AM1805_24HR_MODE;
-  timeWrite.ui8Century = ((stTime.tm_year / 100)) % 2; //0 = 2000, 1 = 2100
+  timeWrite.ui8Century = ((stTime.tm_year / 100)) % 2; //time from 1900, 0-99 =>0: 1900, 100-199 => 1 = 2000, 200-299 => 0 = 2100
   timeWrite.ui8Date = stTime.tm_mday;
   timeWrite.ui8Month = stTime.tm_mon + 1;
   timeWrite.ui8Year = stTime.tm_year % 100;
@@ -123,7 +123,7 @@ const void convert_am1805time_to_dateTime(am1805_time_t * timeSrc, struct_dateTi
   timeDst->hour = timeSrc->ui8Hour;
   timeDst->minute = timeSrc->ui8Minute;
   timeDst->second = timeSrc->ui8Second;
-  timeDst->century = timeSrc->ui8Century;  //0 = 2000, 1 = 2100
+  timeDst->century = timeSrc->ui8Century;  //0 = 1900/2100, 1 = 2000
 }
 
 /**
@@ -145,7 +145,7 @@ const void testRTC( int mode, struct_dateTime * time )
   if( mode == 1 ) //write mode
   {
     timeWrite.ui8Mode = AM1805_24HR_MODE;
-    timeWrite.ui8Century = ((time->year / 100)) % 2 + 1 ;
+    timeWrite.ui8Century = ((time->year / 100)) % 2 == 1 ? 0 : 1; //0 = 1900/2100, 1 = 2000
     timeWrite.ui8Date = time->day;
     timeWrite.ui8Month = time->month;
     timeWrite.ui8Year = time->year % 100;
@@ -352,9 +352,23 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   APP_LOG(TS_OFF, VLEVEL_H, "Time RTC: NOW: %02d-%02d-%02d %02d:%02d:%02d %d\r\n", time_RTC.ui8Date, time_RTC.ui8Month, time_RTC.ui8Year, time_RTC.ui8Hour, time_RTC.ui8Minute, time_RTC.ui8Second, time_RTC.ui8Century );
 
   //convert to struct time
+  //RTC Year from 0 to 99, mktime expect number since 1900
+  //RTC Month from 1 to 12, mktime expect 0 to 11
+  //RTC Date from 1 to 31, mktime expect 1 to 31
+  //RTC Hours from 0 to 23, mktime expect 0 to 23
+  //RTC Minutes from 0 to 59, mktime expect 0 to 59
+  //RTC Seconds from 0 to 59, mktime expect 0 to 59
   struct tm struct_time = {0};
-  struct_time.tm_year = 2000 + time_RTC.ui8Year + time_RTC.ui8Century * 100;
-  struct_time.tm_mon = time_RTC.ui8Month;
+  if( time_RTC.ui8Century )
+  {
+    struct_time.tm_year = time_RTC.ui8Year + 100;
+  }
+  else
+  {
+    struct_time.tm_year = time_RTC.ui8Year + 200;
+  }
+
+  struct_time.tm_mon = time_RTC.ui8Month > 0 ? time_RTC.ui8Month - 1 :time_RTC.ui8Month;
   struct_time.tm_mday = time_RTC.ui8Date;
   struct_time.tm_hour = time_RTC.ui8Hour;
   struct_time.tm_min = time_RTC.ui8Minute;
@@ -378,11 +392,17 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   APP_LOG(TS_OFF, VLEVEL_H, "New Alarm gmtime; %02d-%02d-%04d %02d:%02d:%02d\r\n", sleepTime->tm_mday, sleepTime->tm_mon + 1, sleepTime->tm_year+ 1900, sleepTime->tm_hour, sleepTime->tm_min, sleepTime->tm_sec );
 
   //set new alarm time
+  //gmtime Year number since 1900, RTC expect 0-99
+  //gmtime Month from 0 to 11, RTC expect 1 to 12
+  //gmtime Date from 1 to 31, RTC expect 1 to 31
+  //gmtime Hours from 0 to 23, RTC expect 0 to 23
+  //gmtime Minutes from 0 to 59, RTC expect 0 to 59
+  //gmtime Seconds from 0 to 59, RTC expect 0 to 59
   am1805_time_t alarmTime;
-  alarmTime = time_RTC; //copy orginal readed values
-  alarmTime.ui8Century = ((sleepTime->tm_year / 100)) % 2; //overwrite century
-  alarmTime.ui8Year = sleepTime->tm_year % 100;           //overwrite year
-  alarmTime.ui8Month = sleepTime->tm_mon;                 //overwrite month
+  alarmTime = time_RTC; //copy original readed values
+  alarmTime.ui8Century = ((sleepTime->tm_year / 100)) % 2 == 1 ? 0 : 1; //0 = 1900/2100, 1 = 2000 //overwrite century, not used in am1804_alarm_set() function
+  alarmTime.ui8Year = sleepTime->tm_year % 100;           //overwrite year, not used in am1804_alarm_set() with mode ALARM_INTERVAL_MONTH or higher
+  alarmTime.ui8Month = sleepTime->tm_mon + 1;             //overwrite month + 1
   alarmTime.ui8Date = sleepTime->tm_mday;                 //overwrite day
   alarmTime.ui8Hour = sleepTime->tm_hour;                 //overwrite year
   alarmTime.ui8Minute = sleepTime->tm_min;                //overwrite minutes
@@ -543,6 +563,13 @@ const uint32_t get_current_alarm(void)
 
   APP_LOG(TS_OFF, VLEVEL_H, "Year: %04d\r\n", currentYear ); //print info
 
+  //convert to struct time
+  //SysTimeMkTime() Year number since 1900, RTC expect 0-99
+  //SysTimeMkTime() Month from 0 to 11, RTC expect 1 to 12
+  //SysTimeMkTime() Date from 1 to 31, RTC expect 1 to 31
+  //SysTimeMkTime() Hours from 0 to 23, RTC expect 0 to 23
+  //SysTimeMkTime() Minutes from 0 to 59, RTC expect 0 to 59
+  //SysTimeMkTime() Seconds from 0 to 59, RTC expect 0 to 59
   struct tm stAlarm = {0};
   stAlarm.tm_year = currentYear > 1900 ? currentYear - 1900 : currentYear; //alarm does not contain a year
   stAlarm.tm_mon = currentTime.ui8Month -1; //alarm does not contain a month, use month of calender. Convert from calender 1-12, to struct tm 0-11.
