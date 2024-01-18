@@ -17,11 +17,11 @@
 
 
 /**
- * @brief override function for getBatterijSupply()
+ * @brief override function for getVcc()
  *
- * @return battery supply in mV
+ * @return Vcc supply in mV
  */
-const uint16_t getBatterijSupply(void)
+const uint16_t getVccSupply(void)
 {
 
   return SYS_GetBatteryLevel();
