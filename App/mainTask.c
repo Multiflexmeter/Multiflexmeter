@@ -529,7 +529,8 @@ const void mainTask(void)
       }
 
       FRAM_Settings.sensorModuleEnabled = sensorModuleEnabled;
-      if( sensorModuleEnabled )
+
+      if( FRAM_Settings.sensorModuleEnabled )
       {
         if( sensorModuleId < 0 || sensorModuleId >= MAX_SENSOR_MODULE )
         {
@@ -1079,7 +1080,7 @@ const void mainTask(void)
 
         UTIL_TIMER_Time_t sleepTime; //in ms
 
-        if( sensorModuleEnabled ) //set sleep time when sensor is active
+        if( FRAM_Settings.sensorModuleEnabled ) //set sleep time when sensor is active
         {
           sleepTime = MainPeriodSleep;
         }
