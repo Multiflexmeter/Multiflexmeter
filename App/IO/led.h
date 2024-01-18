@@ -13,6 +13,7 @@
 typedef enum
 {
   LED_1,
+  LED_2,
   NR_LED,
 }ENUM_LED;
 

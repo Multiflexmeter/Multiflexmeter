@@ -34,6 +34,17 @@ static const struct_LedConfig ledConfigDefault[]=
         .toggleTimer = 0,
         .toggleState = LED_OFF,
     }
+    ,
+    {
+        .item = INT_IO_DEBUG_LED2,
+        .state = LED_OFF,
+        .mode = LED_BLINK,
+        .toggleInterval = 0,
+        .blinkOnTime = 1,
+        .blinkOffTime = 9,
+        .toggleTimer = 0,
+        .toggleState = LED_OFF,
+    }
 };
 
 /**
@@ -180,6 +191,17 @@ const void setGreenLedOnOf(bool ledState)
 }
 
 /**
+ * @fn const void setOrangeLedOnOf(bool)
+ * @brief function to swith on/off the green LED
+ *
+ * @param ledState
+ */
+const void setOrangeLedOnOf(bool ledState)
+{
+  setLed(LED_2, LED_BLINK, ledState == true ? LED_ON : LED_OFF, 20, 1, 19);
+}
+
+/**
  * @fn const void setLedTest(int8_t)
  * @brief function to set LED test
  *
@@ -192,12 +214,14 @@ const void setLedTest(int8_t test)
     case 0: //led test off
 
       setLed(LED_1, LED_ON_OFF, LED_OFF, 100, 0, 0);
+      setLed(LED_2, LED_ON_OFF, LED_OFF, 100, 0, 0);
 
       break;
 
     case 1: //led test blink
 
       setLed(LED_1, LED_BLINK, LED_ON, 0,5,5); //Blink led, start directly.
+      setLed(LED_2, LED_BLINK, LED_ON, 5,5,5); //Blink led, start after 5x interval
 
       break;
 
@@ -210,6 +234,7 @@ const void setLedTest(int8_t test)
     case 99:
 
       setLed(LED_1, LED_DISABLED, 0, 0,0,0); //Disable LED control, for direct I/O control
+      setLed(LED_2, LED_DISABLED, 0, 0,0,0); //Disable LED control, for direct I/O control
 
       break;
 
