@@ -528,6 +528,7 @@ const void mainTask(void)
         }
       }
 
+      FRAM_Settings.sensorModuleEnabled = sensorModuleEnabled;
       if( sensorModuleEnabled )
       {
         if( sensorModuleId < 0 || sensorModuleId >= MAX_SENSOR_MODULE )
