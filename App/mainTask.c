@@ -435,6 +435,8 @@ const void mainTask(void)
 
       MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
 
+      restoreFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
+
       //check wakeup source is a valid alarm
       if( alarmNotYetTriggered() )
       {
@@ -514,8 +516,6 @@ const void mainTask(void)
 
     case SWITCH_SENSOR_SLOT:
 
-      restoreFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
-
       numberOfsensorModules = 0;
       sensorModuleEnabled = false;
       //check if at least one sensor module is enabled
@@ -528,7 +528,9 @@ const void mainTask(void)
         }
       }
 
-      if( sensorModuleEnabled )
+      FRAM_Settings.sensorModuleEnabled = sensorModuleEnabled;
+
+      if( FRAM_Settings.sensorModuleEnabled )
       {
         if( sensorModuleId < 0 || sensorModuleId >= MAX_SENSOR_MODULE )
         {
@@ -1078,7 +1080,7 @@ const void mainTask(void)
 
         UTIL_TIMER_Time_t sleepTime; //in ms
 
-        if( sensorModuleEnabled ) //set sleep time when sensor is active
+        if( FRAM_Settings.sensorModuleEnabled ) //set sleep time when sensor is active
         {
           sleepTime = MainPeriodSleep;
         }

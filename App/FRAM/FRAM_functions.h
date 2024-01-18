@@ -30,6 +30,7 @@ typedef struct __attribute__((packed))
     uint32_t nextIntervalBatteryEOS;
     struct_sensorModuleFirmwareVersion modules[6];
     uint8_t sensorModuleProtocol[6];
+    uint8_t sensorModuleEnabled;
 }struct_FRAM_settings;
 
 const void saveLoraSettings( const void *pSource, size_t length );
