@@ -20,6 +20,7 @@
 #include "RTC_functions.h"
 
 static uint8_t statusRegisterRtc;
+static bool forceSleep;
 
 /**
  * @fn bool tm_year2Centerybit(int)
@@ -152,6 +153,28 @@ const void convert_am1805time_to_dateTime(am1805_time_t * timeSrc, struct_dateTi
   timeDst->minute = timeSrc->ui8Minute;
   timeDst->second = timeSrc->ui8Second;
   timeDst->century = timeSrc->ui8Century;  //0 = 1900/2100, 1 = 2000
+}
+
+/**
+ * @fn bool getForceSleepStatus(void)
+ * @brief function to get status of foceSleep
+ *
+ * @return boolean forcesleep
+ */
+const bool getForceSleepStatus(void)
+{
+  return forceSleep;
+}
+
+/**
+ * @fn const bool setForceSleepStatus(void)
+ * @brief function to set forceSleep status
+ *
+ * @return
+ */
+static const void setForceSleepStatus(bool status)
+{
+  forceSleep = status;
 }
 
 /**
