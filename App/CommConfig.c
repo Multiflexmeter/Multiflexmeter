@@ -1948,6 +1948,12 @@ void sendTestRTC( int test, int subTest, char * extraArguments )
     snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d,0x%02x\r\n", cmdTest, test, subTest, dateTime.century); //make response
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig)); //send response
   }
+  else if( subTest == 7 )
+  {
+    testRTC(subTest, &dateTime); //execute test
+    snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test, subTest); //make response
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig)); //send response
+  }
   else
   {
     sendError(0,0);

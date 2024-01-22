@@ -20,6 +20,7 @@
 #include "RTC_functions.h"
 
 static uint8_t statusRegisterRtc;
+static bool forceSleep;
 
 /**
  * @fn bool tm_year2Centerybit(int)
@@ -155,6 +156,28 @@ const void convert_am1805time_to_dateTime(am1805_time_t * timeSrc, struct_dateTi
 }
 
 /**
+ * @fn bool getForceSleepStatus(void)
+ * @brief function to get status of foceSleep
+ *
+ * @return boolean forcesleep
+ */
+const bool getForceSleepStatus(void)
+{
+  return forceSleep;
+}
+
+/**
+ * @fn const bool setForceSleepStatus(void)
+ * @brief function to set forceSleep status
+ *
+ * @return
+ */
+static const void setForceSleepStatus(bool status)
+{
+  forceSleep = status;
+}
+
+/**
  * @fn const void testRTC(int, struct_dateTime*)
  * @brief
  * @todo make compatible for years from 2100.
@@ -225,6 +248,11 @@ const void testRTC( int mode, struct_dateTime * time )
   {
     readStatusRegisterRtc();
     time->century =  getWakeupWdtStatus(true); //miss use century byte for status feedback, automatically clear WDT status (0x20, bit WDT).
+  }
+
+  else if (mode == 7)
+  {
+    setForceSleepStatus(true);
   }
 
 }
