@@ -250,6 +250,11 @@ const void testRTC( int mode, struct_dateTime * time )
     time->century =  getWakeupWdtStatus(true); //miss use century byte for status feedback, automatically clear WDT status (0x20, bit WDT).
   }
 
+  else if (mode == 7)
+  {
+    setForceSleepStatus(true);
+  }
+
 }
 
 /**

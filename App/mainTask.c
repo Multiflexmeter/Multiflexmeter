@@ -1038,11 +1038,19 @@ const void mainTask(void)
     case CHECK_USB_CONNECTED:
 #ifndef DEBUG_USB_ATTACHED
       // if USB attached, not going off mode
-      if( getInput_board_io(EXT_IOUSB_CONNECTED) ) //todo: verify on 2nd proto board, USB Suspend (old proto) is delayed
+      if( getInput_board_io(EXT_IOUSB_CONNECTED) )
       {
-        APP_LOG(TS_OFF, VLEVEL_H, "USB connected, no off mode.\r\n" );
-        setNewMeasureTime(getNextWake( MainPeriodSleep, systemActiveTime_sec) * 1000L); //set measure time
-        mainTask_state = WAIT_USB_DISCONNECT; //go to next state
+        if( getForceSleepStatus() == true )
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "USB connected, force to sleep\r\n" );
+          mainTask_state = WAIT_FOR_SLEEP;
+        }
+        else
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "USB connected, no off mode.\r\n" );
+          setNewMeasureTime(getNextWake( MainPeriodSleep, systemActiveTime_sec) * 1000L); //set measure time
+          mainTask_state = WAIT_USB_DISCONNECT; //go to next state
+        }
       }
       else
 #endif
@@ -1065,6 +1073,13 @@ const void mainTask(void)
       else if( !getInput_board_io(EXT_IOUSB_CONNECTED) )
       {
         APP_LOG(TS_OFF, VLEVEL_H, "USB disconnected, enter off mode.\r\n" );
+        setWait(100);  //set wait time 100ms
+        mainTask_state = WAIT_FOR_SLEEP;
+      }
+      //check if system must be forced to sleep
+      else if( getForceSleepStatus() == true )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, "Forced to sleep, enter off mode.\r\n" );
         setWait(100);  //set wait time 100ms
         mainTask_state = WAIT_FOR_SLEEP;
       }
