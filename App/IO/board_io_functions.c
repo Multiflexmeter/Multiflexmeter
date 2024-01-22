@@ -319,5 +319,12 @@ const void setup_io_for_SdCard(bool state)
  */
 const void control_supercap(bool state)
 {
+  static int previous_state = -1;
   writeOutput_board_io(EXT_IOSC_EN, state ? GPIO_PIN_SET : GPIO_PIN_RESET);
+
+  if( previous_state != state)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Supercap: %s\r\n", state ? "ON" : "OFF" );
+    previous_state = (int)state;
+  }
 }
