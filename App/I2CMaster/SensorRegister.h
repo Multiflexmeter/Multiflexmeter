@@ -8,6 +8,8 @@
 #define REG_FIRMWARE_VERSION      0x01
 #define REG_PROTOCOL_VERSION      0x02
 #define REG_SENSOR_TYPE           0x03
+#define REG_INIT_START            0x0A
+#define REG_INIT_STATUS           0x0B
 #define REG_MEAS_START            0x10
 #define REG_MEAS_STATUS           0x11
 #define REG_MEAS_TIME             0x12

@@ -43,6 +43,8 @@ typedef enum{
 uint8_t sensorFirmwareVersion(int moduleId, uint8_t *firmwareVersion, uint16_t dataLength);
 uint8_t sensorProtocolVersion(int moduleId, uint8_t * protocol);
 uint8_t sensorReadType(int moduleId, uint16_t * type);
+uint8_t sensorInitStart(int moduleId);
+CommandStatus sensorInitStatus(int moduleId);
 uint8_t sensorStartMeasurement(int moduleId);
 CommandStatus sensorMeasurementStatus(int moduleId);
 uint8_t sensorWriteSetupTime(int moduleId, uint16_t setupTime);
