@@ -58,6 +58,8 @@ static bool resetBackupDetected;
 static UTIL_TIMER_Object_t reset_Timer;
 static UTIL_TIMER_Time_t resetWaitTime = 1000;
 
+static bool forceMeasurement;
+
 /**
  * @fn void detectResetBackup(void)
  * @brief function to detect a reset of the backup domain.
@@ -307,4 +309,27 @@ const void saveStatusTestmode( bool status )
   UNvalue.stRegStatus.testmodeActive = status; //set new value
 
   writeBackupRegister(BACKUP_REGISTER_STATUS, UNvalue.reg); //write changed register back
+}
+
+/**
+ * @fn const void setForceMeasurement(bool)
+ * @brief function to force a new measurement and send it by LoRA
+ * Function only triggers the next sensorModule
+ *
+ * @param status
+ */
+const void setForceMeasurement( bool status )
+{
+  forceMeasurement = status;
+}
+
+/**
+ * @fn const bool getForceMeasurement(void)
+ * @brief function to get the forced measurement status
+ *
+ * @return actual status
+ */
+const bool getForceMeasurement( void )
+{
+  return forceMeasurement;
 }

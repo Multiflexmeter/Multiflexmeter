@@ -1954,6 +1954,12 @@ void sendTestRTC( int test, int subTest, char * extraArguments )
     snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test, subTest); //make response
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig)); //send response
   }
+  else if( subTest == 8)
+  {
+    setForceMeasurement( true ); //enable force a measurement
+    snprintf( (char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test, subTest); //make response
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig)); //send response
+  }
   else
   {
     sendError(0,0);

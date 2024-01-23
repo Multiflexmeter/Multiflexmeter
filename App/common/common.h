@@ -111,4 +111,7 @@ const struct_registerBattery getBatteryEos(void);
 const struct_registerStatus getStatusRegister(void);
 const void saveStatusTestmode( bool status );
 
+const void setForceMeasurement( bool status );
+const bool getForceMeasurement( void );
+
 #endif /* COMMON_COMMON_H_ */
