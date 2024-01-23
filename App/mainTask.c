@@ -440,7 +440,7 @@ const void mainTask(void)
       //check wakeup source is a valid alarm
       if( alarmNotYetTriggered() )
       {
-        mainTask_state = WAIT_USB_DISCONNECT; //other wake-up, USB or other (not implemented) go to wait state
+        mainTask_state = CHECK_USB_CONNECTED; //other wake-up, USB or other (not implemented) go to wait state
       }
       else
       {
@@ -1064,8 +1064,9 @@ const void mainTask(void)
     case WAIT_USB_DISCONNECT:
 
       //check measure time expired
-      if( startMeasure )
+      if( startMeasure || getForceMeasurement() )
       {
+        setForceMeasurement( false ); //reset status.
         systemActiveTime_sec = 0; //reset //only when not in off mode
         mainTask_state = INIT_SLEEP;
       }
