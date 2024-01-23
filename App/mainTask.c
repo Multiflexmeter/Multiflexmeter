@@ -578,7 +578,7 @@ const void mainTask(void)
         //check if sensor init is needed
         if( FRAM_Settings.sensorModuleSettings[sensorModuleId].item.sensorModuleInitRequest  )
         { //first execute init of sensor
-          mainTask_state = START_SENSOR_INIT; //next state
+          mainTask_state = CHECK_SENSOR_INIT_AVAILABLE; //next state
         }
         else
         { //no init needed
@@ -593,6 +593,28 @@ const void mainTask(void)
         UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
         mainTask_state = CHECK_USB_CONNECTED; //no sensor slot is active
+      }
+
+      break;
+
+    case CHECK_SENSOR_INIT_AVAILABLE: //check if init command is available on sensor module.
+
+      if( waiting == false ) //check wait time is expired
+      {
+        CommandStatus newStatus = sensorInitStatus(sensorModuleId);
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure status: %d, %d\r\n", sensorModuleId, newStatus ); //print sensor type
+
+        if( newStatus == COMMAND_NOTAVAILABLE || newStatus == COMMAND_ERROR )
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: not available\r\n");
+          mainTask_state = START_SENSOR_MEASURE; //skip sensor init -> start measure
+        }
+
+        else
+        {
+          setWait(10); //set wait time 10ms
+          mainTask_state = START_SENSOR_INIT;
+        }
       }
 
       break;
