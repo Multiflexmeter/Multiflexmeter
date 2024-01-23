@@ -88,6 +88,7 @@ static const char cmdVbus[]="Vbus";
 static const char cmdVcc[]="Vcc";
 static const char cmdSave[]="Save";
 static const char cmdReboot[]="Reboot";
+static const char cmdInitSensor[]="InitSensor";
 
 
 static const char defaultProtocol1[] = "0.0";
@@ -620,6 +621,7 @@ void sendProgressLine( uint8_t percent, const char * command  );
 void rcvTest(int arguments, const char * format, ...);
 void rcvSave(int arguments, const char * format, ...);
 void rcvReboot(int arguments, const char * format, ...);
+void rcvInitSensor(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -778,6 +780,12 @@ struct_commands stCommandsSet[] =
         rcvReboot,
         0,
     },
+    {
+        cmdInitSensor,
+        sizeof(cmdInitSensor) - 1,
+        rcvInitSensor,
+        0,
+    }
     //todo complete all SET commands
 };
 
@@ -2200,6 +2208,20 @@ void rcvReboot(int arguments, const char * format, ...)
   sendOkay(1,cmdReboot);
 
   startDelayedReset();
+}
+
+/**
+ * @fn void rcvInitSensor(int, const char*, ...)
+ * @brief receive of init sensor command
+ *
+ * @param arguments
+ * @param format
+ */
+void rcvInitSensor(int arguments, const char * format, ...)
+{
+  sendOkay(1,cmdInitSensor);
+
+  setForceInitSensor(true);
 }
 
 /**
