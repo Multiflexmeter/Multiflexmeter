@@ -59,6 +59,7 @@ static UTIL_TIMER_Object_t reset_Timer;
 static UTIL_TIMER_Time_t resetWaitTime = 1000;
 
 static bool forceMeasurement;
+static bool forceInitSensor;
 
 /**
  * @fn void detectResetBackup(void)
@@ -332,4 +333,27 @@ const void setForceMeasurement( bool status )
 const bool getForceMeasurement( void )
 {
   return forceMeasurement;
+}
+
+/**
+ * @fn const void setForceInitSensor(bool)
+ * @brief function to force a new trigger init sensor
+ * Function only triggers the next sensorModule
+ *
+ * @param status
+ */
+const void setForceInitSensor( bool status )
+{
+  forceInitSensor = status;
+}
+
+/**
+ * @fn const bool getForceInitSensor(void)
+ * @brief function to get the forced init sensor status
+ *
+ * @return actual status
+ */
+const bool getForceInitSensor( void )
+{
+  return forceInitSensor;
 }
