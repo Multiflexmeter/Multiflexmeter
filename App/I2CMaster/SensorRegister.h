@@ -41,11 +41,11 @@ typedef enum{
 }tENUM_READWRITE;
 
 typedef enum{
-  NO_MEASUREMENT = 0x00,
-  MEASUREMENT_ACTIVE = 0x01,
-  MEASUREMENT_DONE = 0x0A,
-  MEASUREMENT_ERROR = 0xF0
-}MeasurementStatus;
+  NO_ACTIVE_COMMAND = 0x00,
+  COMMNAND_ACTIVE = 0x01,
+  COMMAND_DONE = 0x0A,
+  COMMAND_ERROR = 0xF0
+}CommandStatus;
 
 /**
  * @enum

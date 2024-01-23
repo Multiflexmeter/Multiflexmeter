@@ -637,10 +637,10 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
-        MeasurementStatus newStatus = sensorMeasurementStatus(sensorModuleId);
+        CommandStatus newStatus = sensorMeasurementStatus(sensorModuleId);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure status: %d, %d\r\n", sensorModuleId, newStatus ); //print sensor type
 
-        if( newStatus != MEASUREMENT_ACTIVE || timeout == true) //measurement ready or timeout
+        if( newStatus != COMMNAND_ACTIVE || timeout == true) //measurement ready or timeout
         {
           if( timeout == true )
           {

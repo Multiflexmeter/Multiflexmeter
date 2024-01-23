@@ -124,12 +124,12 @@ uint8_t sensorStartMeasurement(int moduleId)
  * @param moduleId The sensor module id, value 0-5.
  * @return The measurement status
  */
-MeasurementStatus sensorMeasurementStatus(int moduleId)
+CommandStatus sensorMeasurementStatus(int moduleId)
 {
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
   if( moduleId < SENSOR_MODULE_ID1 || moduleId >= MAX_SENSOR_MODULE )
-    return MEASUREMENT_ERROR;
+    return COMMAND_ERROR;
 
   uint8_t sensorStatus;
   sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_STATUS, &sensorStatus, sizeof(sensorStatus));
