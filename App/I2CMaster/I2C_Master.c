@@ -31,8 +31,10 @@ ENUM_I2C_Error sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_
   // Request the data from the register
   uint8_t rxBuffer[regSize + CRC_SIZE];
   HAL_StatusTypeDef error = HAL_I2C_Mem_Read(&hi2c2, slaveAddress, regAddress, 1, rxBuffer, regSize + CRC_SIZE, 1000);
-  if(error == HAL_TIMEOUT)
+  if(error != HAL_OK)
+  {
     return I2C_TIMEOUT;
+  }
 
   // Check the CRC of the incoming message
   if(calculateCRC_CCITT(rxBuffer, regSize + CRC_SIZE) != 0)
@@ -78,8 +80,10 @@ ENUM_I2C_Error sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, uint8
 
   // Write data the the register
   HAL_StatusTypeDef error = HAL_I2C_Mem_Write(&hi2c2, slaveAddress, regAddress, 1, &txBuffer[1], regSize + CRC_SIZE, 1000);
-  if(error == HAL_TIMEOUT)
+  if(error != HAL_OK)
+  {
     return I2C_TIMEOUT;
+  }
 
   return I2C_TRANSFER_OK;
 }

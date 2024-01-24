@@ -113,5 +113,7 @@ const void saveStatusTestmode( bool status );
 
 const void setForceMeasurement( bool status );
 const bool getForceMeasurement( void );
+const void setForceInitSensor( bool status );
+const bool getForceInitSensor( void );
 
 #endif /* COMMON_COMMON_H_ */

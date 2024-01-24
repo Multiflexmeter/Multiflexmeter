@@ -8,6 +8,8 @@
 #define REG_FIRMWARE_VERSION      0x01
 #define REG_PROTOCOL_VERSION      0x02
 #define REG_SENSOR_TYPE           0x03
+#define REG_INIT_START            0x0A
+#define REG_INIT_STATUS           0x0B
 #define REG_MEAS_START            0x10
 #define REG_MEAS_STATUS           0x11
 #define REG_MEAS_TIME             0x12
@@ -41,11 +43,12 @@ typedef enum{
 }tENUM_READWRITE;
 
 typedef enum{
-  NO_MEASUREMENT = 0x00,
-  MEASUREMENT_ACTIVE = 0x01,
-  MEASUREMENT_DONE = 0x0A,
-  MEASUREMENT_ERROR = 0xF0
-}MeasurementStatus;
+  NO_ACTIVE_COMMAND = 0x00,
+  COMMNAND_ACTIVE = 0x01,
+  COMMAND_DONE = 0x0A,
+  COMMAND_ERROR = 0xF0,
+  COMMAND_NOTAVAILABLE = 0xFF,
+}CommandStatus;
 
 /**
  * @enum

@@ -526,9 +526,16 @@ const void mainTask(void)
           numberOfsensorModules++;
           sensorModuleEnabled = true; //a module found, copy
         }
+
+        if( getForceInitSensor() ) //check if init sensor is needed
+        {
+          FRAM_Settings.sensorModuleSettings[i].item.sensorModuleInitRequest = true; //enable request for each sensor.
+        }
       }
+      setForceInitSensor( false ); //reset after processed.
 
       FRAM_Settings.sensorModuleEnabled = sensorModuleEnabled;
+      sensorModuleId = FRAM_Settings.sensorModuleId; //get latest value.
 
       if( FRAM_Settings.sensorModuleEnabled )
       {
@@ -566,8 +573,19 @@ const void mainTask(void)
         APP_LOG(TS_OFF, VLEVEL_H, "DevNonce: %u DnFcnt: %u UpFcnt: %u\r\n", getDevNonce(), getDownFCounter(), getUpFCounter());
 
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
+
         setWait(10); //set wait time 10ms
-        mainTask_state = START_SENSOR_MEASURE; //next state
+
+        //check if sensor init is needed
+        if( FRAM_Settings.sensorModuleSettings[sensorModuleId].item.sensorModuleInitRequest  )
+        { //first execute init of sensor
+          mainTask_state = CHECK_SENSOR_INIT_AVAILABLE; //next state
+        }
+        else
+        { //no init needed
+
+          mainTask_state = START_SENSOR_MEASURE; //next state
+        }
 
       }
       else
@@ -576,6 +594,75 @@ const void mainTask(void)
         UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
         mainTask_state = CHECK_USB_CONNECTED; //no sensor slot is active
+      }
+
+      break;
+
+    case CHECK_SENSOR_INIT_AVAILABLE: //check if init command is available on sensor module.
+
+      if( waiting == false ) //check wait time is expired
+      {
+        CommandStatus newStatus = sensorInitStatus(sensorModuleId);
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor init status: %d, %d\r\n", sensorModuleId, newStatus ); //print sensor type
+
+        if( newStatus == COMMAND_NOTAVAILABLE || newStatus == COMMAND_ERROR )
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: not available\r\n");
+          mainTask_state = START_SENSOR_MEASURE; //skip sensor init -> start measure
+        }
+
+        else
+        {
+          setWait(10); //set wait time 10ms
+          mainTask_state = START_SENSOR_INIT;
+        }
+      }
+
+      break;
+
+    case START_SENSOR_INIT:
+
+      if( waiting == false ) //check wait time is expired
+      {
+        uint8_t result = sensorInitStart(sensorModuleId);
+
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor init start: module: %d, result: %d\r\n", sensorModuleId, result ); //print sensor type
+
+        setWait(50);  //set wait time of sensor
+        setTimeout(10000); //10sec
+        mainTask_state = WAIT_SENSOR_INIT_READY; //next state
+      }
+
+      break;
+
+    case WAIT_SENSOR_INIT_READY:
+
+      if( waiting == false ) //check wait time is expired
+      {
+        CommandStatus newStatus = sensorInitStatus(sensorModuleId);
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure status: %d, %d\r\n", sensorModuleId, newStatus ); //print sensor type
+
+        if( newStatus != COMMNAND_ACTIVE || timeout == true) //measurement ready or timeout
+        {
+          if( newStatus == COMMAND_DONE )
+          {
+            APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: done\r\n");
+            FRAM_Settings.sensorModuleSettings[sensorModuleId].item.sensorModuleInitRequest = false;
+          }
+
+          if( timeout == true )
+          {
+            APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: timeout\r\n");
+          }
+
+          mainTask_state = START_SENSOR_MEASURE;
+        }
+
+        else
+        {
+          setWait(50);  //set wait time
+        }
+
       }
 
       break;
@@ -637,10 +724,10 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
-        MeasurementStatus newStatus = sensorMeasurementStatus(sensorModuleId);
+        CommandStatus newStatus = sensorMeasurementStatus(sensorModuleId);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure status: %d, %d\r\n", sensorModuleId, newStatus ); //print sensor type
 
-        if( newStatus != MEASUREMENT_ACTIVE || timeout == true) //measurement ready or timeout
+        if( newStatus != COMMNAND_ACTIVE || timeout == true) //measurement ready or timeout
         {
           if( timeout == true )
           {
@@ -877,7 +964,7 @@ const void mainTask(void)
         {
           FRAM_Settings.modules[i].nullTerminator = 0; //force null terminators
         }
-
+        FRAM_Settings.sensorModuleId = sensorModuleId; //copy to save.
         saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save last sensor Module ID
 
         setTimeout(10000); //10sec

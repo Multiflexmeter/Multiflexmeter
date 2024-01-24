@@ -101,6 +101,48 @@ uint8_t sensorReadType(int moduleId, uint16_t * type)
 }
 
 /**
+ * @fn uint8_t sensorInitStart(int)
+ * @brief Start the sensor initialization
+ *
+ * @param moduleId The sensor module id, value 0-5.
+ * @return result of read action \ref SensorError
+ */
+uint8_t sensorInitStart(int moduleId)
+{
+  assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
+
+  if( moduleId < SENSOR_MODULE_ID1 || moduleId >= MAX_SENSOR_MODULE )
+    return SENSOR_ID_ERROR;
+
+  uint8_t startCommand = 0x01;
+  return sensorMasterWrite(sensorId2Address[moduleId], REG_INIT_START, &startCommand);
+}
+
+/**
+ * @brief Read the measurement status
+ *
+ * @param moduleId The sensor module id, value 0-5.
+ * @return The measurement status
+ */
+CommandStatus sensorInitStatus(int moduleId)
+{
+  assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
+
+  if( moduleId < SENSOR_MODULE_ID1 || moduleId >= MAX_SENSOR_MODULE )
+    return COMMAND_ERROR;
+
+  uint8_t sensorStatus;
+  ENUM_I2C_Error result = sensorMasterRead(sensorId2Address[moduleId], REG_INIT_STATUS, &sensorStatus, sizeof(sensorStatus));
+
+  if (result != I2C_TRANSFER_OK)
+  {
+    return COMMAND_ERROR;
+  }
+
+  return sensorStatus;
+}
+
+/**
  * @fn uint8_t sensorStartMeasurement(int)
  * @brief Start the measurement
  *
@@ -124,15 +166,21 @@ uint8_t sensorStartMeasurement(int moduleId)
  * @param moduleId The sensor module id, value 0-5.
  * @return The measurement status
  */
-MeasurementStatus sensorMeasurementStatus(int moduleId)
+CommandStatus sensorMeasurementStatus(int moduleId)
 {
   assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
 
   if( moduleId < SENSOR_MODULE_ID1 || moduleId >= MAX_SENSOR_MODULE )
-    return MEASUREMENT_ERROR;
+    return COMMAND_ERROR;
 
   uint8_t sensorStatus;
-  sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_STATUS, &sensorStatus, sizeof(sensorStatus));
+  ENUM_I2C_Error result = sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_STATUS, &sensorStatus, sizeof(sensorStatus));
+
+  if (result != I2C_TRANSFER_OK)
+  {
+    return COMMAND_ERROR;
+  }
+
   return sensorStatus;
 }
 
