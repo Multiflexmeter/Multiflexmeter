@@ -535,6 +535,7 @@ const void mainTask(void)
       setForceInitSensor( false ); //reset after processed.
 
       FRAM_Settings.sensorModuleEnabled = sensorModuleEnabled;
+      sensorModuleId = FRAM_Settings.sensorModuleId; //get latest value.
 
       if( FRAM_Settings.sensorModuleEnabled )
       {
@@ -963,7 +964,7 @@ const void mainTask(void)
         {
           FRAM_Settings.modules[i].nullTerminator = 0; //force null terminators
         }
-
+        FRAM_Settings.sensorModuleId = sensorModuleId; //copy to save.
         saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save last sensor Module ID
 
         setTimeout(10000); //10sec
