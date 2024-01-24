@@ -11,6 +11,8 @@ const SensorReg registers[] =
     {REG_FIRMWARE_VERSION,  UINT8_T,  10, READ},
     {REG_PROTOCOL_VERSION,  UINT8_T,  1,  READ},
     {REG_SENSOR_TYPE,       UINT16_T, 1,  READ},
+    {REG_INIT_START,        UINT8_T,  1,  READWRITE},
+    {REG_INIT_STATUS,       UINT8_T,  1,  READ},
     {REG_MEAS_START,        UINT8_T,  1,  READWRITE},
     {REG_MEAS_STATUS,       UINT8_T,  1,  READ},
     {REG_MEAS_TIME,         UINT16_T, 1,  READWRITE},
