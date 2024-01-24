@@ -132,7 +132,13 @@ CommandStatus sensorInitStatus(int moduleId)
     return COMMAND_ERROR;
 
   uint8_t sensorStatus;
-  sensorMasterRead(sensorId2Address[moduleId], REG_INIT_STATUS, &sensorStatus, sizeof(sensorStatus));
+  ENUM_I2C_Error result = sensorMasterRead(sensorId2Address[moduleId], REG_INIT_STATUS, &sensorStatus, sizeof(sensorStatus));
+
+  if (result != I2C_TRANSFER_OK)
+  {
+    return COMMAND_ERROR;
+  }
+
   return sensorStatus;
 }
 
@@ -168,7 +174,13 @@ CommandStatus sensorMeasurementStatus(int moduleId)
     return COMMAND_ERROR;
 
   uint8_t sensorStatus;
-  sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_STATUS, &sensorStatus, sizeof(sensorStatus));
+  ENUM_I2C_Error result = sensorMasterRead(sensorId2Address[moduleId], REG_MEAS_STATUS, &sensorStatus, sizeof(sensorStatus));
+
+  if (result != I2C_TRANSFER_OK)
+  {
+    return COMMAND_ERROR;
+  }
+
   return sensorStatus;
 }
 
