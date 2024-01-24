@@ -602,7 +602,7 @@ const void mainTask(void)
       if( waiting == false ) //check wait time is expired
       {
         CommandStatus newStatus = sensorInitStatus(sensorModuleId);
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure status: %d, %d\r\n", sensorModuleId, newStatus ); //print sensor type
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor init status: %d, %d\r\n", sensorModuleId, newStatus ); //print sensor type
 
         if( newStatus == COMMAND_NOTAVAILABLE || newStatus == COMMAND_ERROR )
         {
