@@ -246,24 +246,24 @@ __weak const int32_t setLoraInterval(uint16_t interval)
 }
 
 /**
- * @brief weak function getMeasureTime(), can be override in application code.
+ * @brief weak function getNumberOfSamples(), can be override in application code.
  *
  * @param sensorId
- * @return Measure time in milliseconds
+ * @return Number of samples 1-100
  */
-__weak const uint16_t getMeasureTime(int32_t sensorId)
+__weak const uint16_t getNumberOfSamples(int32_t sensorId)
 {
 
   return 100;
 }
 
 /**
- * @brief weak function setMeasureTime(), can be override in application code.
+ * @brief weak function setNumberOfSamples(), can be override in application code.
  *
  * @param sensorId
- * @return Measure time in milliseconds
+ * @return Number of samples 1-100
  */
-__weak const int32_t setMeasureTime(int32_t sensorId, uint16_t measureTime)
+__weak const int32_t setNumberOfSamples(int32_t sensorId, uint8_t numberOfSamples)
 {
 
   return 100;
@@ -275,7 +275,7 @@ __weak const int32_t setMeasureTime(int32_t sensorId, uint16_t measureTime)
  *
  * @return total number of measures
  */
-__weak const uint16_t getNumberOfMeasures(void)
+__weak const uint8_t getNumberOfMeasures(void)
 {
 
   return 3;
@@ -1637,11 +1637,11 @@ void sendMeasureTime(int arguments, const char * format, ...)
     sensorId = strtol(&format[1], &ptr, 10); //convert string to number
   }
 
-  measureTime = getMeasureTime(sensorId);
+  measureTime = getNumberOfSamples(sensorId);
 
   if( measureTime >= 0 && measureTime <= 60000 )
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getMeasureTime(sensorId) );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getNumberOfSamples(sensorId) );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -1670,13 +1670,13 @@ void rcvMeasureTime(int arguments, const char * format, ...)
     sensorId = strtol(&format[1], &ptr, 10); //convert string to number
     measureTime = strtol(ptr+1, &ptr, 10); //convert string to number, skip <comma>, increment ptr.
 
-    resultProcessed = setMeasureTime(sensorId, measureTime); //save value
+    resultProcessed = setNumberOfSamples(sensorId, measureTime); //save value
 
   }
 
   if( resultProcessed >= 0 ) //verify saving result is zero or larger
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getMeasureTime(sensorId) );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getNumberOfSamples(sensorId) );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else

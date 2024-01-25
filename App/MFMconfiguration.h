@@ -14,8 +14,8 @@
 #define PARA_LORA_INTERVAL_MIN  5
 #define PARA_LORA_INTERVAL_MAX  1440
 
-#define PARA_MEASURE_TIME_MIN  0
-#define PARA_MEASURE_TIME_MAX  60000L
+#define PARA_MEASURE_SAMPLES_MIN  1
+#define PARA_MEASURE_SAMPLES_MAX  100L
 
 typedef struct __attribute__((__packed__))
 {
@@ -86,7 +86,7 @@ const int saveSettingsToVirtualEEPROM(void);
 const int reloadSettingsFromVirtualEEPROM(void);
 const int32_t getSensorStatus(int32_t sensorId);
 const uint16_t getLoraInterval(void);
-const uint16_t getMeasureTime(int32_t sensorId);
+const uint8_t getNumberOfSamples(int32_t sensorId);
 const bool getAlwaysOn(void);
 const bool getAlwaysOn_changed(bool reset);
 const int32_t getSensorType(int32_t sensorId);

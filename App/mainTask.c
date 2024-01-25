@@ -703,7 +703,7 @@ const void mainTask(void)
         result = sensorReadSetupTime(sensorModuleId, &sensorSetupTime);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module setup time: %d, %u\r\n", sensorModuleId, sensorSetupTime ); //print sensor setup time
 
-        uint16_t measureTime = getMeasureTime(sensorModuleId + 1); //get configured wait time of sensor
+        uint16_t measureTime = getNumberOfSamples(sensorModuleId + 1); //get configured wait time of sensor
 
         if( measureTime == 65535) //check error value
         {
@@ -712,8 +712,8 @@ const void mainTask(void)
 
         setWait(measureTime);  //set wait time of sensor
         setTimeout(10000); //10sec
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor wait %ums, samples: %d\r\n", measureTime, getNumberOfSamples(sensorModuleId + 1) ); //print measure time
 
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor wait %ums (read %ums)\r\n", measureTime, getMeasureTime(sensorModuleId + 1) ); //print measure time
 
         mainTask_state = WAIT_FOR_SENSOR_DATA; //next state
       }
