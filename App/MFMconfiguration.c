@@ -35,12 +35,12 @@ struct_virtual_EEPROM_item stVirtualEEPROM[] =
     { IDX_SENSOR5_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[4].moduleType },
     { IDX_SENSOR6_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[5].moduleType },
 
-    { IDX_SENSOR1_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[0].measureTime },
-    { IDX_SENSOR2_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[1].measureTime },
-    { IDX_SENSOR3_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[2].measureTime },
-    { IDX_SENSOR4_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[3].measureTime },
-    { IDX_SENSOR5_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[4].measureTime },
-    { IDX_SENSOR6_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[5].measureTime },
+    { IDX_SENSOR1_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[0].numberOfSamples },
+    { IDX_SENSOR2_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[1].numberOfSamples },
+    { IDX_SENSOR3_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[2].numberOfSamples },
+    { IDX_SENSOR4_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[3].numberOfSamples },
+    { IDX_SENSOR5_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[4].numberOfSamples },
+    { IDX_SENSOR6_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[5].numberOfSamples },
 
     { IDX_SENSOR1_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[0].enabled },
     { IDX_SENSOR2_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[1].enabled },
@@ -414,7 +414,7 @@ const uint16_t getMeasureTime(int32_t sensorId)
     return -1;
   }
 
-  return (int)MFM_settings.slotModuleSettings[ sensorId - 1 ].measureTime;
+  return (int)MFM_settings.slotModuleSettings[ sensorId - 1 ].numberOfSamples;
 }
 
 /**
@@ -439,9 +439,9 @@ const int32_t setMeasureTime(int32_t sensorId, uint16_t measureTime )
     return -2;
   }
 
-  MFM_settings.slotModuleSettings[ sensorId - 1 ].measureTime = measureTime;
+  MFM_settings.slotModuleSettings[ sensorId - 1 ].numberOfSamples = (uint8_t)measureTime;
 
-  return (int32_t) MFM_settings.slotModuleSettings[ sensorId - 1 ].measureTime;
+  return (int32_t) MFM_settings.slotModuleSettings[ sensorId - 1 ].numberOfSamples;
 }
 
 

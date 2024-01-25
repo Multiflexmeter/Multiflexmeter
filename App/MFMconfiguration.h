@@ -20,7 +20,7 @@
 typedef struct __attribute__((__packed__))
 {
     uint16_t moduleType;      //received from sensor module
-    uint16_t measureTime;     //time between enable sensor and first measurement.
+    uint16_t numberOfSamples; //Number of samples for one measurement.
     bool enabled;             //true = sensor slot is enabled, false = sensor slot is disabled
     uint8_t reserved[11];     //reserved memory for future use
 }struct_sensorSlotSettings;
