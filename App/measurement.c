@@ -446,7 +446,12 @@ int32_t printMeasurementData( uint32_t measurementId, uint8_t * buffer, uint32_t
 
   int length = 0;
 
-  length += snprintf((char*) buffer + length, bufferLength - length, "%lu;%lu;%u;", measurement.measurementId, measurement.timestamp, measurement.sensorModuleData.sensorModuleTypeId);
+  length += snprintf((char*) buffer + length, bufferLength - length, "%lu;", measurement.measurementId);
+  length += snprintf((char*) buffer + length, bufferLength - length, "%lu;", measurement.timestamp);
+  length += snprintf((char*) buffer + length, bufferLength - length, "%u;", measurement.sensorModuleData.sensorModuleSlotId);
+  length += snprintf((char*) buffer + length, bufferLength - length, "%u;", measurement.sensorModuleData.sensorModuleTypeId);
+  length += snprintf((char*) buffer + length, bufferLength - length, "%u;", measurement.sensorModuleData.sensorModuleProtocolId);
+  length += snprintf((char*) buffer + length, bufferLength - length, "%u;", measurement.sensorModuleData.sensorModuleDataSize);
 
   if( length >= bufferLength )
     return -1;
