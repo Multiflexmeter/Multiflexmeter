@@ -1035,6 +1035,7 @@ const void mainTask(void)
 
             forcedInterval = getForcedLoraInterval();//get restricted dutycyle
             newLoraInterval = MAX(forcedInterval, newLoraInterval); //override forced interval based on Maximum of these.
+            transmitPossibleSuccess = true;
 
             break;
 
@@ -1043,10 +1044,9 @@ const void mainTask(void)
             break;
 
           case LORAMAC_HANDLER_NVM_DATA_UP_TO_DATE:
-
-            break;
-
           case LORAMAC_HANDLER_SUCCESS:
+
+            transmitPossibleSuccess = true;
 
             break;
 
