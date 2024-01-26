@@ -35,12 +35,12 @@ struct_virtual_EEPROM_item stVirtualEEPROM[] =
     { IDX_SENSOR5_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[4].moduleType },
     { IDX_SENSOR6_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[5].moduleType },
 
-    { IDX_SENSOR1_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[0].measureTime },
-    { IDX_SENSOR2_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[1].measureTime },
-    { IDX_SENSOR3_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[2].measureTime },
-    { IDX_SENSOR4_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[3].measureTime },
-    { IDX_SENSOR5_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[4].measureTime },
-    { IDX_SENSOR6_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[5].measureTime },
+    { IDX_SENSOR1_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[0].numberOfSamples },
+    { IDX_SENSOR2_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[1].numberOfSamples },
+    { IDX_SENSOR3_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[2].numberOfSamples },
+    { IDX_SENSOR4_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[3].numberOfSamples },
+    { IDX_SENSOR5_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[4].numberOfSamples },
+    { IDX_SENSOR6_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[5].numberOfSamples },
 
     { IDX_SENSOR1_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[0].enabled },
     { IDX_SENSOR2_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[1].enabled },
@@ -400,12 +400,12 @@ const int32_t setLoraInterval(uint16_t interval)
 }
 
 /**
- * @brief override function getMeetTijd(), can be override in application code.
+ * @brief override function getNumberOfSamples(), can be override in application code.
  *
  * @param sensorId : 1 to /ref NR_OF_SLOTS
- * @return Measure time in milliseconds
+ * @return Number of samples 1-100
  */
-const uint16_t getMeasureTime(int32_t sensorId)
+const uint8_t getNumberOfSamples(int32_t sensorId)
 {
   assert_param(sensorId >= 1 && sensorId <= NR_OF_SLOTS );
 
@@ -414,19 +414,19 @@ const uint16_t getMeasureTime(int32_t sensorId)
     return -1;
   }
 
-  return (int)MFM_settings.slotModuleSettings[ sensorId - 1 ].measureTime;
+  return (int)MFM_settings.slotModuleSettings[ sensorId - 1 ].numberOfSamples;
 }
 
 /**
- * @brief override function getMeetTijd(), can be override in application code.
+ * @brief override function setNumberOfSamples(), can be override in application code.
  *
  * @param sensorId : 1 to /ref NR_OF_SLOTS
- * @return Measure time in milliseconds
+ * @return Number of samples 1-100
  */
-const int32_t setMeasureTime(int32_t sensorId, uint16_t measureTime )
+const int32_t setNumberOfSamples(int32_t sensorId, uint8_t numberOfSamples )
 {
   assert_param(sensorId >= 1 && sensorId <= NR_OF_SLOTS );
-  assert_param(measureTime >= PARA_MEASURE_TIME_MIN && measureTime <= PARA_MEASURE_TIME_MAX );
+  assert_param(numberOfSamples >= PARA_MEASURE_TIME_MIN && numberOfSamples <= PARA_MEASURE_TIME_MAX );
 
 
   if( sensorId < 1 || sensorId > NR_OF_SLOTS ) //Verify argument
@@ -434,14 +434,14 @@ const int32_t setMeasureTime(int32_t sensorId, uint16_t measureTime )
     return -1;
   }
 
-  if( measureTime < PARA_MEASURE_TIME_MIN || measureTime > PARA_MEASURE_TIME_MAX ) //Verify argument
+  if( numberOfSamples < PARA_MEASURE_SAMPLES_MIN || numberOfSamples > PARA_MEASURE_SAMPLES_MAX ) //Verify argument
   {
     return -2;
   }
 
-  MFM_settings.slotModuleSettings[ sensorId - 1 ].measureTime = measureTime;
+  MFM_settings.slotModuleSettings[ sensorId - 1 ].numberOfSamples = (uint8_t)numberOfSamples;
 
-  return (int32_t) MFM_settings.slotModuleSettings[ sensorId - 1 ].measureTime;
+  return (int32_t) MFM_settings.slotModuleSettings[ sensorId - 1 ].numberOfSamples;
 }
 
 

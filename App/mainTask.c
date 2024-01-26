@@ -671,7 +671,11 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
-        sensorStartMeasurement(sensorModuleId); //start measure
+        uint8_t result = 0;
+        uint8_t numberOfSamples = getNumberOfSamples(sensorModuleId + 1); //get configured number of samples
+
+        result = sensorSetSamples(sensorModuleId, numberOfSamples); //write samples to sensor module
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module %d, result: %d, samples: %d\r\n", sensorModuleId, result, numberOfSamples); //print info
 
         memset(stMFM_sensorModuleData.sensorModuleData, 0x00, sizeof(stMFM_sensorModuleData.sensorModuleData));
         stMFM_sensorModuleData.sensorModuleSlotId = sensorModuleId; //save slotId
@@ -682,7 +686,6 @@ const void mainTask(void)
 
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module firmware: %d, %s\r\n", sensorModuleId, dataBuffer ); //print VERSION
 
-        uint8_t result;
         sensorProtocol = 0; //reset first
         result = sensorProtocolVersion(sensorModuleId, &sensorProtocol);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module protocol version: %d, %d\r\n", sensorModuleId, result == SENSOR_OK ? sensorProtocol : -1); //print protocol version
@@ -699,21 +702,21 @@ const void mainTask(void)
           saveSettingsToVirtualEEPROM();
         }
 
-        uint16_t sensorSetupTime = 0;
-        result = sensorReadSetupTime(sensorModuleId, &sensorSetupTime);
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module setup time: %d, %u\r\n", sensorModuleId, sensorSetupTime ); //print sensor setup time
-
-        uint16_t measureTime = getMeasureTime(sensorModuleId + 1); //get configured wait time of sensor
+        uint16_t measureTime = 0;
+        result = sensorReadSetupTime(sensorModuleId, &measureTime); //get measureTime for sensorModule
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module measure time: %d, %u\r\n", sensorModuleId, measureTime ); //print sensor measure time
 
         if( measureTime == 65535) //check error value
         {
-          measureTime = 250; //use default wait time
+          measureTime = 100; //use default wait time
         }
 
         setWait(measureTime);  //set wait time of sensor
-        setTimeout(10000); //10sec
+        setTimeout(10000 + measureTime); //+10sec timeout
 
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor wait %ums (read %ums)\r\n", measureTime, getMeasureTime(sensorModuleId + 1) ); //print measure time
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor wait %ums, samples: %d\r\n", measureTime, getNumberOfSamples(sensorModuleId + 1) ); //print measure time
+
+        sensorStartMeasurement(sensorModuleId); //start measure
 
         mainTask_state = WAIT_FOR_SENSOR_DATA; //next state
       }

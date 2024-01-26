@@ -78,7 +78,8 @@ static const char cmdDeviceId[]="DeviceID";
 static const char cmdAppKey[]="AppKey";
 static const char cmdSensor[]="Sensor";
 static const char cmdLoraInterval[]="LoraInterval";
-static const char cmdMeasureTime[]="MeasureTime";
+static const char cmdMeasureTime[]="MeasureTime"; //todo remove
+static const char cmdSamples[]="Samples";
 static const char cmdDataDump[]="DataDump";
 static const char cmdAlwaysOn[]="AlwaysOn";
 static const char cmdErase[]="Erase";
@@ -246,24 +247,24 @@ __weak const int32_t setLoraInterval(uint16_t interval)
 }
 
 /**
- * @brief weak function getMeasureTime(), can be override in application code.
+ * @brief weak function getNumberOfSamples(), can be override in application code.
  *
  * @param sensorId
- * @return Measure time in milliseconds
+ * @return Number of samples 1-100
  */
-__weak const uint16_t getMeasureTime(int32_t sensorId)
+__weak const uint16_t getNumberOfSamples(int32_t sensorId)
 {
 
   return 100;
 }
 
 /**
- * @brief weak function setMeasureTime(), can be override in application code.
+ * @brief weak function setNumberOfSamples(), can be override in application code.
  *
  * @param sensorId
- * @return Measure time in milliseconds
+ * @return Number of samples 1-100
  */
-__weak const int32_t setMeasureTime(int32_t sensorId, uint16_t measureTime)
+__weak const int32_t setNumberOfSamples(int32_t sensorId, uint8_t numberOfSamples)
 {
 
   return 100;
@@ -275,7 +276,7 @@ __weak const int32_t setMeasureTime(int32_t sensorId, uint16_t measureTime)
  *
  * @return total number of measures
  */
-__weak const uint16_t getNumberOfMeasures(void)
+__weak const uint8_t getNumberOfMeasures(void)
 {
 
   return 3;
@@ -593,7 +594,8 @@ void sendDeviceID(int arguments, const char * format, ...);
 void sendAppKey(int arguments, const char * format, ...);
 void sendSensor(int arguments, const char * format, ...);
 void sendLoraInterval(int arguments, const char * format, ...);
-void sendMeasureTime(int arguments, const char * format, ...);
+void sendMeasureTime(int arguments, const char * format, ...); //todo remove
+void sendSamples(int arguments, const char * format, ...);
 void sendAlwaysOnState(int arguments, const char * format, ...);
 void sendDataDump(int arguments, const char * format, ...);
 void sendDataLine( uint32_t );
@@ -614,7 +616,8 @@ void rcvDeviceID(int arguments, const char * format, ...);
 void rcvAppKey(int arguments, const char * format, ...);
 void rcvSensor(int arguments, const char * format, ...);
 void rcvLoraInterval(int arguments, const char * format, ...);
-void rcvMeasureTime(int arguments, const char * format, ...);
+void rcvMeasureTime(int arguments, const char * format, ...); //todo remove
+void rcvSamples(int arguments, const char * format, ...);
 void rcvAlwaysOnState(int arguments, const char * format, ...);
 void rcvErase(int arguments, const char * format, ...);
 void sendProgressLine( uint8_t percent, const char * command  );
@@ -670,10 +673,16 @@ struct_commands stCommandsGet[] =
         sendLoraInterval,
         0,
     },
-    {
+    { //todo remove cmdMeasureTime
         cmdMeasureTime,
         sizeof(cmdMeasureTime) - 1,
         sendMeasureTime,
+        0,
+    },
+    {
+        cmdSamples,
+        sizeof(cmdSamples) - 1,
+        sendSamples,
         0,
     },
     {
@@ -744,10 +753,16 @@ struct_commands stCommandsSet[] =
         rcvLoraInterval,
         1,
     },
-    {
+    {//todo remove cmdMeasureTime
         cmdMeasureTime,
         sizeof(cmdMeasureTime) - 1,
         rcvMeasureTime,
+        1,
+    },
+    {
+        cmdSamples,
+        sizeof(cmdSamples) - 1,
+        rcvSamples,
         1,
     },
     {
@@ -1637,11 +1652,11 @@ void sendMeasureTime(int arguments, const char * format, ...)
     sensorId = strtol(&format[1], &ptr, 10); //convert string to number
   }
 
-  measureTime = getMeasureTime(sensorId);
+  measureTime = getNumberOfSamples(sensorId);
 
   if( measureTime >= 0 && measureTime <= 60000 )
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getMeasureTime(sensorId) );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getNumberOfSamples(sensorId) );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -1650,6 +1665,37 @@ void sendMeasureTime(int arguments, const char * format, ...)
   }
 
 }
+
+/**
+ * @brief send current number of samples to config uart.
+ *
+ * @param arguments not used
+ */
+void sendSamples(int arguments, const char * format, ...)
+{
+  char *ptr; //dummy pointer
+  int sensorId = -1;
+  uint16_t numberOfSamples = -1;
+
+  if( format[0] == '=' && format[2] == '\r' && format[3] == '\n') //check index 0 is "=" and index 2 is "\r" and index 3 is "\n"
+  {
+    sensorId = strtol(&format[1], &ptr, 10); //convert string to number
+  }
+
+  numberOfSamples = getNumberOfSamples(sensorId);
+
+  if( numberOfSamples >= 1 && numberOfSamples <= 100 )
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdSamples, getNumberOfSamples(sensorId) );
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
+
+}
+
 
 /**
  * @brief receive new measure time from config uart.
@@ -1670,13 +1716,13 @@ void rcvMeasureTime(int arguments, const char * format, ...)
     sensorId = strtol(&format[1], &ptr, 10); //convert string to number
     measureTime = strtol(ptr+1, &ptr, 10); //convert string to number, skip <comma>, increment ptr.
 
-    resultProcessed = setMeasureTime(sensorId, measureTime); //save value
+    resultProcessed = setNumberOfSamples(sensorId, measureTime); //save value
 
   }
 
   if( resultProcessed >= 0 ) //verify saving result is zero or larger
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getMeasureTime(sensorId) );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdMeasureTime, getNumberOfSamples(sensorId) );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
@@ -1685,6 +1731,43 @@ void rcvMeasureTime(int arguments, const char * format, ...)
   }
 
 }
+
+
+/**
+ * @brief receive new number of samples from config uart.
+ *
+ * @param argument: 1: <number of samples>
+ *
+ */
+void rcvSamples(int arguments, const char * format, ...)
+{
+  char *ptr; //dummy pointer
+
+  int sensorId = -1;
+  int32_t numberOfSamples = -1;
+  int32_t resultProcessed = -1;
+
+  if( format[0] == '=' && format[2] == ',' ) //check index 0 is "=" and index 2 is ","
+  {
+    sensorId = strtol(&format[1], &ptr, 10); //convert string to number
+    numberOfSamples = strtol(ptr+1, &ptr, 10); //convert string to number, skip <comma>, increment ptr.
+
+    resultProcessed = setNumberOfSamples(sensorId, numberOfSamples); //save value
+
+  }
+
+  if( resultProcessed >= 0 ) //verify saving result is zero or larger
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdSamples, getNumberOfSamples(sensorId) );
+    uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+  }
+  else
+  {
+    sendError(0,0);
+  }
+
+}
+
 
 /**
  * @brief send datadump to config uart.
