@@ -1000,7 +1000,6 @@ const void mainTask(void)
           FRAM_Settings.modules[i].nullTerminator = 0; //force null terminators
         }
         FRAM_Settings.sensorModuleId = sensorModuleId; //copy to save.
-        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save last sensor Module ID
 
         setTimeout(10000); //10sec
         mainTask_state = WAIT_LORA_TRANSMIT_READY;
