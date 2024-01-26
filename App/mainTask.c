@@ -364,12 +364,31 @@ const bool alarmNotYetTriggered(void)
 }
 
 /**
+ * @fn const UNION_diagnosticStatusBits detectDiagnostics(void)
+ * @brief function to get diagnostics
+ *
+ * @return
+ */
+const UNION_diagnosticStatusBits getDiagnostics(void)
+{
+  UNION_diagnosticStatusBits diagnosticStatusBits = {0};
+
+  diagnosticStatusBits.bit.batteryLow = readInput_board_io(EXT_IOBAT_ALERT);
+  diagnosticStatusBits.bit.usbConnected = readInput_board_io(EXT_IOUSB_CONNECTED);
+  diagnosticStatusBits.bit.lightSensorActive = readInput_board_io(INT_IO_BOX_OPEN);
+
+  return diagnosticStatusBits;
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
  */
 const void mainTask(void)
 {
+  static UNION_diagnosticStatusBits diagnosticsStatusBits = {0};
+
   mainTask_tmr++; //count the number of executes
 
   //execute steps of maintask, then wait for next trigger.
@@ -397,17 +416,27 @@ const void mainTask(void)
 
       if( getWakeupEx1Status(0) )
       {
+        APP_LOG(TS_OFF, VLEVEL_H, ", WAKE EX1");
+      }
+
+      if( readInput_board_io(EXT_IOSENSOR_INTX))
+      {
         APP_LOG(TS_OFF, VLEVEL_H, ", SENSOR");
       }
 
-      if( getWakeupEx2Status(0) && readInput_board_io(INT_IO_BOX_OPEN) )
-      {
-        APP_LOG(TS_OFF, VLEVEL_H, ", BOX-OPEN");
-      }
-
-      if( getWakeupEx2Status(0) && readInput_board_io(EXT_IOUSB_CONNECTED) )
+      if( readInput_board_io(EXT_IOUSB_CONNECTED) )
       {
         APP_LOG(TS_OFF, VLEVEL_H, ", USB");
+      }
+
+      if( getWakeupEx2Status(0) )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, ", Ex2");
+      }
+
+      if( readInput_board_io(INT_IO_BOX_OPEN) )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, ", BOX-OPEN");
       }
 
       APP_LOG(TS_OFF, VLEVEL_H, "\r\n");
@@ -456,6 +485,10 @@ const void mainTask(void)
       {
         systemActiveTime_sec = 0; //reset //only when no RTC is used, overwrite boottime.
 #endif
+
+        diagnosticsStatusBits = getDiagnostics(); //read current diagnostics
+        FRAM_Settings.diagnosticBits.uint32 |= diagnosticsStatusBits.uint32; //OR the new reads with previous value from
+
         measureEOS_enabled = getBatteryEos().measureActive; //get saved status of previous round from battery backup registers
 
         if( measureEOS_enabled ) //only if measureEOS is enabled this round
@@ -917,6 +950,8 @@ const void mainTask(void)
           stMFM_baseData.temperatureController = getTemperature(); //use controller temperature
         }
 
+        stMFM_baseData.diagnosticBits = FRAM_Settings.diagnosticBits.byte[0]; //save the first 8 bits
+
         APP_LOG(TS_OFF, VLEVEL_H, "Temperature controller: %d\r\n",  stMFM_baseData.temperatureController);
 
 
@@ -968,7 +1003,6 @@ const void mainTask(void)
           FRAM_Settings.modules[i].nullTerminator = 0; //force null terminators
         }
         FRAM_Settings.sensorModuleId = sensorModuleId; //copy to save.
-        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save last sensor Module ID
 
         setTimeout(10000); //10sec
         mainTask_state = WAIT_LORA_TRANSMIT_READY;
@@ -981,6 +1015,7 @@ const void mainTask(void)
       //wait on transmit ready flag
       if( loraTransmitReady == true || timeout == true)
       {
+        bool transmitPossibleSuccess = false;
         if( timeout == true )
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Lora transmit ready: timeout\r\n");
@@ -1000,6 +1035,7 @@ const void mainTask(void)
 
             forcedInterval = getForcedLoraInterval();//get restricted dutycyle
             newLoraInterval = MAX(forcedInterval, newLoraInterval); //override forced interval based on Maximum of these.
+            transmitPossibleSuccess = true;
 
             break;
 
@@ -1008,10 +1044,9 @@ const void mainTask(void)
             break;
 
           case LORAMAC_HANDLER_NVM_DATA_UP_TO_DATE:
-
-            break;
-
           case LORAMAC_HANDLER_SUCCESS:
+
+            transmitPossibleSuccess = true;
 
             break;
 
@@ -1026,6 +1061,13 @@ const void mainTask(void)
 
             break;
         }
+
+        //check if transmit is success, then erase diagnostic.
+        if( transmitPossibleSuccess == true )
+        {
+          FRAM_Settings.diagnosticBits.uint32 = 0; //reset status.
+        }
+        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save FRAM data after last change
 
         MainPeriodSleep = newLoraInterval;
 

@@ -358,6 +358,8 @@ int8_t writeNewMeasurement( uint8_t MFM_protocol, struct_MFM_sensorModuleData * 
 
   measurement.protocolMFM = MFM_protocol;
 
+  memcpy( &measurement.MFM_baseData.stBaseData, MFM_data, sizeof(struct_MFM_baseData)); //copy MFM base data.
+
   memcpy(&measurement.sensorModuleData, sensorModuleData, sizeof(measurement.sensorModuleData)); //copy sensor module data.
 
   //check if not all bytes are used in sensorModuleData buffer
