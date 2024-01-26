@@ -39,12 +39,28 @@ typedef union
 
 typedef struct __attribute__((packed))
 {
+    uint8_t lightSensorActive:1;
+    uint8_t usbConnected:1;
+    uint8_t batteryLow:1;
+    uint32_t spare:29;
+}struct_diagnosticStatusBits;
+
+typedef union
+{
+    uint32_t byte[4];
+    uint32_t uint32;
+    struct_diagnosticStatusBits bit;
+} UNION_diagnosticStatusBits;
+
+typedef struct __attribute__((packed))
+{
     uint8_t sensorModuleId;
     uint32_t nextIntervalBatteryEOS;
     struct_sensorModuleFirmwareVersion modules[NR_SENSOR_MODULE];
     uint8_t sensorModuleProtocol[NR_SENSOR_MODULE];
     uint8_t sensorModuleEnabled;
     UNION_sensorModuleSettings sensorModuleSettings[NR_SENSOR_MODULE];
+    UNION_diagnosticStatusBits diagnosticBits;
 }struct_FRAM_settings;
 
 const void saveLoraSettings( const void *pSource, size_t length );
