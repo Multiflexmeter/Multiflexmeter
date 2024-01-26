@@ -364,12 +364,31 @@ const bool alarmNotYetTriggered(void)
 }
 
 /**
+ * @fn const UNION_diagnosticStatusBits detectDiagnostics(void)
+ * @brief function to get diagnostics
+ *
+ * @return
+ */
+const UNION_diagnosticStatusBits getDiagnostics(void)
+{
+  UNION_diagnosticStatusBits diagnosticStatusBits = {0};
+
+  diagnosticStatusBits.bit.batteryLow = readInput_board_io(EXT_IOBAT_ALERT);
+  diagnosticStatusBits.bit.usbConnected = readInput_board_io(EXT_IOUSB_CONNECTED);
+  diagnosticStatusBits.bit.lightSensorActive = readInput_board_io(INT_IO_BOX_OPEN);
+
+  return diagnosticStatusBits;
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
  */
 const void mainTask(void)
 {
+  static UNION_diagnosticStatusBits diagnosticsStatusBits = {0};
+
   mainTask_tmr++; //count the number of executes
 
   //execute steps of maintask, then wait for next trigger.
@@ -436,6 +455,9 @@ const void mainTask(void)
       MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
 
       restoreFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
+
+      diagnosticsStatusBits = getDiagnostics(); //read current diagnostics
+      FRAM_Settings.diagnosticBits.uint32 |= diagnosticsStatusBits.uint32; //OR the new reads with previous value from
 
       //check wakeup source is a valid alarm
       if( alarmNotYetTriggered() )
@@ -981,6 +1003,7 @@ const void mainTask(void)
       //wait on transmit ready flag
       if( loraTransmitReady == true || timeout == true)
       {
+        bool transmitPossibleSuccess = false;
         if( timeout == true )
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Lora transmit ready: timeout\r\n");
@@ -1026,6 +1049,13 @@ const void mainTask(void)
 
             break;
         }
+
+        //check if transmit is success, then erase diagnostic.
+        if( transmitPossibleSuccess == true )
+        {
+          FRAM_Settings.diagnosticBits.uint32 = 0; //reset status.
+        }
+        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save FRAM data after last change
 
         MainPeriodSleep = newLoraInterval;
 
