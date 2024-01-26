@@ -896,10 +896,12 @@ static void SendTxData(void)
         AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.batteryStateEos;
         AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.temperatureGauge;
         AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.temperatureController;
+        AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.diagnosticBits;
         break;
 
       case 0x02:
         AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.temperatureController;
+        AppData.Buffer[i++] = measurementData->MFM_baseData.stBaseData.diagnosticBits;
         break;
 
       default:

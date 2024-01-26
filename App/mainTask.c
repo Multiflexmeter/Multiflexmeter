@@ -949,6 +949,8 @@ const void mainTask(void)
           stMFM_baseData.temperatureController = getTemperature(); //use controller temperature
         }
 
+        stMFM_baseData.diagnosticBits = FRAM_Settings.diagnosticBits.byte[0]; //save the first 8 bits
+
         APP_LOG(TS_OFF, VLEVEL_H, "Temperature controller: %d\r\n",  stMFM_baseData.temperatureController);
 
 
