@@ -60,7 +60,7 @@ typedef struct __attribute__((packed))
     uint8_t sensorModuleProtocol[NR_SENSOR_MODULE];
     uint8_t sensorModuleEnabled;
     UNION_sensorModuleSettings sensorModuleSettings[NR_SENSOR_MODULE];
-    UNION_diagnosticStatusBits diagnosticBits;
+    UNION_diagnosticStatusBits diagnosticBits; //32 bits reserved, only the first 8 bits are send to portal and saved in dataflash
 }struct_FRAM_settings;
 
 const void saveLoraSettings( const void *pSource, size_t length );
