@@ -416,17 +416,27 @@ const void mainTask(void)
 
       if( getWakeupEx1Status(0) )
       {
+        APP_LOG(TS_OFF, VLEVEL_H, ", WAKE EX1");
+      }
+
+      if( readInput_board_io(EXT_IOSENSOR_INTX))
+      {
         APP_LOG(TS_OFF, VLEVEL_H, ", SENSOR");
       }
 
-      if( getWakeupEx2Status(0) && readInput_board_io(INT_IO_BOX_OPEN) )
-      {
-        APP_LOG(TS_OFF, VLEVEL_H, ", BOX-OPEN");
-      }
-
-      if( getWakeupEx2Status(0) && readInput_board_io(EXT_IOUSB_CONNECTED) )
+      if( readInput_board_io(EXT_IOUSB_CONNECTED) )
       {
         APP_LOG(TS_OFF, VLEVEL_H, ", USB");
+      }
+
+      if( getWakeupEx2Status(0) )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, ", Ex2");
+      }
+
+      if( readInput_board_io(INT_IO_BOX_OPEN) )
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, ", BOX-OPEN");
       }
 
       APP_LOG(TS_OFF, VLEVEL_H, "\r\n");
