@@ -466,9 +466,6 @@ const void mainTask(void)
 
       restoreFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
 
-      diagnosticsStatusBits = getDiagnostics(); //read current diagnostics
-      FRAM_Settings.diagnosticBits.uint32 |= diagnosticsStatusBits.uint32; //OR the new reads with previous value from
-
       //check wakeup source is a valid alarm
       if( alarmNotYetTriggered() )
       {
@@ -488,6 +485,10 @@ const void mainTask(void)
       {
         systemActiveTime_sec = 0; //reset //only when no RTC is used, overwrite boottime.
 #endif
+
+        diagnosticsStatusBits = getDiagnostics(); //read current diagnostics
+        FRAM_Settings.diagnosticBits.uint32 |= diagnosticsStatusBits.uint32; //OR the new reads with previous value from
+
         measureEOS_enabled = getBatteryEos().measureActive; //get saved status of previous round from battery backup registers
 
         if( measureEOS_enabled ) //only if measureEOS is enabled this round
