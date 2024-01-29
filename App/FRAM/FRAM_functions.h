@@ -19,6 +19,8 @@
 #define MAX_SIZE_LORA_SETTINGS 0x0600
 #define SIZE_FRAM  0x800
 
+#define FRAM_SETTINGS_PROTOCOL_ID   0x00
+
 typedef struct __attribute__((packed))
 {
     char version[10];

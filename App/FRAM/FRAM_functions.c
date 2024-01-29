@@ -141,6 +141,7 @@ static const void restoreFramSettings( const void *pDest, size_t length)
  */
 const void saveFramSettingsStruct( struct_FRAM_settings *pSource, size_t length )
 {
+  pSource->protocolId = FRAM_SETTINGS_PROTOCOL_ID;
   pSource->crc16 = calculateCRC_CCITT((uint8_t*)&pSource->protocolId, sizeof(struct_FRAM_settings)-sizeof(pSource->crc16));
 
   saveFramSettings(pSource, length);
@@ -163,6 +164,16 @@ const void restoreFramSettingsStruct( const struct_FRAM_settings *pDest, size_t 
   {
     APP_LOG(TS_OFF, VLEVEL_L, "Error FRAM CRC, settings reset to 0x00\r\n");
     memset((uint8_t*)pDest, 0x00, sizeof(struct_FRAM_settings));
+    return;
+  }
+
+  if( pDest->protocolId != FRAM_SETTINGS_PROTOCOL_ID)
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "Warning FRAM protocolID changed\r\n");
+#if FRAM_SETTINGS_PROTOCOL_ID > 0x00
+#warning make sure FRAM protocol changes are handled
+#endif
+    //implement converting for new protocol here
   }
 }
 
