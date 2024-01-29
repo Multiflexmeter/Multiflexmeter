@@ -377,6 +377,8 @@ const UNION_diagnosticStatusBits getDiagnostics(void)
   diagnosticStatusBits.bit.usbConnected = readInput_board_io(EXT_IOUSB_CONNECTED);
   diagnosticStatusBits.bit.lightSensorActive = readInput_board_io(INT_IO_BOX_OPEN);
 
+  APP_LOG(TS_OFF, VLEVEL_H, "Diagnostic: BAT: %d, USB: %d, BOX: %d\r\n", diagnosticStatusBits.bit.batteryLow, diagnosticStatusBits.bit.usbConnected, diagnosticStatusBits.bit.lightSensorActive);
+
   return diagnosticStatusBits;
 }
 
@@ -465,6 +467,8 @@ const void mainTask(void)
       MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
 
       restoreFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
+
+      APP_LOG(TS_OFF, VLEVEL_H, "Restore diagnostic: BAT: %d, USB: %d, BOX: %d\r\n", FRAM_Settings.diagnosticBits.bit.batteryLow, FRAM_Settings.diagnosticBits.bit.usbConnected, FRAM_Settings.diagnosticBits.bit.lightSensorActive);
 
       //check wakeup source is a valid alarm
       if( alarmNotYetTriggered() )
