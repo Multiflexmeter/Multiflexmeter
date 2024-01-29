@@ -466,7 +466,7 @@ const void mainTask(void)
 
       MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
 
-      restoreFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
+      restoreFramSettingsStruct(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
 
       APP_LOG(TS_OFF, VLEVEL_H, "Restore diagnostic: BAT: %d, USB: %d, BOX: %d\r\n", FRAM_Settings.diagnosticBits.bit.batteryLow, FRAM_Settings.diagnosticBits.bit.usbConnected, FRAM_Settings.diagnosticBits.bit.lightSensorActive);
 
@@ -1071,7 +1071,7 @@ const void mainTask(void)
         {
           FRAM_Settings.diagnosticBits.uint32 = 0; //reset status.
         }
-        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save FRAM data after last change
+        saveFramSettingsStruct(&FRAM_Settings, sizeof(FRAM_Settings)); //save FRAM data after last change
 
         MainPeriodSleep = newLoraInterval;
 
@@ -1230,7 +1230,7 @@ const void mainTask(void)
         //make sure diagnostic is read before sleep and saved to FRAM
         diagnosticsStatusBits = getDiagnostics(); //read current diagnostics
         FRAM_Settings.diagnosticBits.uint32 |= diagnosticsStatusBits.uint32; //OR the new reads with previous value from
-        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save FRAM data after last change
+        saveFramSettingsStruct(&FRAM_Settings, sizeof(FRAM_Settings)); //save FRAM data after last change
 
         control_supercap(false); //disable supercap before sleep
 

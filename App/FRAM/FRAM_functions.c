@@ -12,6 +12,7 @@
 #include "main.h"
 #include "sys_app.h"
 
+#include "../common/crc16.h"
 #include "FRAM.h"
 #include "FRAM_functions.h"
 
@@ -87,7 +88,7 @@ const void restoreLoraSettings( const void *pSource, size_t length)
  * @param pSource : pointer of source data
  * @param length : size of data to write
  */
-const void saveFramSettings( const void *pSource, size_t length )
+static const void saveFramSettings( const void *pSource, size_t length )
 {
   static_assert (sizeof(struct_FRAM_settings) <= ADDRESS_LORA_SETTINGS, "Size struct_FRAM_settings is too large");
   assert_param( ADDRESS_OTHER_SETTINGS + length < ADDRESS_LORA_SETTINGS);
@@ -112,7 +113,7 @@ const void saveFramSettings( const void *pSource, size_t length )
  * @param pSource : pointer of source data
  * @param length : size of data to write
  */
-const void restoreFramSettings( const void *pSource, size_t length)
+static const void restoreFramSettings( const void *pDest, size_t length)
 {
   static_assert (sizeof(struct_FRAM_settings) <= ADDRESS_LORA_SETTINGS, "Size struct_FRAM_settings is too large");
   assert_param( ADDRESS_OTHER_SETTINGS + length < ADDRESS_LORA_SETTINGS);
@@ -125,9 +126,44 @@ const void restoreFramSettings( const void *pSource, size_t length)
 
   setup_io_for_fram(true);
 
-  FRAM_ReadData(ADDRESS_OTHER_SETTINGS,(uint8_t*)pSource, length);
+  FRAM_ReadData(ADDRESS_OTHER_SETTINGS,(uint8_t*)pDest, length);
 
   setup_io_for_fram(false);
+}
+
+
+/**
+ * @fn const void saveFramSettingsStruct(struct_FRAM_settings*, size_t)
+ * @brief stores FRAM settings struct, first calculates the CRC.
+ *
+ * @param pSource : pointer of source data
+ * @param length : size of data to write
+ */
+const void saveFramSettingsStruct( struct_FRAM_settings *pSource, size_t length )
+{
+  pSource->crc16 = calculateCRC_CCITT((uint8_t*)&pSource->protocolId, sizeof(struct_FRAM_settings)-sizeof(pSource->crc16));
+
+  saveFramSettings(pSource, length);
+}
+
+/**
+ * @fn const void restoreFramSettingsStruct(const void*, size_t)
+ * @brief restore FRAM settings struct, checks crc if not valid data is set to 0x0
+ *
+ * @param pSource : pointer of source data
+ * @param length : size of data to write
+ */
+const void restoreFramSettingsStruct( const struct_FRAM_settings *pDest, size_t length)
+{
+  restoreFramSettings(pDest, length);
+
+  uint16_t crc = calculateCRC_CCITT((uint8_t*)&pDest->protocolId, sizeof(struct_FRAM_settings)-sizeof(pDest->crc16));
+
+  if( crc != pDest->crc16)
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "Error FRAM CRC, settings reset to 0x00\r\n");
+    memset((uint8_t*)pDest, 0x00, sizeof(struct_FRAM_settings));
+  }
 }
 
 /**
