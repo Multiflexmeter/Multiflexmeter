@@ -1227,6 +1227,10 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
+        //make sure diagnostic is read before sleep and saved to FRAM
+        diagnosticsStatusBits = getDiagnostics(); //read current diagnostics
+        FRAM_Settings.diagnosticBits.uint32 |= diagnosticsStatusBits.uint32; //OR the new reads with previous value from
+        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save FRAM data after last change
 
         control_supercap(false); //disable supercap before sleep
 
