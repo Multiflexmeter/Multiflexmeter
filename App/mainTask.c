@@ -377,6 +377,8 @@ const UNION_diagnosticStatusBits getDiagnostics(void)
   diagnosticStatusBits.bit.usbConnected = readInput_board_io(EXT_IOUSB_CONNECTED);
   diagnosticStatusBits.bit.lightSensorActive = readInput_board_io(INT_IO_BOX_OPEN);
 
+  APP_LOG(TS_OFF, VLEVEL_H, "Diagnostic: BAT: %d, USB: %d, BOX: %d\r\n", diagnosticStatusBits.bit.batteryLow, diagnosticStatusBits.bit.usbConnected, diagnosticStatusBits.bit.lightSensorActive);
+
   return diagnosticStatusBits;
 }
 
@@ -464,7 +466,9 @@ const void mainTask(void)
 
       MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
 
-      restoreFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
+      restoreFramSettingsStruct(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
+
+      APP_LOG(TS_OFF, VLEVEL_H, "Restore diagnostic: BAT: %d, USB: %d, BOX: %d\r\n", FRAM_Settings.diagnosticBits.bit.batteryLow, FRAM_Settings.diagnosticBits.bit.usbConnected, FRAM_Settings.diagnosticBits.bit.lightSensorActive);
 
       //check wakeup source is a valid alarm
       if( alarmNotYetTriggered() )
@@ -1067,7 +1071,7 @@ const void mainTask(void)
         {
           FRAM_Settings.diagnosticBits.uint32 = 0; //reset status.
         }
-        saveFramSettings(&FRAM_Settings, sizeof(FRAM_Settings)); //save FRAM data after last change
+        saveFramSettingsStruct(&FRAM_Settings, sizeof(FRAM_Settings)); //save FRAM data after last change
 
         MainPeriodSleep = newLoraInterval;
 
@@ -1223,6 +1227,10 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
+        //make sure diagnostic is read before sleep and saved to FRAM
+        diagnosticsStatusBits = getDiagnostics(); //read current diagnostics
+        FRAM_Settings.diagnosticBits.uint32 |= diagnosticsStatusBits.uint32; //OR the new reads with previous value from
+        saveFramSettingsStruct(&FRAM_Settings, sizeof(FRAM_Settings)); //save FRAM data after last change
 
         control_supercap(false); //disable supercap before sleep
 

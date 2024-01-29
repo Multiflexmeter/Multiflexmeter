@@ -19,6 +19,8 @@
 #define MAX_SIZE_LORA_SETTINGS 0x0600
 #define SIZE_FRAM  0x800
 
+#define FRAM_SETTINGS_PROTOCOL_ID   0x00
+
 typedef struct __attribute__((packed))
 {
     char version[10];
@@ -54,6 +56,8 @@ typedef union
 
 typedef struct __attribute__((packed))
 {
+    uint16_t crc16;
+    uint8_t protocolId;
     uint8_t sensorModuleId;
     uint32_t nextIntervalBatteryEOS;
     struct_sensorModuleFirmwareVersion modules[NR_SENSOR_MODULE];
@@ -66,8 +70,8 @@ typedef struct __attribute__((packed))
 const void saveLoraSettings( const void *pSource, size_t length );
 const void restoreLoraSettings( const void *pSource, size_t length);
 
-const void saveFramSettings( const void *pSource, size_t length );
-const void restoreFramSettings( const void *pSource, size_t length);
+const void saveFramSettingsStruct( struct_FRAM_settings *pSource, size_t length );
+const void restoreFramSettingsStruct( const struct_FRAM_settings *pDest, size_t length);
 
 const int8_t testFram(uint8_t * status);
 
