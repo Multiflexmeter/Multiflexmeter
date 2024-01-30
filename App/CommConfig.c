@@ -228,6 +228,9 @@ __weak const uint8_t * getAppKey(void)
 __weak const void setAppKey(const uint8_t *key)
 {
   SecureElementSetKey(APP_KEY, (uint8_t *) key );
+  SecureElementSetKey(NWK_KEY, (uint8_t *) key );
+  SecureElementSetKey(NWK_S_KEY, (uint8_t *) key );
+  SecureElementSetKey(APP_S_KEY, (uint8_t *) key );
 }
 
 
