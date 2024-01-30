@@ -461,16 +461,6 @@ const void triggerReJoin(void)
 }
 
 /**
- * @fn const void triggerStop(void)
- * @brief function to trigger a stop
- *
- */
-const void triggerStop(void)
-{
-  UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_LoRaStopJoinEvent), CFG_SEQ_Prio_0);
-}
-
-/**
  * @fn const void setTxConfirmed(LmHandlerMsgTypes_t)
  * @brief function to change tx Confirmed
  *
