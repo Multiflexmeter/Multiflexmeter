@@ -533,6 +533,7 @@ const void mainTask(void)
 
       else if( waiting == false )
       {
+        APP_LOG(TS_OFF, VLEVEL_H, "DevNonce: %u DnFcnt: %u UpFcnt: %u\r\n", getDevNonce(), getDownFCounter(), getUpFCounter());
         loraJoinRetryCounter++;
         triggerSendTxData(); //trigger Lora transmit, also triggers a join
         setWait(10000); //set wait timeout 10s, for possible next join
