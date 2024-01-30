@@ -28,6 +28,8 @@
 #include "common/uart.h"
 #include "CommConfig.h"
 
+#include "mainTask.h"
+
 #include "secure-element.h"
 #include "../Core/Inc/sys_app.h"
 #include "../LoRaWAN/App/lora_app.h"
@@ -93,6 +95,7 @@ static const char cmdVcc[]="Vcc";
 static const char cmdSave[]="Save";
 static const char cmdReboot[]="Reboot";
 static const char cmdInitSensor[]="InitSensor";
+static const char cmdReJoin[]="ReJoin";
 
 
 static const char defaultProtocol1[] = "0.0";
@@ -628,6 +631,7 @@ void rcvTest(int arguments, const char * format, ...);
 void rcvSave(int arguments, const char * format, ...);
 void rcvReboot(int arguments, const char * format, ...);
 void rcvInitSensor(int arguments, const char * format, ...);
+void rcvReJoin(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -803,7 +807,13 @@ struct_commands stCommandsSet[] =
         sizeof(cmdInitSensor) - 1,
         rcvInitSensor,
         0,
-    }
+    },
+    {
+        cmdReJoin,
+        sizeof(cmdReJoin) - 1,
+        rcvReJoin,
+        0,
+    },
     //todo complete all SET commands
 };
 
@@ -2333,6 +2343,34 @@ void rcvInitSensor(int arguments, const char * format, ...)
   sendOkay(1,cmdInitSensor);
 
   setForceInitSensor(true);
+}
+
+/**
+ * @fn void rcvReJoin(int, const char*, ...)
+ * @brief receive of rejoin command
+ *
+ * @param arguments
+ * @param format
+ */
+void rcvReJoin(int arguments, const char * format, ...)
+{
+  char *ptr; //dummy pointer
+  int time_sec = 0;
+
+  if (format[0] == '=')
+  {
+    time_sec = strtol(&format[1], &ptr, 10);
+  }
+
+  if( time_sec <= 0 )
+  {
+    time_sec = 1; //force on 1 second.
+  }
+
+  setRejoinAtNextInterval(); //set a rejoin for next interval
+  setDelayReJoin(time_sec*1000L);
+
+  sendOkay(1,cmdReJoin);
 }
 
 /**

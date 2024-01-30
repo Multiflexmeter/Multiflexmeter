@@ -54,4 +54,6 @@ const void resume_mainTask(void);
 const void enable_vAlwaysOn(void);
 const void disable_vAlwaysOn(void);
 
+const void setDelayReJoin(int periodMs);
+
 #endif /* MAINTASK_H_ */
