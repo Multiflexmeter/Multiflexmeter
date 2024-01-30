@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include "main.h"
 #include "sys_app.h"
 
@@ -29,6 +30,7 @@
 
 #include "secure-element.h"
 #include "../Core/Inc/sys_app.h"
+#include "../LoRaWAN/App/lora_app.h"
 
 //#define NO_SLEEP
 
@@ -60,6 +62,7 @@ static bool uartConfigKeepListen = false;
 static bool dataDump;
 static bool dataErase;
 static bool dataTest;
+static bool detectChangeRebootNeeded = false;
 static int currentTest;
 static int currentSubTest;
 static char additionalArgumentsString[100];
@@ -1378,6 +1381,12 @@ void rcvJoinId(int arguments, const char * format, ...)
       JoinId>>=8; //shift one byte (8bits) to right to get next byte.
     }while(i--); //untill all elements are done
 
+    //detect a new ID
+    if( memcmp((char*)getJoinId(), (char*)joinEui, sizeof(joinEui)) != 0)
+    {
+      detectChangeRebootNeeded = true;
+    }
+
     setJoinId(joinEui); //set new JoinId.
   }
 
@@ -1432,6 +1441,12 @@ void rcvDeviceID(int arguments, const char * format, ...)
       if( notZero == false )
       {
         GetUniqueId(joinEui); //read unique serial when 0 is set.
+      }
+
+      //detect a new ID
+      if( memcmp((char*)getDeviceId(), (char*)joinEui, sizeof(joinEui)) != 0)
+      {
+        detectChangeRebootNeeded = true;
       }
 
       setDeviceId(joinEui); //set new JoinId.
@@ -1512,6 +1527,11 @@ void rcvAppKey(int arguments, const char * format, ...)
 
     }while(i--); //untill all elements are done
 
+    //detect a new key
+    if( memcmp((char*)getAppKey(), (char*)newKey.KeyValue, sizeof(newKey.KeyValue)) != 0)
+    {
+      detectChangeRebootNeeded = true;
+    }
 
     setAppKey((uint8_t*)&newKey.KeyValue[0]); //set new AppKey.
 
@@ -2271,6 +2291,14 @@ void rcvSave(int arguments, const char * format, ...)
   if( result == 0 )
   {
     sendOkay(1,cmdSave);
+
+    triggerSaveNvmData2Fram(); //force to save JoinId, DevEui and AppKey to NVM
+
+    if( detectChangeRebootNeeded ) //check if reboot is needed, no need to reset variable, because of reboot.
+    {
+      setRejoinAtNextInterval(); //force a rejoin after the reboot.
+      startDelayedReset(); //trigger delayed reboot, to force loading new settings with a new join.
+    }
   }
 
   else
