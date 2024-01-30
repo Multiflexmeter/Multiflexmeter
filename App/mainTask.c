@@ -1540,6 +1540,11 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
             APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Rejoin received\r\n" ); //print no sensor slot enabled
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
             setRejoinAtNextInterval(); //set a rejoin for next interval
+
+            if( getInput_board_io(EXT_IOUSB_CONNECTED) ) //check USB is connected, then also set delayedReojoin.
+            {
+              setDelayReJoin(measurement_Timer.Timestamp > 1000 ? measurement_Timer.Timestamp - 1000 : 1);
+            }
 #else
             setDelayReJoin(10000); //set a delay ReJoin after 10 seconds. At Join the NVM is read. NVM needs to be saved before new join starts.
 #endif
