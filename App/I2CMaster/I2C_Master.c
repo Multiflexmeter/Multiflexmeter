@@ -33,6 +33,10 @@ ENUM_I2C_Error sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_
   HAL_StatusTypeDef error = HAL_I2C_Mem_Read(&hi2c2, slaveAddress, regAddress, 1, rxBuffer, regSize + CRC_SIZE, 1000);
   if(error != HAL_OK)
   {
+    //HAL_I2C_Master_Abort_IT(&hi2c2, slaveAddress);
+    check_I2C();
+    HAL_I2C_DeInit(&hi2c2);
+    HAL_I2C_Init(&hi2c2);
     return I2C_TIMEOUT;
   }
 
@@ -82,6 +86,9 @@ ENUM_I2C_Error sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, uint8
   HAL_StatusTypeDef error = HAL_I2C_Mem_Write(&hi2c2, slaveAddress, regAddress, 1, &txBuffer[1], regSize + CRC_SIZE, 1000);
   if(error != HAL_OK)
   {
+    check_I2C();
+    HAL_I2C_DeInit(&hi2c2);
+    HAL_I2C_Init(&hi2c2);
     return I2C_TIMEOUT;
   }
 
