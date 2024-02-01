@@ -1,3 +1,4 @@
+#include "sys_app.h"
 
 #include "I2C_Master.h"
 
@@ -8,6 +9,24 @@
 #define CRC_SIZE 2
 
 extern I2C_HandleTypeDef hi2c2;
+
+
+/**
+ * @fn void check_and_print_I2C_error(void)
+ * @brief function to print I2C error
+ *
+ */
+void check_and_print_I2C_error(void)
+{
+  HAL_I2C_StateTypeDef I2C_State = HAL_I2C_GetState(&hi2c2);
+  HAL_I2C_ModeTypeDef I2C_Mode = HAL_I2C_GetMode(&hi2c2);
+  uint32_t I2C_Error = HAL_I2C_GetError(&hi2c2);
+
+  if( I2C_Error )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "I2C: state: %d, Mode: 0x%02X, Error: 0x%04x\r\n", I2C_State, I2C_Mode, I2C_Error);
+  }
+}
 
 /**
  * @brief Read a register on a sensor module
@@ -34,7 +53,7 @@ ENUM_I2C_Error sensorMasterRead(uint8_t slaveAddress, uint8_t regAddress, uint8_
   if(error != HAL_OK)
   {
     //HAL_I2C_Master_Abort_IT(&hi2c2, slaveAddress);
-    check_I2C();
+    check_and_print_I2C_error();
     HAL_I2C_DeInit(&hi2c2);
     HAL_I2C_Init(&hi2c2);
     return I2C_TIMEOUT;
@@ -86,7 +105,7 @@ ENUM_I2C_Error sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, uint8
   HAL_StatusTypeDef error = HAL_I2C_Mem_Write(&hi2c2, slaveAddress, regAddress, 1, &txBuffer[1], regSize + CRC_SIZE, 1000);
   if(error != HAL_OK)
   {
-    check_I2C();
+    check_and_print_I2C_error();
     HAL_I2C_DeInit(&hi2c2);
     HAL_I2C_Init(&hi2c2);
     return I2C_TIMEOUT;
