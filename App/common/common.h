@@ -83,7 +83,8 @@ typedef union
 typedef struct __attribute__((packed))
 {
     uint8_t testmodeActive:1;
-    uint32_t spareBits:31;
+    uint8_t testmodeBatteryGauge:1;
+    uint32_t spareBits:30;
 }struct_registerStatus;
 
 typedef union
@@ -109,7 +110,7 @@ int getDecimal(float value, int digits);
 const void saveBatteryEos(bool measureNextInterval, uint8_t batteryEos, uint16_t batteryVoltage);
 const struct_registerBattery getBatteryEos(void);
 const struct_registerStatus getStatusRegister(void);
-const void saveStatusTestmode( bool status );
+const void saveStatusTestmode( int mode );
 
 const void setForceMeasurement( bool status );
 const bool getForceMeasurement( void );

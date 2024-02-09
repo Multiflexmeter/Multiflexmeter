@@ -295,22 +295,40 @@ const struct_registerStatus getStatusRegister(void)
 }
 
 /**
- * @fn const void saveStatusTestmode(bool)
+ * @fn const void saveStatusTestmode(int)
  * @brief function to enable / disable the testmode bit in the status register.
  *
- * @param status : true is testmode enabled, false is testmode disabled
+ * @param status : <= 0 disabled, 1 = production test mode, 2 = fuel guage mode.
  */
-const void saveStatusTestmode( bool status )
+const void saveStatusTestmode( int mode )
 {
   static_assert (sizeof(UNION_registerStatus) == sizeof(uint32_t), "Size UNION_registerStatus is not correct");
 
   UNION_registerStatus UNvalue;
 
   UNvalue.reg= readBackupRegister(BACKUP_REGISTER_STATUS); //read original register first
-  UNvalue.stRegStatus.testmodeActive = status; //set new value
+
+  switch( mode )
+  {
+    case 1: //normal production mode
+      UNvalue.stRegStatus.testmodeActive = true; //set value
+      UNvalue.stRegStatus.testmodeBatteryGauge = false; //reset value
+      break;
+
+    case 2: //fuel gauge initialize mode
+      UNvalue.stRegStatus.testmodeActive = true; //set value
+      UNvalue.stRegStatus.testmodeBatteryGauge = true; //set value
+      break;
+
+    default:
+      UNvalue.stRegStatus.testmodeActive = false; //reset value
+      UNvalue.stRegStatus.testmodeBatteryGauge = false; //reset value
+      break;
+  }
 
   writeBackupRegister(BACKUP_REGISTER_STATUS, UNvalue.reg); //write changed register back
 }
+
 
 /**
  * @fn const void setForceMeasurement(bool)

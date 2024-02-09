@@ -966,7 +966,7 @@ void executeTest(int test, int subTest, char * extraArguments)
   {
     case 0:
 
-      saveStatusTestmode(subTest ? true : false);
+      saveStatusTestmode(subTest);
       snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test,  subTest);
       uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 

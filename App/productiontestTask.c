@@ -49,6 +49,7 @@ enum{
   TEST_IO_EXPANDER_INT_SENSOR,
   TEST_DATAFLASH,
   TEST_FRAM,
+  TEST_GAUGE = 100,
 };
 
 /**
@@ -118,7 +119,19 @@ const void productiontestTask(void)
       APP_LOG(TS_OFF, VLEVEL_L, "Productiontest Task\r\n");
       APP_LOG(TS_OFF, VLEVEL_L, "Firmware: %s\r\n", getSoftwareVersionMFM());
 
-      productiontestTask_state++;
+
+      if( getStatusRegister().testmodeBatteryGauge )
+      {
+        batmon_enable();
+        productiontestTask_state = TEST_GAUGE;
+      }
+
+      else
+      {
+        productiontestTask_state++;
+      }
+
+
       break;
 
     case TEST_IO_EXPANDER_INT_SYS:
@@ -202,6 +215,11 @@ const void productiontestTask(void)
       }
 
       productiontestTask_state++;
+
+      break;
+
+
+    case TEST_GAUGE:
 
       break;
 
