@@ -39,7 +39,7 @@ static UTIL_TIMER_Object_t MainTimer;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
 
 static UTIL_TIMER_Object_t taskTimeoutTimer;
-static UTIL_TIMER_Time_t taskTimeoutTime = 120000UL; //120sec
+static UTIL_TIMER_Time_t taskTimeoutTime = 600000UL; //600sec
 
 enum{
   TEST_START = 0,
