@@ -549,6 +549,25 @@ static const void printSensorModuleError(SensorError status)
 }
 
 /**
+ * @fn const printSensorModuleRoughData(uint8_t, uint8_t, uint8_t*)
+ * @brief helper function to print sensor module rough data to debug port
+ *
+ * @param sensorModuleId
+ * @param sensorModuleDataSize
+ * @param data
+ */
+static const void printSensorModuleRoughData(uint8_t sensorModuleId, uint8_t sensorModuleDataSize, uint8_t * data )
+{
+  APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d", sensorModuleId ); //print sensor type
+
+  for(int i=0; i < sensorModuleDataSize; i++)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, ", 0x%02x", data[i] ); //print data
+  }
+  APP_LOG(TS_OFF, VLEVEL_H, "\r\n" ); //print end
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -953,14 +972,8 @@ const void mainTask(void)
         SensorError newstatus = sensorReadMeasurement(sensorModuleId, &stMFM_sensorModuleData.sensorModuleDataSize, sizeof(stMFM_sensorModuleData.sensorModuleData) + 1);
         if( newstatus == SENSOR_OK )
         {
-          APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d, %d, 0x%02x", sensorModuleId, newstatus, stMFM_sensorModuleData.sensorModuleDataSize ); //print sensor type
 
-
-          for(int i=0; i < stMFM_sensorModuleData.sensorModuleDataSize; i++)
-          {
-            APP_LOG(TS_OFF, VLEVEL_H, ", 0x%02x", stMFM_sensorModuleData.sensorModuleData[i] ); //print data
-          }
-          APP_LOG(TS_OFF, VLEVEL_H, "\r\n" ); //print end
+          printSensorModuleRoughData( sensorModuleId, stMFM_sensorModuleData.sensorModuleDataSize, stMFM_sensorModuleData.sensorModuleData);
 
           if( sensorType == MFM_PREASURE_RS485 || sensorType == MFM_PREASURE_ONEWIRE)
           {
