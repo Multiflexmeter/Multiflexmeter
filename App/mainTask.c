@@ -509,6 +509,46 @@ struct_wakeupSource getWakeupSource(void)
 }
 
 /**
+ * @fn const printSensorModuleError(SensorError)
+ * @brief helper function to print sensor module error status information to debug port.
+ *
+ * @param status
+ */
+static const void printSensorModuleError(SensorError status)
+{
+  APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: ERROR, " ); //print error
+
+  switch (status)
+  {
+
+    case SENSOR_CRC_ERROR:
+      APP_LOG(TS_OFF, VLEVEL_H, "CRC\r\n"); //print error
+      break;
+
+    case SENSOR_REGISTER_ERROR:
+      APP_LOG(TS_OFF, VLEVEL_H, "register\r\n"); //print error
+      break;
+
+    case SENSOR_TIMEOUT:
+      APP_LOG(TS_OFF, VLEVEL_H, "timeout\r\n"); //print error
+      break;
+
+    case SENSOR_BUFFER_ERROR:
+      APP_LOG(TS_OFF, VLEVEL_H, "buffer\r\n"); //print error
+      break;
+
+    case SENSOR_ID_ERROR:
+      APP_LOG(TS_OFF, VLEVEL_H, "ID\r\n"); //print error
+      break;
+
+    default:
+      APP_LOG(TS_OFF, VLEVEL_H, "unknown\r\n"); //print error
+      break;
+
+    }
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -945,29 +985,7 @@ const void mainTask(void)
           stMFM_sensorModuleData.sensorModuleProtocolId = 0; //reset
           stMFM_sensorModuleData.sensorModuleDataSize = 0; //reset
 
-          APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: ERROR, " ); //print error
-          switch (newstatus)
-          {
-            case SENSOR_CRC_ERROR:
-              APP_LOG(TS_OFF, VLEVEL_H, "CRC\r\n"); //print error
-              break;
-            case SENSOR_REGISTER_ERROR:
-              APP_LOG(TS_OFF, VLEVEL_H, "register\r\n"); //print error
-              break;
-            case SENSOR_TIMEOUT:
-              APP_LOG(TS_OFF, VLEVEL_H, "timeout\r\n"); //print error
-              break;
-            case SENSOR_BUFFER_ERROR:
-              APP_LOG(TS_OFF, VLEVEL_H, "buffer\r\n"); //print error
-              break;
-            case SENSOR_ID_ERROR:
-              APP_LOG(TS_OFF, VLEVEL_H, "ID\r\n"); //print error
-              break;
-            default:
-              APP_LOG(TS_OFF, VLEVEL_H, "unknown\r\n"); //print error
-              break;
-
-            }
+          printSensorModuleError( newstatus ); //print error status to debug port.
         }
 
         slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
