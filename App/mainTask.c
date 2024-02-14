@@ -87,6 +87,7 @@ static uint8_t sensorProtocol;
 
 static uint8_t waitForBatteryMonitorDataCounter = 0;
 static struct_FRAM_settings FRAM_Settings;
+static struct_wakeupSource stWakeupSource;
 
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
@@ -409,6 +410,98 @@ const bool checkForceRejoin( bool enable)
   APP_LOG(TS_OFF, VLEVEL_H, "Check Rejoin Reset: %d, %d, %u, %u\r\n", enable, currentWakeupTime <= lastWakeupTime + 5, lastWakeupTime, currentWakeupTime );
 
   return rejoin;
+}
+
+/**
+ * @fn struct_wakeupSource getWakeupSource(void)
+ * @brief functions detects the wakeupsource with the help of RTC status register, I/O pin status and backup domain reset status.
+ *
+ * @return wakeupSources \ref struct_wakeupSource
+ */
+struct_wakeupSource getWakeupSource(void)
+{
+  struct_wakeupSource wakeupSource = {0};
+  readStatusRegisterRtc(); //read the RTC status registers
+
+#if VERBOSE_LEVEL == VLEVEL_H
+  APP_LOG(TS_OFF, VLEVEL_H, "**** RTC: status: ");
+  APP_LOG(TS_OFF, VLEVEL_H, "0x%02x", getStatusRegisterRtc());
+#endif
+
+  //check alarm, indicates awake from alarm
+  if (getWakeupAlarmStatus(0))
+  {
+    wakeupSource.byAlarm = true;
+    APP_LOG(TS_OFF, VLEVEL_H, ", ALARM");
+  }
+
+  //check BAT flag is set, indicate battery disconnected.
+  if (getWakeupBatStatus(0))
+  {
+    wakeupSource.byLowBattery = true;
+    APP_LOG(TS_OFF, VLEVEL_H, ", BAT");
+  }
+
+  //check ex1 IRQ from RTC
+  if( getWakeupEx1Status(0) )
+  {
+    //combination of several sources, USB, BAT_ALERT, SENSOR IRQ
+    APP_LOG(TS_OFF, VLEVEL_H, ", WAKE EX1");
+
+    //check USB
+    if( readInput_board_io(EXT_IOUSB_CONNECTED) )
+    {
+      wakeupSource.byUSB = true;
+      APP_LOG(TS_OFF, VLEVEL_H, ", USB");
+    }
+
+    //check SENSOR IRQ
+    if( readInput_board_io(EXT_IOSENSOR_INTX))
+    {
+      wakeupSource.bySensorIrq = true;
+      APP_LOG(TS_OFF, VLEVEL_H, ", SENSOR");
+    }
+
+    //check BAT_ALERT
+    if( readInput_board_io(EXT_IOBAT_ALERT))
+    {
+      wakeupSource.bySensorIrq = true;
+      APP_LOG(TS_OFF, VLEVEL_H, ", BAT_ALERT");
+    }
+  }
+
+  //check ex2 IRQ from RTC
+  if( getWakeupEx2Status(0) )
+  {
+    //must be Light sensor (box-open)
+    APP_LOG(TS_OFF, VLEVEL_H, ", Ex2");
+
+    if( readInput_board_io(INT_IO_BOX_OPEN) )
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, ", BOX-OPEN");
+    }
+    wakeupSource.byLightSensor = true;
+  }
+
+  // method of maksing out all known sources, the remaining should be byReset button.
+  // check if wakeupSource is known: byAlarm or byLightSensor or byLowBattery or bySensorIrq or byUSB or reset of backup domain.
+  // the remaining wakeup should be byReset button.
+
+  if( !wakeupSource.byAlarm &&        // no detect of wakeup byAlarm
+      !wakeupSource.byLightSensor &&  // no detect of wakeup byLightSensor
+      !wakeupSource.byLowBattery &&   // no detect of wakeup byLowBattery
+      !wakeupSource.bySensorIrq &&    // no detect of wakeup bySensorIrq
+      !wakeupSource.byUSB &&          // no detect of wakeup byUSB
+      !getResetBackup()               // no detect of backup regsiter reset: if set indicates no power on backup domain: -> no battery power
+      )
+  { //now it should be by Reset
+    wakeupSource.byReset = true; //s
+    APP_LOG(TS_OFF, VLEVEL_H, ", ### RESET ###");
+  }
+
+  APP_LOG(TS_OFF, VLEVEL_H, " ****\r\n");
+
+  return wakeupSource;
 }
 
 /**
