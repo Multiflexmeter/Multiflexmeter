@@ -86,7 +86,14 @@ bool getResetBackup(void)
  * @fn uint32_t getResetSource(void)
  * @brief function to read out reset cause
  *
- * @return
+ * \ref RCC_RESET_FLAG_OBL  (0x02000000): Option Byte Loader reset flag
+ * \ref RCC_RESET_FLAG_PIN  (0x04000000): PIN reset flag
+ * \ref RCC_RESET_FLAG_PWR  (0x08000000): BOR or POR/PDR reset flag
+ * \ref RCC_RESET_FLAG_SW   (0x10000000): Software Reset flag
+ * \ref RCC_RESET_FLAG_IWDG (0x20000000): Independent Watchdog reset flag
+ * \ref RCC_RESET_FLAG_WWDG (0x40000000): Window watchdog reset flag
+ * \ref RCC_RESET_FLAG_LPWR (0x80000000): Low power reset flag
+ * @return reset source
  */
 uint32_t getResetSource(void)
 {
@@ -374,4 +381,27 @@ const void setForceInitSensor( bool status )
 const bool getForceInitSensor( void )
 {
   return forceInitSensor;
+}
+
+
+/**
+ * @fn const void setLastWakeupTime(uint32_t)
+ * @brief function to save the last wakeup time in seconds
+ *
+ * @param wakeTime
+ */
+const void setLastWakeupTime( uint32_t wakeTime )
+{
+  writeBackupRegister(BACKUP_REGISTER_LAST_WAKEUP_TIME, wakeTime);
+}
+
+/**
+ * @fn const uint32_t getLastWakeupTime(void)
+ * @brief function to get the last wakeup time of privious cycle
+ *
+ * @return
+ */
+const uint32_t getLastWakeupTime( void )
+{
+  return readBackupRegister(BACKUP_REGISTER_LAST_WAKEUP_TIME);
 }

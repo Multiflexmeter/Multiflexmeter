@@ -25,6 +25,7 @@ typedef enum {
   BACKUP_REGISTER_REJOIN,
   BACKUP_REGISTER_BATTERY_EOS,
   BACKUP_REGISTER_STATUS,
+  BACKUP_REGISTER_LAST_WAKEUP_TIME,
 
 } ENUM_backupRegister;
 
@@ -94,6 +95,16 @@ typedef union
     struct_registerStatus stRegStatus;
 } UNION_registerStatus;
 
+typedef struct __attribute__((packed))
+{
+    uint8_t byAlarm:1;
+    uint8_t byUSB:1;
+    uint8_t byLightSensor:1;
+    uint8_t bySensorIrq:1;
+    uint8_t byLowBattery:1;
+    uint8_t byReset:1;
+}struct_wakeupSource;
+
 void detectResetBackup(void);
 bool getResetBackup(void);
 uint32_t getResetSource(void);
@@ -116,5 +127,8 @@ const void setForceMeasurement( bool status );
 const bool getForceMeasurement( void );
 const void setForceInitSensor( bool status );
 const bool getForceInitSensor( void );
+
+const void setLastWakeupTime( uint32_t wakeTime );
+const uint32_t getLastWakeupTime( void );
 
 #endif /* COMMON_COMMON_H_ */
