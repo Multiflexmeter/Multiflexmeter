@@ -561,7 +561,8 @@ const void mainTask(void)
       //check a forcedRejoinByReset is active
       if( forceRejoinByReset == true )
       {
-        triggerReJoin();
+        setForceInitSensor(true); //also activate a forced sensor init
+        triggerReJoin();          //trigger a direct rejoin
       }
 
       //no forced Rejoin by reset active, then check wakeup source is not a valid alarm
