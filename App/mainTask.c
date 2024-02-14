@@ -403,9 +403,9 @@ const bool checkForceRejoin( bool enable)
     {
       rejoin = true;
     }
+    setLastWakeupTime(currentWakeupTime); //save for next time, only when reset is detect
   }
 
-  setLastWakeupTime(currentWakeupTime); //save for next time
 
   APP_LOG(TS_OFF, VLEVEL_H, "Check Rejoin Reset: %d, %d, %u, %u\r\n", enable, currentWakeupTime <= lastWakeupTime + 5, lastWakeupTime, currentWakeupTime );
 
