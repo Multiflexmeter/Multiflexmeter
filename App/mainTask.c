@@ -512,7 +512,6 @@ struct_wakeupSource getWakeupSource(void)
 const void mainTask(void)
 {
   static UNION_diagnosticStatusBits diagnosticsStatusBits = {0};
-  static bool knownWakeup = false;
   static bool forceRejoinByReset = false;
 
   mainTask_tmr++; //count the number of executes
@@ -522,59 +521,7 @@ const void mainTask(void)
   {
     case INIT_POWERUP: //init Powerup
 
-      readStatusRegisterRtc();
-
-      knownWakeup = false; //reset
-
-#if VERBOSE_LEVEL == VLEVEL_H
-      APP_LOG(TS_OFF, VLEVEL_H, "RTC: status: ");
-      APP_LOG(TS_OFF, VLEVEL_H, "0x%02x", getStatusRegisterRtc());
-
-      //check BAT flag is set, indicate battery disconnected.
-      if( getWakeupBatStatus(0) )
-      {
-        knownWakeup = true; //set for a battery trigger
-        APP_LOG(TS_OFF, VLEVEL_H, ", BAT");
-      }
-
-      //check alarm, indicates awake from alarm
-      if( getWakeupAlarmStatus(0) )
-      {
-        knownWakeup = true; //set for a alarm trigger
-        APP_LOG(TS_OFF, VLEVEL_H, ", ALARM");
-      }
-
-      if( getWakeupEx1Status(0) )
-      {
-        APP_LOG(TS_OFF, VLEVEL_H, ", WAKE EX1");
-      }
-
-      if( readInput_board_io(EXT_IOSENSOR_INTX))
-      {
-        knownWakeup = true; //set for a sensor trigger
-        APP_LOG(TS_OFF, VLEVEL_H, ", SENSOR");
-      }
-
-      if( readInput_board_io(EXT_IOUSB_CONNECTED) )
-      {
-        knownWakeup = true; //set for a usb trigger
-        APP_LOG(TS_OFF, VLEVEL_H, ", USB");
-      }
-
-      if( getWakeupEx2Status(0) )
-      {
-        //must be Light sensor (box-open)
-        knownWakeup = true; //set for a sensor trigger
-        APP_LOG(TS_OFF, VLEVEL_H, ", Ex2");
-      }
-
-      if( readInput_board_io(INT_IO_BOX_OPEN) )
-      {
-        APP_LOG(TS_OFF, VLEVEL_H, ", BOX-OPEN");
-      }
-
-      APP_LOG(TS_OFF, VLEVEL_H, "\r\n");
-#endif
+      stWakeupSource = getWakeupSource(); //get the wakeup source
 
       if( getWakeupBatStatus(1) )
       {
@@ -590,7 +537,7 @@ const void mainTask(void)
 
       disableSleep();
 
-      forceRejoinByReset = checkForceRejoin(knownWakeup == false); //check for forced rejoin, only enabled when awake is a known source.
+      forceRejoinByReset = checkForceRejoin(stWakeupSource.byReset); //check for forced rejoin, only enabled when byReset is active
 
 //      init_board_io_device(IO_EXPANDER_SYS); //done in MX_LoRaWAN_Init() -> SystemApp_Init();
       initLedTimer(); //init LED timer
@@ -605,19 +552,18 @@ const void mainTask(void)
 
       APP_LOG(TS_OFF, VLEVEL_H, "Restore diagnostic: BAT: %d, USB: %d, BOX: %d\r\n", FRAM_Settings.diagnosticBits.bit.batteryLow, FRAM_Settings.diagnosticBits.bit.usbConnected, FRAM_Settings.diagnosticBits.bit.lightSensorActive);
 
-      //check wakeup source is a valid alarm
-      if( alarmNotYetTriggered() && forceRejoinByReset == false )
+      //check a forcedRejoinByReset is active
+      if( forceRejoinByReset == true )
+      {
+        triggerReJoin();
+      }
+
+      mainTask_state = INIT_SLEEP; //Wake-up by alarm or normal power-up.
+
+      //check wakeup source is not a valid alarm
+      if( alarmNotYetTriggered() )
       {
         mainTask_state = CHECK_USB_CONNECTED; //other wake-up, USB or other (not implemented) go to wait state
-      }
-      else
-      {
-        mainTask_state = INIT_SLEEP; //Wake-up by alarm or normal power-up.
-
-        if( forceRejoinByReset )
-        {
-          triggerReJoin();
-        }
       }
 
       break;
