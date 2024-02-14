@@ -375,3 +375,26 @@ const bool getForceInitSensor( void )
 {
   return forceInitSensor;
 }
+
+
+/**
+ * @fn const void setLastWakeupTime(uint32_t)
+ * @brief function to save the last wakeup time in seconds
+ *
+ * @param wakeTime
+ */
+const void setLastWakeupTime( uint32_t wakeTime )
+{
+  writeBackupRegister(BACKUP_REGISTER_LAST_WAKEUP_TIME, wakeTime);
+}
+
+/**
+ * @fn const uint32_t getLastWakeupTime(void)
+ * @brief function to get the last wakeup time of privious cycle
+ *
+ * @return
+ */
+const uint32_t getLastWakeupTime( void )
+{
+  return readBackupRegister(BACKUP_REGISTER_LAST_WAKEUP_TIME);
+}

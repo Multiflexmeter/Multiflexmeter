@@ -25,6 +25,7 @@ typedef enum {
   BACKUP_REGISTER_REJOIN,
   BACKUP_REGISTER_BATTERY_EOS,
   BACKUP_REGISTER_STATUS,
+  BACKUP_REGISTER_LAST_WAKEUP_TIME,
 
 } ENUM_backupRegister;
 
@@ -116,5 +117,8 @@ const void setForceMeasurement( bool status );
 const bool getForceMeasurement( void );
 const void setForceInitSensor( bool status );
 const bool getForceInitSensor( void );
+
+const void setLastWakeupTime( uint32_t wakeTime );
+const uint32_t getLastWakeupTime( void );
 
 #endif /* COMMON_COMMON_H_ */

@@ -383,6 +383,35 @@ const UNION_diagnosticStatusBits getDiagnostics(void)
 }
 
 /**
+ * @fn const bool checkForceRejoin(void)
+ * @brief helper function to check if a wake is within 5 seconds, this could be a forced reset
+ *
+ * @return
+ */
+const bool checkForceRejoin( bool enable)
+{
+  bool rejoin = false;
+
+  uint32_t currentWakeupTime = SysTimeGet().Seconds; //read current time
+  uint32_t lastWakeupTime = getLastWakeupTime(); //read previous wakeupTime
+
+  //only check if enable is true
+  if( enable )
+  {
+    if( currentWakeupTime <= lastWakeupTime + 5 ) //check if time is within 5 seconds.
+    {
+      rejoin = true;
+    }
+  }
+
+  setLastWakeupTime(currentWakeupTime); //save for next time
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Check Rejoin Reset: %d, %d, %u, %u\r\n", enable, currentWakeupTime <= lastWakeupTime + 5, lastWakeupTime, currentWakeupTime );
+
+  return rejoin;
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -390,6 +419,8 @@ const UNION_diagnosticStatusBits getDiagnostics(void)
 const void mainTask(void)
 {
   static UNION_diagnosticStatusBits diagnosticsStatusBits = {0};
+  static bool knownWakeup = false;
+  static bool forceRejoinByReset = false;
 
   mainTask_tmr++; //count the number of executes
 
@@ -400,6 +431,8 @@ const void mainTask(void)
 
       readStatusRegisterRtc();
 
+      knownWakeup = false; //reset
+
 #if VERBOSE_LEVEL == VLEVEL_H
       APP_LOG(TS_OFF, VLEVEL_H, "RTC: status: ");
       APP_LOG(TS_OFF, VLEVEL_H, "0x%02x", getStatusRegisterRtc());
@@ -407,12 +440,14 @@ const void mainTask(void)
       //check BAT flag is set, indicate battery disconnected.
       if( getWakeupBatStatus(0) )
       {
+        knownWakeup = true; //set for a battery trigger
         APP_LOG(TS_OFF, VLEVEL_H, ", BAT");
       }
 
       //check alarm, indicates awake from alarm
       if( getWakeupAlarmStatus(0) )
       {
+        knownWakeup = true; //set for a alarm trigger
         APP_LOG(TS_OFF, VLEVEL_H, ", ALARM");
       }
 
@@ -423,16 +458,20 @@ const void mainTask(void)
 
       if( readInput_board_io(EXT_IOSENSOR_INTX))
       {
+        knownWakeup = true; //set for a sensor trigger
         APP_LOG(TS_OFF, VLEVEL_H, ", SENSOR");
       }
 
       if( readInput_board_io(EXT_IOUSB_CONNECTED) )
       {
+        knownWakeup = true; //set for a usb trigger
         APP_LOG(TS_OFF, VLEVEL_H, ", USB");
       }
 
       if( getWakeupEx2Status(0) )
       {
+        //must be Light sensor (box-open)
+        knownWakeup = true; //set for a sensor trigger
         APP_LOG(TS_OFF, VLEVEL_H, ", Ex2");
       }
 
@@ -457,6 +496,9 @@ const void mainTask(void)
       getWakeupAlarmStatus(1); //reset awake alarm, future use.
 
       disableSleep();
+
+      forceRejoinByReset = checkForceRejoin(knownWakeup == false); //check for forced rejoin, only enabled when awake is a known source.
+
 //      init_board_io_device(IO_EXPANDER_SYS); //done in MX_LoRaWAN_Init() -> SystemApp_Init();
       initLedTimer(); //init LED timer
       init_vAlwaysOn();
@@ -471,13 +513,18 @@ const void mainTask(void)
       APP_LOG(TS_OFF, VLEVEL_H, "Restore diagnostic: BAT: %d, USB: %d, BOX: %d\r\n", FRAM_Settings.diagnosticBits.bit.batteryLow, FRAM_Settings.diagnosticBits.bit.usbConnected, FRAM_Settings.diagnosticBits.bit.lightSensorActive);
 
       //check wakeup source is a valid alarm
-      if( alarmNotYetTriggered() )
+      if( alarmNotYetTriggered() && forceRejoinByReset == false )
       {
         mainTask_state = CHECK_USB_CONNECTED; //other wake-up, USB or other (not implemented) go to wait state
       }
       else
       {
         mainTask_state = INIT_SLEEP; //Wake-up by alarm or normal power-up.
+
+        if( forceRejoinByReset )
+        {
+          triggerReJoin();
+        }
       }
 
       break;
