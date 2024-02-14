@@ -406,8 +406,12 @@ const bool checkForceRejoin( bool enable)
     setLastWakeupTime(currentWakeupTime); //save for next time, only when reset is detect
   }
 
+  APP_LOG(TS_OFF, VLEVEL_H, "Check Rejoin by Reset: RST: %d, REJOIN: %d, prev: %u, now: %u, delta: \r\n", enable, currentWakeupTime <= lastWakeupTime + 5, lastWakeupTime, currentWakeupTime, currentWakeupTime - lastWakeupTime );
 
-  APP_LOG(TS_OFF, VLEVEL_H, "Check Rejoin Reset: %d, %d, %u, %u\r\n", enable, currentWakeupTime <= lastWakeupTime + 5, lastWakeupTime, currentWakeupTime );
+  if( rejoin )
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "\r\n----- FORCED REJOIN BY RESET -----\r\n\r\n" );
+  }
 
   return rejoin;
 }
