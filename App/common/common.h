@@ -95,6 +95,16 @@ typedef union
     struct_registerStatus stRegStatus;
 } UNION_registerStatus;
 
+typedef struct __attribute__((packed))
+{
+    uint8_t byAlarm:1;
+    uint8_t byUSB:1;
+    uint8_t byLightSensor:1;
+    uint8_t bySensorIrq:1;
+    uint8_t byLowBattery:1;
+    uint8_t byReset:1;
+}struct_wakeupSource;
+
 void detectResetBackup(void);
 bool getResetBackup(void);
 uint32_t getResetSource(void);
