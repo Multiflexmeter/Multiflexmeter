@@ -552,16 +552,16 @@ const void mainTask(void)
 
       APP_LOG(TS_OFF, VLEVEL_H, "Restore diagnostic: BAT: %d, USB: %d, BOX: %d\r\n", FRAM_Settings.diagnosticBits.bit.batteryLow, FRAM_Settings.diagnosticBits.bit.usbConnected, FRAM_Settings.diagnosticBits.bit.lightSensorActive);
 
+      mainTask_state = INIT_SLEEP; //Wake-up by alarm or normal power-up.
+
       //check a forcedRejoinByReset is active
       if( forceRejoinByReset == true )
       {
         triggerReJoin();
       }
 
-      mainTask_state = INIT_SLEEP; //Wake-up by alarm or normal power-up.
-
-      //check wakeup source is not a valid alarm
-      if( alarmNotYetTriggered() )
+      //no forced Rejoin by reset active, then check wakeup source is not a valid alarm
+      else if( alarmNotYetTriggered() )
       {
         mainTask_state = CHECK_USB_CONNECTED; //other wake-up, USB or other (not implemented) go to wait state
       }
