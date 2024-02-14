@@ -509,6 +509,86 @@ struct_wakeupSource getWakeupSource(void)
 }
 
 /**
+ * @fn const printSensorModuleError(SensorError)
+ * @brief helper function to print sensor module error status information to debug port.
+ *
+ * @param status
+ */
+static const void printSensorModuleError(SensorError status)
+{
+  APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: ERROR, " ); //print error
+
+  switch (status)
+  {
+
+    case SENSOR_CRC_ERROR:
+      APP_LOG(TS_OFF, VLEVEL_H, "CRC\r\n"); //print error
+      break;
+
+    case SENSOR_REGISTER_ERROR:
+      APP_LOG(TS_OFF, VLEVEL_H, "register\r\n"); //print error
+      break;
+
+    case SENSOR_TIMEOUT:
+      APP_LOG(TS_OFF, VLEVEL_H, "timeout\r\n"); //print error
+      break;
+
+    case SENSOR_BUFFER_ERROR:
+      APP_LOG(TS_OFF, VLEVEL_H, "buffer\r\n"); //print error
+      break;
+
+    case SENSOR_ID_ERROR:
+      APP_LOG(TS_OFF, VLEVEL_H, "ID\r\n"); //print error
+      break;
+
+    default:
+      APP_LOG(TS_OFF, VLEVEL_H, "unknown\r\n"); //print error
+      break;
+
+    }
+}
+
+/**
+ * @fn const printSensorModuleRoughData(uint8_t, uint8_t, uint8_t*)
+ * @brief helper function to print sensor module rough data to debug port
+ *
+ * @param sensorModuleId
+ * @param sensorModuleDataSize
+ * @param data
+ */
+static const void printSensorModuleRoughData(uint8_t sensorModuleId, uint8_t sensorModuleDataSize, uint8_t * data )
+{
+  APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d", sensorModuleId ); //print sensor type
+
+  for(int i=0; i < sensorModuleDataSize; i++)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, ", 0x%02x", data[i] ); //print data
+  }
+  APP_LOG(TS_OFF, VLEVEL_H, "\r\n" ); //print end
+}
+
+/**
+ * @fn const void printSensorModulePressure(structDataPressureSensor*)
+ * @brief helper function to print senosr module data to debug port
+ *
+ * @param pSensorData
+ */
+static const void printSensorModulePressure(structDataPressureSensor * pSensorData)
+{
+  uint8_t unitPress[] = "bar";
+  uint8_t unitTemp[] = " C";
+  unitTemp[0] = 176; //overwrite degree sign to ascii 176
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n",
+      (int)pSensorData->pressure1, getDecimal(pSensorData->pressure1, 2), unitPress,
+      (int)pSensorData->temperature1, getDecimal(pSensorData->temperature1, 2), unitTemp,
+      (int)pSensorData->pressure2, getDecimal(pSensorData->pressure2, 2), unitPress,
+      (int)pSensorData->temperature2, getDecimal(pSensorData->temperature2, 2), unitTemp
+
+      ); //print sensor data
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -913,30 +993,12 @@ const void mainTask(void)
         SensorError newstatus = sensorReadMeasurement(sensorModuleId, &stMFM_sensorModuleData.sensorModuleDataSize, sizeof(stMFM_sensorModuleData.sensorModuleData) + 1);
         if( newstatus == SENSOR_OK )
         {
-          APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d, %d, 0x%02x", sensorModuleId, newstatus, stMFM_sensorModuleData.sensorModuleDataSize ); //print sensor type
 
-
-          for(int i=0; i < stMFM_sensorModuleData.sensorModuleDataSize; i++)
-          {
-            APP_LOG(TS_OFF, VLEVEL_H, ", 0x%02x", stMFM_sensorModuleData.sensorModuleData[i] ); //print data
-          }
-          APP_LOG(TS_OFF, VLEVEL_H, "\r\n" ); //print end
+          printSensorModuleRoughData( sensorModuleId, stMFM_sensorModuleData.sensorModuleDataSize, stMFM_sensorModuleData.sensorModuleData);
 
           if( sensorType == MFM_PREASURE_RS485 || sensorType == MFM_PREASURE_ONEWIRE)
           {
-            uint8_t unitPress[] = "bar";
-            uint8_t unitTemp[] = " C";
-            unitTemp[0] = 176; //overwrite degree sign to ascii 176
-
-            structDataPressureSensor * pSensorData = (structDataPressureSensor*)&stMFM_sensorModuleData.sensorModuleDataSize;
-            APP_LOG(TS_OFF, VLEVEL_H, "Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n",
-                (int)pSensorData->pressure1, getDecimal(pSensorData->pressure1, 2), unitPress,
-                (int)pSensorData->temperature1, getDecimal(pSensorData->temperature1, 2), unitTemp,
-                (int)pSensorData->pressure2, getDecimal(pSensorData->pressure2, 2), unitPress,
-                (int)pSensorData->temperature2, getDecimal(pSensorData->temperature2, 2), unitTemp
-
-
-                ); //print sensor data
+            printSensorModulePressure((structDataPressureSensor*)&stMFM_sensorModuleData.sensorModuleDataSize);
           }
         }
         else
@@ -945,29 +1007,7 @@ const void mainTask(void)
           stMFM_sensorModuleData.sensorModuleProtocolId = 0; //reset
           stMFM_sensorModuleData.sensorModuleDataSize = 0; //reset
 
-          APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: ERROR, " ); //print error
-          switch (newstatus)
-          {
-            case SENSOR_CRC_ERROR:
-              APP_LOG(TS_OFF, VLEVEL_H, "CRC\r\n"); //print error
-              break;
-            case SENSOR_REGISTER_ERROR:
-              APP_LOG(TS_OFF, VLEVEL_H, "register\r\n"); //print error
-              break;
-            case SENSOR_TIMEOUT:
-              APP_LOG(TS_OFF, VLEVEL_H, "timeout\r\n"); //print error
-              break;
-            case SENSOR_BUFFER_ERROR:
-              APP_LOG(TS_OFF, VLEVEL_H, "buffer\r\n"); //print error
-              break;
-            case SENSOR_ID_ERROR:
-              APP_LOG(TS_OFF, VLEVEL_H, "ID\r\n"); //print error
-              break;
-            default:
-              APP_LOG(TS_OFF, VLEVEL_H, "unknown\r\n"); //print error
-              break;
-
-            }
+          printSensorModuleError( newstatus ); //print error status to debug port.
         }
 
         slotPower(sensorModuleId, false); //disable slot sensorModuleId (0-5)
