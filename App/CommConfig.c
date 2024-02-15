@@ -96,6 +96,7 @@ static const char cmdSave[]="Save";
 static const char cmdReboot[]="Reboot";
 static const char cmdInitSensor[]="InitSensor";
 static const char cmdReJoin[]="ReJoin";
+static const char cmdEos[]="Eos";
 
 
 static const char defaultProtocol1[] = "0.0";
@@ -635,6 +636,7 @@ void rcvSave(int arguments, const char * format, ...);
 void rcvReboot(int arguments, const char * format, ...);
 void rcvInitSensor(int arguments, const char * format, ...);
 void rcvReJoin(int arguments, const char * format, ...);
+void rcvEos(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -817,6 +819,12 @@ struct_commands stCommandsSet[] =
         rcvReJoin,
         0,
     },
+    {
+        cmdEos,
+        sizeof(cmdEos) - 1,
+        rcvEos,
+        0,
+    }
     //todo complete all SET commands
 };
 
@@ -2375,6 +2383,20 @@ void rcvReJoin(int arguments, const char * format, ...)
 
   sendOkay(1,cmdReJoin);
 }
+
+/**
+ * @fn void rcvEos(int, const char*, ...)
+ * @brief function to force an EOS measurement
+ *
+ * @param arguments
+ * @param format
+ */
+void rcvEos(int arguments, const char * format, ...)
+{
+  saveBatteryEos(true, (uint8_t)getBatteryEos().EOS, getBatteryEos().voltage); //request next interval EOS battery, also save previous values.
+  sendOkay(1,cmdEos);
+}
+
 
 /**
  * @brief function to send ERROR command
