@@ -558,7 +558,7 @@ static const void printSensorModuleError(SensorError status)
  */
 static const void printSensorModuleRoughData(uint8_t sensorModuleId, uint8_t sensorModuleDataSize, uint8_t * data )
 {
-  APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d", sensorModuleId ); //print sensor type
+  APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d, %d", sensorModuleId, sensorModuleDataSize); //print sensor type
 
   for(int i=0; i < sensorModuleDataSize; i++)
   {
