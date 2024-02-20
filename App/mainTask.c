@@ -72,7 +72,7 @@ static volatile uint32_t systemActiveTime_sec;
 static UTIL_TIMER_Object_t timeout_Timer;
 static volatile bool timeout = false;
 
-static uint8_t dataBuffer[25];
+static uint8_t dataBuffer[50];
 static struct_MFM_sensorModuleData stMFM_sensorModuleData;
 static struct_MFM_baseData stMFM_baseData;
 static uint8_t sensorModuleId = 0;
@@ -990,7 +990,20 @@ const void mainTask(void)
     case READ_SENSOR_DATA: //read senor module measurement
 
       {
-        SensorError newstatus = sensorReadMeasurement(sensorModuleId, &stMFM_sensorModuleData.sensorModuleDataSize, sizeof(stMFM_sensorModuleData.sensorModuleData) + 1);
+        SensorError newstatus = sensorReadMeasurement(sensorModuleId, dataBuffer, sizeof(stMFM_sensorModuleData.sensorModuleData) + 1 + 2);
+
+        static_assert( sizeof(dataBuffer) >=  sizeof(stMFM_sensorModuleData.sensorModuleData) + sizeof(stMFM_sensorModuleData.sensorModuleDataSize) + sizeof(uint16_t));
+
+        if( dataBuffer[0] <= sizeof(stMFM_sensorModuleData.sensorModuleData) )
+        {
+          stMFM_sensorModuleData.sensorModuleDataSize = dataBuffer[0];
+          memcpy(&stMFM_sensorModuleData.sensorModuleData, dataBuffer+1, dataBuffer[0] ); //copy data
+        }
+        else
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "Sensormodule datasize too large, data is skipped\r\n");
+        }
+
         if( newstatus == SENSOR_OK )
         {
 
