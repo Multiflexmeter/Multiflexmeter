@@ -10,6 +10,22 @@
 
 extern I2C_HandleTypeDef hi2c2;
 
+/**
+ * @fn const bool sensorMasterTimeout(uint32_t, uint32_t)
+ * @brief function to check timeout
+ *
+ * @param TickStart : start time in ticks
+ * @param Timeout : timeout time in ticks
+ * @return
+ */
+static const bool sensorMasterTimeout(uint32_t Tickstart, uint32_t Timeout)
+{
+  if (((HAL_GetTick() - Tickstart) > Timeout) || (Timeout == 0U))
+  {
+    return true;
+  }
+  return false;
+}
 
 /**
  * @fn void check_and_print_I2C_error(void)
@@ -125,6 +141,8 @@ ENUM_I2C_Error sensorMasterWrite(uint8_t slaveAddress, uint8_t regAddress, uint8
 ENUM_I2C_Error sensorMasterReadVariableLength(uint8_t slaveAddress, uint8_t regAddress, uint8_t* data, uint16_t dataLength)
 {
   uint8_t variableLength;
+  uint32_t tickstart;
+  uint32_t timeout = 1000;
 
   /* check minimum length */
   if( dataLength <=  1 + CRC_SIZE )
@@ -132,12 +150,21 @@ ENUM_I2C_Error sensorMasterReadVariableLength(uint8_t slaveAddress, uint8_t regA
     return I2C_BUFFER_ERROR;
   }
 
+  /* Init tickstart for timeout management*/
+  tickstart = HAL_GetTick();
+
   /* Select the measurement data register */
   HAL_I2C_Master_Transmit(&hi2c2, slaveAddress, &regAddress, 1, 10);
 
   /* Receive the lenght of the measurement data */
   HAL_I2C_Master_Seq_Receive_IT(&hi2c2, slaveAddress, &variableLength, 1, I2C_FIRST_AND_NEXT_FRAME);
-  while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+  while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY)
+  {
+    if(sensorMasterTimeout(tickstart,timeout) )
+    {
+      return I2C_TIMEOUT;
+    }
+  }
 
   /* Limit the message length */
   if( (variableLength + 1 + CRC_SIZE ) > dataLength )
@@ -147,7 +174,13 @@ ENUM_I2C_Error sensorMasterReadVariableLength(uint8_t slaveAddress, uint8_t regA
 
   /* Receive the measurement data */
   HAL_I2C_Master_Seq_Receive_IT(&hi2c2, slaveAddress, &data[1], variableLength + CRC_SIZE, I2C_LAST_FRAME);
-  while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY);
+  while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY)
+  {
+    if(sensorMasterTimeout(tickstart,timeout) )
+    {
+      return I2C_TIMEOUT;
+    }
+  }
 
   /* Check the CRC of the incoming message */
   if(calculateCRC_CCITT(data, variableLength + CRC_SIZE + 1) != 0)
