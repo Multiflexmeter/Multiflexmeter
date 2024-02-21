@@ -19,7 +19,7 @@
 #include "led.h"
 
 static UTIL_TIMER_Object_t LedTimer;
-static UTIL_TIMER_Time_t LedPeriod = 100; //ms
+static UTIL_TIMER_Time_t LedPeriod = 10; //ms
 
 static struct_LedConfig ledConfig[NR_LED];
 static const struct_LedConfig ledConfigDefault[]=
