@@ -1105,8 +1105,9 @@ const void mainTask(void)
 
 
         writeNewMeasurement(0, &stMFM_sensorModuleData, &stMFM_baseData);
-        mainTask_state = SEND_LORA_DATA; //next state
 
+        setOrangeLedOnOf(true); //enable led
+        mainTask_state = SEND_LORA_DATA; //next state
 
       break;
 
@@ -1271,6 +1272,7 @@ const void mainTask(void)
 
       if( loraReceiveReady == true || !LoRaMacIsBusy() || timeout == true )
       {
+        setOrangeLedOnOf(false); //disable led
         if( timeout == true )
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: timeout\r\n");
