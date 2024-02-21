@@ -643,6 +643,7 @@ const void mainTask(void)
       {
         setForceInitSensor(true); //also activate a forced sensor init
         triggerReJoin();          //trigger a direct rejoin
+        setOrangeLedOnOf(true);
       }
 
       //no forced Rejoin by reset active, then check wakeup source is not a valid alarm
