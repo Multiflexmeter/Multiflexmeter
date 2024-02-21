@@ -47,5 +47,7 @@ typedef struct{
 const void initLedTimer(void);
 const void setLed(ENUM_LED led, ENUM_LED_MODE ledmode, ENUM_LED_STATE ledstate, uint32_t interval, uint32_t onTime, uint32_t offTime);
 const void setLedTest(int8_t test);
+const void setGreenLedOnOf(bool ledState);
+const void setOrangeLedOnOf(bool ledState);
 
 #endif /* IO_LED_H_ */
