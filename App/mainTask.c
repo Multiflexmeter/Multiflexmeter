@@ -1332,7 +1332,10 @@ const void mainTask(void)
         else
         {
           APP_LOG(TS_OFF, VLEVEL_H, "USB connected, no off mode.\r\n" );
-          setNewMeasureTime(getNextWake( MainPeriodSleep, systemActiveTime_sec) * 1000L); //set measure time
+          uint32_t nextWakeTime = getNextWake( MainPeriodSleep, systemActiveTime_sec);
+          setNewMeasureTime(nextWakeTime * 1000L); //set measure time
+          setAlarmTime( calcAlarmTime(nextWakeTime)); //set new alarm time in RTC, only used for reset condition.
+
           mainTask_state = WAIT_USB_DISCONNECT; //go to next state
         }
       }
