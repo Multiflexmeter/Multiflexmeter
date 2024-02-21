@@ -198,7 +198,7 @@ const void setGreenLedOnOf(bool ledState)
  */
 const void setOrangeLedOnOf(bool ledState)
 {
-  setLed(LED_2, LED_BLINK, ledState == true ? LED_ON : LED_OFF, 0, 1, 49);
+  setLed(LED_2, LED_BLINK, ledState == true ? LED_ON : LED_OFF, 0, 1, 199);
 }
 
 /**
