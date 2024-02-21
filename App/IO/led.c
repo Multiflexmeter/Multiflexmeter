@@ -174,7 +174,7 @@ const void setLed(ENUM_LED led, ENUM_LED_MODE ledmode, ENUM_LED_STATE ledstate, 
     default:
       ledConfig[led].mode = ledmode;
       ledConfig[led].state = ledstate;
-      ledConfig[led].toggleState = ledstate;
+      ledConfig[led].toggleState = LED_OFF; //force to off, it forces to start always with onTime.
       break;
   }
 }
@@ -198,7 +198,7 @@ const void setGreenLedOnOf(bool ledState)
  */
 const void setOrangeLedOnOf(bool ledState)
 {
-  setLed(LED_2, LED_BLINK, ledState == true ? LED_ON : LED_OFF, 0, 1, 49);
+  setLed(LED_2, LED_BLINK, ledState == true ? LED_ON : LED_OFF, 0, 1, 199);
 }
 
 /**
