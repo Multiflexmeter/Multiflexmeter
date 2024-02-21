@@ -27,6 +27,8 @@ const bool getWakeupAlarmStatus(bool clear);
 const bool getWakeupBatStatus(bool clear);
 const bool getWakeupEx1Status(bool clear);
 const bool getWakeupEx2Status(bool clear);
+const am1805_time_t calcAlarmTime(uint32_t sleepTime_sec);
+const void setAlarmTime( am1805_time_t newAlarmTime );
 const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks);
 const void disableSleep(void);
 const uint32_t get_current_alarm(void);

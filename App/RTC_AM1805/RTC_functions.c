@@ -380,26 +380,18 @@ const bool getWakeupEx2Status(bool clear)
 }
 
 /**
- * @fn const void goIntoSleep(uint32_t, uint8_t)
- * @brief function to enable sleep mode of Real Time Clock.
- * Also disables the supply of this controller.
- * @warning this functions shutdown the processor supply
+ * @fn const am1805_time_t calcAlarmTime(uint32_t)
+ * @brief function to calculate new alarm time based the current RTC time and on number of seconds in sleep.
  *
  * @param sleepTime_sec : time to be in sleep
- * @param waitTimeTicks : value between 0-7, 0 = noDelay, 1-7 periods of 7.8ms. The value is limited automatically to 7.
+ * @return : new alarm time
  */
-const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
+const am1805_time_t calcAlarmTime(uint32_t sleepTime_sec)
 {
-  APP_LOG(TS_OFF, VLEVEL_H, "Sleep: SEC: %u, WAIT: %u\r\n", sleepTime_sec, waitTimeTicks);
 #if VERBOSE_LEVEL == VLEVEL_H
   char timeStringNow[20] = {0};
   char timeStringWake[20] = {0};
 #endif
-  //check wait is between 0-7.
-  if( waitTimeTicks > 7 )
-  {
-    waitTimeTicks = 7;
-  }
   am1805_time_t time_RTC;
 
   //read current time
@@ -466,8 +458,47 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
 
   APP_LOG(TS_OFF, VLEVEL_H, "New Alarm RTC; %02d-%02d-%04d %02d:%02d:%02d\r\n", alarmTime.ui8Date, alarmTime.ui8Month, alarmTime.ui8Year, alarmTime.ui8Hour, alarmTime.ui8Minute, alarmTime.ui8Second );
 
+#if VERBOSE_LEVEL == VLEVEL_H
+  strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &struct_time);
+  strftime(timeStringWake, sizeof(timeStringWake), "%d-%m-%Y %H:%M:%S", sleepTime);
+  APP_LOG(TS_OFF, VLEVEL_H, "Sleep time; %u, NOW: %s, WAKE: %s\r\n", sleepTime_sec, timeStringNow, timeStringWake );
+#endif
+
+  return alarmTime;
+}
+
+/**
+ * @fn const void setAlarmTime(am1805_time_t)
+ * @brief function to configure a new alarm time
+ *
+ * @param newAlarmTime
+ */
+const void setAlarmTime( am1805_time_t newAlarmTime )
+{
+  am1805_alarm_set(newAlarmTime, ALARM_INTERVAL_MONTH, ALARM_IRQ_PULSE_1_64S, ALARM_PIN_INTERNAL_FLAG);
+}
+
+/**
+ * @fn const void goIntoSleep(uint32_t, uint8_t)
+ * @brief function to enable sleep mode of Real Time Clock.
+ * Also disables the supply of this controller.
+ * @warning this functions shutdown the processor supply
+ *
+ * @param sleepTime_sec : time to be in sleep
+ * @param waitTimeTicks : value between 0-7, 0 = noDelay, 1-7 periods of 7.8ms. The value is limited automatically to 7.
+ */
+const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
+{
+  APP_LOG(TS_OFF, VLEVEL_H, "Sleep: SEC: %u, WAIT: %u\r\n", sleepTime_sec, waitTimeTicks);
+
+  //check wait is between 0-7.
+  if( waitTimeTicks > 7 )
+  {
+    waitTimeTicks = 7;
+  }
+
   //setup the alarm
-  am1805_alarm_set(alarmTime, ALARM_INTERVAL_MONTH, ALARM_IRQ_PULSE_1_64S, ALARM_PIN_INTERNAL_FLAG);
+  setAlarmTime(calcAlarmTime(sleepTime_sec));
 
   APP_LOG(TS_OFF, VLEVEL_H, "Output CTRL: %x\r\n", am1805_get_output_control());
 
@@ -477,12 +508,6 @@ const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks)
   am1805_enable_wdi_ex2_interrupt(); //high active, USB + box sensor
 
   am1805_enable_pwgt(); //make sure I/O interface is disabled in sleep mode
-
-#if VERBOSE_LEVEL == VLEVEL_H
-  strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &struct_time);
-  strftime(timeStringWake, sizeof(timeStringWake), "%d-%m-%Y %H:%M:%S", sleepTime);
-  APP_LOG(TS_OFF, VLEVEL_H, "Sleep time; %u, NOW: %s, WAKE: %s\r\n", sleepTime_sec, timeStringNow, timeStringWake );
-#endif
 
   APP_LOG(TS_OFF, VLEVEL_H, "WDIN: %d, EXIN: %d\r\n", am1805_get_wdin_status(), am1805_get_exin_status()); //print input status WDI + EXT1
 
