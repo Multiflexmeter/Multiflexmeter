@@ -380,6 +380,105 @@ const bool getWakeupEx2Status(bool clear)
 }
 
 /**
+ * @fn const am1805_time_t calcAlarmTime(uint32_t)
+ * @brief function to calculate new alarm time based the current RTC time and on number of seconds in sleep.
+ *
+ * @param sleepTime_sec : time to be in sleep
+ * @return : new alarm time
+ */
+const am1805_time_t calcAlarmTime(uint32_t sleepTime_sec)
+{
+#if VERBOSE_LEVEL == VLEVEL_H
+  char timeStringNow[20] = {0};
+  char timeStringWake[20] = {0};
+#endif
+  am1805_time_t time_RTC;
+
+  //read current time
+  am1805_time_get(&time_RTC);
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Time RTC: NOW: %02d-%02d-%02d %02d:%02d:%02d %d\r\n", time_RTC.ui8Date, time_RTC.ui8Month, time_RTC.ui8Year, time_RTC.ui8Hour, time_RTC.ui8Minute, time_RTC.ui8Second, time_RTC.ui8Century );
+
+  //convert to struct time
+  //RTC Year from 0 to 99, mktime expect number since 1900
+  //RTC Month from 1 to 12, mktime expect 0 to 11
+  //RTC Date from 1 to 31, mktime expect 1 to 31
+  //RTC Hours from 0 to 23, mktime expect 0 to 23
+  //RTC Minutes from 0 to 59, mktime expect 0 to 59
+  //RTC Seconds from 0 to 59, mktime expect 0 to 59
+  struct tm struct_time = {0};
+  if( time_RTC.ui8Century )
+  {
+    struct_time.tm_year = time_RTC.ui8Year + 100;
+  }
+  else
+  {
+    struct_time.tm_year = time_RTC.ui8Year + 200;
+  }
+
+  struct_time.tm_mon = time_RTC.ui8Month > 0 ? time_RTC.ui8Month - 1 :time_RTC.ui8Month;
+  struct_time.tm_mday = time_RTC.ui8Date;
+  struct_time.tm_hour = time_RTC.ui8Hour;
+  struct_time.tm_min = time_RTC.ui8Minute;
+  struct_time.tm_sec = time_RTC.ui8Second;
+
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Time; NOW: %02d-%02d-%04d %02d:%02d:%02d\r\n", struct_time.tm_mday, struct_time.tm_mon + 1, struct_time.tm_year + 1900, struct_time.tm_hour, struct_time.tm_min, struct_time.tm_sec );
+
+  //convert struct time to seconds timestamp
+  time_t timestamp = mktime(&struct_time);
+
+  APP_LOG(TS_OFF, VLEVEL_H, "Sleep time; NOW: %u, WAKE: %u\r\n", timestamp, sleepTime_sec );
+
+  //add seconds for sleep
+  timestamp += sleepTime_sec;
+
+  //convert new timestamp to struct time
+  struct tm * sleepTime;
+  sleepTime = gmtime(&timestamp);
+
+  APP_LOG(TS_OFF, VLEVEL_H, "New Alarm gmtime; %02d-%02d-%04d %02d:%02d:%02d\r\n", sleepTime->tm_mday, sleepTime->tm_mon + 1, sleepTime->tm_year+ 1900, sleepTime->tm_hour, sleepTime->tm_min, sleepTime->tm_sec );
+
+  //set new alarm time
+  //gmtime Year number since 1900, RTC expect 0-99
+  //gmtime Month from 0 to 11, RTC expect 1 to 12
+  //gmtime Date from 1 to 31, RTC expect 1 to 31
+  //gmtime Hours from 0 to 23, RTC expect 0 to 23
+  //gmtime Minutes from 0 to 59, RTC expect 0 to 59
+  //gmtime Seconds from 0 to 59, RTC expect 0 to 59
+  am1805_time_t alarmTime;
+  alarmTime = time_RTC; //copy original readed values
+  alarmTime.ui8Century = tm_year2Centerybit(sleepTime->tm_year); //0 = 1900/2100, 1 = 2000 //overwrite century, not used in am1804_alarm_set() function
+  alarmTime.ui8Year = sleepTime->tm_year % 100;           //overwrite year, not used in am1804_alarm_set() with mode ALARM_INTERVAL_MONTH or higher
+  alarmTime.ui8Month = sleepTime->tm_mon + 1;             //overwrite month + 1
+  alarmTime.ui8Date = sleepTime->tm_mday;                 //overwrite day
+  alarmTime.ui8Hour = sleepTime->tm_hour;                 //overwrite year
+  alarmTime.ui8Minute = sleepTime->tm_min;                //overwrite minutes
+  alarmTime.ui8Second = sleepTime->tm_sec;                //overwrite seconds
+
+  APP_LOG(TS_OFF, VLEVEL_H, "New Alarm RTC; %02d-%02d-%04d %02d:%02d:%02d\r\n", alarmTime.ui8Date, alarmTime.ui8Month, alarmTime.ui8Year, alarmTime.ui8Hour, alarmTime.ui8Minute, alarmTime.ui8Second );
+
+#if VERBOSE_LEVEL == VLEVEL_H
+  strftime(timeStringNow, sizeof(timeStringNow), "%d-%m-%Y %H:%M:%S", &struct_time);
+  strftime(timeStringWake, sizeof(timeStringWake), "%d-%m-%Y %H:%M:%S", sleepTime);
+  APP_LOG(TS_OFF, VLEVEL_H, "Sleep time; %u, NOW: %s, WAKE: %s\r\n", sleepTime_sec, timeStringNow, timeStringWake );
+#endif
+
+  return alarmTime;
+}
+
+/**
+ * @fn const void setAlarmTime(am1805_time_t)
+ * @brief function to configure a new alarm time
+ *
+ * @param newAlarmTime
+ */
+const void setAlarmTime( am1805_time_t newAlarmTime )
+{
+  am1805_alarm_set(newAlarmTime, ALARM_INTERVAL_MONTH, ALARM_IRQ_PULSE_1_64S, ALARM_PIN_INTERNAL_FLAG);
+}
+
+/**
  * @fn const void goIntoSleep(uint32_t, uint8_t)
  * @brief function to enable sleep mode of Real Time Clock.
  * Also disables the supply of this controller.
