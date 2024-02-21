@@ -26,7 +26,7 @@ static const struct_LedConfig ledConfigDefault[]=
 {
     {
         .item = INT_IO_DEBUG_LED1,
-        .state = LED_OFF,
+        .state = LED_ON,
         .mode = LED_BLINK,
         .toggleInterval = 0,
         .blinkOnTime = 1,
