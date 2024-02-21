@@ -30,7 +30,7 @@ static const struct_LedConfig ledConfigDefault[]=
         .mode = LED_BLINK,
         .toggleInterval = 0,
         .blinkOnTime = 1,
-        .blinkOffTime = 9,
+        .blinkOffTime = 199,
         .toggleTimer = 0,
         .toggleState = LED_OFF,
     }
@@ -41,7 +41,7 @@ static const struct_LedConfig ledConfigDefault[]=
         .mode = LED_BLINK,
         .toggleInterval = 0,
         .blinkOnTime = 1,
-        .blinkOffTime = 9,
+        .blinkOffTime = 99,
         .toggleTimer = 0,
         .toggleState = LED_OFF,
     }
@@ -187,7 +187,7 @@ const void setLed(ENUM_LED led, ENUM_LED_MODE ledmode, ENUM_LED_STATE ledstate, 
  */
 const void setGreenLedOnOf(bool ledState)
 {
-  setLed(LED_1, LED_BLINK, ledState == true ? LED_ON : LED_OFF, 20, 1, 19);
+  setLed(LED_1, LED_BLINK, ledState == true ? LED_ON : LED_OFF, 200, 1, 199);
 }
 
 /**
@@ -198,7 +198,7 @@ const void setGreenLedOnOf(bool ledState)
  */
 const void setOrangeLedOnOf(bool ledState)
 {
-  setLed(LED_2, LED_BLINK, ledState == true ? LED_ON : LED_OFF, 20, 1, 19);
+  setLed(LED_2, LED_BLINK, ledState == true ? LED_ON : LED_OFF, 0, 1, 49);
 }
 
 /**
@@ -213,15 +213,15 @@ const void setLedTest(int8_t test)
   {
     case 0: //led test off
 
-      setLed(LED_1, LED_ON_OFF, LED_OFF, 100, 0, 0);
-      setLed(LED_2, LED_ON_OFF, LED_OFF, 100, 0, 0);
+      setLed(LED_1, LED_ON_OFF, LED_OFF, 1000, 0, 0);
+      setLed(LED_2, LED_ON_OFF, LED_OFF, 1000, 0, 0);
 
       break;
 
     case 1: //led test blink
 
-      setLed(LED_1, LED_BLINK, LED_ON, 0,5,5); //Blink led, start directly.
-      setLed(LED_2, LED_BLINK, LED_ON, 5,5,5); //Blink led, start after 5x interval
+      setLed(LED_1, LED_BLINK, LED_ON, 0,50,50); //Blink led, start directly.
+      setLed(LED_2, LED_BLINK, LED_ON, 50,50,50); //Blink led, start after 5x interval
 
       break;
 
