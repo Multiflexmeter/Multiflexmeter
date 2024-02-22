@@ -89,6 +89,11 @@ static uint8_t waitForBatteryMonitorDataCounter = 0;
 static struct_FRAM_settings FRAM_Settings;
 static struct_wakeupSource stWakeupSource;
 
+static const void setDevNonce(uint16_t devNonce)__attribute__((unused));
+static const void setJoinNonce(uint16_t JoinNonce)__attribute__((unused));
+static const void setDownFCounter(uint16_t counter)__attribute__((unused));
+static const void setUpFCounter(uint16_t counter)__attribute__((unused));
+
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
  * @brief function to set next trigger period of mainTask
@@ -219,6 +224,78 @@ static const uint16_t getUpFCounter(void)
     nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
 
     return nvm->Crypto.FCntList.FCntUp;
+}
+
+/**
+ * @fn const void setDevNonce(uint16_t)
+ * @brief function to set the DevNonce counter
+ *
+ * @param devNonce
+ */
+static const void setDevNonce(uint16_t devNonce)
+{
+  /* get DevNonce */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    nvm->Crypto.DevNonce = devNonce;
+}
+
+/**
+ * @fn const void setJoinNonce(uint16_t)
+ * @brief funcction to set the Join Nonce counter
+ *
+ * @param JoinNonce
+ */
+static const void setJoinNonce(uint16_t JoinNonce)
+{
+  /* get DevNonce */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    nvm->Crypto.JoinNonce = JoinNonce;
+}
+
+/**
+ * @fn const void setDownFCounter(uint16_t)
+ * @brief function to set the DownFCounter
+ *
+ * @param counter
+ */
+static const void setDownFCounter(uint16_t counter)
+{
+  /* get UplinkCounter */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    nvm->Crypto.LastDownFCnt = counter;
+}
+
+/**
+ * @fn const void setUpFCounter(uint16_t)
+ * @brief function to set the upFCounter
+ *
+ * @param counter
+ */
+static const void setUpFCounter(uint16_t counter)
+{
+  /* get UplinkCounter */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    nvm->Crypto.FCntList.FCntUp = counter;
 }
 
 /**
