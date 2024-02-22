@@ -690,7 +690,7 @@ static const void printSensorModulePressure(structDataPressureSensor * pSensorDa
  */
 static const void printCounters(void)
 {
-  APP_LOG(TS_OFF, VLEVEL_H, "DevNonce: %u, JoinNonce: %u, DnFcnt: %u, UpFcnt: %u\r\n", getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter());
+  APP_LOG(TS_OFF, VLEVEL_H, "#####\r\n####DevNonce: %u, JoinNonce: %u, DnFcnt: %u, UpFcnt: %u####\r\n####\r\n", getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter());
 }
 
 /**
