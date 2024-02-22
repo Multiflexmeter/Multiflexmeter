@@ -406,6 +406,7 @@ LmHandlerErrorStatus_t LmHandlerConfigure( LmHandlerParams_t *handlerParams )
 
     if( LoRaMacInitialization( &LoRaMacPrimitives, &LoRaMacCallbacks, LmHandlerParams.ActiveRegion ) != LORAMAC_STATUS_OK )
     {
+      MW_LOG(TS_ON, VLEVEL_ALWAYS, "LORAMAC_HANDLER_ERROR\r\n");
         return LORAMAC_HANDLER_ERROR;
     }
 
@@ -427,7 +428,10 @@ LmHandlerErrorStatus_t LmHandlerConfigure( LmHandlerParams_t *handlerParams )
         }
         /* Restore context data from backup to main nvm structure */
         mibReq.Type = MIB_NVM_CTXS;
-        if( LoRaMacMibSetRequestConfirm( &mibReq ) == LORAMAC_STATUS_OK )
+
+        uint32_t statusRequest = LoRaMacMibSetRequestConfirm( &mibReq );
+
+        if( statusRequest == LORAMAC_STATUS_OK )
         {
             mibReq.Type = MIB_NETWORK_ACTIVATION;
             LoRaMacMibGetRequestConfirm( &mibReq );
@@ -435,6 +439,10 @@ LmHandlerErrorStatus_t LmHandlerConfigure( LmHandlerParams_t *handlerParams )
             {
                 CtxRestoreDone = true;
             }
+        }
+        else
+        {
+          MW_LOG(TS_ON, VLEVEL_ALWAYS, "Status restore: %d\r\n", statusRequest);
         }
     }
 

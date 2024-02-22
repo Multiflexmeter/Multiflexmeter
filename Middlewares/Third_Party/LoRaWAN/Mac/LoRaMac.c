@@ -4115,7 +4115,8 @@ static LoRaMacStatus_t RestoreNvmData( void )
                                             sizeof( NvmBackup.Crypto.Crc32 ) );
     if( crc != NvmBackup.Crypto.Crc32 )
     {
-        return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
+      MW_LOG(TS_ON, VLEVEL_M, "LORAMAC_STATUS_NVM_DATA_INCONSISTENT: 1\r\n" );
+      return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
     }
 
     // MacGroup1
@@ -4123,7 +4124,8 @@ static LoRaMacStatus_t RestoreNvmData( void )
                                                sizeof( NvmBackup.MacGroup1.Crc32 ) );
     if( crc != NvmBackup.MacGroup1.Crc32 )
     {
-        return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
+      MW_LOG(TS_ON, VLEVEL_M, "LORAMAC_STATUS_NVM_DATA_INCONSISTENT: 2\r\n" );
+      return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
     }
 
     // MacGroup2
@@ -4131,7 +4133,8 @@ static LoRaMacStatus_t RestoreNvmData( void )
                                                sizeof( NvmBackup.MacGroup2.Crc32 ) );
     if( crc != NvmBackup.MacGroup2.Crc32 )
     {
-        return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
+      MW_LOG(TS_ON, VLEVEL_M, "LORAMAC_STATUS_NVM_DATA_INCONSISTENT: 3\r\n" );
+      return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
     }
 
     // Secure Element
@@ -4139,7 +4142,8 @@ static LoRaMacStatus_t RestoreNvmData( void )
                                                    sizeof( NvmBackup.SecureElement.Crc32 ) );
     if( crc != NvmBackup.SecureElement.Crc32 )
     {
-        return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
+      MW_LOG(TS_ON, VLEVEL_M, "LORAMAC_STATUS_NVM_DATA_INCONSISTENT: 4\r\n" );
+      return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
     }
 
     // RegionGroup1
@@ -4147,7 +4151,8 @@ static LoRaMacStatus_t RestoreNvmData( void )
                                             sizeof( NvmBackup.RegionGroup1.Crc32 ) );
     if( crc != NvmBackup.RegionGroup1.Crc32 )
     {
-        return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
+      MW_LOG(TS_ON, VLEVEL_M, "LORAMAC_STATUS_NVM_DATA_INCONSISTENT: 5\r\n" );
+      return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
     }
 
     // RegionGroup2
@@ -4155,14 +4160,16 @@ static LoRaMacStatus_t RestoreNvmData( void )
                                             sizeof( NvmBackup.RegionGroup2.Crc32 ) );
     if( crc != NvmBackup.RegionGroup2.Crc32 )
     {
-        return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
+      MW_LOG(TS_ON, VLEVEL_M, "LORAMAC_STATUS_NVM_DATA_INCONSISTENT: 6\r\n" );
+      return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
     }
 
     crc = Crc32( ( uint8_t* ) &(NvmBackup.ClassB), sizeof( NvmBackup.ClassB ) -
                                             sizeof( NvmBackup.ClassB.Crc32 ) );
     if( crc != NvmBackup.ClassB.Crc32 )
     {
-        return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
+      MW_LOG(TS_ON, VLEVEL_M, "LORAMAC_STATUS_NVM_DATA_INCONSISTENT: 7\r\n" );
+      return LORAMAC_STATUS_NVM_DATA_INCONSISTENT;
     }
 
     memcpy1( ( uint8_t* ) &Nvm, ( uint8_t* ) &NvmBackup, sizeof( LoRaMacNvmData_t ) );
