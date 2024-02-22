@@ -89,6 +89,11 @@ static uint8_t waitForBatteryMonitorDataCounter = 0;
 static struct_FRAM_settings FRAM_Settings;
 static struct_wakeupSource stWakeupSource;
 
+static const void setDevNonce(uint16_t devNonce)__attribute__((unused));
+static const void setJoinNonce(uint16_t JoinNonce)__attribute__((unused));
+static const void setDownFCounter(uint16_t counter)__attribute__((unused));
+static const void setUpFCounter(uint16_t counter)__attribute__((unused));
+
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
  * @brief function to set next trigger period of mainTask
@@ -186,6 +191,24 @@ static const uint16_t getDevNonce(void)
 }
 
 /**
+ * @fn const uint16_t getJoinNonce(void)
+ * @brief function to get the JoinNonce Counter
+ *
+ * @return JoinNonce counter
+ */
+static const uint16_t getJoinNonce(void)
+{
+  /* get DevNonce */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    return nvm->Crypto.JoinNonce;
+}
+
+/**
  * @fn const uint16_t getDownFCounter(void)
  * @brief function to get the down frame counter
  *
@@ -219,6 +242,78 @@ static const uint16_t getUpFCounter(void)
     nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
 
     return nvm->Crypto.FCntList.FCntUp;
+}
+
+/**
+ * @fn const void setDevNonce(uint16_t)
+ * @brief function to set the DevNonce counter
+ *
+ * @param devNonce
+ */
+static const void setDevNonce(uint16_t devNonce)
+{
+  /* get DevNonce */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    nvm->Crypto.DevNonce = devNonce;
+}
+
+/**
+ * @fn const void setJoinNonce(uint16_t)
+ * @brief funcction to set the Join Nonce counter
+ *
+ * @param JoinNonce
+ */
+static const void setJoinNonce(uint16_t JoinNonce)
+{
+  /* get DevNonce */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    nvm->Crypto.JoinNonce = JoinNonce;
+}
+
+/**
+ * @fn const void setDownFCounter(uint16_t)
+ * @brief function to set the DownFCounter
+ *
+ * @param counter
+ */
+static const void setDownFCounter(uint16_t counter)
+{
+  /* get UplinkCounter */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    nvm->Crypto.LastDownFCnt = counter;
+}
+
+/**
+ * @fn const void setUpFCounter(uint16_t)
+ * @brief function to set the upFCounter
+ *
+ * @param counter
+ */
+static const void setUpFCounter(uint16_t counter)
+{
+  /* get UplinkCounter */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    nvm->Crypto.FCntList.FCntUp = counter;
 }
 
 /**
@@ -589,6 +684,16 @@ static const void printSensorModulePressure(structDataPressureSensor * pSensorDa
 }
 
 /**
+ * @fn const void printCounters(void)
+ * @brief helper function to print counters to debug port.
+ *
+ */
+static const void printCounters(void)
+{
+  APP_LOG(TS_OFF, VLEVEL_H, "#####\r\n####DevNonce: %u, JoinNonce: %u, DnFcnt: %u, UpFcnt: %u####\r\n####\r\n", getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter());
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -649,6 +754,7 @@ const void mainTask(void)
       //no forced Rejoin by reset active, then check wakeup source is not a valid alarm
       else if( alarmNotYetTriggered() )
       {
+        printCounters();
         mainTask_state = CHECK_USB_CONNECTED; //other wake-up, USB or other (not implemented) go to wait state
       }
 
@@ -682,6 +788,8 @@ const void mainTask(void)
         loraJoinRetryCounter = 0; //reset, not needed for shutdown, because variable is always 0.
 #endif
 
+        printCounters();
+
         mainTask_state = CHECK_LORA_JOIN;
 
 #ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
@@ -705,7 +813,6 @@ const void mainTask(void)
 
       else if( waiting == false )
       {
-        APP_LOG(TS_OFF, VLEVEL_H, "DevNonce: %u DnFcnt: %u UpFcnt: %u\r\n", getDevNonce(), getDownFCounter(), getUpFCounter());
         loraJoinRetryCounter++;
         triggerSendTxData(); //trigger Lora transmit, also triggers a join
         setWait(10000); //set wait timeout 10s, for possible next join
@@ -780,7 +887,7 @@ const void mainTask(void)
           APP_LOG(TS_OFF, VLEVEL_H, "Next interval measure battery EOS\r\n" ); //print info
         }
 
-        APP_LOG(TS_OFF, VLEVEL_H, "DevNonce: %u DnFcnt: %u UpFcnt: %u\r\n", getDevNonce(), getDownFCounter(), getUpFCounter());
+        printCounters();
 
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
 
