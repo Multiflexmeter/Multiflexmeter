@@ -191,6 +191,24 @@ static const uint16_t getDevNonce(void)
 }
 
 /**
+ * @fn const uint16_t getJoinNonce(void)
+ * @brief function to get the JoinNonce Counter
+ *
+ * @return JoinNonce counter
+ */
+static const uint16_t getJoinNonce(void)
+{
+  /* get DevNonce */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    return nvm->Crypto.JoinNonce;
+}
+
+/**
  * @fn const uint16_t getDownFCounter(void)
  * @brief function to get the down frame counter
  *
