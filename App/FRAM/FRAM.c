@@ -18,7 +18,7 @@
 extern SPI_HandleTypeDef hspi1;
 #define HSPI_FRAM   &hspi1
 
-#define HAL_DELAY_FRAM    100
+#define HAL_DELAY_FRAM    200
 #define FRAM_CS_PORT      GPIOA
 #define FRAM_CS_PIN       GPIO_PIN_4
 
