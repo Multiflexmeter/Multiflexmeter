@@ -18,7 +18,7 @@
 extern SPI_HandleTypeDef hspi1;
 #define HSPI_FRAM   &hspi1
 
-#define HAL_DELAY_FRAM    100
+#define HAL_DELAY_FRAM    200
 #define FRAM_CS_PORT      GPIOA
 #define FRAM_CS_PIN       GPIO_PIN_4
 
@@ -62,7 +62,12 @@ const void FRAM_EnableWrite()
   FRAM_EnableChipSelect();
 
   uint8_t command[] = {FRAM_WRITE_ENABLE};
-  HAL_SPI_Transmit(HSPI_FRAM, command, 1, HAL_DELAY_FRAM); //send enable write command
+  HAL_StatusTypeDef statusCommand = HAL_SPI_Transmit(HSPI_FRAM, command, 1, HAL_DELAY_FRAM); //send enable write command
+
+  if( statusCommand != HAL_OK )
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "FRAM EnableWrite command, SPI error: %d\r\n", statusCommand);
+  }
 
   // Disable chip select
   FRAM_DisableChipSelect();
@@ -79,7 +84,12 @@ const void FRAM_DisableWrite()
   FRAM_EnableChipSelect();
 
   uint8_t command[] = {FRAM_WRITE_DISABLE};
-  HAL_SPI_Transmit(HSPI_FRAM, command, 1, HAL_DELAY_FRAM); //send disable write command
+  HAL_StatusTypeDef statusCommand = HAL_SPI_Transmit(HSPI_FRAM, command, 1, HAL_DELAY_FRAM); //send disable write command
+
+  if( statusCommand != HAL_OK )
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "FRAM DisableWrite command, SPI error: %d\r\n", statusCommand);
+  }
 
   // Disable chip select
   FRAM_DisableChipSelect();
@@ -116,10 +126,20 @@ const void FRAM_WriteData(uint16_t address, uint8_t *data, size_t length)
 
   // Send the write command and address
   uint8_t writeCommand[3] = { FRAM_WRITE, (uint8_t) (address >> 8), (uint8_t) (address & 0xFF) };
-  HAL_SPI_Transmit(HSPI_FRAM, writeCommand, sizeof(writeCommand), HAL_DELAY_FRAM);
+  HAL_StatusTypeDef statusCommand = HAL_SPI_Transmit(HSPI_FRAM, writeCommand, sizeof(writeCommand), HAL_DELAY_FRAM);
+
+  if( statusCommand != HAL_OK )
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "FRAM WriteData command, SPI error: %d\r\n", statusCommand);
+  }
 
   // Send the data to be written
-  HAL_SPI_Transmit(HSPI_FRAM, data, length, HAL_DELAY_FRAM);
+  HAL_StatusTypeDef statusWrite = HAL_SPI_Transmit(HSPI_FRAM, data, length, HAL_DELAY_FRAM);
+
+  if( statusWrite != HAL_OK )
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "FRAM WriteData data, SPI error: %d\r\n", statusWrite);
+  }
 
   // Disable chip select
   FRAM_DisableChipSelect();
@@ -144,10 +164,20 @@ const void FRAM_ReadData(uint16_t address, uint8_t *data, size_t length)
 
   // Send the read command and address
   uint8_t readCommand[3] = { FRAM_READ, (uint8_t) (address >> 8), (uint8_t) (address & 0xFF) };
-  HAL_SPI_Transmit(HSPI_FRAM, readCommand, sizeof(readCommand), HAL_DELAY_FRAM);
+  HAL_StatusTypeDef statusCommand = HAL_SPI_Transmit(HSPI_FRAM, readCommand, sizeof(readCommand), HAL_DELAY_FRAM);
+
+  if( statusCommand != HAL_OK )
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "FRAM ReadData command, SPI error: %d\r\n", statusCommand);
+  }
 
   // Read the data
-  HAL_SPI_Receive(HSPI_FRAM, data, length, HAL_DELAY_FRAM);
+  HAL_StatusTypeDef statusRead = HAL_SPI_Receive(HSPI_FRAM, data, length, HAL_DELAY_FRAM);
+
+  if( statusRead != HAL_OK )
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "FRAM ReadData data, SPI error: %d\r\n", statusRead);
+  }
 
   // Disable chip select
   FRAM_DisableChipSelect();
@@ -166,11 +196,21 @@ const uint8_t FRAM_ReadStatusRegister(void)
 
   // Send the read command and address
   uint8_t readCommand[1] = { FRAM_STATUS_READ };
-  HAL_SPI_Transmit(HSPI_FRAM, readCommand, sizeof(readCommand), HAL_DELAY_FRAM);
+  HAL_StatusTypeDef statusCommand = HAL_SPI_Transmit(HSPI_FRAM, readCommand, sizeof(readCommand), HAL_DELAY_FRAM);
+
+  if( statusCommand != HAL_OK )
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "FRAM ReadReg command, SPI error: %d\r\n", statusCommand);
+  }
 
   // Read the data
   uint8_t data[1];
-  HAL_SPI_Receive(HSPI_FRAM, data, sizeof(data), HAL_DELAY_FRAM);
+  HAL_StatusTypeDef statusRead = HAL_SPI_Receive(HSPI_FRAM, data, sizeof(data), HAL_DELAY_FRAM);
+
+  if( statusRead != HAL_OK )
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "FRAM ReadReg data, SPI error: %d\r\n", statusRead);
+  }
 
   // Disable chip select
   FRAM_DisableChipSelect();
@@ -194,7 +234,12 @@ const void FRAM_WriteStatusRegister(uint8_t data)
 
   // Send the read command and address
   uint8_t writeCommand[2] = { FRAM_STATUS_WRITE, data };
-  HAL_SPI_Transmit(HSPI_FRAM, writeCommand, sizeof(writeCommand), HAL_DELAY_FRAM);
+  HAL_StatusTypeDef statusWrite =HAL_SPI_Transmit(HSPI_FRAM, writeCommand, sizeof(writeCommand), HAL_DELAY_FRAM);
+
+  if( statusWrite != HAL_OK )
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "FRAM WriteReg data, SPI error: %d\r\n", statusWrite);
+  }
 
   // Disable write operation automatically done when chip select is disabled.
   // FRAM_DisableWrite();

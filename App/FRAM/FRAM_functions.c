@@ -49,6 +49,8 @@ const void saveLoraSettings( const void *pSource, size_t length )
     return;
   }
 
+  APP_LOG(TS_OFF, VLEVEL_L, "CRC NVM save: 0x%04x, length: %d, address: 0x%08x\r\n", calculateCRC_CCITT((uint8_t*)pSource, 1468), length, pSource);
+
   setup_io_for_fram(true);
 
   FRAM_WriteData(ADDRESS_LORA_SETTINGS,(uint8_t*)pSource, length);
@@ -78,6 +80,8 @@ const void restoreLoraSettings( const void *pSource, size_t length)
   FRAM_ReadData(ADDRESS_LORA_SETTINGS,(uint8_t*)pSource, length);
 
   setup_io_for_fram(false);
+
+  APP_LOG(TS_OFF, VLEVEL_L, "CRC NVM read: 0x%04x, length: %d, address: 0x%08x\r\n", calculateCRC_CCITT((uint8_t*)pSource, length), length, pSource);
 }
 
 
