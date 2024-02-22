@@ -684,6 +684,16 @@ static const void printSensorModulePressure(structDataPressureSensor * pSensorDa
 }
 
 /**
+ * @fn const void printCounters(void)
+ * @brief helper function to print counters to debug port.
+ *
+ */
+static const void printCounters(void)
+{
+  APP_LOG(TS_OFF, VLEVEL_H, "DevNonce: %u, JoinNonce: %u, DnFcnt: %u, UpFcnt: %u\r\n", getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter());
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -744,6 +754,7 @@ const void mainTask(void)
       //no forced Rejoin by reset active, then check wakeup source is not a valid alarm
       else if( alarmNotYetTriggered() )
       {
+        printCounters();
         mainTask_state = CHECK_USB_CONNECTED; //other wake-up, USB or other (not implemented) go to wait state
       }
 
@@ -777,6 +788,8 @@ const void mainTask(void)
         loraJoinRetryCounter = 0; //reset, not needed for shutdown, because variable is always 0.
 #endif
 
+        printCounters();
+
         mainTask_state = CHECK_LORA_JOIN;
 
 #ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
@@ -800,7 +813,6 @@ const void mainTask(void)
 
       else if( waiting == false )
       {
-        APP_LOG(TS_OFF, VLEVEL_H, "DevNonce: %u DnFcnt: %u UpFcnt: %u\r\n", getDevNonce(), getDownFCounter(), getUpFCounter());
         loraJoinRetryCounter++;
         triggerSendTxData(); //trigger Lora transmit, also triggers a join
         setWait(10000); //set wait timeout 10s, for possible next join
@@ -875,7 +887,7 @@ const void mainTask(void)
           APP_LOG(TS_OFF, VLEVEL_H, "Next interval measure battery EOS\r\n" ); //print info
         }
 
-        APP_LOG(TS_OFF, VLEVEL_H, "DevNonce: %u DnFcnt: %u UpFcnt: %u\r\n", getDevNonce(), getDownFCounter(), getUpFCounter());
+        printCounters();
 
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
 
