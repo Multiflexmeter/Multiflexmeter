@@ -32,6 +32,8 @@ __weak const void setup_io_for_fram(bool state)
   __NOP();
 }
 
+#include "LoRaMac.h"
+#include "LoRaMacInterfaces.h"
 /**
  * @fn const void saveLoraSettings(const void*, size_t)
  * @brief function to save Lora session settings in FRAM
@@ -47,6 +49,76 @@ const void saveLoraSettings( const void *pSource, size_t length )
   {
     APP_LOG(TS_OFF, VLEVEL_L, "Error FRAM lora size\r\n");
     return;
+  }
+
+  LoRaMacNvmData_t* nvmData = (LoRaMacNvmData_t*)pSource;
+  uint32_t crc;
+  uint16_t notifyFlags = LORAMAC_NVM_NOTIFY_FLAG_NONE;
+  // Crypto
+  crc = Crc32( ( uint8_t* ) &nvmData->Crypto, sizeof( nvmData->Crypto ) -
+                                              sizeof( nvmData->Crypto.Crc32 ) );
+  if( crc != nvmData->Crypto.Crc32 )
+  {
+      nvmData->Crypto.Crc32 = crc;
+      notifyFlags |= LORAMAC_NVM_NOTIFY_FLAG_CRYPTO;
+  }
+
+  // MacGroup1
+  crc = Crc32( ( uint8_t* ) &nvmData->MacGroup1, sizeof( nvmData->MacGroup1 ) -
+                                                 sizeof( nvmData->MacGroup1.Crc32 ) );
+  if( crc != nvmData->MacGroup1.Crc32 )
+  {
+      nvmData->MacGroup1.Crc32 = crc;
+      notifyFlags |= LORAMAC_NVM_NOTIFY_FLAG_MAC_GROUP1;
+  }
+
+  // MacGroup2
+  crc = Crc32( ( uint8_t* ) &nvmData->MacGroup2, sizeof( nvmData->MacGroup2 ) -
+                                                 sizeof( nvmData->MacGroup2.Crc32 ) );
+  if( crc != nvmData->MacGroup2.Crc32 )
+  {
+      nvmData->MacGroup2.Crc32 = crc;
+      notifyFlags |= LORAMAC_NVM_NOTIFY_FLAG_MAC_GROUP2;
+  }
+
+  // Secure Element
+  crc = Crc32( ( uint8_t* ) &nvmData->SecureElement, sizeof( nvmData->SecureElement ) -
+                                                     sizeof( nvmData->SecureElement.Crc32 ) );
+  if( crc != nvmData->SecureElement.Crc32 )
+  {
+      nvmData->SecureElement.Crc32 = crc;
+      notifyFlags |= LORAMAC_NVM_NOTIFY_FLAG_SECURE_ELEMENT;
+  }
+
+  // Region
+  crc = Crc32( ( uint8_t* ) &nvmData->RegionGroup1, sizeof( nvmData->RegionGroup1 ) -
+                                              sizeof( nvmData->RegionGroup1.Crc32 ) );
+  if( crc != nvmData->RegionGroup1.Crc32 )
+  {
+      nvmData->RegionGroup1.Crc32 = crc;
+      notifyFlags |= LORAMAC_NVM_NOTIFY_FLAG_REGION_GROUP1;
+  }
+
+  crc = Crc32( ( uint8_t* ) &nvmData->RegionGroup2, sizeof( nvmData->RegionGroup2 ) -
+                                              sizeof( nvmData->RegionGroup2.Crc32 ) );
+  if( crc != nvmData->RegionGroup2.Crc32 )
+  {
+      nvmData->RegionGroup2.Crc32 = crc;
+      notifyFlags |= LORAMAC_NVM_NOTIFY_FLAG_REGION_GROUP2;
+  }
+
+  // ClassB
+  crc = Crc32( ( uint8_t* ) &nvmData->ClassB, sizeof( nvmData->ClassB ) -
+                                              sizeof( nvmData->ClassB.Crc32 ) );
+  if( crc != nvmData->ClassB.Crc32 )
+  {
+      nvmData->ClassB.Crc32 = crc;
+      notifyFlags |= LORAMAC_NVM_NOTIFY_FLAG_CLASS_B;
+  }
+
+  if( notifyFlags)
+  {
+    APP_LOG(TS_OFF, VLEVEL_L, "CRC error: %d\r\n", notifyFlags);
   }
 
   APP_LOG(TS_OFF, VLEVEL_L, "CRC NVM save: 0x%04x, length: %d, address: 0x%08x\r\n", calculateCRC_CCITT((uint8_t*)pSource, 1468), length, pSource);
