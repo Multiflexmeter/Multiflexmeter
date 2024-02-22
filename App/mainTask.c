@@ -639,11 +639,16 @@ const void mainTask(void)
       mainTask_state = INIT_SLEEP; //Wake-up by alarm or normal power-up.
 
       //check a forcedRejoinByReset is active
-      if( forceRejoinByReset == true )
+      if( forceRejoinByReset == true && !getRejoinAtNextInterval())
       {
         setForceInitSensor(true); //also activate a forced sensor init
-        triggerReJoin();          //trigger a direct rejoin
-        setOrangeLedOnOf(true);
+        setDelayReJoin(100);
+        setWait(2000);
+        mainTask_state = WAIT_REJOIN;
+        //triggerReJoin();          //trigger a direct rejoin
+//        setRejoinAtNextInterval();
+//        startDelayedReset();
+//        while(1); //wait on reset.
       }
 
       //no forced Rejoin by reset active, then check wakeup source is not a valid alarm
@@ -687,6 +692,15 @@ const void mainTask(void)
 #ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
         }
 #endif
+      break;
+
+    case WAIT_REJOIN:
+
+      if (waiting == false) //check wait time is expired
+      {
+        mainTask_state = CHECK_LORA_JOIN;
+      }
+
       break;
 
     case CHECK_LORA_JOIN:
