@@ -97,7 +97,7 @@ static const char cmdReboot[]="Reboot";
 static const char cmdInitSensor[]="InitSensor";
 static const char cmdReJoin[]="ReJoin";
 static const char cmdEos[]="Eos";
-
+static const char cmdNonce[]="Nonce";
 
 static const char defaultProtocol1[] = "0.0";
 static const char defaultProtocol2[] = "0.0";
@@ -585,6 +585,94 @@ __weak const void testSystemChecks( int mode, int32_t value )
 }
 
 /**
+ * @fn const uint16_t getDevNonce(void)
+ * @brief weak function for getDevNonce, must be override in user code
+ *
+ * @return
+ */
+__weak const uint16_t getDevNonce(void)
+{
+  return 0;
+}
+
+/**
+ * @fn const uint16_t getJoinNonce(void)
+ * @brief weak function for getJoinNonce, must be override in user code.
+ *
+ * @return
+ */
+__weak const uint16_t getJoinNonce(void)
+{
+  return 0;
+}
+
+/**
+ * @fn const uint16_t getDownFCounter(void)
+ * @brief weak function for getDownFCounter, must be override in user code.
+ *
+ * @return
+ */
+__weak const uint16_t getDownFCounter(void)
+{
+  return 0;
+}
+
+/**
+ * @fn const uint16_t getUpFCounter(void)
+ * @brief weak function for getUpFCounter, must be override in user code
+ *
+ * @return
+ */
+__weak const uint16_t getUpFCounter(void)
+{
+  return 0;
+}
+
+/**
+ * @fn const void setDevNonce(uint16_t)
+ * @brief weak function setDevNonce, must be override in user code
+ *
+ * @param devNonce
+ */
+__weak const void setDevNonce(uint16_t devNonce)
+{
+  UNUSED(devNonce);
+}
+
+/**
+ * @fn const void setJoinNonce(uint16_t)
+ * @brief weak function setJoinNonce, must be override in user code
+ *
+ * @param JoinNonce
+ */
+__weak const void setJoinNonce(uint16_t JoinNonce)
+{
+  UNUSED(JoinNonce);
+}
+
+/**
+ * @fn const void setDownFCounter(uint16_t)
+ * @brief weak function setDownFCounter, must be override in user code
+ *
+ * @param counter
+ */
+__weak const void setDownFCounter(uint16_t counter)
+{
+  UNUSED(counter);
+}
+
+/**
+ * @fn const void setUpFCounter(uint16_t)
+ * @brief weak function setUpFCounter, must be override in user code
+ *
+ * @param counter
+ */
+__weak const void setUpFCounter(uint16_t counter)
+{
+  UNUSED(counter);
+}
+
+/**
  * @fn const uint8_t getBufferSize(void)
  * @brief function to get maximum buffer side.
  *
@@ -612,6 +700,7 @@ void sendDataLine( uint32_t );
 void sendBatterijStatus(int arguments, const char * format, ...);
 void sendVbusStatus(int arguments, const char * format, ...);
 void sendVccStatus(int arguments, const char * format, ...);
+void sendNonces(int arguments, const char * format, ...);
 void sendAdc( int subTest );
 void sendTestSD( int test );
 void sendTestFRAM( int test );
@@ -637,6 +726,7 @@ void rcvReboot(int arguments, const char * format, ...);
 void rcvInitSensor(int arguments, const char * format, ...);
 void rcvReJoin(int arguments, const char * format, ...);
 void rcvEos(int arguments, const char * format, ...);
+void rcvNonce(int arguments, const char * format, ...);
 
 /**
  * definition of GET commands
@@ -727,6 +817,13 @@ struct_commands stCommandsGet[] =
         sendVccStatus,
         0,
     },
+    {
+        cmdNonce,
+        sizeof(cmdNonce) - 1,
+        sendNonces,
+        0,
+    },
+
     //todo complete all GET commands
 };
 
@@ -823,6 +920,12 @@ struct_commands stCommandsSet[] =
         cmdEos,
         sizeof(cmdEos) - 1,
         rcvEos,
+        0,
+    },
+    {
+        cmdNonce,
+        sizeof(cmdNonce) - 1,
+        rcvNonce,
         0,
     }
     //todo complete all SET commands
@@ -1897,6 +2000,19 @@ void sendVccStatus(int arguments, const char * format, ...)
 }
 
 /**
+ * @fn void sendNonces(int, const char*, ...)
+ * @brief
+ *
+ * @param arguments
+ * @param format
+ */
+void sendNonces(int arguments, const char * format, ...)
+{
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%u,%u,%u,%u\r\n", cmdNonce, getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter() );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+}
+
+/**
  * @fn void sendAdc(int)
  * @brief function to send result of ADC test
  *
@@ -2395,6 +2511,68 @@ void rcvEos(int arguments, const char * format, ...)
 {
   saveBatteryEos(true, (uint8_t)getBatteryEos().EOS, getBatteryEos().voltage); //request next interval EOS battery, also save previous values.
   sendOkay(1,cmdEos);
+}
+
+/**
+ * @fn void rcvNonce(int, const char*, ...)
+ * @brief
+ *
+ * @param arguments
+ * @param format
+ */
+void rcvNonce(int arguments, const char * format, ...)
+{
+  char *ptr; //dummy pointer
+  int DevNonce = getDevNonce();
+  int JoinNonce = getJoinNonce();
+  int downCounter = getDownFCounter();
+  int upCounter = getUpFCounter();
+  bool valid = true;
+  if (format[0] == '=')
+  {
+    DevNonce = strtol(&format[1], &ptr, 10);
+    if( ptr[0] == ',')
+    {
+      JoinNonce = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
+    }
+    else
+    {
+      valid = false;
+    }
+    if (ptr[0] == ',')
+    {
+      downCounter = strtol(ptr + 1, &ptr, 10); //skip <comma>, increment ptr.
+    }
+    else
+    {
+      valid = false;
+    }
+
+    if (ptr[0] == ',')
+    {
+      upCounter = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
+    }
+    else
+    {
+      valid = false;
+    }
+  }
+  else
+  {
+    valid = false;
+  }
+
+  if( valid == true)
+  {
+    setDevNonce(DevNonce);
+    setJoinNonce(JoinNonce);
+    setDownFCounter(downCounter);
+    setUpFCounter(upCounter);
+    triggerSaveNvmData2Fram();
+  }
+
+  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s,%u,%u,%u,%u\r\n", cmdNonce, valid ? cmdOkay : cmdError, getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter() );
+  uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
 
