@@ -929,9 +929,18 @@ const void mainTask(void)
       else
       {
         APP_LOG(TS_OFF, VLEVEL_H, "No sensor module slot enabled\r\n" ); //print no sensor slot enabled
-        UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
-        setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
-        mainTask_state = CHECK_USB_CONNECTED; //no sensor slot is active
+
+
+        if( measureEOS_enabled )
+        {
+          mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE;
+        }
+
+        else
+        {
+          mainTask_state = SAVE_DATA;
+        }
+
       }
 
 #ifdef LORA_PERIODICALLY_CONFIRMED_MSG
@@ -1125,18 +1134,32 @@ const void mainTask(void)
 
       if (waiting == false)
       {
+        bool gaugeReadyOrTimeout = false;
         if (batmon_isInitComplet()  ) //wait battery monitor is ready
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
 
           batmon_enable_gauge(); //enable gauging
-          mainTask_state = READ_SENSOR_DATA;
+          gaugeReadyOrTimeout = true;
         }
         else if( timeout == true ) //timeout
         {
           //do not enable gauge, go further reading sensor
           APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: timeout, init\r\n");
-          mainTask_state = READ_SENSOR_DATA;
+          gaugeReadyOrTimeout = true;
+        }
+
+        if( gaugeReadyOrTimeout == true )
+        {
+          if( FRAM_Settings.sensorModuleEnabled )
+          {
+            mainTask_state = READ_SENSOR_DATA;
+          }
+          else
+          {
+            setTimeout(10000); //10sec
+            mainTask_state = WAIT_GAUGE_IS_ACTIVE;
+          }
         }
 
         setWait(200); //set wait 200ms
@@ -1296,24 +1319,25 @@ const void mainTask(void)
 
     case NEXT_SENSOR_MODULE:
 
-      {
-        int escape = MAX_SENSOR_MODULE;
-        do
+        if( FRAM_Settings.sensorModuleEnabled )
         {
-          sensorModuleId++; //increment sensor ID
-          sensorModuleId %= MAX_SENSOR_MODULE; //limit from 0 to 5.
+          int escape = MAX_SENSOR_MODULE;
+          do
+          {
+            sensorModuleId++; //increment sensor ID
+            sensorModuleId %= MAX_SENSOR_MODULE; //limit from 0 to 5.
 
-        }while (getSensorStatus(sensorModuleId + 1) == false && escape--);
+          }while (getSensorStatus(sensorModuleId + 1) == false && escape--);
 
-        for( int i = 0; i< (sizeof( FRAM_Settings.modules) / sizeof( FRAM_Settings.modules[0])); i++ )
-        {
-          FRAM_Settings.modules[i].nullTerminator = 0; //force null terminators
+          for( int i = 0; i< (sizeof( FRAM_Settings.modules) / sizeof( FRAM_Settings.modules[0])); i++ )
+          {
+            FRAM_Settings.modules[i].nullTerminator = 0; //force null terminators
+          }
+          FRAM_Settings.sensorModuleId = sensorModuleId; //copy to save.
         }
-        FRAM_Settings.sensorModuleId = sensorModuleId; //copy to save.
 
         setTimeout(10000); //10sec
         mainTask_state = WAIT_LORA_TRANSMIT_READY;
-      }
 
       break;
 
