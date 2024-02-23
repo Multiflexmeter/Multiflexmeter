@@ -860,35 +860,6 @@ const void mainTask(void)
         {
           sensorModuleId = 0; //force to first.
         }
-
-#ifdef LORA_PERIODICALLY_CONFIRMED_MSG
-        /* get DevNonce for set confirmed / unconfirmed messages */
-        if( getUpFCounter() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
-        {
-          setTxConfirmed(LORAMAC_HANDLER_CONFIRMED_MSG);
-        }
-        else
-        {
-          setTxConfirmed(LORAMAC_HANDLER_UNCONFIRMED_MSG);
-        }
-#endif
-
-#ifdef LORA_PERIODICALLY_REQUEST_TIME
-        if( getUpFCounter() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
-        {
-          setRequestTime();
-        }
-#endif
-        //check next battery measurement interval is active. Set flag in battery backup registers to measure next round the EOS from powerup.
-        if( FRAM_Settings.nextIntervalBatteryEOS <= SysTimeGet().Seconds || FRAM_Settings.nextIntervalBatteryEOS == -1 || FRAM_Settings.nextIntervalBatteryEOS > SysTimeGet().Seconds + 2 * TM_SECONDS_IN_1DAY )
-        {
-          saveBatteryEos(true, (uint8_t)getBatteryEos().EOS, getBatteryEos().voltage); //request next interval EOS battery, also save previous values.
-          FRAM_Settings.nextIntervalBatteryEOS = getNextBatteryEOStime(SysTimeGet().Seconds); //set new interval
-          APP_LOG(TS_OFF, VLEVEL_H, "Next interval measure battery EOS\r\n" ); //print info
-        }
-
-        printCounters();
-
         slotPower(sensorModuleId, true); //enable slot sensorModuleId (0-5)
 
         setWait(10); //set wait time 10ms
@@ -903,8 +874,8 @@ const void mainTask(void)
 
           mainTask_state = START_SENSOR_MEASURE; //next state
         }
-
       }
+
       else
       {
         APP_LOG(TS_OFF, VLEVEL_H, "No sensor module slot enabled\r\n" ); //print no sensor slot enabled
@@ -912,6 +883,35 @@ const void mainTask(void)
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
         mainTask_state = CHECK_USB_CONNECTED; //no sensor slot is active
       }
+
+
+#ifdef LORA_PERIODICALLY_CONFIRMED_MSG
+      /* get DevNonce for set confirmed / unconfirmed messages */
+      if( getUpFCounter() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+      {
+        setTxConfirmed(LORAMAC_HANDLER_CONFIRMED_MSG);
+      }
+      else
+      {
+        setTxConfirmed(LORAMAC_HANDLER_UNCONFIRMED_MSG);
+      }
+#endif
+
+#ifdef LORA_PERIODICALLY_REQUEST_TIME
+      if( getUpFCounter() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+      {
+        setRequestTime();
+      }
+#endif
+      //check next battery measurement interval is active. Set flag in battery backup registers to measure next round the EOS from powerup.
+      if( FRAM_Settings.nextIntervalBatteryEOS <= SysTimeGet().Seconds || FRAM_Settings.nextIntervalBatteryEOS == -1 || FRAM_Settings.nextIntervalBatteryEOS > SysTimeGet().Seconds + 2 * TM_SECONDS_IN_1DAY )
+      {
+        saveBatteryEos(true, (uint8_t)getBatteryEos().EOS, getBatteryEos().voltage); //request next interval EOS battery, also save previous values.
+        FRAM_Settings.nextIntervalBatteryEOS = getNextBatteryEOStime(SysTimeGet().Seconds); //set new interval
+        APP_LOG(TS_OFF, VLEVEL_H, "Next interval measure battery EOS\r\n" ); //print info
+      }
+
+      printCounters();
 
       break;
 
