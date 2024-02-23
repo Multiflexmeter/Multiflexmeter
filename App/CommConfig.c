@@ -585,6 +585,94 @@ __weak const void testSystemChecks( int mode, int32_t value )
 }
 
 /**
+ * @fn const uint16_t getDevNonce(void)
+ * @brief weak function for getDevNonce, must be override in user code
+ *
+ * @return
+ */
+__weak const uint16_t getDevNonce(void)
+{
+  return 0;
+}
+
+/**
+ * @fn const uint16_t getJoinNonce(void)
+ * @brief weak function for getJoinNonce, must be override in user code.
+ *
+ * @return
+ */
+__weak const uint16_t getJoinNonce(void)
+{
+  return 0;
+}
+
+/**
+ * @fn const uint16_t getDownFCounter(void)
+ * @brief weak function for getDownFCounter, must be override in user code.
+ *
+ * @return
+ */
+__weak const uint16_t getDownFCounter(void)
+{
+  return 0;
+}
+
+/**
+ * @fn const uint16_t getUpFCounter(void)
+ * @brief weak function for getUpFCounter, must be override in user code
+ *
+ * @return
+ */
+__weak const uint16_t getUpFCounter(void)
+{
+  return 0;
+}
+
+/**
+ * @fn const void setDevNonce(uint16_t)
+ * @brief weak function setDevNonce, must be override in user code
+ *
+ * @param devNonce
+ */
+__weak const void setDevNonce(uint16_t devNonce)
+{
+  UNUSED(devNonce);
+}
+
+/**
+ * @fn const void setJoinNonce(uint16_t)
+ * @brief weak function setJoinNonce, must be override in user code
+ *
+ * @param JoinNonce
+ */
+__weak const void setJoinNonce(uint16_t JoinNonce)
+{
+  UNUSED(JoinNonce);
+}
+
+/**
+ * @fn const void setDownFCounter(uint16_t)
+ * @brief weak function setDownFCounter, must be override in user code
+ *
+ * @param counter
+ */
+__weak const void setDownFCounter(uint16_t counter)
+{
+  UNUSED(counter);
+}
+
+/**
+ * @fn const void setUpFCounter(uint16_t)
+ * @brief weak function setUpFCounter, must be override in user code
+ *
+ * @param counter
+ */
+__weak const void setUpFCounter(uint16_t counter)
+{
+  UNUSED(counter);
+}
+
+/**
  * @fn const uint8_t getBufferSize(void)
  * @brief function to get maximum buffer side.
  *
