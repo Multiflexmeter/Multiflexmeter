@@ -89,10 +89,10 @@ static uint8_t waitForBatteryMonitorDataCounter = 0;
 static struct_FRAM_settings FRAM_Settings;
 static struct_wakeupSource stWakeupSource;
 
-static const void setDevNonce(uint16_t devNonce)__attribute__((unused));
-static const void setJoinNonce(uint16_t JoinNonce)__attribute__((unused));
-static const void setDownFCounter(uint16_t counter)__attribute__((unused));
-static const void setUpFCounter(uint16_t counter)__attribute__((unused));
+const void setDevNonce(uint16_t devNonce)__attribute__((unused));
+const void setJoinNonce(uint16_t JoinNonce)__attribute__((unused));
+const void setDownFCounter(uint16_t counter)__attribute__((unused));
+const void setUpFCounter(uint16_t counter)__attribute__((unused));
 
 /**
  * @fn const void setNextPeriod(UTIL_TIMER_Time_t)
@@ -178,7 +178,7 @@ static void setTimeout(int periodMs)
  *
  * @return devNonce counter
  */
-static const uint16_t getDevNonce(void)
+const uint16_t getDevNonce(void)
 {
   /* get DevNonce */
     LoRaMacNvmData_t *nvm;
@@ -196,7 +196,7 @@ static const uint16_t getDevNonce(void)
  *
  * @return JoinNonce counter
  */
-static const uint16_t getJoinNonce(void)
+const uint16_t getJoinNonce(void)
 {
   /* get DevNonce */
     LoRaMacNvmData_t *nvm;
@@ -214,7 +214,7 @@ static const uint16_t getJoinNonce(void)
  *
  * @return
  */
-static const uint16_t getDownFCounter(void)
+const uint16_t getDownFCounter(void)
 {
   /* get UplinkCounter */
     LoRaMacNvmData_t *nvm;
@@ -232,7 +232,7 @@ static const uint16_t getDownFCounter(void)
  *
  * @return
  */
-static const uint16_t getUpFCounter(void)
+const uint16_t getUpFCounter(void)
 {
   /* get UplinkCounter */
     LoRaMacNvmData_t *nvm;
@@ -250,7 +250,7 @@ static const uint16_t getUpFCounter(void)
  *
  * @param devNonce
  */
-static const void setDevNonce(uint16_t devNonce)
+const void setDevNonce(uint16_t devNonce)
 {
   /* get DevNonce */
     LoRaMacNvmData_t *nvm;
@@ -268,7 +268,7 @@ static const void setDevNonce(uint16_t devNonce)
  *
  * @param JoinNonce
  */
-static const void setJoinNonce(uint16_t JoinNonce)
+const void setJoinNonce(uint16_t JoinNonce)
 {
   /* get DevNonce */
     LoRaMacNvmData_t *nvm;
@@ -286,7 +286,7 @@ static const void setJoinNonce(uint16_t JoinNonce)
  *
  * @param counter
  */
-static const void setDownFCounter(uint16_t counter)
+const void setDownFCounter(uint16_t counter)
 {
   /* get UplinkCounter */
     LoRaMacNvmData_t *nvm;
@@ -304,7 +304,7 @@ static const void setDownFCounter(uint16_t counter)
  *
  * @param counter
  */
-static const void setUpFCounter(uint16_t counter)
+const void setUpFCounter(uint16_t counter)
 {
   /* get UplinkCounter */
     LoRaMacNvmData_t *nvm;
