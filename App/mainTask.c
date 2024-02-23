@@ -693,6 +693,56 @@ static const void printCounters(void)
   APP_LOG(TS_OFF, VLEVEL_H, "#####\r\n####DevNonce: %u, JoinNonce: %u, DnFcnt: %u, UpFcnt: %u####\r\n####\r\n", getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter());
 }
 
+#ifdef LORA_PERIODICALLY_CONFIRMED_MSG
+
+/**
+ * @fn const bool checkTxConfirmed(uint8_t, uint16_t)
+ * @brief function to check for confirmed or unconfirmed message.
+ * once every 24 measures, start at the 12th.
+ *
+ * @param numberOfModules : number of active sensor modules
+ * @param counter : UpFCounter
+ * @return
+ */
+static const bool checkTxConfirmed(uint8_t numberOfModules, uint16_t counter)
+{
+  uint8_t compare = numberOfModules == 0 ? 1 : numberOfModules; //when no modules are configured, use value equal to 1 module
+
+  if( counter % (24 * compare) == 12 ) //once every 24 measures, start at the 12th.
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+#endif
+
+
+#ifdef LORA_PERIODICALLY_REQUEST_TIME
+/**
+ * @fn const bool checkPeriodicallyRequestTime(uint8_t, uint16_t)
+ * @brief function to check if the periodically request time condition is valid, if so enable the request time.
+ *
+ * @param numberOfModules : number of active sensor modules
+ * @param counter : UpFCounter
+ */
+static const bool checkPeriodicallyRequestTime(uint8_t numberOfModules, uint16_t counter)
+{
+  uint8_t compare = numberOfModules == 0 ? 1 : numberOfModules; //when no modules are configured, use value equal to 1 module
+
+  if( counter % (24 * compare) == 12 ) //once every 24 measures, start at the 12th.
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+#endif
+
 /**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
@@ -884,10 +934,8 @@ const void mainTask(void)
         mainTask_state = CHECK_USB_CONNECTED; //no sensor slot is active
       }
 
-
 #ifdef LORA_PERIODICALLY_CONFIRMED_MSG
-      /* get DevNonce for set confirmed / unconfirmed messages */
-      if( getUpFCounter() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+      if (checkTxConfirmed(numberOfsensorModules, getUpFCounter()))
       {
         setTxConfirmed(LORAMAC_HANDLER_CONFIRMED_MSG);
       }
@@ -898,11 +946,12 @@ const void mainTask(void)
 #endif
 
 #ifdef LORA_PERIODICALLY_REQUEST_TIME
-      if( getUpFCounter() % (24 * numberOfsensorModules) == 12 ) //once every 24 measures, start at the 12th.
+      if( checkPeriodicallyRequestTime(numberOfsensorModules, getUpFCounter()) )
       {
         setRequestTime();
       }
 #endif
+
       //check next battery measurement interval is active. Set flag in battery backup registers to measure next round the EOS from powerup.
       if( FRAM_Settings.nextIntervalBatteryEOS <= SysTimeGet().Seconds || FRAM_Settings.nextIntervalBatteryEOS == -1 || FRAM_Settings.nextIntervalBatteryEOS > SysTimeGet().Seconds + 2 * TM_SECONDS_IN_1DAY )
       {
