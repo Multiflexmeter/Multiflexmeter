@@ -58,7 +58,7 @@ typedef struct __attribute__((packed))
 {
     uint16_t crc16;
     uint8_t protocolId;
-    uint8_t sensorModuleId;
+    uint8_t currentSensorModuleIndex; // index of active sensor 0-5
     uint32_t nextIntervalBatteryEOS;
     struct_sensorModuleFirmwareVersion modules[NR_SENSOR_MODULE];
     uint8_t sensorModuleProtocol[NR_SENSOR_MODULE];
