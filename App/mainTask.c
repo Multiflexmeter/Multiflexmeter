@@ -1025,6 +1025,11 @@ const void mainTask(void)
             FRAM_Settings.sensorModuleSettings[sensorModuleId].item.sensorModuleInitRequest = false;
           }
 
+          else if (newStatus == COMMAND_FAILED )
+          {
+            APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: FAILED\r\n");
+          }
+
           if( timeout == true )
           {
             APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: timeout\r\n");
