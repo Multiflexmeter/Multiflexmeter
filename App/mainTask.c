@@ -366,6 +366,36 @@ static uint32_t getNextWake(UTIL_TIMER_Time_t period, uint32_t activeTime )
 }
 
 /**
+ * @fn UTIL_TIMER_Time_t getNextMeasureInterval(bool, UTIL_TIMER_Time_t, uint8_t)
+ * @brief function to calculate the next measure interval based on measurement in sameRound, time and number of sensors
+ *
+ * @param sameRound : true if next measurement is in same round
+ * @param time : interval time
+ * @param numberOfSensors : number of active sensors
+ * @return
+ */
+static UTIL_TIMER_Time_t getNextMeasureInterval(bool sameRound, UTIL_TIMER_Time_t time, uint8_t numberOfSensors)
+{
+  UTIL_TIMER_Time_t newInterval = 0;
+  if (sameRound ) //check if next interval is from an other sensor in the same round, then use short time of one minute.
+  {
+    newInterval = INTERVAL_NEXT_SENSOR; //next round, every minute transmit each sensor
+  }
+  else
+  { //the round is finished, then set the remaining interval time, first check if there is time
+    if( time > numberOfSensors * INTERVAL_NEXT_SENSOR )
+    {
+      newInterval -= numberOfSensors * INTERVAL_NEXT_SENSOR;
+    }
+    else
+    { //multiple sensor measure time is larger then the interval setting, use interval setting directly.
+      newInterval = time;
+    }
+  }
+  return newInterval;
+}
+
+/**
  * @fn uint32_t getActiveTime(void)
  * @brief function gives the system active time in seconds.
  *
