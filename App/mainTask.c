@@ -1110,7 +1110,7 @@ const void mainTask(void)
         CommandStatus newStatus = sensorMeasurementStatus(sensorModuleId);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure status: %d, %d\r\n", sensorModuleId, newStatus ); //print sensor type
 
-        if( newStatus != COMMNAND_ACTIVE || timeout == true) //measurement ready or timeout
+        if( (newStatus != COMMNAND_ACTIVE && newStatus != NO_ACTIVE_COMMAND) || timeout == true) //measurement ready or timeout
         {
           if( timeout == true )
           {
