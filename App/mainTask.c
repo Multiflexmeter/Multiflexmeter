@@ -1563,11 +1563,7 @@ const void mainTask(void)
         {
           APP_LOG(TS_OFF, VLEVEL_H, "USB connected, no off mode.\r\n" );
 
-          if (nextSensorInSameMeasureRound )
-          {
-            MainPeriodSleep = INTERVAL_NEXT_SENSOR; //next round, every minute transmit each sensor
-          }
-
+          MainPeriodSleep = getNextMeasureInterval(nextSensorInSameMeasureRound, MainPeriodSleep, FRAM_Settings.numberOfActiveSensorModules);
           uint32_t nextWakeTime = getNextWake( MainPeriodSleep, systemActiveTime_sec);
           setNewMeasureTime(nextWakeTime * 1000L); //set measure time
           setAlarmTime( calcAlarmTime(nextWakeTime)); //set new alarm time in RTC, only used for reset condition.
@@ -1627,21 +1623,7 @@ const void mainTask(void)
 
         if( FRAM_Settings.numberOfActiveSensorModules > 0 ) //set sleep time when sensor is active, found one module or more.
         {
-          if (nextSensorInSameMeasureRound ) //check if next interval is from an other sensor in the same round, then use short time of one minute.
-          {
-            sleepTime = INTERVAL_NEXT_SENSOR; //next round, every minute transmit each sensor
-          }
-          else
-          { //the round is finished, then set the remaining interval time, first check if there is time
-            if( MainPeriodSleep > FRAM_Settings.numberOfActiveSensorModules * INTERVAL_NEXT_SENSOR )
-            {
-              sleepTime = MainPeriodSleep -= FRAM_Settings.numberOfActiveSensorModules * INTERVAL_NEXT_SENSOR;
-            }
-            else
-            { //multiple sensor measure time is larger then the interval setting, use interval setting directly.
-              sleepTime = MainPeriodSleep;
-            }
-          }
+          sleepTime = getNextMeasureInterval(nextSensorInSameMeasureRound, MainPeriodSleep, FRAM_Settings.numberOfActiveSensorModules); //get new sleep time
         }
         else //set sleep time very long when no sensor is active.
         {
