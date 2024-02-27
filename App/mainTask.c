@@ -76,6 +76,7 @@ static uint8_t dataBuffer[50];
 static struct_MFM_sensorModuleData stMFM_sensorModuleData;
 static struct_MFM_baseData stMFM_baseData;
 static uint8_t currentSensorModuleIndex = 0;
+static uint8_t currentNumberOfSensorModule = 0;
 static uint8_t numberOfActivesensorModules = 0;
 static volatile bool loraTransmitReady = false;
 static volatile bool loraReceiveReady = false;
@@ -900,6 +901,7 @@ const void mainTask(void)
 
       FRAM_Settings.numberOfActiveSensorModules = numberOfActivesensorModules;
       currentSensorModuleIndex = FRAM_Settings.currentSensorModuleIndex; //get latest value.
+      currentNumberOfSensorModule = FRAM_Settings.numberOfSensorModule; //get latest value.
 
       if( FRAM_Settings.numberOfActiveSensorModules > 0 ) //check sensorModule is enabled, found one module or more.
       {
@@ -908,6 +910,11 @@ const void mainTask(void)
           currentSensorModuleIndex = 0; //force to first.
         }
         slotPower(currentSensorModuleIndex, true); //enable slot sensorModuleId (0-5)
+
+        if( currentNumberOfSensorModule < 0 || currentNumberOfSensorModule > FRAM_Settings.numberOfActiveSensorModules) //validate not out of range, must be 1 until numberOfActivesensorModules
+        {
+          currentNumberOfSensorModule = 0; //force to first
+        }
 
         setWait(10); //set wait time 10ms
 
@@ -1323,6 +1330,7 @@ const void mainTask(void)
 
         if( FRAM_Settings.numberOfActiveSensorModules > 0 ) //check sensorModule is enabled, found one module or more.
         {
+          APP_LOG(TS_OFF, VLEVEL_H, "Sensor module old: %d, %d\r\n", currentSensorModuleIndex, currentNumberOfSensorModule ); //print sensor module index
           int escape = MAX_SENSOR_MODULE;
           do
           {
@@ -1331,12 +1339,18 @@ const void mainTask(void)
 
           }while (getSensorStatus(currentSensorModuleIndex + 1) == false && escape--);
 
+          currentNumberOfSensorModule++;
+          currentNumberOfSensorModule %= FRAM_Settings.numberOfActiveSensorModules; //limit from 0 to numberOfActiveSensorModules.
+
           for( int i = 0; i< (sizeof( FRAM_Settings.modules) / sizeof( FRAM_Settings.modules[0])); i++ )
           {
             FRAM_Settings.modules[i].nullTerminator = 0; //force null terminators
           }
           FRAM_Settings.currentSensorModuleIndex = currentSensorModuleIndex; //copy to save.
+          FRAM_Settings.numberOfSensorModule = currentNumberOfSensorModule; //copy to save
         }
+
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module new: %d, %d\r\n", currentSensorModuleIndex, currentNumberOfSensorModule ); //print sensor module index
 
         setTimeout(10000); //10sec
         mainTask_state = WAIT_LORA_TRANSMIT_READY;
