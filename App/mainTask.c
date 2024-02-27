@@ -45,6 +45,7 @@ const char NO_VERSION[]="";
 #define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled. //if enabled jumper on J11 1-2 must be placed.
 
 #define LORA_REJOIN_NUMBER_OF_RETRIES   5
+#define INTERVAL_NEXT_SENSOR  (60000) //1 minute
 
 static volatile bool mainTaskActive;
 static uint32_t mainTask_tmr;
@@ -1531,6 +1532,12 @@ const void mainTask(void)
         else
         {
           APP_LOG(TS_OFF, VLEVEL_H, "USB connected, no off mode.\r\n" );
+
+          if (nextSensorInSameMeasureRound )
+          {
+            MainPeriodSleep = INTERVAL_NEXT_SENSOR; //next round, every minute transmit each sensor
+          }
+
           uint32_t nextWakeTime = getNextWake( MainPeriodSleep, systemActiveTime_sec);
           setNewMeasureTime(nextWakeTime * 1000L); //set measure time
           setAlarmTime( calcAlarmTime(nextWakeTime)); //set new alarm time in RTC, only used for reset condition.
@@ -1590,7 +1597,21 @@ const void mainTask(void)
 
         if( FRAM_Settings.numberOfActiveSensorModules > 0 ) //set sleep time when sensor is active, found one module or more.
         {
-          sleepTime = MainPeriodSleep;
+          if (nextSensorInSameMeasureRound ) //check if next interval is from an other sensor in the same round, then use short time of one minute.
+          {
+            sleepTime = INTERVAL_NEXT_SENSOR; //next round, every minute transmit each sensor
+          }
+          else
+          { //the round is finished, then set the remaining interval time, first check if there is time
+            if( MainPeriodSleep > FRAM_Settings.numberOfActiveSensorModules * INTERVAL_NEXT_SENSOR )
+            {
+              sleepTime = MainPeriodSleep -= FRAM_Settings.numberOfActiveSensorModules * INTERVAL_NEXT_SENSOR;
+            }
+            else
+            { //multiple sensor measure time is larger then the interval setting, use interval setting directly.
+              sleepTime = MainPeriodSleep;
+            }
+          }
         }
         else //set sleep time very long when no sensor is active.
         {
