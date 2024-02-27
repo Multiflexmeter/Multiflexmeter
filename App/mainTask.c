@@ -76,8 +76,7 @@ static uint8_t dataBuffer[50];
 static struct_MFM_sensorModuleData stMFM_sensorModuleData;
 static struct_MFM_baseData stMFM_baseData;
 static uint8_t currentSensorModuleIndex = 0;
-static bool sensorModuleEnabled = false;
-static uint8_t numberOfsensorModules = 0;
+static uint8_t numberOfActivesensorModules = 0;
 static volatile bool loraTransmitReady = false;
 static volatile bool loraReceiveReady = false;
 static LmHandlerErrorStatus_t loraTransmitStatus;
@@ -883,15 +882,13 @@ const void mainTask(void)
 
     case SWITCH_SENSOR_SLOT:
 
-      numberOfsensorModules = 0;
-      sensorModuleEnabled = false;
+      numberOfActivesensorModules = 0;
       //check if at least one sensor module is enabled
       for( int i=0; i < MAX_SENSOR_MODULE; i++)
       {
         if( getSensorStatus(i + 1) == true )
         {
-          numberOfsensorModules++;
-          sensorModuleEnabled = true; //a module found, copy
+          numberOfActivesensorModules++; //count the number of active sensor Modules
         }
 
         if( getForceInitSensor() ) //check if init sensor is needed
@@ -901,10 +898,10 @@ const void mainTask(void)
       }
       setForceInitSensor( false ); //reset after processed.
 
-      FRAM_Settings.sensorModuleEnabled = sensorModuleEnabled;
+      FRAM_Settings.numberOfActiveSensorModules = numberOfActivesensorModules;
       currentSensorModuleIndex = FRAM_Settings.currentSensorModuleIndex; //get latest value.
 
-      if( FRAM_Settings.sensorModuleEnabled )
+      if( FRAM_Settings.numberOfActiveSensorModules > 0 ) //check sensorModule is enabled, found one module or more.
       {
         if( currentSensorModuleIndex < 0 || currentSensorModuleIndex >= MAX_SENSOR_MODULE )
         {
@@ -944,7 +941,7 @@ const void mainTask(void)
       }
 
 #ifdef LORA_PERIODICALLY_CONFIRMED_MSG
-      if (checkTxConfirmed(numberOfsensorModules, getUpFCounter()))
+      if (checkTxConfirmed(FRAM_Settings.numberOfActiveSensorModules, getUpFCounter()))
       {
         setTxConfirmed(LORAMAC_HANDLER_CONFIRMED_MSG);
       }
@@ -955,7 +952,7 @@ const void mainTask(void)
 #endif
 
 #ifdef LORA_PERIODICALLY_REQUEST_TIME
-      if( checkPeriodicallyRequestTime(numberOfsensorModules, getUpFCounter()) )
+      if( checkPeriodicallyRequestTime(FRAM_Settings.numberOfActiveSensorModules, getUpFCounter()) )
       {
         setRequestTime();
       }
@@ -1156,7 +1153,7 @@ const void mainTask(void)
 
         if( gaugeReadyOrTimeout == true )
         {
-          if( FRAM_Settings.sensorModuleEnabled )
+          if( FRAM_Settings.numberOfActiveSensorModules > 0  ) //check sensorModule is enabled, found one module or more.
           {
             mainTask_state = READ_SENSOR_DATA;
           }
@@ -1324,7 +1321,7 @@ const void mainTask(void)
 
     case NEXT_SENSOR_MODULE:
 
-        if( FRAM_Settings.sensorModuleEnabled )
+        if( FRAM_Settings.numberOfActiveSensorModules > 0 ) //check sensorModule is enabled, found one module or more.
         {
           int escape = MAX_SENSOR_MODULE;
           do
@@ -1574,7 +1571,7 @@ const void mainTask(void)
 
         UTIL_TIMER_Time_t sleepTime; //in ms
 
-        if( FRAM_Settings.sensorModuleEnabled ) //set sleep time when sensor is active
+        if( FRAM_Settings.numberOfActiveSensorModules > 0 ) //set sleep time when sensor is active, found one module or more.
         {
           sleepTime = MainPeriodSleep;
         }
