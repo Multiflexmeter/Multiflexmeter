@@ -354,10 +354,10 @@ static uint32_t getNextWake(UTIL_TIMER_Time_t period, uint32_t activeTime )
   }
 
   //guard minimum sleep time
-//  if( nextWake < 30 )
-//  {
-//    nextWake = 30;
-//  }
+  if( nextWake < 30 )
+  {
+    nextWake = 30;
+  }
 
 
   return nextWake;
@@ -1523,7 +1523,6 @@ const void mainTask(void)
         else
         {
           APP_LOG(TS_OFF, VLEVEL_H, "USB connected, no off mode.\r\n" );
-          MainPeriodSleep = 1000;
           uint32_t nextWakeTime = getNextWake( MainPeriodSleep, systemActiveTime_sec);
           setNewMeasureTime(nextWakeTime * 1000L); //set measure time
           setAlarmTime( calcAlarmTime(nextWakeTime)); //set new alarm time in RTC, only used for reset condition.
