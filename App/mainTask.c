@@ -78,6 +78,7 @@ static struct_MFM_baseData stMFM_baseData;
 static uint8_t currentSensorModuleIndex = 0;
 static uint8_t currentNumberOfSensorModule = 0;
 static uint8_t numberOfActivesensorModules = 0;
+static bool nextSensorInSameMeasureRound = 0;
 static volatile bool loraTransmitReady = false;
 static volatile bool loraReceiveReady = false;
 static LmHandlerErrorStatus_t loraTransmitStatus;
@@ -1342,6 +1343,8 @@ const void mainTask(void)
           currentNumberOfSensorModule++;
           currentNumberOfSensorModule %= FRAM_Settings.numberOfActiveSensorModules; //limit from 0 to numberOfActiveSensorModules.
 
+          nextSensorInSameMeasureRound = currentNumberOfSensorModule ? true : false; //check if next is first, then not the same round
+
           for( int i = 0; i< (sizeof( FRAM_Settings.modules) / sizeof( FRAM_Settings.modules[0])); i++ )
           {
             FRAM_Settings.modules[i].nullTerminator = 0; //force null terminators
@@ -1350,7 +1353,7 @@ const void mainTask(void)
           FRAM_Settings.numberOfSensorModule = currentNumberOfSensorModule; //copy to save
         }
 
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module new: %d, %d\r\n", currentSensorModuleIndex, currentNumberOfSensorModule ); //print sensor module index
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module new: %d, %d, %d\r\n", currentSensorModuleIndex, currentNumberOfSensorModule, nextSensorInSameMeasureRound ); //print sensor module index
 
         setTimeout(10000); //10sec
         mainTask_state = WAIT_LORA_TRANSMIT_READY;
