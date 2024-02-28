@@ -863,26 +863,27 @@ static const void printBaseData(struct_MFM_baseData * baseData)
   int length = 40;
   int lengthPre = 3;
   char character = '*';
+  uint32_t VerboseLevel = VLEVEL_M;
 
-  printHeader(TS_OFF, VLEVEL_H, character, length, "Base Data");
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H, " Message Type: %d\r\n",  baseData->messageType);
+  printHeader(TS_OFF, VerboseLevel, character, length, "Base Data");
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " Message Type: %d\r\n",  baseData->messageType);
 
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H, " EOS: %d\r\n",  baseData->batteryStateEos);
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " EOS: %d\r\n",  baseData->batteryStateEos);
 
   if( baseData->messageType == 0x01)
   {
-    printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-    APP_LOG(TS_OFF, VLEVEL_H, " Temp BatteryGauge: %d\r\n",  baseData->temperatureGauge);
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " Temp BatteryGauge: %d\r\n",  baseData->temperatureGauge);
   }
 
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H, " Temp Controller: %d\r\n",  baseData->temperatureController);
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " Temp Controller: %d\r\n",  baseData->temperatureController);
 
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H, " Diagnostic: 0x%02x\r\n",  baseData->diagnosticBits);
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, length, true);
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " Diagnostic: 0x%02x\r\n",  baseData->diagnosticBits);
+  printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
 }
 
 /**
