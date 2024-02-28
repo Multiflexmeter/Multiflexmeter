@@ -706,33 +706,35 @@ const uint8_t getProtocolSensorboard(int sensorModuleId)
  */
 static const void printSensorModuleError(SensorError status)
 {
-  APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: ERROR, " ); //print error
+  uint32_t VerboseLevel = VLEVEL_L;
+
+  APP_LOG(TS_OFF, VerboseLevel, "Sensor module data: ERROR, " ); //print error
 
   switch (status)
   {
 
     case SENSOR_CRC_ERROR:
-      APP_LOG(TS_OFF, VLEVEL_H, "CRC\r\n"); //print error
+      APP_LOG(TS_OFF, VerboseLevel, "CRC\r\n"); //print error
       break;
 
     case SENSOR_REGISTER_ERROR:
-      APP_LOG(TS_OFF, VLEVEL_H, "register\r\n"); //print error
+      APP_LOG(TS_OFF, VerboseLevel, "register\r\n"); //print error
       break;
 
     case SENSOR_TIMEOUT:
-      APP_LOG(TS_OFF, VLEVEL_H, "timeout\r\n"); //print error
+      APP_LOG(TS_OFF, VerboseLevel, "timeout\r\n"); //print error
       break;
 
     case SENSOR_BUFFER_ERROR:
-      APP_LOG(TS_OFF, VLEVEL_H, "buffer\r\n"); //print error
+      APP_LOG(TS_OFF, VerboseLevel, "buffer\r\n"); //print error
       break;
 
     case SENSOR_ID_ERROR:
-      APP_LOG(TS_OFF, VLEVEL_H, "ID\r\n"); //print error
+      APP_LOG(TS_OFF, VerboseLevel, "ID\r\n"); //print error
       break;
 
     default:
-      APP_LOG(TS_OFF, VLEVEL_H, "unknown\r\n"); //print error
+      APP_LOG(TS_OFF, VerboseLevel, "unknown\r\n"); //print error
       break;
 
     }
