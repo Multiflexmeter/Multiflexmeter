@@ -742,31 +742,31 @@ static const void printSensorModuleError(SensorError status)
  * @fn const void printEndLine(uint32_t, uint32_t)
  * @brief helper function to print EndLine to debug port
  *
- * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
  * @param TimeStampState : \ref VLEVEL_L, \ref VLEVEL_M, \ref VLEVEL_H
+ * * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
  */
-static const void printEndLine(uint32_t VerboseLevel, uint32_t TimeStampState)
+static const void printEndLine(uint32_t TimeStampState, uint32_t VerboseLevel)
 {
-  APP_LOG(VerboseLevel, TimeStampState, "\r\n"); //print end of line
+  APP_LOG(TimeStampState, VerboseLevel, "\r\n"); //print end of line
 }
 
 /**
  * @fn const void printSeparatorLine(uint32_t, uint32_t, const char, int, bool)
  * @brief helper function to print an separator line of character with length to debug port. Endline conditional.
  *
- * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
  * @param TimeStampState : \ref VLEVEL_L, \ref VLEVEL_M, \ref VLEVEL_H
+ * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
  * @param character : character to print as marking
  * @param length : number of characters
  * @param endLine : true = print EndLine, false = no EndLine is added.
  */
-static const void printSeparatorLine(uint32_t VerboseLevel, uint32_t TimeStampState, const char character, int length, bool endLine)
+static const void printSeparatorLine(uint32_t TimeStampState, uint32_t VerboseLevel, const char character, int length, bool endLine)
 {
   while(length-- > 0)
-    APP_LOG(VerboseLevel, TimeStampState, "%c", character); //print character
+    APP_LOG(TimeStampState, VerboseLevel, "%c", character); //print character
 
   if( endLine )
-    printEndLine(VerboseLevel, TimeStampState);
+    printEndLine(TimeStampState, VerboseLevel);
 }
 
 /**
@@ -774,13 +774,13 @@ static const void printSeparatorLine(uint32_t VerboseLevel, uint32_t TimeStampSt
  * @brief helper function to print an header line with pre and post filling of character to debug port.
  * Always with endLine
  *
- * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
  * @param TimeStampState : \ref VLEVEL_L, \ref VLEVEL_M, \ref VLEVEL_H
+ * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
  * @param character : character to print as marking
  * @param length : number of characters
  * @param header : the header to print
  */
-static const void printHeader(uint32_t VerboseLevel, uint32_t TimeStampState, const char character, int length, const char * header)
+static const void printHeader(uint32_t TimeStampState, uint32_t VerboseLevel, const char character, int length, const char * header)
 {
   int lengthHeader = strlen(header);
   int halfLength = 0;
@@ -795,10 +795,10 @@ static const void printHeader(uint32_t VerboseLevel, uint32_t TimeStampState, co
     halfLength = 0;
   }
 
-  printSeparatorLine( VerboseLevel, TimeStampState, character, length, true ); //print line with end
-  printSeparatorLine( VerboseLevel, TimeStampState, character, halfLength, false ); //print first half, without end
-  APP_LOG(VerboseLevel, TimeStampState, " %s ", header); //print header with surrounding withspace
-  printSeparatorLine( VerboseLevel, TimeStampState, character, halfLength, true ); //print first half, with end
+  printSeparatorLine( TimeStampState, VerboseLevel, character, length, true ); //print line with end
+  printSeparatorLine( TimeStampState, VerboseLevel, character, halfLength, false ); //print first half, without end
+  APP_LOG(TimeStampState, VerboseLevel, " %s ", header); //print header with surrounding withspace
+  printSeparatorLine( TimeStampState, VerboseLevel, character, halfLength, true ); //print first half, with end
 }
 
 /**
