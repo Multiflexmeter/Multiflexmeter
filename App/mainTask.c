@@ -1341,7 +1341,10 @@ const void mainTask(void)
 
         memset(dataBuffer, 0x00, sizeof(dataBuffer));
         sensorFirmwareVersion(currentSensorModuleIndex, dataBuffer, sizeof(dataBuffer));
+
+        #pragma GCC diagnostic ignored "-Wstringop-truncation" //disable truncation warning for next line
         strncpy(FRAM_Settings.modules[currentSensorModuleIndex].version, (char*)dataBuffer, sizeof(FRAM_Settings.modules[currentSensorModuleIndex].version)); //copy data to save to FRAM
+        #pragma GCC diagnostic warning "-Wstringop-truncation" //enable truncation warning for next
 
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module firmware: %d, %s\r\n", currentSensorModuleIndex, dataBuffer ); //print VERSION
 
