@@ -44,6 +44,14 @@ const char NO_VERSION[]="";
 #define LORA_PERIODICALLY_REQUEST_TIME //comment if feature must be disabled.
 #define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled. //if enabled jumper on J11 1-2 must be placed.
 
+/**
+ * @def SEND_MEASUREMENT_IN_EQUAL_INTERVAL
+ * @brief Feature used in test fase to have an equal interval between each sensor module slot.
+ * Normally a burst of one minute interval between sensors in one round is used.
+ * @note comment if feature must be disabled
+ */
+#define SEND_MEASUREMENT_IN_EQUAL_INTERVAL
+
 #define LORA_REJOIN_NUMBER_OF_RETRIES   5
 #define INTERVAL_NEXT_SENSOR_IN_ONE_ROUND  (60000) //1 minute
 
@@ -376,7 +384,9 @@ static uint32_t getNextWake(UTIL_TIMER_Time_t period, uint32_t activeTime )
  */
 static UTIL_TIMER_Time_t getNextMeasureInterval(bool sameRound, UTIL_TIMER_Time_t time, uint8_t numberOfSensors)
 {
-  UTIL_TIMER_Time_t newInterval = 0;
+  UTIL_TIMER_Time_t newInterval = time;
+#ifndef SEND_MEASUREMENT_IN_EQUAL_INTERVAL
+
   if (sameRound ) //check if next interval is from an other sensor in the same round, then use short time of one minute.
   {
     newInterval = INTERVAL_NEXT_SENSOR_IN_ONE_ROUND; //next round, every minute transmit each sensor
@@ -392,6 +402,16 @@ static UTIL_TIMER_Time_t getNextMeasureInterval(bool sameRound, UTIL_TIMER_Time_
       newInterval = time;
     }
   }
+#else
+  static bool debugPrintOnce = false;
+  if( debugPrintOnce == false)
+  {
+    debugPrintOnce = true;
+    APP_LOG(TS_OFF, VLEVEL_H, "************ WARNING ************\r\n");
+    APP_LOG(TS_OFF, VLEVEL_H, "test DEFINE active: SEND_MEASUREMENT_IN_EQUAL_INTERVAL\r\n");
+    APP_LOG(TS_OFF, VLEVEL_H, "*********************************\r\n");
+  }
+#endif
   return newInterval;
 }
 
