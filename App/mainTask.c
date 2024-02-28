@@ -918,21 +918,23 @@ static const void printFirmwareVersionInfo(void)
   int length = 40;
   int lengthPre = 3;
   char character = 'X';
-  printHeader(TS_OFF, VLEVEL_H, character, length, "FIRMWARE");
+  uint32_t VerboseLevel = VLEVEL_L;
 
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H,  " MFM main version: %s\r\n", getSoftwareVersionMFM());
+  printHeader(TS_OFF, VerboseLevel, character, length, "FIRMWARE");
 
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H,  " MFM main protocol: %s\r\n", getProtocolVersionConfig());
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel,  " MFM main version: %s\r\n", getSoftwareVersionMFM());
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel,  " MFM main protocol: %s\r\n", getProtocolVersionConfig());
 
   for(int i = 0; i<MAX_SENSOR_MODULE; i++)
   {
-    printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-    APP_LOG(TS_OFF, VLEVEL_H, " MFM SensorModule %d: %s, protocol: %d\r\n", i+1, getSoftwareSensorboard(i), getProtocolSensorboard(i));
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " MFM SensorModule %d: %s, protocol: %d\r\n", i+1, getSoftwareSensorboard(i), getProtocolSensorboard(i));
   }
 
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, length, true);
+  printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
 }
 
 #ifdef LORA_PERIODICALLY_CONFIRMED_MSG
