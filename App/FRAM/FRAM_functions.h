@@ -58,13 +58,14 @@ typedef struct __attribute__((packed))
 {
     uint16_t crc16;
     uint8_t protocolId;
-    uint8_t sensorModuleId;
+    uint8_t currentSensorModuleIndex; // index of active sensor 0-5
     uint32_t nextIntervalBatteryEOS;
     struct_sensorModuleFirmwareVersion modules[NR_SENSOR_MODULE];
     uint8_t sensorModuleProtocol[NR_SENSOR_MODULE];
-    uint8_t sensorModuleEnabled;
+    uint8_t numberOfActiveSensorModules; //number of active modules 0-6, 0 = none
     UNION_sensorModuleSettings sensorModuleSettings[NR_SENSOR_MODULE];
     UNION_diagnosticStatusBits diagnosticBits; //32 bits reserved, only the first 8 bits are send to portal and saved in dataflash
+    uint8_t numberOfSensorModule;  //number of current active module 0-6, 0 = none. Number is not real index, but relative to number of "ActiveModules".
 }struct_FRAM_settings;
 
 const void saveLoraSettings( const void *pSource, size_t length );
