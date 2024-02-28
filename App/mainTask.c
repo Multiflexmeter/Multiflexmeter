@@ -840,10 +840,12 @@ static const void printSensorModulePressure(structDataPressureSensor * pSensorDa
   uint8_t unitTemp[] = " C";
   unitTemp[0] = 176; //overwrite degree sign to ascii 176
 
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, length, true);
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+  uint32_t VerboseLevel = VLEVEL_M;
 
-  APP_LOG(TS_OFF, VLEVEL_H, " Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n",
+  printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+
+  APP_LOG(TS_OFF, VerboseLevel, " Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n",
       (int)pSensorData->pressure1, getDecimal(pSensorData->pressure1, 2), unitPress,
       (int)pSensorData->temperature1, getDecimal(pSensorData->temperature1, 2), unitTemp,
       (int)pSensorData->pressure2, getDecimal(pSensorData->pressure2, 2), unitPress,
