@@ -656,6 +656,48 @@ struct_wakeupSource getWakeupSource(void)
 }
 
 /**
+ * @brief override function getSoftwareSensorboard(), needs to be override by real functions
+ *
+ * @return
+ */
+const char * getSoftwareSensorboard(int sensorModuleId)
+{
+  //check valid argument
+  if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
+  {
+    return NO_VERSION;
+  }
+
+  //check on control character, not printable
+  if( iscntrl( (int) FRAM_Settings.modules[sensorModuleId].version[0] ) )
+  {
+    return NO_VERSION;
+  }
+
+  //check on 0xFF, default value of not written flash
+  if( FRAM_Settings.modules[sensorModuleId].version[0] == 0xFF )
+  {
+    return NO_VERSION;
+  }
+
+  return FRAM_Settings.modules[sensorModuleId].version;
+}
+
+/**
+ * @brief override function getProtocolSensorboard(), needs to be override by real functions
+ *
+ * @return
+ */
+const uint8_t getProtocolSensorboard(int sensorModuleId)
+{
+  if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
+  {
+    return 0;
+  }
+  return FRAM_Settings.sensorModuleProtocol[sensorModuleId];
+}
+
+/**
  * @fn const printSensorModuleError(SensorError)
  * @brief helper function to print sensor module error status information to debug port.
  *
@@ -1985,46 +2027,4 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
 const void rxDataReady(void)
 {
   loraReceiveReady = true;
-}
-
-/**
- * @brief override function getSoftwareSensorboard(), needs to be override by real functions
- *
- * @return
- */
-const char * getSoftwareSensorboard(int sensorModuleId)
-{
-  //check valid argument
-  if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
-  {
-    return NO_VERSION;
-  }
-
-  //check on control character, not printable
-  if( iscntrl( (int) FRAM_Settings.modules[sensorModuleId].version[0] ) )
-  {
-    return NO_VERSION;
-  }
-
-  //check on 0xFF, default value of not written flash
-  if( FRAM_Settings.modules[sensorModuleId].version[0] == 0xFF )
-  {
-    return NO_VERSION;
-  }
-
-  return FRAM_Settings.modules[sensorModuleId].version;
-}
-
-/**
- * @brief override function getProtocolSensorboard(), needs to be override by real functions
- *
- * @return
- */
-const uint8_t getProtocolSensorboard(int sensorModuleId)
-{
-  if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
-  {
-    return 0;
-  }
-  return FRAM_Settings.sensorModuleProtocol[sensorModuleId];
 }
