@@ -811,7 +811,12 @@ static const void printHeader(uint32_t VerboseLevel, uint32_t TimeStampState, co
  */
 static const void printSensorModuleRoughData(uint8_t sensorModuleId, uint8_t sensorModuleDataSize, uint8_t * data )
 {
-  APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d, %d", sensorModuleId, sensorModuleDataSize); //print sensor type
+  int length = 40;
+  int lengthPre = 3;
+  char character = '*';
+  printHeader(TS_OFF, VLEVEL_H, character, length, "Sensor Data");
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+  APP_LOG(TS_OFF, VLEVEL_H, " Sensor module data: %d, %d", sensorModuleId, sensorModuleDataSize); //print sensor type
 
   for(int i=0; i < sensorModuleDataSize; i++)
   {
