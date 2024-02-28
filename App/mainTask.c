@@ -833,11 +833,17 @@ static const void printSensorModuleRoughData(uint8_t sensorModuleId, uint8_t sen
  */
 static const void printSensorModulePressure(structDataPressureSensor * pSensorData)
 {
+  int length = 40;
+  int lengthPre = 3;
+  char character = '*';
   uint8_t unitPress[] = "bar";
   uint8_t unitTemp[] = " C";
   unitTemp[0] = 176; //overwrite degree sign to ascii 176
 
-  APP_LOG(TS_OFF, VLEVEL_H, "Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n",
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, length, true);
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+
+  APP_LOG(TS_OFF, VLEVEL_H, " Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n",
       (int)pSensorData->pressure1, getDecimal(pSensorData->pressure1, 2), unitPress,
       (int)pSensorData->temperature1, getDecimal(pSensorData->temperature1, 2), unitTemp,
       (int)pSensorData->pressure2, getDecimal(pSensorData->pressure2, 2), unitPress,
