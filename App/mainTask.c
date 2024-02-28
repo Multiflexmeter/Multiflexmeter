@@ -895,17 +895,23 @@ static const void printCounters(void)
   int length = 40;
   int lengthPre = 3;
   char character = '#';
-  printHeader(TS_OFF, VLEVEL_H, character, length, "Dev Nonce");
+  uint32_t VerboseLevel = VLEVEL_H;
 
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H, " DevNonce: %u\r\n", getDevNonce());
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H, " JoinNonce: %u\r\n", getJoinNonce());
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H, " DnFcnt: %u\r\n", getDownFCounter());
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H, " UpFcnt: %u\r\n", getUpFCounter());
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, length, true);
+  printHeader(TS_OFF, VerboseLevel, character, length, "Dev Nonce");
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " DevNonce: %u\r\n", getDevNonce());
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " JoinNonce: %u\r\n", getJoinNonce());
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " DnFcnt: %u\r\n", getDownFCounter());
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " UpFcnt: %u\r\n", getUpFCounter());
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
 }
 
 /**
