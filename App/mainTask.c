@@ -635,52 +635,64 @@ const bool checkForceRejoin( bool enable)
  */
 struct_wakeupSource getWakeupSource(void)
 {
-  uint32_t VerboseLevel = VLEVEL_H;
+  uint32_t VerboseLevel = VLEVEL_M;
+  int length = 40;
+  int lengthPre = 3;
+  char character = '%';
   struct_wakeupSource wakeupSource = {0};
+
   readStatusRegisterRtc(); //read the RTC status registers
 
-  APP_LOG(TS_OFF, VerboseLevel, "**** RTC: status: ");
-  APP_LOG(TS_OFF, VerboseLevel, "0x%02x", getStatusRegisterRtc());
+  printHeader(TS_OFF, VerboseLevel, character, length, "WakeUp Source");
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " RTC: status register: ");
+  APP_LOG(TS_OFF, VerboseLevel, "0x%02x\r\n", getStatusRegisterRtc());
 
   //check alarm, indicates awake from alarm
   if (getWakeupAlarmStatus(0))
   {
     wakeupSource.byAlarm = true;
-    APP_LOG(TS_OFF, VerboseLevel, ", ALARM");
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " ALARM\r\n");
   }
 
   //check BAT flag is set, indicate battery disconnected.
   if (getWakeupBatStatus(0))
   {
     wakeupSource.byLowBattery = true;
-    APP_LOG(TS_OFF, VerboseLevel, ", BAT");
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " BAT\r\n");
   }
 
   //check ex1 IRQ from RTC
   if( getWakeupEx1Status(0) )
   {
     //combination of several sources, USB, BAT_ALERT, SENSOR IRQ
-    APP_LOG(TS_OFF, VerboseLevel, ", WAKE EX1");
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " WAKE EX1\r\n");
 
     //check USB
     if( readInput_board_io(EXT_IOUSB_CONNECTED) )
     {
       wakeupSource.byUSB = true;
-      APP_LOG(TS_OFF, VerboseLevel, ", USB");
+      printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+      APP_LOG(TS_OFF, VerboseLevel, " USB\r\n");
     }
 
     //check SENSOR IRQ
     if( readInput_board_io(EXT_IOSENSOR_INTX))
     {
       wakeupSource.bySensorIrq = true;
-      APP_LOG(TS_OFF, VerboseLevel, ", SENSOR");
+      printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+      APP_LOG(TS_OFF, VerboseLevel, " SENSOR\r\n");
     }
 
     //check BAT_ALERT
     if( readInput_board_io(EXT_IOBAT_ALERT))
     {
       wakeupSource.bySensorIrq = true;
-      APP_LOG(TS_OFF, VerboseLevel, ", BAT_ALERT");
+      printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+      APP_LOG(TS_OFF, VerboseLevel, " BAT_ALERT\r\n");
     }
   }
 
@@ -688,11 +700,13 @@ struct_wakeupSource getWakeupSource(void)
   if( getWakeupEx2Status(0) )
   {
     //must be Light sensor (box-open)
-    APP_LOG(TS_OFF, VerboseLevel, ", Ex2");
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " Ex2\r\n");
 
     if( readInput_board_io(INT_IO_BOX_OPEN) )
     {
-      APP_LOG(TS_OFF, VerboseLevel, ", BOX-OPEN");
+      printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+      APP_LOG(TS_OFF, VerboseLevel, " BOX-OPEN\r\n");
     }
     wakeupSource.byLightSensor = true;
   }
@@ -710,10 +724,11 @@ struct_wakeupSource getWakeupSource(void)
       )
   { //now it should be by Reset
     wakeupSource.byReset = true; //s
-    APP_LOG(TS_OFF, VerboseLevel, ", ### RESET ###");
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " ### RESET ###\r\n");
   }
 
-  APP_LOG(TS_OFF, VerboseLevel, " ****\r\n");
+  printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
 
   return wakeupSource;
 }
