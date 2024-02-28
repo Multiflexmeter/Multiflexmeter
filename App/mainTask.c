@@ -814,15 +814,17 @@ static const void printSensorModuleRoughData(uint8_t sensorModuleId, uint8_t sen
   int length = 40;
   int lengthPre = 3;
   char character = '*';
-  printHeader(TS_OFF, VLEVEL_H, character, length, "Sensor Data");
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H, " Sensor module data: %d, %d", sensorModuleId, sensorModuleDataSize); //print sensor type
+  uint32_t VerboseLevel = VLEVEL_H;
+
+  printHeader(TS_OFF, VerboseLevel, character, length, "Sensor Data");
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " Sensor module data: %d, %d", sensorModuleId, sensorModuleDataSize); //print sensor type
 
   for(int i=0; i < sensorModuleDataSize; i++)
   {
-    APP_LOG(TS_OFF, VLEVEL_H, ", 0x%02x", data[i] ); //print data
+    APP_LOG(TS_OFF, VerboseLevel, ", 0x%02x", data[i] ); //print data
   }
-  APP_LOG(TS_OFF, VLEVEL_H, "\r\n" ); //print end
+  APP_LOG(TS_OFF, VerboseLevel, "\r\n" ); //print end
 }
 
 /**
