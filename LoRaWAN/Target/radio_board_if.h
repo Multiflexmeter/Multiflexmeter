@@ -89,7 +89,7 @@ extern "C" {
 
 #else
 /* USER CODE BEGIN Exported PinMapping */
-#warning user to provide its board definitions pins
+//#warning user to provide its board definitions pins
 /* USER CODE END Exported PinMapping */
 #endif  /* USE_BSP_DRIVER  */
 
