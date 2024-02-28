@@ -853,6 +853,39 @@ static const void printSensorModulePressure(structDataPressureSensor * pSensorDa
 }
 
 /**
+ * @fn const void printBaseData(struct_MFM_baseData*)
+ * @brief function to print base data to debug port
+ *
+ * @param baseData
+ */
+static const void printBaseData(struct_MFM_baseData * baseData)
+{
+  int length = 40;
+  int lengthPre = 3;
+  char character = '*';
+
+  printHeader(TS_OFF, VLEVEL_H, character, length, "Base Data");
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+  APP_LOG(TS_OFF, VLEVEL_H, " Message Type: %d\r\n",  baseData->messageType);
+
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+  APP_LOG(TS_OFF, VLEVEL_H, " EOS: %d\r\n",  baseData->batteryStateEos);
+
+  if( baseData->messageType == 0x01)
+  {
+    printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+    APP_LOG(TS_OFF, VLEVEL_H, " Temp BatteryGauge: %d\r\n",  baseData->temperatureGauge);
+  }
+
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+  APP_LOG(TS_OFF, VLEVEL_H, " Temp Controller: %d\r\n",  baseData->temperatureController);
+
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+  APP_LOG(TS_OFF, VLEVEL_H, " Diagnostic: 0x%02x\r\n",  baseData->diagnosticBits);
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, length, true);
+}
+
+/**
  * @fn const void printCounters(void)
  * @brief helper function to print counters to debug port.
  *
@@ -1499,8 +1532,7 @@ const void mainTask(void)
 
         stMFM_baseData.diagnosticBits = FRAM_Settings.diagnosticBits.byte[0]; //save the first 8 bits
 
-        APP_LOG(TS_OFF, VLEVEL_H, "Temperature controller: %d\r\n",  stMFM_baseData.temperatureController);
-
+        printBaseData(&stMFM_baseData);
 
         writeNewMeasurement(0, &stMFM_sensorModuleData, &stMFM_baseData);
 
