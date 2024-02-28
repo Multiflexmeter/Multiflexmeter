@@ -370,7 +370,7 @@ const int32_t setSensorType(int32_t sensorId, uint16_t moduleType)
  */
 const uint16_t getLoraInterval(void)
 {
-  uint16_t value = 5;
+  uint16_t value = PARA_LORA_INTERVAL_MIN;
 
   if( value <= MFM_settings.intervalLora)
   {
