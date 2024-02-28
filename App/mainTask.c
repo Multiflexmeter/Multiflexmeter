@@ -992,6 +992,8 @@ const void mainTask(void)
 
       mainTask_state = INIT_SLEEP; //Wake-up by alarm or normal power-up.
 
+      printCounters();
+
       //check a forcedRejoinByReset is active
       if( forceRejoinByReset == true )
       {
@@ -1003,7 +1005,6 @@ const void mainTask(void)
       //no forced Rejoin by reset active, then check wakeup source is not a valid alarm
       else if( alarmNotYetTriggered() )
       {
-        printCounters();
         mainTask_state = CHECK_USB_CONNECTED; //other wake-up, USB or other (not implemented) go to wait state
       }
 
@@ -1036,8 +1037,6 @@ const void mainTask(void)
 #ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
         loraJoinRetryCounter = 0; //reset, not needed for shutdown, because variable is always 0.
 #endif
-
-        printCounters();
 
         mainTask_state = CHECK_LORA_JOIN;
 
@@ -1675,6 +1674,8 @@ const void mainTask(void)
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: timeout\r\n");
         }
+
+        printCounters();
 
         if (measureEOS_enabled) //only if measureEOS is enabled this round
         {
