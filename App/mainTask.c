@@ -25,6 +25,7 @@
 #include "lora_app.h"
 #include "LoRaMac.h"
 
+#include "common/softwareVersion.h"
 #include "IO/board_io.h"
 #include "IO/board_io_functions.h"
 #include "IO/led.h"
@@ -850,8 +851,34 @@ static const void printCounters(void)
   APP_LOG(TS_OFF, VLEVEL_H, "#####\r\n####DevNonce: %u, JoinNonce: %u, DnFcnt: %u, UpFcnt: %u####\r\n####\r\n", getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter());
 }
 
-#ifdef LORA_PERIODICALLY_CONFIRMED_MSG
+/**
+ * @fn const void printFirmwareVersionInfo(void)
+ * @brief function to print firmware info to debug port.
+ *
+ */
+static const void printFirmwareVersionInfo(void)
+{
+  int length = 40;
+  int lengthPre = 3;
+  char character = 'X';
+  printHeader(TS_OFF, VLEVEL_H, character, length, "FIRMWARE");
 
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+  APP_LOG(TS_OFF, VLEVEL_H,  " MFM main version: %s\r\n", getSoftwareVersionMFM());
+
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+  APP_LOG(TS_OFF, VLEVEL_H,  " MFM main protocol: %s\r\n", getProtocolVersionConfig());
+
+  for(int i = 0; i<MAX_SENSOR_MODULE; i++)
+  {
+    printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+    APP_LOG(TS_OFF, VLEVEL_H, " MFM SensorModule %d: %s, protocol: %d\r\n", i+1, getSoftwareSensorboard(i), getProtocolSensorboard(i));
+  }
+
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, length, true);
+}
+
+#ifdef LORA_PERIODICALLY_CONFIRMED_MSG
 /**
  * @fn const bool checkTxConfirmed(uint8_t, uint16_t)
  * @brief function to check for confirmed or unconfirmed message.
@@ -945,6 +972,8 @@ const void mainTask(void)
       MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
 
       restoreFramSettingsStruct(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
+
+      printFirmwareVersionInfo(); //print firmware versions, after restore FRAM
 
       APP_LOG(TS_OFF, VLEVEL_H, "Restore diagnostic: BAT: %d, USB: %d, BOX: %d\r\n", FRAM_Settings.diagnosticBits.bit.batteryLow, FRAM_Settings.diagnosticBits.bit.usbConnected, FRAM_Settings.diagnosticBits.bit.lightSensorActive);
 
