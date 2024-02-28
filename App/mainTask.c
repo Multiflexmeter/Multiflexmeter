@@ -25,6 +25,7 @@
 #include "lora_app.h"
 #include "LoRaMac.h"
 
+#include "common/softwareVersion.h"
 #include "IO/board_io.h"
 #include "IO/board_io_functions.h"
 #include "IO/led.h"
@@ -656,6 +657,48 @@ struct_wakeupSource getWakeupSource(void)
 }
 
 /**
+ * @brief override function getSoftwareSensorboard(), needs to be override by real functions
+ *
+ * @return
+ */
+const char * getSoftwareSensorboard(int sensorModuleId)
+{
+  //check valid argument
+  if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
+  {
+    return NO_VERSION;
+  }
+
+  //check on control character, not printable
+  if( iscntrl( (int) FRAM_Settings.modules[sensorModuleId].version[0] ) )
+  {
+    return NO_VERSION;
+  }
+
+  //check on 0xFF, default value of not written flash
+  if( FRAM_Settings.modules[sensorModuleId].version[0] == 0xFF )
+  {
+    return NO_VERSION;
+  }
+
+  return FRAM_Settings.modules[sensorModuleId].version;
+}
+
+/**
+ * @brief override function getProtocolSensorboard(), needs to be override by real functions
+ *
+ * @return
+ */
+const uint8_t getProtocolSensorboard(int sensorModuleId)
+{
+  if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
+  {
+    return 0;
+  }
+  return FRAM_Settings.sensorModuleProtocol[sensorModuleId];
+}
+
+/**
  * @fn const printSensorModuleError(SensorError)
  * @brief helper function to print sensor module error status information to debug port.
  *
@@ -693,6 +736,69 @@ static const void printSensorModuleError(SensorError status)
       break;
 
     }
+}
+
+/**
+ * @fn const void printEndLine(uint32_t, uint32_t)
+ * @brief helper function to print EndLine to debug port
+ *
+ * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
+ * @param TimeStampState : \ref VLEVEL_L, \ref VLEVEL_M, \ref VLEVEL_H
+ */
+static const void printEndLine(uint32_t VerboseLevel, uint32_t TimeStampState)
+{
+  APP_LOG(VerboseLevel, TimeStampState, "\r\n"); //print end of line
+}
+
+/**
+ * @fn const void printSeparatorLine(uint32_t, uint32_t, const char, int, bool)
+ * @brief helper function to print an separator line of character with length to debug port. Endline conditional.
+ *
+ * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
+ * @param TimeStampState : \ref VLEVEL_L, \ref VLEVEL_M, \ref VLEVEL_H
+ * @param character : character to print as marking
+ * @param length : number of characters
+ * @param endLine : true = print EndLine, false = no EndLine is added.
+ */
+static const void printSeparatorLine(uint32_t VerboseLevel, uint32_t TimeStampState, const char character, int length, bool endLine)
+{
+  while(length-- > 0)
+    APP_LOG(VerboseLevel, TimeStampState, "%c", character); //print character
+
+  if( endLine )
+    printEndLine(VerboseLevel, TimeStampState);
+}
+
+/**
+ * @fn const void printHeader(uint32_t, uint32_t, const char, int, const char*)
+ * @brief helper function to print an header line with pre and post filling of character to debug port.
+ * Always with endLine
+ *
+ * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
+ * @param TimeStampState : \ref VLEVEL_L, \ref VLEVEL_M, \ref VLEVEL_H
+ * @param character : character to print as marking
+ * @param length : number of characters
+ * @param header : the header to print
+ */
+static const void printHeader(uint32_t VerboseLevel, uint32_t TimeStampState, const char character, int length, const char * header)
+{
+  int lengthHeader = strlen(header);
+  int halfLength = 0;
+
+  if( length > (lengthHeader + 4)) //check length is at least 4 larger, for with space and devide by two
+  {
+    halfLength = length - (lengthHeader + 2);
+    halfLength >>= 1; //devide by two
+  }
+  else
+  {
+    halfLength = 0;
+  }
+
+  printSeparatorLine( VerboseLevel, TimeStampState, character, length, true ); //print line with end
+  printSeparatorLine( VerboseLevel, TimeStampState, character, halfLength, false ); //print first half, without end
+  APP_LOG(VerboseLevel, TimeStampState, " %s ", header); //print header with surrounding withspace
+  printSeparatorLine( VerboseLevel, TimeStampState, character, halfLength, true ); //print first half, with end
 }
 
 /**
@@ -745,8 +851,34 @@ static const void printCounters(void)
   APP_LOG(TS_OFF, VLEVEL_H, "#####\r\n####DevNonce: %u, JoinNonce: %u, DnFcnt: %u, UpFcnt: %u####\r\n####\r\n", getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter());
 }
 
-#ifdef LORA_PERIODICALLY_CONFIRMED_MSG
+/**
+ * @fn const void printFirmwareVersionInfo(void)
+ * @brief function to print firmware info to debug port.
+ *
+ */
+static const void printFirmwareVersionInfo(void)
+{
+  int length = 40;
+  int lengthPre = 3;
+  char character = 'X';
+  printHeader(TS_OFF, VLEVEL_H, character, length, "FIRMWARE");
 
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+  APP_LOG(TS_OFF, VLEVEL_H,  " MFM main version: %s\r\n", getSoftwareVersionMFM());
+
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+  APP_LOG(TS_OFF, VLEVEL_H,  " MFM main protocol: %s\r\n", getProtocolVersionConfig());
+
+  for(int i = 0; i<MAX_SENSOR_MODULE; i++)
+  {
+    printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
+    APP_LOG(TS_OFF, VLEVEL_H, " MFM SensorModule %d: %s, protocol: %d\r\n", i+1, getSoftwareSensorboard(i), getProtocolSensorboard(i));
+  }
+
+  printSeparatorLine(TS_OFF, VLEVEL_H, character, length, true);
+}
+
+#ifdef LORA_PERIODICALLY_CONFIRMED_MSG
 /**
  * @fn const bool checkTxConfirmed(uint8_t, uint16_t)
  * @brief function to check for confirmed or unconfirmed message.
@@ -840,6 +972,8 @@ const void mainTask(void)
       MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
 
       restoreFramSettingsStruct(&FRAM_Settings, sizeof(FRAM_Settings)); //read settings from FRAM
+
+      printFirmwareVersionInfo(); //print firmware versions, after restore FRAM
 
       APP_LOG(TS_OFF, VLEVEL_H, "Restore diagnostic: BAT: %d, USB: %d, BOX: %d\r\n", FRAM_Settings.diagnosticBits.bit.batteryLow, FRAM_Settings.diagnosticBits.bit.usbConnected, FRAM_Settings.diagnosticBits.bit.lightSensorActive);
 
@@ -1985,46 +2119,4 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
 const void rxDataReady(void)
 {
   loraReceiveReady = true;
-}
-
-/**
- * @brief override function getSoftwareSensorboard(), needs to be override by real functions
- *
- * @return
- */
-const char * getSoftwareSensorboard(int sensorModuleId)
-{
-  //check valid argument
-  if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
-  {
-    return NO_VERSION;
-  }
-
-  //check on control character, not printable
-  if( iscntrl( (int) FRAM_Settings.modules[sensorModuleId].version[0] ) )
-  {
-    return NO_VERSION;
-  }
-
-  //check on 0xFF, default value of not written flash
-  if( FRAM_Settings.modules[sensorModuleId].version[0] == 0xFF )
-  {
-    return NO_VERSION;
-  }
-
-  return FRAM_Settings.modules[sensorModuleId].version;
-}
-
-/**
- * @brief override function getProtocolSensorboard(), needs to be override by real functions
- *
- * @return
- */
-const uint8_t getProtocolSensorboard(int sensorModuleId)
-{
-  if( sensorModuleId < 0 ||  sensorModuleId >= sizeof(FRAM_Settings.modules) / sizeof(FRAM_Settings.modules[0]) )
-  {
-    return 0;
-  }
-  return FRAM_Settings.sensorModuleProtocol[sensorModuleId];
 }
