@@ -45,7 +45,7 @@ const char NO_VERSION[]="";
 #define RTC_USED_FOR_SHUTDOWN_PROCESSOR //comment if feature must be disabled. //if enabled jumper on J11 1-2 must be placed.
 
 #define LORA_REJOIN_NUMBER_OF_RETRIES   5
-#define INTERVAL_NEXT_SENSOR  (60000) //1 minute
+#define INTERVAL_NEXT_SENSOR_IN_ONE_ROUND  (60000) //1 minute
 
 static volatile bool mainTaskActive;
 static uint32_t mainTask_tmr;
@@ -379,13 +379,13 @@ static UTIL_TIMER_Time_t getNextMeasureInterval(bool sameRound, UTIL_TIMER_Time_
   UTIL_TIMER_Time_t newInterval = 0;
   if (sameRound ) //check if next interval is from an other sensor in the same round, then use short time of one minute.
   {
-    newInterval = INTERVAL_NEXT_SENSOR; //next round, every minute transmit each sensor
+    newInterval = INTERVAL_NEXT_SENSOR_IN_ONE_ROUND; //next round, every minute transmit each sensor
   }
   else
   { //the round is finished, then set the remaining interval time, first check if there is time
-    if( time > numberOfSensors * INTERVAL_NEXT_SENSOR )
+    if( time > numberOfSensors * INTERVAL_NEXT_SENSOR_IN_ONE_ROUND )
     {
-      newInterval -= numberOfSensors * INTERVAL_NEXT_SENSOR;
+      newInterval -= numberOfSensors * INTERVAL_NEXT_SENSOR_IN_ONE_ROUND;
     }
     else
     { //multiple sensor measure time is larger then the interval setting, use interval setting directly.
