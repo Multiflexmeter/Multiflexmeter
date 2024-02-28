@@ -621,7 +621,11 @@ const bool checkForceRejoin( bool enable)
 
   if( rejoin )
   {
-    APP_LOG(TS_OFF, VLEVEL_L, "\r\n----- FORCED REJOIN BY RESET -----\r\n\r\n" );
+    uint32_t VerboseLevel = VLEVEL_L;
+    char character = '-';
+    int length = 40;
+    printHeader(TS_OFF, VerboseLevel, character, length, "FORCED REJOIN BY RESET");
+    printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
   }
 
   return rejoin;
