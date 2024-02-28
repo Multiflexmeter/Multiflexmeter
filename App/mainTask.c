@@ -328,6 +328,69 @@ const void setUpFCounter(uint16_t counter)
 }
 
 /**
+ * @fn const void printEndLine(uint32_t, uint32_t)
+ * @brief helper function to print EndLine to debug port
+ *
+ * @param TimeStampState : \ref VLEVEL_L, \ref VLEVEL_M, \ref VLEVEL_H
+ * * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
+ */
+static const void printEndLine(uint32_t TimeStampState, uint32_t VerboseLevel)
+{
+  APP_LOG(TimeStampState, VerboseLevel, "\r\n"); //print end of line
+}
+
+/**
+ * @fn const void printSeparatorLine(uint32_t, uint32_t, const char, int, bool)
+ * @brief helper function to print an separator line of character with length to debug port. Endline conditional.
+ *
+ * @param TimeStampState : \ref VLEVEL_L, \ref VLEVEL_M, \ref VLEVEL_H
+ * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
+ * @param character : character to print as marking
+ * @param length : number of characters
+ * @param endLine : true = print EndLine, false = no EndLine is added.
+ */
+static const void printSeparatorLine(uint32_t TimeStampState, uint32_t VerboseLevel, const char character, int length, bool endLine)
+{
+  while(length-- > 0)
+    APP_LOG(TimeStampState, VerboseLevel, "%c", character); //print character
+
+  if( endLine )
+    printEndLine(TimeStampState, VerboseLevel);
+}
+
+/**
+ * @fn const void printHeader(uint32_t, uint32_t, const char, int, const char*)
+ * @brief helper function to print an header line with pre and post filling of character to debug port.
+ * Always with endLine
+ *
+ * @param TimeStampState : \ref VLEVEL_L, \ref VLEVEL_M, \ref VLEVEL_H
+ * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
+ * @param character : character to print as marking
+ * @param length : number of characters
+ * @param header : the header to print
+ */
+static const void printHeader(uint32_t TimeStampState, uint32_t VerboseLevel, const char character, int length, const char * header)
+{
+  int lengthHeader = strlen(header);
+  int halfLength = 0;
+
+  if( length > (lengthHeader + 4)) //check length is at least 4 larger, for with space and devide by two
+  {
+    halfLength = length - (lengthHeader + 2);
+    halfLength >>= 1; //devide by two
+  }
+  else
+  {
+    halfLength = 0;
+  }
+
+  printSeparatorLine( TimeStampState, VerboseLevel, character, length, true ); //print line with end
+  printSeparatorLine( TimeStampState, VerboseLevel, character, halfLength, false ); //print first half, without end
+  APP_LOG(TimeStampState, VerboseLevel, " %s ", header); //print header with surrounding withspace
+  printSeparatorLine( TimeStampState, VerboseLevel, character, halfLength, true ); //print first half, with end
+}
+
+/**
  * @fn const void executeBatteryMeasure(void)
  * @brief helper function to read the battery monitor data and print a debug line
  *
@@ -558,7 +621,11 @@ const bool checkForceRejoin( bool enable)
 
   if( rejoin )
   {
-    APP_LOG(TS_OFF, VLEVEL_L, "\r\n----- FORCED REJOIN BY RESET -----\r\n\r\n" );
+    uint32_t VerboseLevel = VLEVEL_L;
+    char character = '-';
+    int length = 40;
+    printHeader(TS_OFF, VerboseLevel, character, length, "FORCED REJOIN BY RESET");
+    printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
   }
 
   return rejoin;
@@ -572,53 +639,64 @@ const bool checkForceRejoin( bool enable)
  */
 struct_wakeupSource getWakeupSource(void)
 {
+  uint32_t VerboseLevel = VLEVEL_M;
+  int length = 40;
+  int lengthPre = 3;
+  char character = '%';
   struct_wakeupSource wakeupSource = {0};
+
   readStatusRegisterRtc(); //read the RTC status registers
 
-#if VERBOSE_LEVEL == VLEVEL_H
-  APP_LOG(TS_OFF, VLEVEL_H, "**** RTC: status: ");
-  APP_LOG(TS_OFF, VLEVEL_H, "0x%02x", getStatusRegisterRtc());
-#endif
+  printHeader(TS_OFF, VerboseLevel, character, length, "WakeUp Source");
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " RTC: status register: ");
+  APP_LOG(TS_OFF, VerboseLevel, "0x%02x\r\n", getStatusRegisterRtc());
 
   //check alarm, indicates awake from alarm
   if (getWakeupAlarmStatus(0))
   {
     wakeupSource.byAlarm = true;
-    APP_LOG(TS_OFF, VLEVEL_H, ", ALARM");
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " ALARM\r\n");
   }
 
   //check BAT flag is set, indicate battery disconnected.
   if (getWakeupBatStatus(0))
   {
     wakeupSource.byLowBattery = true;
-    APP_LOG(TS_OFF, VLEVEL_H, ", BAT");
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " BAT\r\n");
   }
 
   //check ex1 IRQ from RTC
   if( getWakeupEx1Status(0) )
   {
     //combination of several sources, USB, BAT_ALERT, SENSOR IRQ
-    APP_LOG(TS_OFF, VLEVEL_H, ", WAKE EX1");
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " WAKE EX1\r\n");
 
     //check USB
     if( readInput_board_io(EXT_IOUSB_CONNECTED) )
     {
       wakeupSource.byUSB = true;
-      APP_LOG(TS_OFF, VLEVEL_H, ", USB");
+      printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+      APP_LOG(TS_OFF, VerboseLevel, " USB\r\n");
     }
 
     //check SENSOR IRQ
     if( readInput_board_io(EXT_IOSENSOR_INTX))
     {
       wakeupSource.bySensorIrq = true;
-      APP_LOG(TS_OFF, VLEVEL_H, ", SENSOR");
+      printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+      APP_LOG(TS_OFF, VerboseLevel, " SENSOR\r\n");
     }
 
     //check BAT_ALERT
     if( readInput_board_io(EXT_IOBAT_ALERT))
     {
       wakeupSource.bySensorIrq = true;
-      APP_LOG(TS_OFF, VLEVEL_H, ", BAT_ALERT");
+      printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+      APP_LOG(TS_OFF, VerboseLevel, " BAT_ALERT\r\n");
     }
   }
 
@@ -626,11 +704,13 @@ struct_wakeupSource getWakeupSource(void)
   if( getWakeupEx2Status(0) )
   {
     //must be Light sensor (box-open)
-    APP_LOG(TS_OFF, VLEVEL_H, ", Ex2");
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " Ex2\r\n");
 
     if( readInput_board_io(INT_IO_BOX_OPEN) )
     {
-      APP_LOG(TS_OFF, VLEVEL_H, ", BOX-OPEN");
+      printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+      APP_LOG(TS_OFF, VerboseLevel, " BOX-OPEN\r\n");
     }
     wakeupSource.byLightSensor = true;
   }
@@ -648,10 +728,11 @@ struct_wakeupSource getWakeupSource(void)
       )
   { //now it should be by Reset
     wakeupSource.byReset = true; //s
-    APP_LOG(TS_OFF, VLEVEL_H, ", ### RESET ###");
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " ### RESET ###\r\n");
   }
 
-  APP_LOG(TS_OFF, VLEVEL_H, " ****\r\n");
+  printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
 
   return wakeupSource;
 }
@@ -706,99 +787,38 @@ const uint8_t getProtocolSensorboard(int sensorModuleId)
  */
 static const void printSensorModuleError(SensorError status)
 {
-  APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: ERROR, " ); //print error
+  uint32_t VerboseLevel = VLEVEL_L;
+
+  APP_LOG(TS_OFF, VerboseLevel, "Sensor module data: ERROR, " ); //print error
 
   switch (status)
   {
 
     case SENSOR_CRC_ERROR:
-      APP_LOG(TS_OFF, VLEVEL_H, "CRC\r\n"); //print error
+      APP_LOG(TS_OFF, VerboseLevel, "CRC\r\n"); //print error
       break;
 
     case SENSOR_REGISTER_ERROR:
-      APP_LOG(TS_OFF, VLEVEL_H, "register\r\n"); //print error
+      APP_LOG(TS_OFF, VerboseLevel, "register\r\n"); //print error
       break;
 
     case SENSOR_TIMEOUT:
-      APP_LOG(TS_OFF, VLEVEL_H, "timeout\r\n"); //print error
+      APP_LOG(TS_OFF, VerboseLevel, "timeout\r\n"); //print error
       break;
 
     case SENSOR_BUFFER_ERROR:
-      APP_LOG(TS_OFF, VLEVEL_H, "buffer\r\n"); //print error
+      APP_LOG(TS_OFF, VerboseLevel, "buffer\r\n"); //print error
       break;
 
     case SENSOR_ID_ERROR:
-      APP_LOG(TS_OFF, VLEVEL_H, "ID\r\n"); //print error
+      APP_LOG(TS_OFF, VerboseLevel, "ID\r\n"); //print error
       break;
 
     default:
-      APP_LOG(TS_OFF, VLEVEL_H, "unknown\r\n"); //print error
+      APP_LOG(TS_OFF, VerboseLevel, "unknown\r\n"); //print error
       break;
 
     }
-}
-
-/**
- * @fn const void printEndLine(uint32_t, uint32_t)
- * @brief helper function to print EndLine to debug port
- *
- * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
- * @param TimeStampState : \ref VLEVEL_L, \ref VLEVEL_M, \ref VLEVEL_H
- */
-static const void printEndLine(uint32_t VerboseLevel, uint32_t TimeStampState)
-{
-  APP_LOG(VerboseLevel, TimeStampState, "\r\n"); //print end of line
-}
-
-/**
- * @fn const void printSeparatorLine(uint32_t, uint32_t, const char, int, bool)
- * @brief helper function to print an separator line of character with length to debug port. Endline conditional.
- *
- * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
- * @param TimeStampState : \ref VLEVEL_L, \ref VLEVEL_M, \ref VLEVEL_H
- * @param character : character to print as marking
- * @param length : number of characters
- * @param endLine : true = print EndLine, false = no EndLine is added.
- */
-static const void printSeparatorLine(uint32_t VerboseLevel, uint32_t TimeStampState, const char character, int length, bool endLine)
-{
-  while(length-- > 0)
-    APP_LOG(VerboseLevel, TimeStampState, "%c", character); //print character
-
-  if( endLine )
-    printEndLine(VerboseLevel, TimeStampState);
-}
-
-/**
- * @fn const void printHeader(uint32_t, uint32_t, const char, int, const char*)
- * @brief helper function to print an header line with pre and post filling of character to debug port.
- * Always with endLine
- *
- * @param VerboseLevel : \ref TS_OFF or \ref TS_ON
- * @param TimeStampState : \ref VLEVEL_L, \ref VLEVEL_M, \ref VLEVEL_H
- * @param character : character to print as marking
- * @param length : number of characters
- * @param header : the header to print
- */
-static const void printHeader(uint32_t VerboseLevel, uint32_t TimeStampState, const char character, int length, const char * header)
-{
-  int lengthHeader = strlen(header);
-  int halfLength = 0;
-
-  if( length > (lengthHeader + 4)) //check length is at least 4 larger, for with space and devide by two
-  {
-    halfLength = length - (lengthHeader + 2);
-    halfLength >>= 1; //devide by two
-  }
-  else
-  {
-    halfLength = 0;
-  }
-
-  printSeparatorLine( VerboseLevel, TimeStampState, character, length, true ); //print line with end
-  printSeparatorLine( VerboseLevel, TimeStampState, character, halfLength, false ); //print first half, without end
-  APP_LOG(VerboseLevel, TimeStampState, " %s ", header); //print header with surrounding withspace
-  printSeparatorLine( VerboseLevel, TimeStampState, character, halfLength, true ); //print first half, with end
 }
 
 /**
@@ -811,13 +831,20 @@ static const void printHeader(uint32_t VerboseLevel, uint32_t TimeStampState, co
  */
 static const void printSensorModuleRoughData(uint8_t sensorModuleId, uint8_t sensorModuleDataSize, uint8_t * data )
 {
-  APP_LOG(TS_OFF, VLEVEL_H, "Sensor module data: %d, %d", sensorModuleId, sensorModuleDataSize); //print sensor type
+  int length = 40;
+  int lengthPre = 3;
+  char character = '*';
+  uint32_t VerboseLevel = VLEVEL_H;
+
+  printHeader(TS_OFF, VerboseLevel, character, length, "Sensor Data");
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " Sensor module data: %d, %d", sensorModuleId, sensorModuleDataSize); //print sensor type
 
   for(int i=0; i < sensorModuleDataSize; i++)
   {
-    APP_LOG(TS_OFF, VLEVEL_H, ", 0x%02x", data[i] ); //print data
+    APP_LOG(TS_OFF, VerboseLevel, ", 0x%02x", data[i] ); //print data
   }
-  APP_LOG(TS_OFF, VLEVEL_H, "\r\n" ); //print end
+  APP_LOG(TS_OFF, VerboseLevel, "\r\n" ); //print end
 }
 
 /**
@@ -828,11 +855,19 @@ static const void printSensorModuleRoughData(uint8_t sensorModuleId, uint8_t sen
  */
 static const void printSensorModulePressure(structDataPressureSensor * pSensorData)
 {
+  int length = 40;
+  int lengthPre = 3;
+  char character = '*';
   uint8_t unitPress[] = "bar";
   uint8_t unitTemp[] = " C";
   unitTemp[0] = 176; //overwrite degree sign to ascii 176
 
-  APP_LOG(TS_OFF, VLEVEL_H, "Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n",
+  uint32_t VerboseLevel = VLEVEL_M;
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+
+  APP_LOG(TS_OFF, VerboseLevel, " Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n",
       (int)pSensorData->pressure1, getDecimal(pSensorData->pressure1, 2), unitPress,
       (int)pSensorData->temperature1, getDecimal(pSensorData->temperature1, 2), unitTemp,
       (int)pSensorData->pressure2, getDecimal(pSensorData->pressure2, 2), unitPress,
@@ -842,13 +877,66 @@ static const void printSensorModulePressure(structDataPressureSensor * pSensorDa
 }
 
 /**
+ * @fn const void printBaseData(struct_MFM_baseData*)
+ * @brief function to print base data to debug port
+ *
+ * @param baseData
+ */
+static const void printBaseData(struct_MFM_baseData * baseData)
+{
+  int length = 40;
+  int lengthPre = 3;
+  char character = '*';
+  uint32_t VerboseLevel = VLEVEL_M;
+
+  printHeader(TS_OFF, VerboseLevel, character, length, "Base Data");
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " Message Type: %d\r\n",  baseData->messageType);
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " EOS: %d\r\n",  baseData->batteryStateEos);
+
+  if( baseData->messageType == 0x01)
+  {
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " Temp BatteryGauge: %d\r\n",  baseData->temperatureGauge);
+  }
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " Temp Controller: %d\r\n",  baseData->temperatureController);
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " Diagnostic: 0x%02x\r\n",  baseData->diagnosticBits);
+  printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
+}
+
+/**
  * @fn const void printCounters(void)
  * @brief helper function to print counters to debug port.
  *
  */
 static const void printCounters(void)
 {
-  APP_LOG(TS_OFF, VLEVEL_H, "#####\r\n####DevNonce: %u, JoinNonce: %u, DnFcnt: %u, UpFcnt: %u####\r\n####\r\n", getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter());
+  int length = 40;
+  int lengthPre = 3;
+  char character = '#';
+  uint32_t VerboseLevel = VLEVEL_H;
+
+  printHeader(TS_OFF, VerboseLevel, character, length, "Dev Nonce");
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " DevNonce: %u\r\n", getDevNonce());
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " JoinNonce: %u\r\n", getJoinNonce());
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " DnFcnt: %u\r\n", getDownFCounter());
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " UpFcnt: %u\r\n", getUpFCounter());
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
 }
 
 /**
@@ -861,21 +949,23 @@ static const void printFirmwareVersionInfo(void)
   int length = 40;
   int lengthPre = 3;
   char character = 'X';
-  printHeader(TS_OFF, VLEVEL_H, character, length, "FIRMWARE");
+  uint32_t VerboseLevel = VLEVEL_L;
 
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H,  " MFM main version: %s\r\n", getSoftwareVersionMFM());
+  printHeader(TS_OFF, VerboseLevel, character, length, "FIRMWARE");
 
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-  APP_LOG(TS_OFF, VLEVEL_H,  " MFM main protocol: %s\r\n", getProtocolVersionConfig());
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel,  " MFM main version: %s\r\n", getSoftwareVersionMFM());
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel,  " MFM main protocol: %s\r\n", getProtocolVersionConfig());
 
   for(int i = 0; i<MAX_SENSOR_MODULE; i++)
   {
-    printSeparatorLine(TS_OFF, VLEVEL_H, character, lengthPre, false);
-    APP_LOG(TS_OFF, VLEVEL_H, " MFM SensorModule %d: %s, protocol: %d\r\n", i+1, getSoftwareSensorboard(i), getProtocolSensorboard(i));
+    printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+    APP_LOG(TS_OFF, VerboseLevel, " MFM SensorModule %d: %s, protocol: %d\r\n", i+1, getSoftwareSensorboard(i), getProtocolSensorboard(i));
   }
 
-  printSeparatorLine(TS_OFF, VLEVEL_H, character, length, true);
+  printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
 }
 
 #ifdef LORA_PERIODICALLY_CONFIRMED_MSG
@@ -979,6 +1069,8 @@ const void mainTask(void)
 
       mainTask_state = INIT_SLEEP; //Wake-up by alarm or normal power-up.
 
+      printCounters();
+
       //check a forcedRejoinByReset is active
       if( forceRejoinByReset == true )
       {
@@ -990,7 +1082,6 @@ const void mainTask(void)
       //no forced Rejoin by reset active, then check wakeup source is not a valid alarm
       else if( alarmNotYetTriggered() )
       {
-        printCounters();
         mainTask_state = CHECK_USB_CONNECTED; //other wake-up, USB or other (not implemented) go to wait state
       }
 
@@ -1023,8 +1114,6 @@ const void mainTask(void)
 #ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
         loraJoinRetryCounter = 0; //reset, not needed for shutdown, because variable is always 0.
 #endif
-
-        printCounters();
 
         mainTask_state = CHECK_LORA_JOIN;
 
@@ -1476,8 +1565,7 @@ const void mainTask(void)
 
         stMFM_baseData.diagnosticBits = FRAM_Settings.diagnosticBits.byte[0]; //save the first 8 bits
 
-        APP_LOG(TS_OFF, VLEVEL_H, "Temperature controller: %d\r\n",  stMFM_baseData.temperatureController);
-
+        printBaseData(&stMFM_baseData);
 
         writeNewMeasurement(0, &stMFM_sensorModuleData, &stMFM_baseData);
 
@@ -1662,6 +1750,8 @@ const void mainTask(void)
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: timeout\r\n");
         }
+
+        printCounters();
 
         if (measureEOS_enabled) //only if measureEOS is enabled this round
         {
