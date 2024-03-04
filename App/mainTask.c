@@ -686,9 +686,23 @@ struct_wakeupSource getWakeupSource(void)
     //check SENSOR IRQ
     if( readInput_board_io(EXT_IOSENSOR_INTX))
     {
-      wakeupSource.bySensorIrq = true;
-      printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
-      APP_LOG(TS_OFF, VerboseLevel, " SENSOR\r\n");
+      enableVsys(); //enable supply for I/O expander
+      MX_I2C2_Init(); //initialize I2C for BUS, otherwise it could not work because power was down.
+      init_board_io_device(IO_EXPANDER_BUS_INT);
+
+      //check sensor IRQ1-IRQ6
+      for( int i=0; i < 6; i++ )
+      {
+        if (readInput_board_io(EXT_IOINT1 + i))
+        {
+          wakeupSource.bySensorIrq = true;
+          printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+          APP_LOG(TS_OFF, VerboseLevel, " SENSOR INT%d\r\n", i+1);
+        }
+      }
+
+      deinit_IO_Expander(IO_EXPANDER_BUS_INT);
+      disableVsys(); //enable supply for I/O expander
     }
 
     //check BAT_ALERT
