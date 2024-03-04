@@ -715,7 +715,8 @@ struct_wakeupSource getWakeupSource(void)
   }
 
   //check ex2 IRQ from RTC
-  if( getWakeupEx2Status(0) )
+  //skip if EX1 already is active, a pulse is given by IC AM1805 on WDI (=EX2) pin by chip itself.
+  else if( getWakeupEx2Status(0) )
   {
     //must be Light sensor (box-open)
     printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
