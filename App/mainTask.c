@@ -1352,7 +1352,7 @@ const void mainTask(void)
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor module %d, result: %d, samples: %d\r\n", currentSensorModuleIndex + 1, result, numberOfSamples); //print info
 
         memset(stMFM_sensorModuleData.sensorModuleData, 0x00, sizeof(stMFM_sensorModuleData.sensorModuleData));
-        stMFM_sensorModuleData.sensorModuleSlotId = currentSensorModuleIndex; //save slotId
+        stMFM_sensorModuleData.sensorModuleSlotId = currentSensorModuleIndex + 1; //save slotId, convert (+1) from 0-5 -> 1-6
 
         memset(dataBuffer, 0x00, sizeof(dataBuffer));
         sensorFirmwareVersion(currentSensorModuleIndex, dataBuffer, sizeof(dataBuffer));
