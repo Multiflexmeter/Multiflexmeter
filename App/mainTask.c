@@ -853,7 +853,7 @@ static const void printSensorModuleRoughData(uint8_t sensorModuleId, uint8_t sen
 
   printHeader(TS_OFF, VerboseLevel, character, length, "Sensor Data");
   printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
-  APP_LOG(TS_OFF, VerboseLevel, " Sensor module data: %d, %d", sensorModuleId, sensorModuleDataSize); //print sensor type
+  APP_LOG(TS_OFF, VerboseLevel, " Sensor module data: %d, %d", sensorModuleId + 1, sensorModuleDataSize); //print sensor type
 
   for(int i=0; i < sensorModuleDataSize; i++)
   {
@@ -1272,7 +1272,7 @@ const void mainTask(void)
       if( waiting == false ) //check wait time is expired
       {
         CommandStatus newStatus = sensorInitStatus(currentSensorModuleIndex);
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor init status: %d, %d\r\n", currentSensorModuleIndex, newStatus ); //print sensor type
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor init status: %d, %d\r\n", currentSensorModuleIndex + 1, newStatus ); //print sensor type
 
         if( newStatus == COMMAND_NOTAVAILABLE || newStatus == COMMAND_ERROR )
         {
@@ -1295,7 +1295,7 @@ const void mainTask(void)
       {
         uint8_t result = sensorInitStart(currentSensorModuleIndex);
 
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor init start: module: %d, result: %d\r\n", currentSensorModuleIndex, result ); //print sensor type
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor init start: module: %d, result: %d\r\n", currentSensorModuleIndex + 1, result ); //print sensor type
 
         setWait(50);  //set wait time of sensor
         setTimeout(10000); //10sec
@@ -1309,7 +1309,7 @@ const void mainTask(void)
       if( waiting == false ) //check wait time is expired
       {
         CommandStatus newStatus = sensorInitStatus(currentSensorModuleIndex);
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure status: %d, %d\r\n", currentSensorModuleIndex, newStatus ); //print sensor type
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure status: %d, %d\r\n", currentSensorModuleIndex + 1, newStatus ); //print sensor type
 
         if( newStatus != COMMNAND_ACTIVE || timeout == true) //measurement ready or timeout
         {
@@ -1349,10 +1349,10 @@ const void mainTask(void)
         uint8_t numberOfSamples = getNumberOfSamples(currentSensorModuleIndex + 1); //get configured number of samples
 
         result = sensorSetSamples(currentSensorModuleIndex, numberOfSamples); //write samples to sensor module
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module %d, result: %d, samples: %d\r\n", currentSensorModuleIndex, result, numberOfSamples); //print info
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module %d, result: %d, samples: %d\r\n", currentSensorModuleIndex + 1, result, numberOfSamples); //print info
 
         memset(stMFM_sensorModuleData.sensorModuleData, 0x00, sizeof(stMFM_sensorModuleData.sensorModuleData));
-        stMFM_sensorModuleData.sensorModuleSlotId = currentSensorModuleIndex; //save slotId
+        stMFM_sensorModuleData.sensorModuleSlotId = currentSensorModuleIndex + 1; //save slotId, convert (+1) from 0-5 -> 1-6
 
         memset(dataBuffer, 0x00, sizeof(dataBuffer));
         sensorFirmwareVersion(currentSensorModuleIndex, dataBuffer, sizeof(dataBuffer));
@@ -1361,17 +1361,17 @@ const void mainTask(void)
         strncpy(FRAM_Settings.modules[currentSensorModuleIndex].version, (char*)dataBuffer, sizeof(FRAM_Settings.modules[currentSensorModuleIndex].version)); //copy data to save to FRAM
         #pragma GCC diagnostic warning "-Wstringop-truncation" //enable truncation warning for next
 
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module firmware: %d, %s\r\n", currentSensorModuleIndex, dataBuffer ); //print VERSION
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module firmware: %d, %s\r\n", currentSensorModuleIndex + 1, dataBuffer ); //print VERSION
 
         sensorProtocol = 0; //reset first
         result = sensorProtocolVersion(currentSensorModuleIndex, &sensorProtocol);
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module protocol version: %d, %d\r\n", currentSensorModuleIndex, result == SENSOR_OK ? sensorProtocol : -1); //print protocol version
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module protocol version: %d, %d\r\n", currentSensorModuleIndex + 1, result == SENSOR_OK ? sensorProtocol : -1); //print protocol version
         stMFM_sensorModuleData.sensorModuleProtocolId = sensorProtocol; //save value
         FRAM_Settings.sensorModuleProtocol[currentSensorModuleIndex] = sensorProtocol; //save value to FRAM
 
         sensorType = 0; //reset first
         result = sensorReadType(currentSensorModuleIndex, &sensorType);
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module type: %d, %d\r\n", currentSensorModuleIndex, sensorType ); //print sensor type
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module type: %d, %d\r\n", currentSensorModuleIndex + 1, sensorType ); //print sensor type
         stMFM_sensorModuleData.sensorModuleTypeId = sensorType; //save value
         if( getSensorType(currentSensorModuleIndex + 1) != sensorType )
         {
@@ -1381,7 +1381,7 @@ const void mainTask(void)
 
         uint16_t measureTime = 0;
         result = sensorReadSetupTime(currentSensorModuleIndex, &measureTime); //get measureTime for sensorModule
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module measure time: %d, %u\r\n", currentSensorModuleIndex, measureTime ); //print sensor measure time
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module measure time: %d, %u\r\n", currentSensorModuleIndex + 1, measureTime ); //print sensor measure time
 
         if( measureTime == 65535) //check error value
         {
@@ -1405,7 +1405,7 @@ const void mainTask(void)
       if( waiting == false ) //check wait time is expired
       {
         CommandStatus newStatus = sensorMeasurementStatus(currentSensorModuleIndex);
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure status: %d, %d\r\n", currentSensorModuleIndex, newStatus ); //print sensor type
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure status: %d, %d\r\n", currentSensorModuleIndex + 1, newStatus ); //print sensor type
 
         if( (newStatus != COMMNAND_ACTIVE && newStatus != NO_ACTIVE_COMMAND) || timeout == true) //measurement ready or timeout
         {
@@ -1622,7 +1622,7 @@ const void mainTask(void)
 
         if( FRAM_Settings.numberOfActiveSensorModules > 0 ) //check sensorModule is enabled, found one module or more.
         {
-          APP_LOG(TS_OFF, VLEVEL_H, "Sensor module old: %d, %d\r\n", currentSensorModuleIndex, currentNumberOfSensorModule ); //print sensor module index
+          APP_LOG(TS_OFF, VLEVEL_H, "Sensor module old: %d, %d\r\n", currentSensorModuleIndex + 1, currentNumberOfSensorModule ); //print sensor module index
           int escape = MAX_SENSOR_MODULE;
           do
           {
@@ -1644,7 +1644,7 @@ const void mainTask(void)
           FRAM_Settings.numberOfSensorModule = currentNumberOfSensorModule; //copy to save
         }
 
-        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module new: %d, %d, %d\r\n", currentSensorModuleIndex, currentNumberOfSensorModule, nextSensorInSameMeasureRound ); //print sensor module index
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module new: %d, %d, %d\r\n", currentSensorModuleIndex + 1, currentNumberOfSensorModule, nextSensorInSameMeasureRound ); //print sensor module index
 
         setTimeout(10000); //10sec
         mainTask_state = WAIT_LORA_TRANSMIT_READY;
