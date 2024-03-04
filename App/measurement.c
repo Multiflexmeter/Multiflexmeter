@@ -473,6 +473,18 @@ int32_t printMeasurementData( uint32_t measurementId, uint8_t * buffer, uint32_t
     if( length >= bufferLength )
         return -1;
   }
+
+  length += snprintf((char*) buffer + length, bufferLength - length, ";");
+  length += snprintf((char*) buffer + length, bufferLength - length, "%u;", measurement.MFM_baseData.stBaseData.messageType);
+  length += snprintf((char*) buffer + length, bufferLength - length, "%u;", measurement.MFM_baseData.stBaseData.batteryStateEos);
+  length += snprintf((char*) buffer + length, bufferLength - length, "%d;", measurement.MFM_baseData.stBaseData.temperatureGauge);
+  length += snprintf((char*) buffer + length, bufferLength - length, "%d;", measurement.MFM_baseData.stBaseData.temperatureController);
+  length += snprintf((char*) buffer + length, bufferLength - length, "%u;", measurement.MFM_baseData.stBaseData.diagnosticBits);
+  for( int i = 0; i<sizeof(measurement.MFM_baseData.stBaseData.spare); i++ )
+  {
+    length += snprintf((char*) buffer + length, bufferLength - length, "%u;", measurement.MFM_baseData.stBaseData.spare[i]);
+  }
+
   length += snprintf((char*) buffer + length, bufferLength - length, "\r\n");
 
   if( length >= bufferLength )
