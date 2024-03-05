@@ -7,30 +7,28 @@
 
 extern const lmic_pinmap lmic_pins;
 
-struct tx_pkt_t
-{
+struct tx_pkt_t {
   uint16_t distance_to_water;
   float air_temperature;
 };
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-  // These functions should not actually be exported
-  // but having them defined here, save us from forward-
-  // defining them in main.cpp :)
+// These functions should not actually be exported
+// but having them defined here, save us from forward-
+// defining them in main.cpp :)
 
-  void scheduleNextMeasurement();
-  ostime_t getTransmissionTime(ostime_t req_time);
+void scheduleNextMeasurement();
+ostime_t getTransmissionTime(ostime_t req_time);
 
-  osjob_t main_job;
-  void job_error(osjob_t *job);
-  void job_reset(osjob_t *job);
-  void job_pingVersion(osjob_t *job);
-  void job_performMeasurements(osjob_t *job);
-  void job_fetchAndSend(osjob_t *job);
+osjob_t main_job;
+void job_error(osjob_t *job);
+void job_reset(osjob_t *job);
+void job_pingVersion(osjob_t *job);
+void job_performMeasurements(osjob_t *job);
+void job_fetchAndSend(osjob_t *job);
 
 #ifdef __cplusplus
 }

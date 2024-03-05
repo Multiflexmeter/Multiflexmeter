@@ -1,17 +1,16 @@
 #if !defined(_SENSORS_H_)
 #define _SENSORS_H_
 
-#include <stdint.h>
 #include "errors.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-  error_t sensors_init(void);
-  error_t sensors_performMeasurement(void);
-  error_t sensors_readMeasurement(uint8_t *buf, uint8_t *length);
+error_t sensors_init(void);
+error_t sensors_performMeasurement(void);
+error_t sensors_readMeasurement(uint8_t *buf, uint8_t *length);
 
 #ifdef __cplusplus
 }

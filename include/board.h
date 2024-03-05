@@ -5,10 +5,9 @@
 
 // Define
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
-  void board_setup(void);
+void board_setup(void);
 #ifdef __cplusplus
 }
 #endif

@@ -2,11 +2,10 @@
 #define _WDT_H_
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-  void mcu_reset(void);
+void mcu_reset(void);
 
 #ifdef __cplusplus
 }

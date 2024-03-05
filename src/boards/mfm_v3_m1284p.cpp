@@ -3,8 +3,7 @@
 #include "board.h"
 #include <avr/io.h>
 
-void board_setup(void)
-{
+void board_setup(void) {
   // CLKPR = 1 << CLKPCE;
   // CLKPR = 0b0001;
 }

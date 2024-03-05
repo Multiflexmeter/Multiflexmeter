@@ -1,17 +1,17 @@
 #include "main.h"
 
-#include <Arduino.h>
-#include <avr/power.h>
-#include "errors.h"
-#include "sensors.h"
-#include "rom_conf.h"
-#include "debug.h"
 #include "board.h"
+#include "debug.h"
+#include "errors.h"
+#include "rom_conf.h"
+#include "sensors.h"
 #include "smbus.h"
 #include "wdt.h"
+#include <Arduino.h>
+#include <avr/power.h>
 
-#define MEASUREMENT_SEND_DELAY_AFTER_PERFORM_S 10 
-#define MEASUREMENT_DELAY_AFTER_PING_S 45 
+#define MEASUREMENT_SEND_DELAY_AFTER_PERFORM_S 10
+#define MEASUREMENT_DELAY_AFTER_PING_S 45
 
 const lmic_pinmap lmic_pins = {
     .nss = PIN_NSS,
@@ -21,10 +21,9 @@ const lmic_pinmap lmic_pins = {
 };
 
 /**
- * 
+ *
  */
-void setup(void)
-{
+void setup(void) {
   board_setup();
 
 #if defined(DEBUG) || defined(PRINT_BUILD_DATE_TIME)
@@ -49,9 +48,9 @@ void setup(void)
   LMIC_reset();
   LMIC_setClockError(MAX_CLOCK_ERROR * 2 / 100);
 
-  // Retrieve keys from EEPROM, if it fails we exit the setup and enter low-power mode by scheduling a never ending task
-  if (!conf_load())
-  {
+  // Retrieve keys from EEPROM, if it fails we exit the setup and enter
+  // low-power mode by scheduling a never ending task
+  if (!conf_load()) {
     _debug(F("Invalid EEPROM, did you flash the EEPROM?\n"));
     os_setCallback(&main_job, FUNC_ADDR(job_error));
     return;
@@ -60,34 +59,32 @@ void setup(void)
   LMIC_startJoining();
 }
 
-void loop(void)
-{
-  os_runloop_once();
-}
+void loop(void) { os_runloop_once(); }
 
-void job_reset(osjob_t *job)
-{
+void job_reset(osjob_t *job) {
   _debugTime();
   _debug(F("RESETTING\n"));
   _debugFlush();
   mcu_reset();
 }
 
-void job_error(osjob_t *job)
-{
+void job_error(osjob_t *job) {
   _debug(F("System errored entering sleep!\n"));
   // Loops indefinitely
-  os_setTimedCallback(job, os_getTime() + sec2osticks(60), FUNC_ADDR(job_error));
+  os_setTimedCallback(job, os_getTime() + sec2osticks(60),
+                      FUNC_ADDR(job_error));
 }
 
 /**
- * @brief Verifies if the requested_time is available for the next measurement, otherwise returns the earliest available time.
- * 
- * @param req_time an absolute os_time value indicating when the measurement should be taken 
- * @return ostime_t the absolute os_time of the requested time or the earliest available time
+ * @brief Verifies if the requested_time is available for the next measurement,
+ * otherwise returns the earliest available time.
+ *
+ * @param req_time an absolute os_time value indicating when the measurement
+ * should be taken
+ * @return ostime_t the absolute os_time of the requested time or the earliest
+ * available time
  */
-ostime_t getTransmissionTime(ostime_t req_time)
-{
+ostime_t getTransmissionTime(ostime_t req_time) {
   ostime_t now = os_getTime();
   ostime_t earliest_time = LMICbandplan_nextTx(os_getTime());
   if (earliest_time - now > req_time - now)
@@ -98,41 +95,47 @@ ostime_t getTransmissionTime(ostime_t req_time)
 /**
  * @brief Transmit the firmware and hardware versions
  */
-void job_pingVersion(osjob_t *job) 
-{
+void job_pingVersion(osjob_t *job) {
   _debugTime();
   _debug(F("job_pingVersion\n"));
   uint16_t fw = versionToUint16(conf_getFirmwareVersion());
   uint16_t hw = versionToUint16(conf_getHardwareVersion());
 
   uint8_t data[5] = {
-    0x10, // 0x01 on fport 2 indicates a version response
-    (uint8_t)(fw >> 8),
-    (uint8_t)(fw & 0xFF),
-    (uint8_t)(hw >> 8),
-    (uint8_t)(hw & 0xFF),
+      0x10, // 0x01 on fport 2 indicates a version response
+      (uint8_t)(fw >> 8),
+      (uint8_t)(fw & 0xFF),
+      (uint8_t)(hw >> 8),
+      (uint8_t)(hw & 0xFF),
   };
-  
+
   LMIC_setTxData2(2, data, sizeof(data), 0);
-  os_setTimedCallback(job, getTransmissionTime(os_getTime() + sec2osticks(MEASUREMENT_DELAY_AFTER_PING_S)), FUNC_ADDR(job_performMeasurements));
+  os_setTimedCallback(
+      job,
+      getTransmissionTime(os_getTime() +
+                          sec2osticks(MEASUREMENT_DELAY_AFTER_PING_S)),
+      FUNC_ADDR(job_performMeasurements));
 }
 
 /**
- * @brief Notify module to start performing a measurement. Will schedule readout and send.
+ * @brief Notify module to start performing a measurement. Will schedule readout
+ * and send.
  */
 void job_performMeasurements(osjob_t *job) {
   _debugTime();
   _debug(F("job_performMeasurements\n"));
   sensors_performMeasurement();
-  os_setTimedCallback(job, os_getTime() + sec2osticks(MEASUREMENT_SEND_DELAY_AFTER_PERFORM_S), FUNC_ADDR(job_fetchAndSend));
+  os_setTimedCallback(
+      job, os_getTime() + sec2osticks(MEASUREMENT_SEND_DELAY_AFTER_PERFORM_S),
+      FUNC_ADDR(job_fetchAndSend));
 }
 
 uint8_t dataBuf[32] = {0};
 /**
- * @brief Fetches latest measurements from modules and schedules them for transmission
+ * @brief Fetches latest measurements from modules and schedules them for
+ * transmission
  */
-void job_fetchAndSend(osjob_t *job)
-{
+void job_fetchAndSend(osjob_t *job) {
   _debugTime();
   _debug(F("job_fetchAndSend\n"));
 
@@ -140,8 +143,7 @@ void job_fetchAndSend(osjob_t *job)
   // TX data pending anymore. If so, then this is most likely
   // due to us trying to send before our previous message was
   // transmitted. This happens when trying to sent to frequently.
-  if (LMIC.opmode & OP_TXRXPEND)
-  {
+  if (LMIC.opmode & OP_TXRXPEND) {
     _debug(F("TXRX Pending...\n"));
     scheduleNextMeasurement();
     return;
@@ -153,8 +155,7 @@ void job_fetchAndSend(osjob_t *job)
 
   // Queue transmission
   lmic_tx_error_t err = LMIC_setTxData2(1, dataBuf, count, 0);
-  if (err != 0)
-  {
+  if (err != 0) {
     _debugTime();
     _debug(F("TX error occured: "));
     _debug(err);
@@ -164,7 +165,8 @@ void job_fetchAndSend(osjob_t *job)
 }
 
 /**
- * @brief Schedules the next measurement job based on measurement interval and allowed duty cycle
+ * @brief Schedules the next measurement job based on measurement interval and
+ * allowed duty cycle
  */
 void scheduleNextMeasurement() {
   // Schedule our next measurement and send
@@ -173,10 +175,14 @@ void scheduleNextMeasurement() {
   uint16_t interval = os_getMeasurementInterval(LMIC.datarate);
   // Account for TTN's arbitrary fair use policy
   if (conf_getUseTTNFairUsePolicy()) {
-    // We are assuming our average payload size is 12 bytes w/ 12 bytes of MAC overhead
+    // We are assuming our average payload size is 12 bytes w/ 12 bytes of MAC
+    // overhead
     uint32_t airtime_ms = osticks2ms(calcAirTime(LMIC.rps, 24));
-    uint32_t tx_per_day = 30000 / airtime_ms; // Policy states max 30s tx time per day
-    uint16_t interval_sec = (uint32_t)86400 / (tx_per_day + 1); // 86400 = 1 day in seconds, +1 to avoid divide by 0
+    uint32_t tx_per_day =
+        30000 / airtime_ms; // Policy states max 30s tx time per day
+    uint16_t interval_sec =
+        (uint32_t)86400 /
+        (tx_per_day + 1); // 86400 = 1 day in seconds, +1 to avoid divide by 0
     _debugTime();
     _debug(F("Fair use: "));
     _debug(F("airtime_ms: "));
@@ -205,59 +211,57 @@ void scheduleNextMeasurement() {
 #define DL_CMD_REJOIN 0xDE
 #define DL_CMD_INTERVAL 0x10
 #define DL_CMD_MODULE 0x11
-void processDownlink(uint8_t cmd, uint8_t* args, uint8_t len) {
-    switch (cmd) {
-        case DL_CMD_REJOIN:
-            // CMD = DE , arg1 = AD
-            // 0xDEAD is the unique command to reset the mcu
-            if (args[0] != 0xAD) return;
-            _debugTime();
-            _debug(F("Scheduling reset\n"));
-            os_setTimedCallback(&main_job, os_getTime() + sec2osticks(5), FUNC_ADDR(job_reset));
-            break;
+void processDownlink(uint8_t cmd, uint8_t *args, uint8_t len) {
+  switch (cmd) {
+  case DL_CMD_REJOIN:
+    // CMD = DE , arg1 = AD
+    // 0xDEAD is the unique command to reset the mcu
+    if (args[0] != 0xAD)
+      return;
+    _debugTime();
+    _debug(F("Scheduling reset\n"));
+    os_setTimedCallback(&main_job, os_getTime() + sec2osticks(5),
+                        FUNC_ADDR(job_reset));
+    break;
 
-        case DL_CMD_INTERVAL:
-            {
-                if (len < 2) return;
-                uint16_t interval = args[0] << 8 | args[1];
-                _debugTime();
-                _debug(F("Changing interval: "));
-                _debug(interval);
-                _debug(F("\n"));
-                conf_setMeasurementInterval(interval);
-                conf_save();
-                os_clearCallback(&main_job);
-                scheduleNextMeasurement();
-            } 
-            break;
+  case DL_CMD_INTERVAL: {
+    if (len < 2)
+      return;
+    uint16_t interval = args[0] << 8 | args[1];
+    _debugTime();
+    _debug(F("Changing interval: "));
+    _debug(interval);
+    _debug(F("\n"));
+    conf_setMeasurementInterval(interval);
+    conf_save();
+    os_clearCallback(&main_job);
+    scheduleNextMeasurement();
+  } break;
 
-        case DL_CMD_MODULE:
-            {
-                // Command is of format
-                // 0x11 <MODULE_ADDRESS> <MODULE_COMMAND> [ARGUMENTS]
-                if (len < 2) return;
-                uint8_t module_address = args[0];
-                uint8_t module_command = args[1];
-                uint8_t* module_command_args = &args[2];
-                uint8_t module_command_args_length = len-2;
-                _debug(F("pdl cmd_mod:"));
-                _debug(module_address);
-                _debug(F(" "));
-                _debug(module_command);
-                _debug(F(" "));
-                _debug(module_command_args_length);
-                _debug(F("\n"));
-                error_t err = smbus_blockWrite(
-                        module_address,
-                        module_command,
-                        module_command_args, module_command_args_length
-                        );
-                if (err != ERR_NONE) {
-                    _debug(F("pdl cmd_mod err\n"));
-                }
-            }
-            break;
+  case DL_CMD_MODULE: {
+    // Command is of format
+    // 0x11 <MODULE_ADDRESS> <MODULE_COMMAND> [ARGUMENTS]
+    if (len < 2)
+      return;
+    uint8_t module_address = args[0];
+    uint8_t module_command = args[1];
+    uint8_t *module_command_args = &args[2];
+    uint8_t module_command_args_length = len - 2;
+    _debug(F("pdl cmd_mod:"));
+    _debug(module_address);
+    _debug(F(" "));
+    _debug(module_command);
+    _debug(F(" "));
+    _debug(module_command_args_length);
+    _debug(F("\n"));
+    error_t err =
+        smbus_blockWrite(module_address, module_command, module_command_args,
+                         module_command_args_length);
+    if (err != ERR_NONE) {
+      _debug(F("pdl cmd_mod err\n"));
     }
+  } break;
+  }
 }
 
 /*
@@ -274,10 +278,8 @@ void processDownlink(uint8_t cmd, uint8_t* args, uint8_t len) {
     - EV_JOIN_TXCOMPLETE
         Device could not join through OTAA
 */
-void onEvent(ev_t ev)
-{
-  switch (ev)
-  {
+void onEvent(ev_t ev) {
+  switch (ev) {
   /*
     Fired when the device starts the OTAA join procedure
     This is important when Rejoining after a losing connection
@@ -307,22 +309,20 @@ void onEvent(ev_t ev)
   case EV_TXCOMPLETE:
     _debugTime();
     _debug(F("EV_TXCOMPLETE"));
-    if (LMIC.dataLen > 0)
-    {
+    if (LMIC.dataLen > 0) {
       _debug(F(" with "));
       _debug(LMIC.dataLen);
       _debug(F(" bytes RX\n"));
       // command, args, args_length
-      processDownlink(LMIC.frame[LMIC.dataBeg], &LMIC.frame[LMIC.dataBeg+1], LMIC.dataLen-1);
-    }
-    else
-    {
+      processDownlink(LMIC.frame[LMIC.dataBeg], &LMIC.frame[LMIC.dataBeg + 1],
+                      LMIC.dataLen - 1);
+    } else {
       _debug("\n");
     }
     break;
 
   /*
-    Fired when the device has completed a join request but did not 
+    Fired when the device has completed a join request but did not
     receive a (valid) response and thus failed to join
   */
   case EV_JOIN_TXCOMPLETE:
@@ -351,22 +351,12 @@ void onEvent(ev_t ev)
 /*
   LoRaWAN keys for LMIC library
 */
-void os_getArtEui(uint8_t *buf)
-{
-  conf_getAppEui(buf);
-}
+void os_getArtEui(uint8_t *buf) { conf_getAppEui(buf); }
 
-void os_getDevEui(uint8_t *buf)
-{
-  conf_getDevEui(buf);
-}
+void os_getDevEui(uint8_t *buf) { conf_getDevEui(buf); }
 
-void os_getDevKey(uint8_t *buf)
-{
-  conf_getAppKey(buf);
-}
+void os_getDevKey(uint8_t *buf) { conf_getAppKey(buf); }
 
-uint16_t os_getMeasurementInterval(uint8_t dr)
-{
+uint16_t os_getMeasurementInterval(uint8_t dr) {
   return conf_getMeasurementInterval();
 }
