@@ -4949,7 +4949,7 @@
   )
 
   (symbol (lib_id "Device:CP_Small") (at 43.18 27.94 0) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
+    (in_bom yes) (on_board yes) (dnp yes)
     (uuid 00000000-0000-0000-0000-000060934e21)
     (property "Reference" "C12" (at 36.83 27.94 0)
       (effects (font (size 1.27 1.27)) (justify left))
