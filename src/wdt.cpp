@@ -2,7 +2,7 @@
 #include <avr/wdt.h>
 #include <avr/interrupt.h>
 
-uint8_t do_reset = 0;
+volatile uint8_t do_reset = 0;
 
 ISR(WDT_vect)
 {

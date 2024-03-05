@@ -2,14 +2,16 @@
 
 #include <Arduino.h>
 #include <avr/power.h>
+#include "errors.h"
 #include "sensors.h"
 #include "rom_conf.h"
 #include "debug.h"
 #include "board.h"
+#include "smbus.h"
 #include "wdt.h"
 
-#define MEASUREMENT_SEND_DELAY_S 5
-#define PING_MEASUREMENT_DELAY_s 25
+#define MEASUREMENT_SEND_DELAY_AFTER_PERFORM_S 10 
+#define MEASUREMENT_DELAY_AFTER_PING_S 45 
 
 const lmic_pinmap lmic_pins = {
     .nss = PIN_NSS,
@@ -24,22 +26,6 @@ const lmic_pinmap lmic_pins = {
 void setup(void)
 {
   board_setup();
-
-  // Serial.begin(115200);
-  // Serial.println("Hello world!");
-
-  // sensors_init();
-  // sensors_performMeasurement();
-  // delay(1000);
-  // uint8_t data[16] = {};
-  // uint8_t count = 0;
-  // error_t err = ERR_NONE;
-  // for (;;) {
-  //   if ((err = sensors_readMeasurement(data, &count)) != ERR_NONE) {
-  //     Serial.printf("ERROR: %d\n", err);
-  //   }
-  //   delay(200);
-  // }
 
 #if defined(DEBUG) || defined(PRINT_BUILD_DATE_TIME)
   Serial.begin(115200);
@@ -128,7 +114,7 @@ void job_pingVersion(osjob_t *job)
   };
   
   LMIC_setTxData2(2, data, sizeof(data), 0);
-  os_setTimedCallback(job, getTransmissionTime(os_getTime() + sec2osticks(PING_MEASUREMENT_DELAY_s)), FUNC_ADDR(job_performMeasurements));
+  os_setTimedCallback(job, getTransmissionTime(os_getTime() + sec2osticks(MEASUREMENT_DELAY_AFTER_PING_S)), FUNC_ADDR(job_performMeasurements));
 }
 
 /**
@@ -138,7 +124,7 @@ void job_performMeasurements(osjob_t *job) {
   _debugTime();
   _debug(F("job_performMeasurements\n"));
   sensors_performMeasurement();
-  os_setTimedCallback(job, os_getTime() + sec2osticks(MEASUREMENT_SEND_DELAY_S), FUNC_ADDR(job_fetchAndSend));
+  os_setTimedCallback(job, os_getTime() + sec2osticks(MEASUREMENT_SEND_DELAY_AFTER_PERFORM_S), FUNC_ADDR(job_fetchAndSend));
 }
 
 uint8_t dataBuf[32] = {0};
@@ -216,6 +202,64 @@ void scheduleNextMeasurement() {
   os_setTimedCallback(&main_job, next_send, FUNC_ADDR(job_performMeasurements));
 }
 
+#define DL_CMD_REJOIN 0xDE
+#define DL_CMD_INTERVAL 0x10
+#define DL_CMD_MODULE 0x11
+void processDownlink(uint8_t cmd, uint8_t* args, uint8_t len) {
+    switch (cmd) {
+        case DL_CMD_REJOIN:
+            // CMD = DE , arg1 = AD
+            // 0xDEAD is the unique command to reset the mcu
+            if (args[0] != 0xAD) return;
+            _debugTime();
+            _debug(F("Scheduling reset\n"));
+            os_setTimedCallback(&main_job, os_getTime() + sec2osticks(5), FUNC_ADDR(job_reset));
+            break;
+
+        case DL_CMD_INTERVAL:
+            {
+                if (len < 2) return;
+                uint16_t interval = args[0] << 8 | args[1];
+                _debugTime();
+                _debug(F("Changing interval: "));
+                _debug(interval);
+                _debug(F("\n"));
+                conf_setMeasurementInterval(interval);
+                conf_save();
+                os_clearCallback(&main_job);
+                scheduleNextMeasurement();
+            } 
+            break;
+
+        case DL_CMD_MODULE:
+            {
+                // Command is of format
+                // 0x11 <MODULE_ADDRESS> <MODULE_COMMAND> [ARGUMENTS]
+                if (len < 2) return;
+                uint8_t module_address = args[0];
+                uint8_t module_command = args[1];
+                uint8_t* module_command_args = &args[2];
+                uint8_t module_command_args_length = len-2;
+                _debug(F("pdl cmd_mod:"));
+                _debug(module_address);
+                _debug(F(" "));
+                _debug(module_command);
+                _debug(F(" "));
+                _debug(module_command_args_length);
+                _debug(F("\n"));
+                error_t err = smbus_blockWrite(
+                        module_address,
+                        module_command,
+                        module_command_args, module_command_args_length
+                        );
+                if (err != ERR_NONE) {
+                    _debug(F("pdl cmd_mod err\n"));
+                }
+            }
+            break;
+    }
+}
+
 /*
   Events fired by the LMIC library.
   We are interested in just three:
@@ -268,26 +312,8 @@ void onEvent(ev_t ev)
       _debug(F(" with "));
       _debug(LMIC.dataLen);
       _debug(F(" bytes RX\n"));
-      if (LMIC.frame[LMIC.dataBeg] == 0xDE && LMIC.frame[LMIC.dataBeg + 1] == 0xAD)
-      {
-        _debugTime();
-        _debug(F("Scheduling reset\n"));
-        os_setTimedCallback(&main_job, os_getTime() + sec2osticks(5), FUNC_ADDR(job_reset));
-        return;
-      }
-      if (LMIC.frame[LMIC.dataBeg] == 0x10 && LMIC.dataLen >= 3)
-      {
-        uint16_t interval = LMIC.frame[LMIC.dataBeg + 1] << 8 | LMIC.frame[LMIC.dataBeg + 2];
-        _debugTime();
-        _debug(F("Changing interval: "));
-        _debug(interval);
-        _debug(F("\n"));
-        conf_setMeasurementInterval(interval);
-        conf_save();
-        os_clearCallback(&main_job);
-        scheduleNextMeasurement();
-        return;
-      }
+      // command, args, args_length
+      processDownlink(LMIC.frame[LMIC.dataBeg], &LMIC.frame[LMIC.dataBeg+1], LMIC.dataLen-1);
     }
     else
     {
