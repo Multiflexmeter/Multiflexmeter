@@ -15,6 +15,7 @@ extern "C"
   error_t smbus_init(void);
   error_t smbus_sendByte(uint8_t addr, uint8_t byte);
   error_t smbus_blockRead(uint8_t addr, uint8_t cmd, uint8_t *rx_buf, uint8_t *rx_length);
+  error_t smbus_blockWrite(uint8_t addr, uint8_t cmd, uint8_t *tx_buf, uint8_t tx_length);
   error_t smbus_alertAddress(uint8_t *addr);
 
 #ifdef __cplusplus

@@ -125,6 +125,32 @@ error_t smbus_blockRead(uint8_t addr, uint8_t cmd, uint8_t *rx_buf, uint8_t *rx_
   return status;
 }
 
+error_t smbus_blockWrite(uint8_t addr, uint8_t cmd, uint8_t *tx_buf, uint8_t tx_length) {
+    error_t status = ERR_NONE;
+  // Start transaction and write command
+  if((status = twi_start(addr, TW_WRITE)) != ERR_NONE) {
+    twi_stop();
+    return status;
+  }
+  if((status = twi_tx(cmd)) != ERR_NONE) {
+    twi_stop();
+    return status;
+  }
+  // write count and write buffer
+  if((status = twi_tx(tx_length)) != ERR_NONE) {
+    twi_stop();
+    return status;
+  }
+  for(uint8_t ix = 0; ix < tx_length; ix++) {
+    if((status = twi_tx(tx_buf[ix])) != ERR_NONE) {
+  twi_stop();
+      return status;
+    }
+  }
+  twi_stop();
+    return status;
+}
+
 error_t smbus_alertAddress(uint8_t *addr)
 {
   error_t err = ERR_NONE;
