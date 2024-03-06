@@ -1217,7 +1217,7 @@ const void mainTask(void)
         setWait(10); //set wait time 10ms
 
         //check if sensor init is needed
-        if( 1 || FRAM_Settings.sensorModuleSettings[currentSensorModuleIndex].item.sensorModuleInitRequest  )
+        if( FRAM_Settings.sensorModuleSettings[currentSensorModuleIndex].item.sensorModuleInitRequest  )
         { //first execute init of sensor
           mainTask_state = CHECK_SENSOR_INIT_AVAILABLE; //next state
         }
@@ -1883,9 +1883,6 @@ const void mainTask(void)
 
           MainPeriodSleep = getNextMeasureInterval(nextSensorInSameMeasureRound, MainPeriodSleep, FRAM_Settings.numberOfActiveSensorModules);
           uint32_t nextWakeTime = getNextWake( MainPeriodSleep, systemActiveTime_sec);
-
-          nextWakeTime = 10;
-
           setNewMeasureTime(nextWakeTime * 1000L); //set measure time
           setAlarmTime( calcAlarmTime(nextWakeTime)); //set new alarm time in RTC, only used for reset condition.
 
