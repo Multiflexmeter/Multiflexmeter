@@ -1034,6 +1034,11 @@ static const bool checkPeriodicallyRequestTime(uint8_t numberOfModules, uint16_t
 }
 #endif
 
+uint32_t countSensorInitFailed;
+uint32_t countSensorInit;
+uint32_t countSensorInitDone;
+uint32_t countSensorInitTimeout;
+
 /**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
@@ -1322,20 +1327,24 @@ const void mainTask(void)
 
         if( newStatus != COMMNAND_ACTIVE || timeout == true) //measurement ready or timeout
         {
+          countSensorInit++;
           if( newStatus == COMMAND_DONE )
           {
-            APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: done\r\n");
+            countSensorInitDone++;
+            APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: done, %d of %d, failed: %d, timeout: %d\r\n", countSensorInitDone, countSensorInit, countSensorInitFailed, countSensorInitTimeout);
             FRAM_Settings.sensorModuleSettings[currentSensorModuleIndex].item.sensorModuleInitRequest = false;
           }
 
           else if (newStatus == COMMAND_FAILED )
           {
-            APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: FAILED\r\n");
+            countSensorInitFailed++;
+            APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: FAILED, %d of %d, done: %d, timeout: %d\r\n", countSensorInitFailed, countSensorInit, countSensorInitDone, countSensorInitTimeout);
           }
 
           if( timeout == true )
           {
-            APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: timeout\r\n");
+            countSensorInitTimeout++;
+            APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: timeout, %d of %d, done: %d, failed: %d\r\n", countSensorInitTimeout, countSensorInitFailed, countSensorInit, countSensorInitDone);
           }
 
           //check if all sensor channels on one sensormodule are initialized
