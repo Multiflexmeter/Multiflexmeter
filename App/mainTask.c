@@ -1917,7 +1917,7 @@ const void mainTask(void)
     case WAIT_USB_DISCONNECT:
 
       //check measure time expired
-      if( startMeasure || getForceMeasurement() )
+      if( startMeasure || getForceMeasurement() || checkIntervalChanged() )
       {
         setForceMeasurement( false ); //reset status.
         systemActiveTime_sec = 0; //reset //only when not in off mode
