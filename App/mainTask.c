@@ -1285,6 +1285,7 @@ const void mainTask(void)
         if( newStatus == COMMAND_NOTAVAILABLE || newStatus == COMMAND_ERROR )
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: not available\r\n");
+          FRAM_Settings.sensorModuleSettings[currentSensorModuleIndex].item.sensorModuleInitRequest = false; //reset init flag
           mainTask_state = START_SENSOR_MEASURE; //skip sensor init -> start measure
         }
 
