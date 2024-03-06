@@ -1431,7 +1431,7 @@ const void mainTask(void)
         }
 
         setWait(measureTime);  //set wait time of sensor
-        setTimeout(10000 + measureTime); //+10sec timeout
+        setTimeout(1000 + measureTime); //+1sec timeout
 
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor wait %ums, samples: %d\r\n", measureTime, getNumberOfSamples(currentSensorModuleIndex + 1) ); //print measure time
 
