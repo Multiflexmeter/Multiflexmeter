@@ -90,6 +90,7 @@ static uint8_t currentNumberOfSensorModule = 0;
 static uint8_t numberOfActivesensorModules = 0;
 static uint8_t numberOfSensorsOfCurrentModule = 0;
 static uint8_t initCurrentSensorIndex = 0;
+static uint8_t initCurrentSensorDoneCounter = 0;
 static bool nextSensorInSameMeasureRound = 0;
 static volatile bool loraTransmitReady = false;
 static volatile bool loraReceiveReady = false;
@@ -1290,6 +1291,7 @@ const void mainTask(void)
         else
         {
           initCurrentSensorIndex = 0;
+          initCurrentSensorDoneCounter = 0;
           uint8_t result = sensorReadAmount(currentSensorModuleIndex, &numberOfSensorsOfCurrentModule);
           APP_LOG(TS_OFF, VLEVEL_H, "Sensor module %d with %d sensors. Result: %s\r\n", currentSensorModuleIndex + 1, numberOfSensorsOfCurrentModule, result == 0 ? "OK" : "FAILED" ); //print number of sensors
 
@@ -1330,9 +1332,9 @@ const void mainTask(void)
           countSensorInit++;
           if( newStatus == COMMAND_DONE )
           {
+            initCurrentSensorDoneCounter++;
             countSensorInitDone++;
             APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: done, %d of %d, failed: %d, timeout: %d\r\n", countSensorInitDone, countSensorInit, countSensorInitFailed, countSensorInitTimeout);
-            FRAM_Settings.sensorModuleSettings[currentSensorModuleIndex].item.sensorModuleInitRequest = false;
           }
 
           else if (newStatus == COMMAND_FAILED )
@@ -1350,6 +1352,11 @@ const void mainTask(void)
           //check if all sensor channels on one sensormodule are initialized
           if( ++initCurrentSensorIndex >= numberOfSensorsOfCurrentModule )
           {
+            //check if at least one of the sensors is initialized okay, the other sensor could be not connected
+            if( initCurrentSensorDoneCounter > 0)
+            {
+              FRAM_Settings.sensorModuleSettings[currentSensorModuleIndex].item.sensorModuleInitRequest = false;
+            }
             mainTask_state = START_SENSOR_MEASURE;
           }
           else //another sensor channels needs to be initialized on this sensor module
