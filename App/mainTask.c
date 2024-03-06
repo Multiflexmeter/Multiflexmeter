@@ -1349,6 +1349,23 @@ const void mainTask(void)
             APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: timeout, %d of %d, done: %d, failed: %d\r\n", countSensorInitTimeout, countSensorInitFailed, countSensorInit, countSensorInitDone);
           }
 
+          //init not ready for current sensor slot channel
+          if( newStatus == COMMAND_FAILED || timeout == true )
+          {
+            switch(initCurrentSensorIndex)
+            {
+              case 0:
+                FRAM_Settings.diagnosticBits.bit.sensorModuleInitFailed_channel1 = true;
+                break;
+              case 1:
+                FRAM_Settings.diagnosticBits.bit.sensorModuleInitFailed_channel2 = true;
+                break;
+              default:
+                //not implemented, needs to implement if new sensorModules are available with more then two channels.
+                break;
+            }
+          }
+
           //check if all sensor channels on one sensormodule are initialized
           if( ++initCurrentSensorIndex >= numberOfSensorsOfCurrentModule )
           {
@@ -1618,6 +1635,9 @@ const void mainTask(void)
         }
 
         stMFM_baseData.diagnosticBits = FRAM_Settings.diagnosticBits.byte[0]; //save the first 8 bits
+
+        FRAM_Settings.diagnosticBits.bit.sensorModuleInitFailed_channel1 = false; //reset after copy
+        FRAM_Settings.diagnosticBits.bit.sensorModuleInitFailed_channel2 = false; //reset after copy
 
         printBaseData(&stMFM_baseData);
 
