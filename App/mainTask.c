@@ -88,6 +88,9 @@ static struct_MFM_baseData stMFM_baseData;
 static uint8_t currentSensorModuleIndex = 0;
 static uint8_t currentNumberOfSensorModule = 0;
 static uint8_t numberOfActivesensorModules = 0;
+static uint8_t numberOfSensorsOfCurrentModule = 0;
+static uint8_t initCurrentSensorIndex = 0;
+static uint8_t initCurrentSensorDoneCounter = 0;
 static bool nextSensorInSameMeasureRound = 0;
 static volatile bool loraTransmitReady = false;
 static volatile bool loraReceiveReady = false;
@@ -1277,11 +1280,17 @@ const void mainTask(void)
         if( newStatus == COMMAND_NOTAVAILABLE || newStatus == COMMAND_ERROR )
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: not available\r\n");
+          FRAM_Settings.sensorModuleSettings[currentSensorModuleIndex].item.sensorModuleInitRequest = false; //reset init flag
           mainTask_state = START_SENSOR_MEASURE; //skip sensor init -> start measure
         }
 
         else
         {
+          initCurrentSensorIndex = 0;
+          initCurrentSensorDoneCounter = 0;
+          uint8_t result = sensorReadAmount(currentSensorModuleIndex, &numberOfSensorsOfCurrentModule);
+          APP_LOG(TS_OFF, VLEVEL_H, "Sensor module %d with %d sensors. Result: %s\r\n", currentSensorModuleIndex + 1, numberOfSensorsOfCurrentModule, result == 0 ? "OK" : "FAILED" ); //print number of sensors
+
           setWait(10); //set wait time 10ms
           mainTask_state = START_SENSOR_INIT;
         }
@@ -1293,8 +1302,11 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
-        uint8_t result = sensorInitStart(currentSensorModuleIndex);
 
+        uint8_t result = sensorWriteSelection(currentSensorModuleIndex, initCurrentSensorIndex);
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor select : module: %d, sensor: %d, result: %d\r\n", currentSensorModuleIndex + 1, initCurrentSensorIndex + 1, result ); //print sensor index
+
+        result = sensorInitStart(currentSensorModuleIndex);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor init start: module: %d, result: %d\r\n", currentSensorModuleIndex + 1, result ); //print sensor type
 
         setWait(50);  //set wait time of sensor
@@ -1329,7 +1341,37 @@ const void mainTask(void)
             APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: timeout\r\n");
           }
 
-          mainTask_state = START_SENSOR_MEASURE;
+          //init not ready for current sensor slot channel
+          if( newStatus == COMMAND_FAILED || timeout == true )
+          {
+            switch(initCurrentSensorIndex)
+            {
+              case 0:
+                FRAM_Settings.diagnosticBits.bit.sensorModuleInitFailed_channel1 = true;
+                break;
+              case 1:
+                FRAM_Settings.diagnosticBits.bit.sensorModuleInitFailed_channel2 = true;
+                break;
+              default:
+                //not implemented, needs to implement if new sensorModules are available with more then two channels.
+                break;
+            }
+          }
+
+          //check if all sensor channels on one sensormodule are initialized
+          if( ++initCurrentSensorIndex >= numberOfSensorsOfCurrentModule )
+          {
+            //check if at least one of the sensors is initialized okay, the other sensor could be not connected
+            if( initCurrentSensorDoneCounter > 0)
+            {
+              FRAM_Settings.sensorModuleSettings[currentSensorModuleIndex].item.sensorModuleInitRequest = false;
+            }
+            mainTask_state = START_SENSOR_MEASURE;
+          }
+          else //another sensor channels needs to be initialized on this sensor module
+          {
+            mainTask_state = START_SENSOR_INIT;
+          }
         }
 
         else
@@ -1394,6 +1436,9 @@ const void mainTask(void)
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor wait %ums, samples: %d\r\n", measureTime, getNumberOfSamples(currentSensorModuleIndex + 1) ); //print measure time
 
         sensorStartMeasurement(currentSensorModuleIndex); //start measure
+
+        result = sensorReadAmount(currentSensorModuleIndex, &numberOfSensorsOfCurrentModule);
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module %d with %d sensors. Result: %s\r\n", currentSensorModuleIndex + 1, numberOfSensorsOfCurrentModule, result == 0 ? "OK" : "FAILED" ); //print number of sensors
 
         mainTask_state = WAIT_FOR_SENSOR_DATA; //next state
       }
@@ -1582,6 +1627,9 @@ const void mainTask(void)
         }
 
         stMFM_baseData.diagnosticBits = FRAM_Settings.diagnosticBits.byte[0]; //save the first 8 bits
+
+        FRAM_Settings.diagnosticBits.bit.sensorModuleInitFailed_channel1 = false; //reset after copy
+        FRAM_Settings.diagnosticBits.bit.sensorModuleInitFailed_channel2 = false; //reset after copy
 
         printBaseData(&stMFM_baseData);
 
