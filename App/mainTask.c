@@ -1036,6 +1036,30 @@ static const bool checkPeriodicallyRequestTime(uint8_t numberOfModules, uint16_t
 #endif
 
 /**
+ * @fn bool checkIntervalChanged(void)
+ * @brief function to check change of interval
+ *
+ * @return false = not changed, true is changed
+ */
+static bool checkIntervalChanged(void)
+{
+  static bool tInitialize = false;
+  static uint16_t previousInterval = 0;
+
+  if( tInitialize == false )
+  {
+    previousInterval = getLoraInterval();//set at first call
+    tInitialize = true;
+  }
+  if( previousInterval != getLoraInterval() )
+  {
+    previousInterval = getLoraInterval();
+    return true;
+  }
+  return false;
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
