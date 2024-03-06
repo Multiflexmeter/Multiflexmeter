@@ -44,7 +44,9 @@ typedef struct __attribute__((packed))
     uint8_t lightSensorActive:1;
     uint8_t usbConnected:1;
     uint8_t batteryLow:1;
-    uint32_t spare:29;
+    uint8_t sensorModuleInitFailed_channel1:1;
+    uint8_t sensorModuleInitFailed_channel2:1;
+    uint32_t spare:27;
 }struct_diagnosticStatusBits;
 
 typedef union
