@@ -88,6 +88,8 @@ static struct_MFM_baseData stMFM_baseData;
 static uint8_t currentSensorModuleIndex = 0;
 static uint8_t currentNumberOfSensorModule = 0;
 static uint8_t numberOfActivesensorModules = 0;
+static uint8_t numberOfSensorsOfCurrentModule = 0;
+static uint8_t initCurrentSensorIndex = 0;
 static bool nextSensorInSameMeasureRound = 0;
 static volatile bool loraTransmitReady = false;
 static volatile bool loraReceiveReady = false;
@@ -1282,6 +1284,10 @@ const void mainTask(void)
 
         else
         {
+          initCurrentSensorIndex = 0;
+          uint8_t result = sensorReadAmount(currentSensorModuleIndex, &numberOfSensorsOfCurrentModule);
+          APP_LOG(TS_OFF, VLEVEL_H, "Sensor module %d with %d sensors. Result: %s\r\n", currentSensorModuleIndex + 1, numberOfSensorsOfCurrentModule, result == 0 ? "OK" : "FAILED" ); //print number of sensors
+
           setWait(10); //set wait time 10ms
           mainTask_state = START_SENSOR_INIT;
         }
@@ -1293,8 +1299,11 @@ const void mainTask(void)
 
       if( waiting == false ) //check wait time is expired
       {
-        uint8_t result = sensorInitStart(currentSensorModuleIndex);
 
+        uint8_t result = sensorWriteSelection(currentSensorModuleIndex, initCurrentSensorIndex);
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor select : module: %d, sensor: %d, result: %d\r\n", currentSensorModuleIndex + 1, initCurrentSensorIndex + 1, result ); //print sensor index
+
+        result = sensorInitStart(currentSensorModuleIndex);
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor init start: module: %d, result: %d\r\n", currentSensorModuleIndex + 1, result ); //print sensor type
 
         setWait(50);  //set wait time of sensor
@@ -1329,7 +1338,15 @@ const void mainTask(void)
             APP_LOG(TS_OFF, VLEVEL_H, "Sensor init: timeout\r\n");
           }
 
-          mainTask_state = START_SENSOR_MEASURE;
+          //check if all sensor channels on one sensormodule are initialized
+          if( ++initCurrentSensorIndex >= numberOfSensorsOfCurrentModule )
+          {
+            mainTask_state = START_SENSOR_MEASURE;
+          }
+          else //another sensor channels needs to be initialized on this sensor module
+          {
+            mainTask_state = START_SENSOR_INIT;
+          }
         }
 
         else
@@ -1394,6 +1411,9 @@ const void mainTask(void)
         APP_LOG(TS_OFF, VLEVEL_H, "Sensor wait %ums, samples: %d\r\n", measureTime, getNumberOfSamples(currentSensorModuleIndex + 1) ); //print measure time
 
         sensorStartMeasurement(currentSensorModuleIndex); //start measure
+
+        result = sensorReadAmount(currentSensorModuleIndex, &numberOfSensorsOfCurrentModule);
+        APP_LOG(TS_OFF, VLEVEL_H, "Sensor module %d with %d sensors. Result: %s\r\n", currentSensorModuleIndex + 1, numberOfSensorsOfCurrentModule, result == 0 ? "OK" : "FAILED" ); //print number of sensors
 
         mainTask_state = WAIT_FOR_SENSOR_DATA; //next state
       }
