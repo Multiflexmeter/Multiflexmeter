@@ -51,7 +51,7 @@ const char NO_VERSION[]="";
  * Normally a burst of one minute interval between sensors in one round is used.
  * @note comment if feature must be disabled
  */
-#define SEND_MEASUREMENT_IN_EQUAL_INTERVAL
+//#define SEND_MEASUREMENT_IN_EQUAL_INTERVAL
 
 #define LORA_REJOIN_NUMBER_OF_RETRIES   5
 #define INTERVAL_NEXT_SENSOR_IN_ONE_ROUND  (60000) //1 minute
@@ -1036,6 +1036,30 @@ static const bool checkPeriodicallyRequestTime(uint8_t numberOfModules, uint16_t
 #endif
 
 /**
+ * @fn bool checkIntervalChanged(void)
+ * @brief function to check change of interval
+ *
+ * @return false = not changed, true is changed
+ */
+static bool checkIntervalChanged(void)
+{
+  static bool tInitialize = false;
+  static uint16_t previousInterval = 0;
+
+  if( tInitialize == false )
+  {
+    previousInterval = getLoraInterval();//set at first call
+    tInitialize = true;
+  }
+  if( previousInterval != getLoraInterval() )
+  {
+    previousInterval = getLoraInterval();
+    return true;
+  }
+  return false;
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -1893,7 +1917,7 @@ const void mainTask(void)
     case WAIT_USB_DISCONNECT:
 
       //check measure time expired
-      if( startMeasure || getForceMeasurement() )
+      if( startMeasure || getForceMeasurement() || checkIntervalChanged() )
       {
         setForceMeasurement( false ); //reset status.
         systemActiveTime_sec = 0; //reset //only when not in off mode
