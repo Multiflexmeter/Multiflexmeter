@@ -14,6 +14,7 @@
 #include "sys_app.h"
 #include "i2c.h"
 
+#include "../common/common.h"
 #include "board_io.h"
 #include "board_io_functions.h"
 #include "board_io_test.h"
@@ -109,7 +110,7 @@ const void testSystemChecks( int mode, int32_t value )
   {
     if (value == 0) //0 = off
     {
-
+      startDelayedReset();
     }
     else
     {
