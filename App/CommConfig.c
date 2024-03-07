@@ -1509,9 +1509,9 @@ void rcvJoinId(int arguments, const char * format, ...)
     if( memcmp((char*)getJoinId(), (char*)joinEui, sizeof(joinEui)) != 0)
     {
       detectChangeRebootNeeded = true;
-    }
 
-    setJoinId(joinEui); //set new JoinId.
+      setJoinId(joinEui); //set new JoinId.
+    }
   }
 
   snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdJoinId, HEX8( getJoinId() ) );
@@ -1571,9 +1571,9 @@ void rcvDeviceID(int arguments, const char * format, ...)
       if( memcmp((char*)getDeviceId(), (char*)joinEui, sizeof(joinEui)) != 0)
       {
         detectChangeRebootNeeded = true;
-      }
 
-      setDeviceId(joinEui); //set new JoinId.
+        setDeviceId(joinEui); //set new JoinId.
+      }
     }
 
     snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdDeviceId, HEX8( getDeviceId() ) );
@@ -1655,9 +1655,9 @@ void rcvAppKey(int arguments, const char * format, ...)
     if( memcmp((char*)getAppKey(), (char*)newKey.KeyValue, sizeof(newKey.KeyValue)) != 0)
     {
       detectChangeRebootNeeded = true;
-    }
 
-    setAppKey((uint8_t*)&newKey.KeyValue[0]); //set new AppKey.
+      setAppKey((uint8_t*)&newKey.KeyValue[0]); //set new AppKey.
+    }
 
     snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:0x%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\r\n", cmdAppKey, HEX16( getAppKey() ) );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
