@@ -866,12 +866,12 @@ static const void printSensorModuleRoughData(uint8_t sensorModuleId, uint8_t sen
 }
 
 /**
- * @fn const void printSensorModulePressure(structDataPressureSensor*)
- * @brief helper function to print senosr module data to debug port
+ * @fn const void printSensorModulePressureKeller(structDataPressureSensor*)
+ * @brief helper function to print senosr module data for RS485 Keller to debug port
  *
  * @param pSensorData
  */
-static const void printSensorModulePressure(structDataPressureSensor * pSensorData)
+static const void printSensorModulePressureKeller(structDataPressureSensor * pSensorData)
 {
   int length = 40;
   int lengthPre = 3;
@@ -893,6 +893,60 @@ static const void printSensorModulePressure(structDataPressureSensor * pSensorDa
 
       ); //print sensor data
 }
+
+/**
+ * @fn const float getPressureHuba(uint16_t)
+ * @brief helper function to get real pressure from rough Huba measurement data
+ *
+ * @param pressureData
+ * @return pressure in bar
+ */
+static const float getPressureHuba(uint16_t pressureData)
+{
+  return ((pressureData - 3000) / 8000.0) * 0.6;
+}
+
+/**
+ * @fn const float getTemperatureHuba(uint8_t)
+ * @brief helper function to get real temperature from rough Huba measurement data
+ *
+ * @param tempData
+ * @return temperature in degree Celsius
+ */
+static const float getTemperatureHuba(uint8_t tempData)
+{
+  return ((tempData * 200.0) / 255) - 50;
+}
+
+/**
+ * @fn const void printSensorModulePressureHuba(structDataPressureSensorOneWire*)
+ * @brief helper function to print senosr module data for oneWIre Huba to debug port
+ *
+ * @param pSensorData
+ */
+static const void printSensorModulePressureHuba(structDataPressureSensorOneWire * pSensorData)
+{
+  int length = 40;
+  int lengthPre = 3;
+  char character = '*';
+  uint8_t unitPress[] = "bar";
+  uint8_t unitTemp[] = " C";
+  unitTemp[0] = 176; //overwrite degree sign to ascii 176
+
+  uint32_t VerboseLevel = VLEVEL_M;
+
+  printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+
+  APP_LOG(TS_OFF, VerboseLevel, " Sensor pressure data: %d.%02d %s, %d.%02d %s , %d.%02d %s, %d.%02d %s\r\n",
+      (int)getPressureHuba(pSensorData->pressure1), getDecimal(getPressureHuba(pSensorData->pressure1), 2), unitPress,
+      (int)getTemperatureHuba(pSensorData->temperature1), getDecimal(getTemperatureHuba(pSensorData->temperature1), 2), unitTemp,
+      (int)getPressureHuba(pSensorData->pressure2), getDecimal(getPressureHuba(pSensorData->pressure2), 2), unitPress,
+      (int)getTemperatureHuba(pSensorData->temperature2), getDecimal(getTemperatureHuba(pSensorData->temperature2), 2), unitTemp
+
+      ); //print sensor data
+}
+
 
 /**
  * @fn const void printBaseData(struct_MFM_baseData*)
@@ -1560,9 +1614,13 @@ const void mainTask(void)
 
           printSensorModuleRoughData( currentSensorModuleIndex, stMFM_sensorModuleData.sensorModuleDataSize, stMFM_sensorModuleData.sensorModuleData);
 
-          if( sensorType == MFM_PREASURE_RS485 || sensorType == MFM_PREASURE_ONEWIRE)
+          if( sensorType == MFM_PREASURE_RS485 )
           {
-            printSensorModulePressure((structDataPressureSensor*)&stMFM_sensorModuleData.sensorModuleDataSize);
+            printSensorModulePressureKeller((structDataPressureSensor*)&stMFM_sensorModuleData.sensorModuleDataSize);
+          }
+          else if( sensorType == MFM_PREASURE_ONEWIRE )
+          {
+            printSensorModulePressureHuba((structDataPressureSensorOneWire*)&stMFM_sensorModuleData.sensorModuleDataSize);
           }
         }
         else
