@@ -72,7 +72,7 @@ typedef struct
 
 /**
  * @struct
- * @brief definition of data package of MFM pressure sensor, only for debug purposes
+ * @brief definition of data package of MFM pressure sensor, type RS485, Keller, only for debug purposes
  *
  */
 typedef struct __attribute__((packed))
@@ -84,6 +84,21 @@ typedef struct __attribute__((packed))
   float temperature2;
   uint16_t crc;
 } structDataPressureSensor;
+
+/**
+ * @struct
+ * @brief definition of data package of MFM pressure sensor, type ONE WIRE, HUBA, only for debug purposes
+ *
+ */
+typedef struct __attribute__((packed))
+{
+  uint8_t dataLength;
+  uint16_t pressure1;
+  uint8_t temperature1;
+  uint16_t pressure2;
+  uint8_t temperature2;
+  uint16_t crc;
+} structDataPressureSensorOneWire;
 
 extern const SensorReg registers[];
 
