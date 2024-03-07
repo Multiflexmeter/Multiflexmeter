@@ -12,6 +12,7 @@
 
 #include "main.h"
 #include "sys_app.h"
+#include "i2c.h"
 
 #include "board_io.h"
 #include "board_io_functions.h"
@@ -103,6 +104,23 @@ const void testSystemChecks( int mode, int32_t value )
       enable_vAlwaysOn(); //enable vAlwaysOn
     }
   }
+
+  else if (mode == 3) //3 enable slot 1
+  {
+    if (value == 0) //0 = off
+    {
+
+    }
+    else
+    {
+      enableVsys(); //enable vSys
+      MX_I2C2_Init();
+      init_board_io_device(IO_EXPANDER_BUS_INT);
+      slotPower(0, true);
+
+    }
+  }
+
 }
 
 /**
