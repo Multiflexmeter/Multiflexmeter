@@ -26,9 +26,10 @@ static bool forceSleep;
  * @fn bool tm_year2Centerybit(int)
  * @brief function to calculate centerybit for RTC from year starting from 1900.
  *
- * @param year : years from 1900
+ * @param yearsFrom1900 : years from 1900
  * @return 0 : 1900, 2100. 1 : 2000
  */
+/** */
 bool tm_year2Centerybit(int yearsFrom1900)
 {
   return ((yearsFrom1900 / 100)) % 2; //time from 1900, 0-99 =>0: 1900, 100-199 => 1 = 2000, 200-299 => 0 = 2100

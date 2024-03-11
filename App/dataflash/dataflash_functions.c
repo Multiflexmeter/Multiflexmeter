@@ -253,7 +253,7 @@ int8_t readMeasurementFromDataflash(uint32_t measurementId, uint8_t * data, uint
 }
 
 /**
- * @fn int8_t blockEraseDataflash(uint32_t)
+ * @fn int8_t blockErase4kDataflash(uint32_t)
  * @brief function to erase a block of 4k
  *
  * @param address of memory in block

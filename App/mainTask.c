@@ -51,7 +51,8 @@ const char NO_VERSION[]="";
  * Normally a burst of one minute interval between sensors in one round is used.
  * @note comment if feature must be disabled
  */
-//#define SEND_MEASUREMENT_IN_EQUAL_INTERVAL
+#define SEND_MEASUREMENT_IN_EQUAL_INTERVAL
+#undef SEND_MEASUREMENT_IN_EQUAL_INTERVAL
 
 #define LORA_REJOIN_NUMBER_OF_RETRIES   5
 #define INTERVAL_NEXT_SENSOR_IN_ONE_ROUND  (60000) //1 minute
@@ -579,7 +580,7 @@ const bool alarmNotYetTriggered(void)
 }
 
 /**
- * @fn const UNION_diagnosticStatusBits detectDiagnostics(void)
+ * @fn const UNION_diagnosticStatusBits getDiagnostics(void)
  * @brief function to get diagnostics
  *
  * @return
