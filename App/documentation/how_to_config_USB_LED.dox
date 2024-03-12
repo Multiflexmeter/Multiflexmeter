@@ -1,0 +1,28 @@
+/** \page HowToConfigUsbLed
+ 
+<h2>How to config USB Rx/Tx LEDs</h2>
+<p>A Silabs USB chip is used (U12) CP2102NA02GQFN28.<br>
+Pin 19 (GPIO.0)LED D18 (green) and pin 18 (GPIO.0) LED D17 (orange) can be configured for a specific USB function.
+</P>
+<p>More information can be found in application note AN721 of Silicon Labs (<a href = https://www.silabs.com/documents/public/application-notes/AN721.pdf>AN721.pdf</a>).<br>
+Follow the install instruction of "simplicity-studio".<br>
+\li \c Connect USB on J22 of MFM base board to the computer.
+\li \c Start simplicity Studio
+\li \c Click in toolbar on "Tools" a popup window "Tools Dialog" is opened.
+\li \c Click on "Xpress Configurator" the configuration is opened, scroll down to "Port Configuration: GPIO". If this option is not available, use "add/remove tools" link and follow steps below.
+\li \c Now configure the parameters for GPIO0 and GPIO1: Alternate function 
+\li \c GPIO.0 can be set to TX_toggle en GPIO.1 can be set to RX_toggle.
+\li \c Save the changes to the device by "Program To Device" on the bottom of the screen.
+
+</p>
+
+<h2>Install Xpres configurator</h2>
+<p>
+\li \c Click in toolbar on "install".
+\li \c Click on "Install by technology type (wireless, Xpress, MCU, sensors)"
+\li \c Select "Xpress Interface" and press Next
+\li \c Select "Advanced" and press Next
+\li \c Deselect all "Recommended" and "Other options" and press Next
+After installing proceed with step above.
+</p>
+*/
