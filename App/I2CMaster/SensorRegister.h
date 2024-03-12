@@ -23,36 +23,55 @@
 #define REG_ERROR_STATUS          0x51
 
 
-/* Typedefs */
+/**
+ * @enum tENUM_Datatype
+ * @brief sensor I2C communication data type
+ *
+ */
 typedef enum{
-  UINT8_T = 1,
-  UINT16_T = 2,
-  SENSORDATA = 8
+  UINT8_T = 1,  /**< UINT8_T */
+  UINT16_T = 2, /**< UINT16_T */
+  SENSORDATA = 8/**< SENSORDATA */
 }tENUM_Datatype;
 
+/**
+ * @enum  tENUM_Error
+ * @brief sensor I2C communication error type
+ *
+ */
 typedef enum{
-  NO_ERROR,
-  CRC_ERROR,
-  ADDRESS_ERROR,
-  WRITE_ERROR
+  NO_ERROR,     /**< NO_ERROR */
+  CRC_ERROR,    /**< CRC_ERROR */
+  ADDRESS_ERROR,/**< ADDRESS_ERROR */
+  WRITE_ERROR   /**< WRITE_ERROR */
 }tENUM_Error;
 
+/**
+ * @enum tENUM_READWRITE
+ * @brief sensor I2C communication read/write setting
+ *
+ */
 typedef enum{
-  READ,
-  READWRITE
+  READ,    /**< READ */
+  READWRITE/**< READWRITE */
 }tENUM_READWRITE;
 
+/**
+ * @enum CommandStatus
+ * @brief sensor I2C communication command status values
+ *
+ */
 typedef enum{
-  NO_ACTIVE_COMMAND = 0x00,
-  COMMNAND_ACTIVE = 0x01,
-  COMMAND_DONE = 0x0A,
-  COMMAND_FAILED = 0x0F,
-  COMMAND_ERROR = 0xF0,
-  COMMAND_NOTAVAILABLE = 0xFF,
+  NO_ACTIVE_COMMAND = 0x00,   /**< NO_ACTIVE_COMMAND */
+  COMMNAND_ACTIVE = 0x01,     /**< COMMNAND_ACTIVE */
+  COMMAND_DONE = 0x0A,        /**< COMMAND_DONE */
+  COMMAND_FAILED = 0x0F,      /**< COMMAND_FAILED */
+  COMMAND_ERROR = 0xF0,       /**< COMMAND_ERROR */
+  COMMAND_NOTAVAILABLE = 0xFF,/**< COMMAND_NOTAVAILABLE */
 }CommandStatus;
 
 /**
- * @enum
+ * @enum ENUM_MFM_MODULE
  * @brief Definition of MFM modules, only for debug purposes
  *
  */
@@ -62,6 +81,11 @@ typedef enum{
   MFM_PREASURE_ONEWIRE,/**< MFM_PREASURE_ONEWIRE *//**< MFM_PREASURE_ONEWIRE */
 }ENUM_MFM_MODULE;
 
+/**
+ * @struct SensorReg
+ * @brief sensor I2C communication register definition
+ *
+ */
 typedef struct
 {
   uint8_t adres;
@@ -71,7 +95,7 @@ typedef struct
 }SensorReg;
 
 /**
- * @struct
+ * @struct structDataPressureSensor
  * @brief definition of data package of MFM pressure sensor, type RS485, Keller, only for debug purposes
  *
  */
@@ -86,7 +110,7 @@ typedef struct __attribute__((packed))
 } structDataPressureSensor;
 
 /**
- * @struct
+ * @struct structDataPressureSensorOneWire
  * @brief definition of data package of MFM pressure sensor, type ONE WIRE, HUBA, only for debug purposes
  *
  */

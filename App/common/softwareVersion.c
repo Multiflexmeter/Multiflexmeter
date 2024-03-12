@@ -34,9 +34,9 @@ const char * getSoftwareVersionMFM(void)
 
 /**
  * @fn const char getProtocolVersionConfig*(void)
- * @brief
+ * @brief function to return protocol version of MFM
  *
- * @return
+ * @return pointer to char array
  */
 const char * getProtocolVersionConfig(void)
 {
@@ -45,9 +45,9 @@ const char * getProtocolVersionConfig(void)
 
 /**
  * @fn const char getProtocolVersionSensor*(void)
- * @brief
+ * @brief furnction to return protocol version of sensor
  *
- * @return
+ * @return pointer to char array
  */
 const char * getProtocolVersionSensor(void)
 {

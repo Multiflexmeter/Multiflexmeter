@@ -115,7 +115,7 @@ uint16_t getCrcSettings(void)
  * @fn const int reloadSettingsFromVirtualEEPROM(void)
  * @brief function to load setting from virtual EEPROM (flash)
  * function first check if virtual EEPROM is already initialized, if not initialization will be called first.
- * Then all settings from \ref stVirtualEEPROM will be loaded in \ref  MFM_settings
+ * Then all settings from \ref stVirtualEEPROM will be loaded in \ref MFM_settings
  *
  * @return 0 = successful, -1 = read error, -2 = wrong CRC
  */

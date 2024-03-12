@@ -223,10 +223,10 @@ const void init_io_external(ENUM_IO_ITEM item, bool forceUpdate)
 }
 
 /**
- * @fn bool init_board_io_Int_Ext(int)
+ * @fn bool init_board_io_Ext_Int(int)
  * @brief helper function to init a internal/external I/O item
  *
- * @param item : item number in stIO_PinConfig[] config struct
+ * @param item item number in stIO_PinConfig[] config struct
  * @return true = external, false = internal
  */
 static bool init_board_io_Ext_Int(int item)

@@ -140,7 +140,7 @@ const void batmon_measure(void)
 }
 
 /**
- * @fn const structBatMonData getBatmon_measure(void)
+ * @fn const structBatMonData batmon_getMeasure(void)
  * @brief get battery monitor data
  *
  * @return

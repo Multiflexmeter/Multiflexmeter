@@ -547,10 +547,11 @@ __weak const bool getLigthSensorStatus(void)
 }
 
 /**
- * @fn const void testRtc(uint8_t*)
- * @brief
+ * @fn const void testRTC(int, struct_dateTime*)
+ * @brief weak function testRTC, must be override in application
  *
- * @param status
+ * @param mode
+ * @param time
  */
 __weak const void testRTC( int mode, struct_dateTime * time )
 {
