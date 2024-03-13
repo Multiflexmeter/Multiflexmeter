@@ -38,6 +38,11 @@ Settings:<br>
 <p>The USB leds can be configured see \subpage HowToConfigUsbLed how to do this.
 </p>
 
+<h2>Replacing a battery</h2>
+<p>When the battery needs to be replaced to a new one, the battery monitor needs to configured.<br>
+Instruction how to do can be found in \subpage HowToConfigBatteryMonitor.
+</p>
+
 <h2>Used memory</h2>
 - NOR Flash (SPI) : 
   - for sensor measurements.

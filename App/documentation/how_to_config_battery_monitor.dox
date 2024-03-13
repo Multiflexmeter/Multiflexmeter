@@ -1,0 +1,46 @@
+/** \page HowToConfigBatteryMonitor
+<h2>Replacing a battery</h2>
+<p>When the battery needs to be replaced, also the battery monitor needs to be configured for a new battery.</p>
+<p>More information can be found in application note "How to Configure the BQ35100 for EOS Mode" (<a href=https://www.ti.com/lit/pdf/sluaal7 target=_blank>SLUAAL7</a>) van Texas Instruments.</p>
+<h2>Needs</h2>
+\li EV2400
+\li PC with BQ studio installation
+\li terminal programm to work with a serial port
+
+
+\htmlonly
+<img src="EV2400.png" alt="EV2400" width="500" style="align-items:left; margin-right:10px;"/>
+\endhtmlonly
+<br>
+
+\htmlonly
+<img src="ESD_warning.png" alt="ATTENTION: Observe precautions for handling electrostatic discharge sensitive devices!" width="200" style="align-items:left; margin-right:100px;"/>
+\endhtmlonly
+
+<h2>ATTENTION: Observe precautions for handling electrostatic discharge sensitive devices!</h2>
+
+<h2>Actions</h2>
+\li Install BQ studio (<a href=https://www.ti.com/tool/BQSTUDIO target=_blank>https://www.ti.com/tool/BQSTUDIO</a>)
+\li Connect USB of EV2400 to PC (do not yet connect the I2C lines of port2).
+\li Place a new battery of the right technology.
+\li Connect USB (J22) from MFM baseboard to PC.
+\li Start the terminal programm and select the right comport "COMxx - Silicon Labs CP210x USB to UART Bridge" with 115200,8,N,1 setting.
+\li Send command "Set+Test=0,2<cr><lf>" to the MFM, this will enable a special mode after a reboot which keeps the I2C bus quiet and enables the GE_EN pin of the battery monitor.
+\li Send command "Set+Reboot<cr><lf>" to the MFM, this will reboot the device.
+\li Now start BQ studio (Battery management studio). Select the "Gauge" and target "...bq35100.bqz".
+\li Connect the I2C lines (SDA, SCL and GND) of EV2400 (port 2) to connector J19 of MFM baseboard.
+\li When communication is ready press "NEW_BATTERY".
+\li Go to "Chemistry" and press "CHEM_ID" to read the chemistery ID. Verify this ID with the placed battery for example SAFT LS14500 = 0x0623.<br>If chemistery ID is wrong, press on "UNSEAL", modify it by selecting the right battery, press "Program Selected Chemistry" and press "SEAL".
+\li Go to "Data Memory" and select "Configuration" and Press "UNSEAL".
+\li Pres on "Read ALL" to read all the configuration values.
+\li Change EOS mode "Operation config A" to 0x82 (if needed). After change press "Write to Data Memory".
+\li Also in "Data Memory" select "Gas Gauging", verify "Cell design capacity mAh" is set to the battery capacity value. For battery SAFT LS14500 -> 2600.
+\li Press on "SEAL".
+\li Go to "Calibration" and setup at current "applied current" to 0 mA and enable "Calibrate Current", then press "Calibrate Gas Gause". Message if failure can be ignored.
+\li Go to "Registers" and press on "GAUGE_START".
+\li Press on "Refresh" to update the registers temperature, voltage and current and press on "GAUGE_STOP".
+\li Remove jumper J24. Repeat "GAUGE_START", "Refresh" and "GAUGE_STOP" to verify the current measurement +/- 15mA. Place back jumper J24.
+\li Exit special mode by command "Set+Test=0,0<cr><lf>" and "Set+Reboot<cr><lf>". 
+\li Verifiy battery measurement with command "Set+Eos<cr><lf>" to trigger an EOS measure the next interval and trigger the interval by "Set+test=7,8<cr><lf>". <br>EOS data is send to the portal or can be shown at the debug serial port on J26.
+
+*/
