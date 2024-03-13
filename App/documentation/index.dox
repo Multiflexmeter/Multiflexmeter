@@ -17,6 +17,14 @@ The \subpage MainTask (mainTask.c) contains a large state machine which is handl
 Basic LoRaWan functionality like TxSendData() can be found in \ref \LoRaWAN\App\lora_app.c. 
 </p>
 
+\htmlonly
+<img src="ESD_warning.png" alt="ATTENTION: Observe precautions for handling electrostatic discharge sensitive devices!" width="200" style="align-items:left; margin-right:100px;"/>
+\endhtmlonly
+
+\htmlonly
+<h2><font color="red">ATTENTION: Observe precautions for handling electrostatic discharge sensitive devices!</font></h2>
+\endhtmlonly
+
 <h2>Low power</h2>
 <p>
 The MFM application is an extremly low power application. The applicaiton uses the STOP2 mode when it's active.<br>
@@ -36,6 +44,11 @@ Settings:<br>
 
 <h2>USB leds</h2>
 <p>The USB leds can be configured see \subpage HowToConfigUsbLed how to do this.
+</p>
+
+<h2>Replacing a battery</h2>
+<p>When the battery needs to be replaced to a new one, the battery monitor needs to configured.<br>
+Instruction how to do can be found in \subpage HowToConfigBatteryMonitor.
 </p>
 
 <h2>Used memory</h2>
