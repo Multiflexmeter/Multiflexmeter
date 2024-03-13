@@ -17,7 +17,9 @@
 <img src="ESD_warning.png" alt="ATTENTION: Observe precautions for handling electrostatic discharge sensitive devices!" width="200" style="align-items:left; margin-right:100px;"/>
 \endhtmlonly
 
-<h2>ATTENTION: Observe precautions for handling electrostatic discharge sensitive devices!</h2>
+\htmlonly
+<h2><font color="red">ATTENTION: Observe precautions for handling electrostatic discharge sensitive devices!</font></h2>
+\endhtmlonly
 
 <h2>Actions</h2>
 \li Install BQ studio (<a href=https://www.ti.com/tool/BQSTUDIO target=_blank>https://www.ti.com/tool/BQSTUDIO</a>)
