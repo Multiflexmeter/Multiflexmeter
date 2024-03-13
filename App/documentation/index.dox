@@ -34,6 +34,10 @@ Settings:<br>
 - Sensor module settings (6x)
 </p> 
 
+<h2>USB leds</h2>
+<p>The USB leds can be configured see \subpage HowToConfigUsbLed how to do this.
+</p>
+
 <h2>Used memory</h2>
 - NOR Flash (SPI) : 
   - for sensor measurements.
