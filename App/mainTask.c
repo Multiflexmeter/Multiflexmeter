@@ -64,6 +64,7 @@ static int loraJoinRetryCounter = 0;
 
 static UTIL_TIMER_Object_t MainTimer;
 static UTIL_TIMER_Time_t MainPeriodSleep = 60000;
+static UTIL_TIMER_Time_t ForcedPeriodSleep = 0;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
 static bool enableListenUart;
 static bool measureEOS_enabled;
@@ -1804,15 +1805,18 @@ const void mainTask(void)
           executeBatteryMeasure(); //do a battery measurement for battery supply, battery current (of TX) and temperature. R and Z value not valid.
         }
 
-        UTIL_TIMER_Time_t newLoraInterval = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000;
-        UTIL_TIMER_Time_t forcedInterval = 0;
+        MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //set default
+        ForcedPeriodSleep = 0; //force to zero
 
         switch( loraTransmitStatus )
         {
           case LORAMAC_HANDLER_DUTYCYCLE_RESTRICTED:
 
-            forcedInterval = getForcedLoraInterval();//get restricted dutycyle
-            newLoraInterval = MAX(forcedInterval, newLoraInterval); //override forced interval based on Maximum of these.
+            ForcedPeriodSleep = getForcedLoraInterval();//get restricted dutycyle
+            if( ForcedPeriodSleep <= MainPeriodSleep ) //check if normal period is larger
+            {
+              ForcedPeriodSleep = 0;//reset
+            }
             transmitPossibleSuccess = true;
 
             break;
@@ -1846,8 +1850,6 @@ const void mainTask(void)
           FRAM_Settings.diagnosticBits.uint32 = 0; //reset status.
         }
         saveFramSettingsStruct(&FRAM_Settings, sizeof(FRAM_Settings)); //save FRAM data after last change
-
-        MainPeriodSleep = newLoraInterval;
 
 #ifndef RTC_USED_FOR_SHUTDOWN_PROCESSOR
         setNewMeasureTime(newLoraInterval); //set new interval to trigger new measurement
@@ -1962,8 +1964,8 @@ const void mainTask(void)
         {
           APP_LOG(TS_OFF, VLEVEL_H, "USB connected, no off mode.\r\n" );
 
-          MainPeriodSleep = getNextMeasureInterval(nextSensorInSameMeasureRound, MainPeriodSleep, FRAM_Settings.numberOfActiveSensorModules);
-          uint32_t nextWakeTime = getNextWake( MainPeriodSleep, systemActiveTime_sec);
+          UTIL_TIMER_Time_t sleepTime = getNextMeasureInterval(nextSensorInSameMeasureRound, MAX(ForcedPeriodSleep, MainPeriodSleep), FRAM_Settings.numberOfActiveSensorModules);
+          uint32_t nextWakeTime = getNextWake( sleepTime, systemActiveTime_sec);
           setNewMeasureTime(nextWakeTime * 1000L); //set measure time
           setAlarmTime( calcAlarmTime(nextWakeTime)); //set new alarm time in RTC, only used for reset condition.
 
@@ -2022,7 +2024,7 @@ const void mainTask(void)
 
         if( FRAM_Settings.numberOfActiveSensorModules > 0 ) //set sleep time when sensor is active, found one module or more.
         {
-          sleepTime = getNextMeasureInterval(nextSensorInSameMeasureRound, MainPeriodSleep, FRAM_Settings.numberOfActiveSensorModules); //get new sleep time
+          sleepTime = getNextMeasureInterval(nextSensorInSameMeasureRound, MAX(ForcedPeriodSleep, MainPeriodSleep), FRAM_Settings.numberOfActiveSensorModules); //get new sleep time
         }
         else //set sleep time very long when no sensor is active.
         {
@@ -2075,8 +2077,9 @@ const void mainTask(void)
     //check if measurement_Timer is running, otherwise force run.
     if( UTIL_TIMER_IsRunning(&measurement_Timer) == 0)
     { //not running, force next Period.
-      setNextPeriod(MainPeriodSleep);
-      setNewMeasureTime(MainPeriodSleep);
+      UTIL_TIMER_Time_t currentPeriodSleep = MAX(ForcedPeriodSleep, MainPeriodSleep);
+      setNextPeriod(currentPeriodSleep);
+      setNewMeasureTime(currentPeriodSleep);
     }
   }
 
