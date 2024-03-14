@@ -47,7 +47,6 @@ typedef enum
 } ENUM_STATE_MAINTASK;
 
 const void init_mainTask(void);
-const void stop_mainTask(bool resume);
 const void pause_mainTask(void);
 const void resume_mainTask(void);
 

@@ -2203,26 +2203,6 @@ const void init_mainTask(void)
 
 }
 
-
-/**
- * @fn const void stop_mainTask(void)
- * @brief function to stop the mainTask
- *
- */
-const void stop_mainTask(bool resume)
-{
-  mainTask_state = INIT_SLEEP; //reset state for STOP2 mode
-  mainTaskActive = false;
-  enableListenUart = false;
-
-  if( resume )
-  {
-    UTIL_TIMER_Stop(&MainTimer);
-    UTIL_TIMER_SetPeriod(&MainTimer, MainPeriodSleep);
-    UTIL_TIMER_Start(&MainTimer);
-  }
-}
-
 /**
  * @fn const void pause_mainTask(void)
  * @brief function to pause the mainTask
