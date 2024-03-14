@@ -463,18 +463,34 @@ static UTIL_TIMER_Time_t getNextMeasureInterval(bool sameRound, UTIL_TIMER_Time_
   else
   { //the round is finished, then set the remaining interval time, first check if there is time
 
-    if( numberOfSensors <= 1 ) //check if number of sensors is 0 or 1, then use just newInterval direct
+    //check time is not too short, then return minimum time of next sensor
+    if( time <= INTERVAL_NEXT_SENSOR_IN_ONE_ROUND )
+    {
+      return INTERVAL_NEXT_SENSOR_IN_ONE_ROUND;
+    }
+
+    //check if number of sensors is 0 or 1, then use just newInterval direct
+    if( numberOfSensors <= 1 )
     {
       return newInterval;
     }
 
-    if( time > numberOfSensors * INTERVAL_NEXT_SENSOR_IN_ONE_ROUND )
+    //calculate remaining time by substract (available sensors - 1) * INTERVAL_NEXT_SENSOR_IN_ONE_ROUND, take in mind that Interval can be smaller then number of sensors * INTERVAL_NEXT_SENSOR_IN_ONE_ROUND
+    while( --numberOfSensors )
     {
-      newInterval -= (numberOfSensors - 1) * INTERVAL_NEXT_SENSOR_IN_ONE_ROUND; //always use one period less then number of sensors
-    }
-    else
-    { //multiple sensor measure time is larger then the interval setting, use interval setting directly.
-      newInterval = time;
+      if( newInterval >= INTERVAL_NEXT_SENSOR_IN_ONE_ROUND )
+      {
+        newInterval -= INTERVAL_NEXT_SENSOR_IN_ONE_ROUND;
+
+        if( newInterval < INTERVAL_NEXT_SENSOR_IN_ONE_ROUND ) //detect underflow / zero, reset time to extend period
+        {
+          newInterval = time; //reset at start interval
+        }
+      }
+      else
+      {
+        //nothing, should not happen
+      }
     }
   }
 #else
