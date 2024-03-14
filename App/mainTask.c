@@ -2048,6 +2048,8 @@ const void mainTask(void)
         }
 
         goIntoSleep(getNextWake( sleepTime, systemActiveTime_sec), 1);
+        startDelayedReset(); //will force a reset when system does not switch off.
+        while(1);
         //will stop here
 #else
         pause_mainTask();

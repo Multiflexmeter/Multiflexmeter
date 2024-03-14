@@ -121,6 +121,8 @@ bool powerOnReset(void)
  */
 static const void trigger_reset(void *context)
 {
+  APP_LOG(TS_OFF, VLEVEL_H, "*** SystemReset ***\r\n" );
+  HAL_Delay(100);
   NVIC_SystemReset(); //reset
 }
 
