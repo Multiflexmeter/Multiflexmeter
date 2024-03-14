@@ -461,9 +461,15 @@ static UTIL_TIMER_Time_t getNextMeasureInterval(bool sameRound, UTIL_TIMER_Time_
   }
   else
   { //the round is finished, then set the remaining interval time, first check if there is time
+
+    if( numberOfSensors <= 1 ) //check if number of sensors is 0 or 1, then use just newInterval direct
+    {
+      return newInterval;
+    }
+
     if( time > numberOfSensors * INTERVAL_NEXT_SENSOR_IN_ONE_ROUND )
     {
-      newInterval -= numberOfSensors * INTERVAL_NEXT_SENSOR_IN_ONE_ROUND;
+      newInterval -= (numberOfSensors - 1) * INTERVAL_NEXT_SENSOR_IN_ONE_ROUND; //always use one period less then number of sensors
     }
     else
     { //multiple sensor measure time is larger then the interval setting, use interval setting directly.
