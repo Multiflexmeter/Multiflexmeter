@@ -36,7 +36,7 @@ jobs:
         run: echo "PLATFORMIO_BUILD_FLAGS=-DFW_VERSION_PROTO=1" >> $GITHUB_ENV
 
       - name: Build PlatformIO Project
-        run: pio run --build-flags ${{ env.BUILD_FLAGS }}
+        run: pio run
 
       - name: Upload firmware binaries
         uses: actions/upload-artifact@v4
