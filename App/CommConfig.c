@@ -2009,7 +2009,48 @@ void sendVccStatus(int arguments, const char * format, ...)
  */
 void sendNonces(int arguments, const char * format, ...)
 {
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%u,%u,%u,%u\r\n", cmdNonce, getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter() );
+  int type = 0;
+  char *ptr; //dummy pointer;
+
+  if( format[0] == '=' ) //check index 0 is "=" and index 2 is ","
+  {
+    type = strtol(&format[1], &ptr, 10); //convert string to number
+
+  }
+  int counter = -1;
+  switch( type )
+  {
+    case 1:
+      counter = getDevNonce();
+      break;
+    case 2:
+      counter = getJoinNonce();
+      break;
+    case 3:
+      counter = getDownFCounter();
+      break;
+    case 4:
+      counter = getUpFCounter();
+      break;
+    default:
+      break;
+  }
+
+  if( type >= 1 && type <= 4 )
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%u,%u\r\n", cmdNonce, type, counter );
+  }
+
+  else if ( type == 0)
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%u,%u,%u,%u,%u\r\n", cmdNonce, type, getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter() );
+  }
+
+  else
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s\r\n", cmdNonce, cmdError );
+  }
+
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
