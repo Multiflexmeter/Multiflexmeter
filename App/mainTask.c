@@ -2330,10 +2330,36 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
         case 0x55: //command for rejoin in 5 minutes
 
           //check command buffer matches
-          if(  appData->BufferSize == 1 )
+          if(  appData->BufferSize == 1 || appData->BufferSize == 2 )
           {
+            //check if optionByte is send
+            if (appData->BufferSize == 2)
+            {
+              if (optionalByte & 0x01)
+              {
+                setDevNonce(0); //reset devNonce
+                APP_LOG(TS_OFF, VLEVEL_H, "Reset DevNonce\r\n" );
+              }
+              if (optionalByte & 0x02)
+              {
+                setJoinNonce(0); //reset joinNOnce
+                APP_LOG(TS_OFF, VLEVEL_H, "Reset JoinNonce\r\n" );
+              }
+              if (optionalByte & 0x04)
+              {
+                setDownFCounter(0); //reset downFCounter
+                APP_LOG(TS_OFF, VLEVEL_H, "Reset DownFrameCounter\r\n" );
+              }
+              if (optionalByte & 0x08)
+              {
+                setUpFCounter(0); //reset upFCounter
+                APP_LOG(TS_OFF, VLEVEL_H, "Reset UpFrameCounter\r\n" );
+              }
+
+            }
+
             //trigger rejoin
-            APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Rejoin received\r\n" ); //print no sensor slot enabled
+            APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Rejoin received\r\n" );
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
             setRejoinAtNextInterval(); //set a rejoin for next interval
 
