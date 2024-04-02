@@ -2301,16 +2301,24 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
   }
 
   //check buffersize is at least 2 for MFM protocol
-  if( appData->BufferSize > 2 )
+  if( appData->BufferSize > 3 )
   {
      APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: More data as expected\r\n");
      return;
    }
 
   uint8_t command = appData->Buffer[0]; //MFM command byte
-  uint8_t optionalByte = appData->Buffer[1]; //reserved for optional byte for command
+  uint8_t optionalByte = 0;
+  uint16_t optionalWord = 0;
 
-  UNUSED(optionalByte); //not yet used, prevent warning.
+  if( appData->BufferSize == 2 )
+  {
+    optionalByte = appData->Buffer[1]; //reserved for optional byte for command
+  }
+  else if( appData->BufferSize == 3 )
+  {
+    optionalWord = ((appData->Buffer[1] << 8) | appData->Buffer[2]); //reserved for optional word for command
+  }
 
   switch ( appData->Port )
   {
@@ -2340,6 +2348,32 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
           else
           {
             APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: More data as expected\r\n");
+          }
+
+          break;
+
+        case 0x56: //command for changing interval
+
+          //check command buffer matches
+          if (appData->BufferSize == 3)
+          {
+            uint16_t interval = optionalWord;
+
+            APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Interval received, %u\r\n", interval);
+
+            if (setLoraInterval(interval) != interval)
+            {
+              APP_LOG(TS_OFF, VLEVEL_H, "Interval not accepted\r\n");
+            }
+
+            else
+            {
+              APP_LOG(TS_OFF, VLEVEL_H, "Interval accepted\r\n" );
+            }
+          }
+          else
+          {
+            APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: More or less data as expected\r\n");
           }
 
           break;
