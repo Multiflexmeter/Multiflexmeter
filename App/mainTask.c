@@ -1583,6 +1583,9 @@ const void mainTask(void)
 
       if (waiting == false)
       {
+        int8_t result = readInput_IO_Expander(IO_EXPANDER_SYS, 1UL<<IO_EXP_VSYS_EN );
+        APP_LOG(TS_OFF, VLEVEL_H, "VSYS: %d\r\n", result);
+
         bool gaugeReadyOrTimeout = false;
         if (batmon_isInitComplet()  ) //wait battery monitor is ready
         {
