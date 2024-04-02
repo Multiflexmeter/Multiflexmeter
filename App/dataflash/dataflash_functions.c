@@ -31,6 +31,22 @@ __weak const void setup_io_for_dataflash(bool state)
 }
 
 /**
+ * @fn void standardflashWaitOnReadyWithTimeout_printResult(void)
+ * @brief helper function to catch the result.
+ *
+ */
+void standardflashWaitOnReadyWithTimeout_printResult(void)
+{
+  bool result = standardflashWaitOnReadyWithTimeout();
+
+  if ( result )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "DATAFLASH: ERROR, timeout at Wait on ready\r\n");
+  }
+}
+
+
+/**
  * @fn int init_dataflash(void)
  * @brief function to initialize the Dataflash I/O and read the Manufacturer ID
  *
@@ -51,12 +67,12 @@ int8_t init_dataflash(void)
   //check MID is okay
   if (compareByteArrays(dataRead, MID, 3))
   {
-    printf("Dataflash: ReadMID Success.\n");
+    APP_LOG(TS_OFF, VLEVEL_H, "Dataflash: ReadMID Success.\r\n");
     result = 0;
   }
   else
   {
-    printf("Dataflash: ReadMID fail.\n");
+    APP_LOG(TS_OFF, VLEVEL_H, "Dataflash: ReadMID fail.\r\n");
     result = -1;
   }
 
@@ -118,7 +134,7 @@ int8_t writePageInDataflash(uint32_t pageAddress, uint8_t * data, uint32_t lengt
   standardflashBytePageProgram((uint32_t)pageAddress, data, length);
 
   //wait for ready
-  standardflashWaitOnReady();
+  standardflashWaitOnReadyWithTimeout_printResult();
 
   //disable io again
   setup_io_for_dataflash(false);
@@ -271,7 +287,7 @@ int8_t blockErase4kDataflash( uint32_t address )
   standardflashBlockErase4K( address );
 
   //wait ready
-  standardflashWaitOnReady();
+  standardflashWaitOnReadyWithTimeout_printResult();
 
   //disable io again
   setup_io_for_dataflash(false);
@@ -298,7 +314,7 @@ int8_t blockErase32kDataflash( uint32_t address )
   standardflashBlockErase32K( address );
 
   //wait ready
-  standardflashWaitOnReady();
+  standardflashWaitOnReadyWithTimeout_printResult();
 
   //disable io again
   setup_io_for_dataflash(false);
@@ -325,7 +341,7 @@ int8_t blockErase64kDataflash( uint32_t address )
   standardflashBlockErase64K( address );
 
   //wait ready
-  standardflashWaitOnReady();
+  standardflashWaitOnReadyWithTimeout_printResult();
 
   //disable io again
   setup_io_for_dataflash(false);
@@ -351,7 +367,7 @@ const int8_t chipEraseDataflash(void)
   standardflashChipErase1();
 
   //wait ready
-  standardflashWaitOnReady();
+  standardflashWaitOnReadyWithTimeout_printResult();
 
   //disable io again
   setup_io_for_dataflash(false);
