@@ -537,6 +537,8 @@ const uint32_t getNextBatteryEOStime(uint32_t timestampNow)
     timestampNext+= (60L*60*36); //set next day day 12:00. 12 + 24 hours from 00:00
   }
 
+  timestampNext = timestampNow + getLoraInterval()*60*3; //temporary overrule
+
 #if VERBOSE_LEVEL == VLEVEL_H
   char timeString[30];
   struct tm structTime;
@@ -1583,6 +1585,9 @@ const void mainTask(void)
 
       if (waiting == false)
       {
+        int8_t result = readInput_IO_Expander(IO_EXPANDER_SYS, 1UL<<IO_EXP_VSYS_EN );
+        APP_LOG(TS_OFF, VLEVEL_H, "VSYS: %d\r\n", result);
+
         bool gaugeReadyOrTimeout = false;
         if (batmon_isInitComplet()  ) //wait battery monitor is ready
         {

@@ -41,6 +41,7 @@ const bool getLigthSensorStatus(void)
  */
 const void enableVsys(void)
 {
+  APP_LOG(TS_OFF, VLEVEL_H, "//////****** enable VSYS ******\\\\\\\r\n");
   writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET);
   setAsOutput(EXT_IO_FRAM_CS);
   setAsOutput(EXT_IO_FLASH_SD_CS);
@@ -55,6 +56,7 @@ const void enableVsys(void)
  */
 const void disableVsys(void)
 {
+  APP_LOG(TS_OFF, VLEVEL_H, "//////****** disable VSYS ******\\\\\\\r\n");
   writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_RESET);
   setAsInput(EXT_IO_FRAM_CS);
   setAsInput(EXT_IO_FLASH_SD_CS);

@@ -542,6 +542,21 @@ static void update_IO_external(void)
   }
 
   update_IO_Expander(false, true); //update external outputs only
+
+
+  int8_t result = readInput_IO_Expander(IO_EXPANDER_SYS, 1UL<<IO_EXP_VSYS_EN );
+  if( result < 0 )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Failed to read system I/O expander\r\n" );
+  }
+  else if ( result == 0 && board_IO_status[EXT_IOVSYS_EN]!=GPIO_PIN_RESET)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Vsys is disabled, but locally enabled\r\n" );
+  }
+  else if ( result == 1 && board_IO_status[EXT_IOVSYS_EN]!=GPIO_PIN_SET)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "Vsys is enabled, but locally disabled\r\n" );
+  }
 }
 
 /**
