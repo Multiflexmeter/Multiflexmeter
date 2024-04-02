@@ -91,6 +91,19 @@ extern uint8_t txStandardflashInternalBuffer[MAXIMUM_TX_BYTES];
 void standardflashWaitOnReady();
 
 /*!
+ * @brief: Wait while Read/Busy Status bit in SRB is 1 (device is busy).
+ * This is accomplished by reading the first status register and delaying
+ * while the BSY bit is 1.
+ * Timeout of 100 times
+ *
+ * This is a 'derived' command which uses multiple single commands to accomplish
+ * a set task.
+ *
+ * @retval bool false is ready, true is timeout
+ */
+bool standardflashWaitOnReadyWithTimeout();
+
+/*!
  * @brief: Sets the QE bit in status register byte 2. Does not modify any other bits.
  * This is accomplished by first reading both bytes, performing a write enable, then
  * writing the status register data back in with the QE bit set.<br>

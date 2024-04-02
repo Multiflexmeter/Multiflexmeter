@@ -97,6 +97,32 @@ void standardflashWaitOnReady()
 #endif
 }
 
+bool standardflashWaitOnReadyWithTimeout()
+{
+  uint8_t SRArray[2] = {0, 0};
+  uint32_t maxRepeat = 100;
+  do
+  {
+#if (PARTNO == AT25DL081)   || \
+  (PARTNO == AT25DL161)   || \
+  (PARTNO == AT25DF081A)  || \
+  (PARTNO == AT25DF321A)  || \
+  (PARTNO == AT25DF641A)
+    standardflashReadSR(SRArray);
+    SPI_Delay(10);
+  }
+  while(SRArray[1] & (1<<0));
+#else
+    SRArray[0] = standardflashReadSRB1();
+    SPI_Delay(10);
+    maxRepeat--;
+  }
+  while(SRArray[0] & (1<<0) && maxRepeat);
+#endif
+
+  return SRArray[0] & (1<<0);
+}
+
 void standardflashSetQEBit()
 {
 	uint8_t SRArray[2] = {0, 0};
