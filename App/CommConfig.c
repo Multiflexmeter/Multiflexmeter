@@ -2009,7 +2009,48 @@ void sendVccStatus(int arguments, const char * format, ...)
  */
 void sendNonces(int arguments, const char * format, ...)
 {
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%u,%u,%u,%u\r\n", cmdNonce, getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter() );
+  int type = 0;
+  char *ptr; //dummy pointer;
+
+  if( format[0] == '=' ) //check index 0 is "=" and index 2 is ","
+  {
+    type = strtol(&format[1], &ptr, 10); //convert string to number
+
+  }
+  int counter = -1;
+  switch( type )
+  {
+    case 1:
+      counter = getDevNonce();
+      break;
+    case 2:
+      counter = getJoinNonce();
+      break;
+    case 3:
+      counter = getDownFCounter();
+      break;
+    case 4:
+      counter = getUpFCounter();
+      break;
+    default:
+      break;
+  }
+
+  if( type >= 1 && type <= 4 )
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%u,%u\r\n", cmdNonce, type, counter );
+  }
+
+  else if ( type == 0)
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%u,%u,%u,%u,%u\r\n", cmdNonce, type, getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter() );
+  }
+
+  else
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s\r\n", cmdNonce, cmdError );
+  }
+
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
@@ -2524,6 +2565,8 @@ void rcvEos(int arguments, const char * format, ...)
 void rcvNonce(int arguments, const char * format, ...)
 {
   char *ptr; //dummy pointer
+  int type = 0;
+  int counter = 0;
   int DevNonce = getDevNonce();
   int JoinNonce = getJoinNonce();
   int downCounter = getDownFCounter();
@@ -2531,31 +2574,46 @@ void rcvNonce(int arguments, const char * format, ...)
   bool valid = true;
   if (format[0] == '=')
   {
-    DevNonce = strtol(&format[1], &ptr, 10);
-    if( ptr[0] == ',')
+    type = strtol(&format[1], &ptr, 10);
+    if( type != 0 ) //for 1 - 4 set separate
     {
-      JoinNonce = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
+      if( ptr[0] == ',')
+      {
+        counter = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
+      }
+      else
+      {
+        valid = false;
+      }
     }
-    else
+    else //set all together
     {
-      valid = false;
-    }
-    if (ptr[0] == ',')
-    {
-      downCounter = strtol(ptr + 1, &ptr, 10); //skip <comma>, increment ptr.
-    }
-    else
-    {
-      valid = false;
-    }
+      DevNonce = strtol(&format[1], &ptr, 10);
+      if (ptr[0] == ',')
+      {
+        JoinNonce = strtol(ptr + 1, &ptr, 10); //skip <comma>, increment ptr.
+      }
+      else
+      {
+        valid = false;
+      }
+      if (ptr[0] == ',')
+      {
+        downCounter = strtol(ptr + 1, &ptr, 10); //skip <comma>, increment ptr.
+      }
+      else
+      {
+        valid = false;
+      }
 
-    if (ptr[0] == ',')
-    {
-      upCounter = strtol(ptr+1, &ptr, 10); //skip <comma>, increment ptr.
-    }
-    else
-    {
-      valid = false;
+      if (ptr[0] == ',')
+      {
+        upCounter = strtol(ptr + 1, &ptr, 10); //skip <comma>, increment ptr.
+      }
+      else
+      {
+        valid = false;
+      }
     }
   }
   else
@@ -2563,16 +2621,86 @@ void rcvNonce(int arguments, const char * format, ...)
     valid = false;
   }
 
-  if( valid == true)
+  if( type < 0 || type > 4)
   {
-    setDevNonce(DevNonce);
-    setJoinNonce(JoinNonce);
-    setDownFCounter(downCounter);
-    setUpFCounter(upCounter);
-    triggerSaveNvmData2Fram();
+    valid = false;
   }
 
-  snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s,%u,%u,%u,%u\r\n", cmdNonce, valid ? cmdOkay : cmdError, getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter() );
+  if( valid == true)
+  {
+    bool tSaveNvm = false;
+    switch( type )
+    {
+      case 0:
+        setDevNonce(DevNonce);
+        setJoinNonce(JoinNonce);
+        setDownFCounter(downCounter);
+        setUpFCounter(upCounter);
+        tSaveNvm = true;
+        break;
+      case 1: //devNonce
+        setDevNonce(counter);
+        tSaveNvm = true;
+        break;
+
+      case 2: //JoinNonce
+        setJoinNonce(counter);
+        tSaveNvm = true;
+        break;
+
+      case 3: //downCounter
+        setDownFCounter(counter);
+        tSaveNvm = true;
+        break;
+
+      case 4: //upCounter
+        setUpFCounter(counter);
+        tSaveNvm = true;
+        break;
+
+      default: //other
+        valid = false;
+        break;
+    }
+
+    if( tSaveNvm == true )
+    {
+      triggerSaveNvmData2Fram();
+    }
+  }
+
+  int newCounter = 0;
+  switch (type)
+  {
+    case 1: //devNonce
+      newCounter = getDevNonce();
+      break;
+
+    case 2: //JoinNonce
+      newCounter = getJoinNonce();
+      break;
+
+    case 3: //downCounter
+      newCounter = getDownFCounter();
+      break;
+
+    case 4: //upCounter
+      newCounter = getUpFCounter();
+      break;
+
+    default: //other
+      //nothing
+      break;
+  }
+
+  if( valid == true && type >= 1 && type <= 4 )
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s,%u,%u\r\n", cmdNonce, valid ? cmdOkay : cmdError, type, newCounter  );
+  }
+  else
+  {
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s,%d,%u,%u,%u,%u\r\n", cmdNonce, valid ? cmdOkay : cmdError, type, getDevNonce(), getJoinNonce(), getDownFCounter(), getUpFCounter() );
+  }
   uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
 }
 
