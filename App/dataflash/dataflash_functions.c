@@ -67,12 +67,12 @@ int8_t init_dataflash(void)
   //check MID is okay
   if (compareByteArrays(dataRead, MID, 3))
   {
-    printf("Dataflash: ReadMID Success.\n");
+    APP_LOG(TS_OFF, VLEVEL_H, "Dataflash: ReadMID Success.\r\n");
     result = 0;
   }
   else
   {
-    printf("Dataflash: ReadMID fail.\n");
+    APP_LOG(TS_OFF, VLEVEL_H, "Dataflash: ReadMID fail.\r\n");
     result = -1;
   }
 
