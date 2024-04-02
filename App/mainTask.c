@@ -537,6 +537,8 @@ const uint32_t getNextBatteryEOStime(uint32_t timestampNow)
     timestampNext+= (60L*60*36); //set next day day 12:00. 12 + 24 hours from 00:00
   }
 
+  timestampNext = timestampNow + getLoraInterval()*60*3; //temporary overrule
+
 #if VERBOSE_LEVEL == VLEVEL_H
   char timeString[30];
   struct tm structTime;
