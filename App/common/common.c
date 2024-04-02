@@ -20,6 +20,7 @@
 #include "usart.h"
 #include "adc_if.h"
 #include "timer_if.h"
+#include "iwdg.h"
 
 #include "common.h"
 
@@ -406,4 +407,14 @@ const void setLastWakeupTime( uint32_t wakeTime )
 const uint32_t getLastWakeupTime( void )
 {
   return readBackupRegister(BACKUP_REGISTER_LAST_WAKEUP_TIME);
+}
+
+/**
+ * @fn const void watchdogReload(void)
+ * @brief reloads the watchdog value
+ *
+ */
+const void watchdogReload(void)
+{
+  HAL_IWDG_Refresh(&hiwdg);
 }

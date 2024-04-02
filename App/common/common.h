@@ -131,4 +131,6 @@ const bool getForceInitSensor( void );
 const void setLastWakeupTime( uint32_t wakeTime );
 const uint32_t getLastWakeupTime( void );
 
+const void watchdogReload(void);
+
 #endif /* COMMON_COMMON_H_ */
