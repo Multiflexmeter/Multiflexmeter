@@ -2301,16 +2301,24 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
   }
 
   //check buffersize is at least 2 for MFM protocol
-  if( appData->BufferSize > 2 )
+  if( appData->BufferSize > 3 )
   {
      APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: More data as expected\r\n");
      return;
    }
 
   uint8_t command = appData->Buffer[0]; //MFM command byte
-  uint8_t optionalByte = appData->Buffer[1]; //reserved for optional byte for command
+  uint8_t optionalByte = 0;
+  uint16_t optionalWord = 0;
 
-  UNUSED(optionalByte); //not yet used, prevent warning.
+  if( appData->BufferSize == 2 )
+  {
+    optionalByte = appData->Buffer[1]; //reserved for optional byte for command
+  }
+  else if( appData->BufferSize == 3 )
+  {
+    optionalWord = ((appData->Buffer[1] << 8) | appData->Buffer[2]); //reserved for optional word for command
+  }
 
   switch ( appData->Port )
   {
@@ -2322,10 +2330,36 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
         case 0x55: //command for rejoin in 5 minutes
 
           //check command buffer matches
-          if(  appData->BufferSize == 1 )
+          if(  appData->BufferSize == 1 || appData->BufferSize == 2 )
           {
+            //check if optionByte is send
+            if (appData->BufferSize == 2)
+            {
+              if (optionalByte & 0x01)
+              {
+                setDevNonce(0); //reset devNonce
+                APP_LOG(TS_OFF, VLEVEL_H, "Reset DevNonce\r\n" );
+              }
+              if (optionalByte & 0x02)
+              {
+                setJoinNonce(0); //reset joinNOnce
+                APP_LOG(TS_OFF, VLEVEL_H, "Reset JoinNonce\r\n" );
+              }
+              if (optionalByte & 0x04)
+              {
+                setDownFCounter(0); //reset downFCounter
+                APP_LOG(TS_OFF, VLEVEL_H, "Reset DownFrameCounter\r\n" );
+              }
+              if (optionalByte & 0x08)
+              {
+                setUpFCounter(0); //reset upFCounter
+                APP_LOG(TS_OFF, VLEVEL_H, "Reset UpFrameCounter\r\n" );
+              }
+
+            }
+
             //trigger rejoin
-            APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Rejoin received\r\n" ); //print no sensor slot enabled
+            APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Rejoin received\r\n" );
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
             setRejoinAtNextInterval(); //set a rejoin for next interval
 
@@ -2340,6 +2374,32 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
           else
           {
             APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: More data as expected\r\n");
+          }
+
+          break;
+
+        case 0x56: //command for changing interval
+
+          //check command buffer matches
+          if (appData->BufferSize == 3)
+          {
+            uint16_t interval = optionalWord;
+
+            APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Interval received, %u\r\n", interval);
+
+            if (setLoraInterval(interval) != interval)
+            {
+              APP_LOG(TS_OFF, VLEVEL_H, "Interval not accepted\r\n");
+            }
+
+            else
+            {
+              APP_LOG(TS_OFF, VLEVEL_H, "Interval accepted\r\n" );
+            }
+          }
+          else
+          {
+            APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: More or less data as expected\r\n");
           }
 
           break;

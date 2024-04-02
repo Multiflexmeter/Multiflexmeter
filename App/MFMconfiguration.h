@@ -86,6 +86,7 @@ const int saveSettingsToVirtualEEPROM(void);
 const int reloadSettingsFromVirtualEEPROM(void);
 const int32_t getSensorStatus(int32_t sensorId);
 const uint16_t getLoraInterval(void);
+const int32_t setLoraInterval(uint16_t interval);
 const uint8_t getNumberOfSamples(int32_t sensorId);
 const bool getAlwaysOn(void);
 const bool getAlwaysOn_changed(bool reset);
