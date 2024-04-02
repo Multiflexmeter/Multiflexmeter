@@ -2109,6 +2109,7 @@ const void mainTask(void)
   control_supercap( getInput_board_io(INT_IO_3V3_DETECT) == GPIO_PIN_SET ? false : true); //enable the supercap without 3V3_detect (indirect USB/VBUS connected), disable the supercap when USB is found
   uartKeepListen( getInput_board_io(EXT_IOUSB_CONNECTED) ); //if USB is connected, keep listen to UART.
 
+  watchdogReload();
   //exit, wait on next trigger.
 
 }
