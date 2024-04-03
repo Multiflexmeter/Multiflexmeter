@@ -1831,7 +1831,7 @@ void sendSamples(int arguments, const char * format, ...)
 
   if( numberOfSamples >= 1 && numberOfSamples <= 100 )
   {
-    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d\r\n", cmdSamples, getNumberOfSamples(sensorId) );
+    snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdSamples, sensorId, getNumberOfSamples(sensorId) );
     uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
   }
   else
