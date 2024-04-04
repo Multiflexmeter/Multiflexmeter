@@ -1268,12 +1268,20 @@ const void mainTask(void)
       break;
 
     case SWITCH_ON_VSYS:
-
-      enableVsys(); //enable supply for I/O expander
-      MX_I2C2_Init(); //initialize I2C for BUS, otherwise it could not work because power was down.
-      init_board_io_device(IO_EXPANDER_BUS_INT);
-      init_board_io_device(IO_EXPANDER_BUS_EXT);
-
+      {
+        int result_int;
+        int result_ext;
+        int retry = 10;
+        do{
+          disableVsys(); //disable supply for I/O expander
+          HAL_Delay(1);
+          enableVsys(); //enable supply for I/O expander
+          MX_I2C2_Init(); //initialize I2C for BUS, otherwise it could not work because power was down.
+          result_int = init_board_io_device(IO_EXPANDER_BUS_INT);
+          result_ext = init_board_io_device(IO_EXPANDER_BUS_EXT);
+          UNUSED(result_ext);
+        }while(result_int != 0 && retry--);
+      }
       mainTask_state = SWITCH_SENSOR_SLOT;
 
       break;
@@ -2068,6 +2076,11 @@ const void mainTask(void)
       break;
 
     default:
+
+      APP_LOG(TS_OFF, VLEVEL_H, "MainTask: Wrong state detected: %d\r\n", mainTask_state );
+      HAL_Delay(100);
+      startDelayedReset();
+      HAL_Delay(5000);
 
       break;
   }

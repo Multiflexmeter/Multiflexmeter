@@ -218,10 +218,10 @@ void init_IO_ExpanderData(ENUM_IO_EXPANDER device)
  *
  * @param device
  */
-void init_IO_Expander(ENUM_IO_EXPANDER device)
+int init_IO_Expander(ENUM_IO_EXPANDER device)
 {
   if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
-    return;
+    return -1;
 
   int i = device - 1;
   uint8_t result = 0;
@@ -232,11 +232,13 @@ void init_IO_Expander(ENUM_IO_EXPANDER device)
   if ( result == I2C_OPERATION_SUCCESSFUL )
   {
     stIO_ExpanderChipConfig[i].enabled = true; //device found, enable device
+    return 0;
   }
   else
   {
     APP_LOG(TS_OFF, VLEVEL_H, "I/O expander not found: %s on address 0x%02x\r\n", IO_Expander_name[i], TCA9535_Reg_map[i].deviceAddress );
     stIO_ExpanderChipConfig[i].enabled = false; //disable not found, disable device
+    return -2;
   }
 }
 

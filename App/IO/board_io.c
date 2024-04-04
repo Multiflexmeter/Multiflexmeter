@@ -303,15 +303,16 @@ const void init_board_io(void)
  *
  * @param device
  */
-const void init_board_io_device(ENUM_IO_EXPANDER device)
+const int init_board_io_device(ENUM_IO_EXPANDER device)
 {
   int i;
+  int result = 0;
   bool externalFound = false;
 
   assert_param( device >= IO_EXPANDER_NONE && device < NR_IO_EXPANDER);   //verify enumeration is equal.
 
   if( device >= NR_IO_EXPANDER )
-    return;
+    return -3;
 
   switch( device )
   {
@@ -343,13 +344,13 @@ const void init_board_io_device(ENUM_IO_EXPANDER device)
     switch( device )
     {
       case IO_EXPANDER_SYS:
-        init_IO_Expander(IO_EXPANDER_SYS); //Send configuration registers to IO Expander devices.
+        result = init_IO_Expander(IO_EXPANDER_SYS); //Send configuration registers to IO Expander devices.
         break;
       case IO_EXPANDER_BUS_INT:
-        init_IO_Expander(IO_EXPANDER_BUS_INT); //Send configuration registers to IO Expander devices.
+        result = init_IO_Expander(IO_EXPANDER_BUS_INT); //Send configuration registers to IO Expander devices.
         break;
       case IO_EXPANDER_BUS_EXT:
-        init_IO_Expander(IO_EXPANDER_BUS_EXT); //Send configuration registers to IO Expander devices.
+        result = init_IO_Expander(IO_EXPANDER_BUS_EXT); //Send configuration registers to IO Expander devices.
         break;
       default:
         //nothing
@@ -360,6 +361,8 @@ const void init_board_io_device(ENUM_IO_EXPANDER device)
   {
     //nothing
   }
+
+  return result;
 }
 
 /**
