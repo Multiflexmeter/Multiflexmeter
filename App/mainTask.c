@@ -2077,6 +2077,11 @@ const void mainTask(void)
 
     default:
 
+      APP_LOG(TS_OFF, VLEVEL_H, "MainTask: Wrong state detected: %d\r\n", mainTask_state );
+      HAL_Delay(100);
+      startDelayedReset();
+      HAL_Delay(5000);
+
       break;
   }
 
