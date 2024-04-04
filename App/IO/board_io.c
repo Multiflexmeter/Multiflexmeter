@@ -312,7 +312,7 @@ const int init_board_io_device(ENUM_IO_EXPANDER device)
   assert_param( device >= IO_EXPANDER_NONE && device < NR_IO_EXPANDER);   //verify enumeration is equal.
 
   if( device >= NR_IO_EXPANDER )
-    return;
+    return -3;
 
   switch( device )
   {

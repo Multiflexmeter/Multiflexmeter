@@ -221,7 +221,7 @@ void init_IO_ExpanderData(ENUM_IO_EXPANDER device)
 int init_IO_Expander(ENUM_IO_EXPANDER device)
 {
   if( device <= IO_EXPANDER_NONE ||  device >= NR_IO_EXPANDER ) //check boundary device
-    return -1;;
+    return -1;
 
   int i = device - 1;
   uint8_t result = 0;
