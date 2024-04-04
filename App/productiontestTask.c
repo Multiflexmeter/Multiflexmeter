@@ -18,6 +18,7 @@
 #include "stm32_timer.h"
 #include "stm32_systime.h"
 #include "timer_if.h"
+#include "i2c.h"
 
 #include "common/common.h"
 #include "common/app_types.h"
@@ -176,6 +177,7 @@ const void productiontestTask(void)
       {
         int8_t result;
         writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET); //enable vsys
+        MX_I2C2_Init(); //initialize I2C for BUS, otherwise it could not work because power was down.
         init_board_io_device(IO_EXPANDER_BUS_INT); //init I/O expander
         result = readInput_board_io(EXT_IOSLOT1_GPIO0); //indirect by reading an I/O pin
         deinit_IO_Expander(IO_EXPANDER_BUS_INT); //deinit I/O expander
