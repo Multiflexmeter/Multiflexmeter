@@ -2476,6 +2476,7 @@ void rcvSave(int arguments, const char * format, ...)
     if( detectChangeRebootNeeded ) //check if reboot is needed, no need to reset variable, because of reboot.
     {
       setRejoinAtNextInterval(); //force a rejoin after the reboot.
+      setJoinNonce(0); //reset joinNonce after changing Join Settings.
       startDelayedReset(); //trigger delayed reboot, to force loading new settings with a new join.
     }
   }
