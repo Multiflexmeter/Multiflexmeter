@@ -1140,6 +1140,43 @@ static bool checkIntervalChanged(void)
 }
 
 /**
+ * @fn void enableForcedInitSensorInFramSettings(bool)
+ * @brief helper function to enable force sensor init in FRAM settings struct (not yet FRAM saved).
+ *
+ * @param forceInitSensor
+ */
+void enableForcedInitSensorInFramSettings(bool forceInitSensor)
+{
+  if( forceInitSensor ) //check if init sensor is needed
+  {
+    for( int i=0; i < MAX_SENSOR_MODULE; i++)
+    {
+      FRAM_Settings.sensorModuleSettings[i].item.sensorModuleInitRequest = true; //enable request for each sensor.
+    }
+  }
+}
+
+
+/**
+ * @fn uint8_t getNumberOfActiveSensorModules(void)
+ * @brief helper function to get the number of active sensor modules
+ *
+ * @return number of active sensor modules
+ */
+uint8_t getNumberOfActiveSensorModules(void)
+{
+  uint8_t numberOfActiveSensorModules = 0;
+  for (int i = 0; i < MAX_SENSOR_MODULE; i++)
+  {
+    if (getSensorStatus(i + 1) == true)
+    {
+      numberOfActiveSensorModules++; //count the number of active sensor Modules
+    }
+  }
+  return numberOfActiveSensorModules;
+}
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -1288,20 +1325,9 @@ const void mainTask(void)
 
     case SWITCH_SENSOR_SLOT:
 
-      numberOfActivesensorModules = 0;
       //check if at least one sensor module is enabled
-      for( int i=0; i < MAX_SENSOR_MODULE; i++)
-      {
-        if( getSensorStatus(i + 1) == true )
-        {
-          numberOfActivesensorModules++; //count the number of active sensor Modules
-        }
-
-        if( getForceInitSensor() ) //check if init sensor is needed
-        {
-          FRAM_Settings.sensorModuleSettings[i].item.sensorModuleInitRequest = true; //enable request for each sensor.
-        }
-      }
+      numberOfActivesensorModules = getNumberOfActiveSensorModules();
+      enableForcedInitSensorInFramSettings(getForceInitSensor());
       setForceInitSensor( false ); //reset after processed.
 
       FRAM_Settings.numberOfActiveSensorModules = numberOfActivesensorModules;
