@@ -2398,6 +2398,7 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
               if( optionalByte & 0x10 )
               {
                 setForceInitSensor(true); //also activate a forced sensor init
+                enableForcedInitSensorInFramSettings(getForceInitSensor());
                 APP_LOG(TS_OFF, VLEVEL_H, "Sensor init received\r\n" );
               }
 
