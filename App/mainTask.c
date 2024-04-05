@@ -2369,6 +2369,11 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
                 setUpFCounter(0); //reset upFCounter
                 APP_LOG(TS_OFF, VLEVEL_H, "Reset UpFrameCounter\r\n" );
               }
+              if( optionalByte & 0x10 )
+              {
+                setForceInitSensor(true); //also activate a forced sensor init
+                APP_LOG(TS_OFF, VLEVEL_H, "Sensor init received\r\n" );
+              }
 
             }
 
