@@ -104,6 +104,7 @@ static uint8_t sensorProtocol;
 static uint8_t waitForBatteryMonitorDataCounter = 0;
 static struct_FRAM_settings FRAM_Settings;
 static struct_wakeupSource stWakeupSource;
+static int32_t countRetryI2C_error;
 
 const void setDevNonce(uint16_t devNonce)__attribute__((unused));
 const void setJoinNonce(uint16_t JoinNonce)__attribute__((unused));
@@ -1318,6 +1319,7 @@ const void mainTask(void)
           result_ext = init_board_io_device(IO_EXPANDER_BUS_EXT);
           UNUSED(result_ext);
         }while(result_int != 0 && retry--);
+        APP_LOG(TS_OFF, VLEVEL_H, "Number of retries: %c\r\n", 10 - retry ); //print info
       }
       mainTask_state = SWITCH_SENSOR_SLOT;
 
@@ -2110,6 +2112,29 @@ const void mainTask(void)
 
       break;
   }
+
+  HAL_I2C_checkError(); //check on HAL I2C error.
+
+  if( getUpdateFailedCount_IO_Expander() > 1000)
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "I2C update error: %u, %d\r\n", getUpdateFailedCount_IO_Expander(), countRetryI2C_error );
+    MX_I2C1_Init();
+    MX_I2C2_Init();
+
+    HAL_I2C_MspDeInit(&hi2c1);
+    HAL_I2C_MspInit(&hi2c1);
+
+    HAL_I2C_MspDeInit(&hi2c2);
+    HAL_I2C_MspInit(&hi2c2);
+    countRetryI2C_error++;
+    if( countRetryI2C_error > 10 )
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, "startDelayedReset\r\n");
+      startDelayedReset();//
+      while(1);//also reset by watchdog if delay reset not working
+    }
+  }
+
 
   update_board_io(); //periodically read
 

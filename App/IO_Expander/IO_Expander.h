@@ -121,5 +121,6 @@ int8_t setOutput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask, GPIO_Pin
 int8_t getInput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask);
 int8_t writeOutput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask, GPIO_PinState state);
 int8_t readInput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask);
+uint32_t getUpdateFailedCount_IO_Expander(void);
 
 #endif /* IO_EXPANDER_IO_EXPANDER_H_ */
