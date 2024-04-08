@@ -1319,6 +1319,7 @@ const void mainTask(void)
           result_ext = init_board_io_device(IO_EXPANDER_BUS_EXT);
           UNUSED(result_ext);
         }while(result_int != 0 && retry--);
+        APP_LOG(TS_OFF, VLEVEL_H, "Number of retries: %c\r\n", 10 - retry ); //print info
       }
       mainTask_state = SWITCH_SENSOR_SLOT;
 
