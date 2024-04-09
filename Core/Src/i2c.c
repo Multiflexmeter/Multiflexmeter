@@ -251,7 +251,7 @@ void HAL_I2C_checkError(void)
 
   if (hi2c2.ErrorCode)
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "I2C ch2 error: %u\r\n", hi2c1.ErrorCode );
+    APP_LOG(TS_OFF, VLEVEL_H, "I2C ch2 error: %u\r\n", hi2c2.ErrorCode );
     HAL_I2C_MspDeInit(&hi2c2);
     HAL_I2C_MspInit(&hi2c2);
   }
