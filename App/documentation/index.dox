@@ -68,7 +68,7 @@ In the linker file STM32WL55CCUX_FLASH.ld the FLASH is split up in three differe
 2. VEEPROM: for the virtual EEPROM driver
 3. NVMDATA: for the NVM data section used by the original LoRaWan driver (now FRAM is used).
 
-<2>Revision</h2>
+<h2>Revision</h2>
 <b>date        version     Changes</b>
 28-02-2024     0.1.11      Initial version for FAT testing
 07-03-2024     0.1.14      Fixes after FAT
