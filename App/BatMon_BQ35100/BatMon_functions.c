@@ -238,4 +238,9 @@ const void testBatMon( int mode, int32_t * value )
     *value = 1;
   }
 
+  else if( mode == 11 ) //instructs the fuel gauge with a new cell.
+  {
+    *value = bq35100_NewBattery();
+  }
+
 }

@@ -2265,7 +2265,7 @@ void sendTestRTC( int test, int subTest, char * extraArguments )
  */
 void sendTestBatMonitor(int test, int subTest)
 {
-  if (subTest >= 0 && subTest <= 10)
+  if (subTest >= 0 && subTest <= 11)
   {
     int32_t value;
     testBatMon(subTest, &value );

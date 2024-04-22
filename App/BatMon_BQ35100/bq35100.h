@@ -112,5 +112,6 @@ bool bq35100_getControlStatus(uint8_t * controlStatus, uint8_t length);
 bool bq35100_isGaugeEnabled(void);
 bool bq35100_enableGauge(void);
 bool bq35100_disableGauge(bool ignoreCheck);
+bool bq35100_NewBattery(void);
 
 #endif /* BATTERY_GAUGE_BQ35100_H_ */
