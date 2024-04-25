@@ -1962,6 +1962,8 @@ const void mainTask(void)
         setOrangeLedOnOf(false); //disable led
         if( timeout == true )
         {
+          triggerSaveNvmData2Fram(); //at timeout force to save NVM to FRAM, normally done after valid TX.
+
           APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: timeout\r\n");
         }
 
