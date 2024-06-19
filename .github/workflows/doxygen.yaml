@@ -23,9 +23,8 @@ jobs:
           doxygen P22296-10-SW.doxyfile
 
       - name: Deploy to GitHub Pages
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: github-pages
           path: src/html
 
   deploy:
