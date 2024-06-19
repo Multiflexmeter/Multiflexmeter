@@ -1,0 +1,8 @@
+Debug
+Release
+.mxproject
+html
+latex
+*.launch
+*.stackdump
+.settings/stm32cubeide.project.prefs

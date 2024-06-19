@@ -1,0 +1,75 @@
+/** \mainpage MFM base module Manual
+<h2>Introdution</h2>
+<p>
+This application is developed on behalf of <a href="https://www.zeeland.nl/" target=_blank>Provincie Zeeland</a> to measure the water depth on many field location in the province.<br>
+More information about this project can be found on <a href="https://www.multiflexmeter.nl/" target=_blank>Multiflexmeter</a> website.<br> 
+</p>
+<p>
+It's developed in STM32CubeIde 1.12.0 and is based on the "LoRaWan_End_Node" application.<br>
+More information about the basis principles of can be found in <a target=_blank href="https://www.st.com/resource/en/application_note/an5406-how-to-build-a-lora-application-with-stm32cubewl-stmicroelectronics.pdf">AN5406</a>.
+All peripheral, middleware and LoRaWan settings are executed with the cubeMx configurator.<br>
+The project is made completly standalone.<br>
+</p>
+<h2>Project overview</h2>
+<p>
+The proejct specific added appliation code can be found in de \App folder.<br>
+The \subpage MainTask (mainTask.c) contains a large state machine which is handled by the application.<br>
+Basic LoRaWan functionality like TxSendData() can be found in \ref \LoRaWAN\App\lora_app.c. 
+</p>
+
+\htmlonly
+<img src="ESD_warning.png" alt="ATTENTION: Observe precautions for handling electrostatic discharge sensitive devices!" width="200" style="align-items:left; margin-right:100px;"/>
+\endhtmlonly
+
+\htmlonly
+<h2><font color="red">ATTENTION: Observe precautions for handling electrostatic discharge sensitive devices!</font></h2>
+\endhtmlonly
+
+<h2>Low power</h2>
+<p>
+The MFM application is an extremly low power application. The applicaiton uses the STOP2 mode when it's active.<br>
+The controller is completly shutdown when the application executes all it's actions from the statemachine with the use of the external realtime clock (RTC), <a href="https://ambiq.com/artasie-am1805/" targe=_blank>AM1805</a>.<br>
+</p>
+
+<h2>Configuration</h2>
+<p>
+The base board can be configured with USB-C connector and the help of the windows application "MFM configurationsoftware".<br>
+Settings:<br>
+- LoRaWan JoinID
+- LoRaWan DeviceId
+- LoRaWan AppKey
+- Lora interval
+- Sensor module settings (6x)
+</p> 
+
+<h2>USB leds</h2>
+<p>The USB leds can be configured see \subpage HowToConfigUsbLed how to do this.
+</p>
+
+<h2>Replacing a battery</h2>
+<p>When the battery needs to be replaced to a new one, the battery monitor needs to configured.<br>
+Instruction how to do can be found in \subpage HowToConfigBatteryMonitor.
+</p>
+
+<h2>Used memory</h2>
+- NOR Flash (SPI) : 
+  - for sensor measurements.
+- FRAM (I2C): 
+  - Lora session settings.
+  - Some function settings, see \ref struct_FRAM_settings.
+- FLASH (controller)
+  - The configuration is saved in the controllers flash (in separate pages) with the use a the EEPROM emulation driver of ST <a href="https://www.st.com/resource/en/application_note/an4894-how-to-use-eeprom-emulation-on-stm32-mcus-stmicroelectronics.pdf" target=_blank>AN4894</a>.
+- Backup register (controller)
+  - The backup registers of the controller are used for some special items see \ref ENUM_backupRegister.
+
+<h2>Flash segments</h2>
+In the linker file STM32WL55CCUX_FLASH.ld the FLASH is split up in three different sections.
+1. FLASH: for user application
+2. VEEPROM: for the virtual EEPROM driver
+3. NVMDATA: for the NVM data section used by the original LoRaWan driver (now FRAM is used).
+
+<h2>Revision</h2>
+<b>date        version     Changes</b>
+28-02-2024     0.1.11      Initial version for FAT testing
+07-03-2024     0.1.14      Fixes after FAT
+*/
