@@ -34,6 +34,7 @@
 #include "CayenneLpp.h"
 #include "sys_sensors.h"
 #include "flash_if.h"
+#include "LoRaMac.h"
 
 /* USER CODE BEGIN Includes */
 #include "../../../App/measurement.h"
@@ -509,6 +510,23 @@ const void clearRejoinAtNextInterval(void)
 const bool getRejoinAtNextInterval(void)
 {
   return (readBackupRegister(BACKUP_REGISTER_REJOIN) == true);
+}
+
+/**
+ * @fn void LoRaWAN_deInit(void)
+ * @brief de-initialize the LoRaWAN functionality
+ *
+ */
+void LoRaWAN_deInit(void)
+{
+  LoRaMacStop();
+  LmHandlerDeInit();
+  UTIL_TIMER_Stop(&TxTimer);
+  UTIL_TIMER_Stop(&ReJoinTimer);
+  UTIL_TIMER_Stop(&StopJoinTimer);
+  UTIL_TIMER_Stop(&JoinLedTimer);
+  UTIL_TIMER_Stop(&RxLedTimer);
+  UTIL_TIMER_Stop(&TxLedTimer);
 }
 
 /* USER CODE END EF */

@@ -630,6 +630,17 @@ __weak const uint16_t getUpFCounter(void)
 }
 
 /**
+ * @fn const uint32_t getAdrAckCounter(void)
+ * @brief weak function for getAdrAckCounter, must be override in user code
+ *
+ * @return
+ */
+__weak const uint32_t getAdrAckCounter(void)
+{
+  return 0;
+}
+
+/**
  * @fn const void setDevNonce(uint16_t)
  * @brief weak function setDevNonce, must be override in user code
  *
@@ -673,6 +684,16 @@ __weak const void setUpFCounter(uint16_t counter)
   UNUSED(counter);
 }
 
+/**
+ * @fn const void setAdrAckCounter(uint32_t)
+ * @brief  weak function setAdrAckCounter, must be override in user code
+ *
+ * @param counter
+ */
+__weak const void setAdrAckCounter(uint32_t counter)
+{
+  UNUSED(counter);
+}
 /**
  * @fn const uint8_t getBufferSize(void)
  * @brief function to get maximum buffer side.
@@ -1081,6 +1102,7 @@ void executeTest(int test, int subTest, char * extraArguments)
       saveStatusTestmode(subTest);
       snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%d,%d\r\n", cmdTest, test,  subTest);
       uartSend_Config(bufferTxConfig, strlen((char*)bufferTxConfig));
+      startDelayedReset();
 
       break;
 
@@ -2032,11 +2054,14 @@ void sendNonces(int arguments, const char * format, ...)
     case 4:
       counter = getUpFCounter();
       break;
+    case 5:
+      counter = getAdrAckCounter();
+      break;
     default:
       break;
   }
 
-  if( type >= 1 && type <= 4 )
+  if( type >= 1 && type <= 5 )
   {
     snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%u,%u\r\n", cmdNonce, type, counter );
   }
@@ -2622,7 +2647,7 @@ void rcvNonce(int arguments, const char * format, ...)
     valid = false;
   }
 
-  if( type < 0 || type > 4)
+  if( type < 0 || type > 5)
   {
     valid = false;
   }
@@ -2659,6 +2684,11 @@ void rcvNonce(int arguments, const char * format, ...)
         tSaveNvm = true;
         break;
 
+      case 5: //adrAckCounter
+        setAdrAckCounter(counter);
+        tSaveNvm = true;
+        break;
+
       default: //other
         valid = false;
         break;
@@ -2689,12 +2719,16 @@ void rcvNonce(int arguments, const char * format, ...)
       newCounter = getUpFCounter();
       break;
 
+    case 5: //adrAckCounter
+       newCounter = getAdrAckCounter();
+       break;
+
     default: //other
       //nothing
       break;
   }
 
-  if( valid == true && type >= 1 && type <= 4 )
+  if( valid == true && type >= 1 && type <= 5 )
   {
     snprintf((char*)bufferTxConfig, sizeof(bufferTxConfig), "%s:%s,%u,%u\r\n", cmdNonce, valid ? cmdOkay : cmdError, type, newCounter  );
   }

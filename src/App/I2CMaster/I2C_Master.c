@@ -154,10 +154,17 @@ ENUM_I2C_Error sensorMasterReadVariableLength(uint8_t slaveAddress, uint8_t regA
   tickstart = HAL_GetTick();
 
   /* Select the measurement data register */
-  HAL_I2C_Master_Transmit(&hi2c2, slaveAddress, &regAddress, 1, 10);
+  HAL_I2C_Master_Seq_Transmit_IT(&hi2c2, slaveAddress, &regAddress, 1, I2C_FIRST_FRAME);
+  while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY)
+  {
+    if(sensorMasterTimeout(tickstart,timeout) )
+    {
+      return I2C_TIMEOUT;
+    }
+  }
 
   /* Receive the lenght of the measurement data */
-  HAL_I2C_Master_Seq_Receive_IT(&hi2c2, slaveAddress, &variableLength, 1, I2C_FIRST_AND_NEXT_FRAME);
+  HAL_I2C_Master_Seq_Receive_IT(&hi2c2, slaveAddress, &variableLength, 1, I2C_NEXT_FRAME);
   while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY)
   {
     if(sensorMasterTimeout(tickstart,timeout) )

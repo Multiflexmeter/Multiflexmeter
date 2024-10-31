@@ -134,6 +134,7 @@ const void dataflash_DisableChipSelect(void)
  */
 const void slotPower(ENUM_slotId slotId, bool enable)
 {
+    APP_LOG(TS_OFF, VLEVEL_H, "PWR Slot %d to %d\r\n", slotId, enable );
   assert_param( slotId >= 0 && slotId < MAX_SENSOR_SLOT );
 
   if( slotId < 0 || slotId >= MAX_SENSOR_SLOT )

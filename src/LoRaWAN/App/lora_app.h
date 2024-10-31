@@ -45,6 +45,7 @@ const void setRequestTime(void);
 const void setRejoinAtNextInterval(void);
 const void clearRejoinAtNextInterval(void);
 const bool getRejoinAtNextInterval(void);
+void LoRaWAN_deInit(void);
 
 /* USER CODE END ET */
 

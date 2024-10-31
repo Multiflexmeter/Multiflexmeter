@@ -310,7 +310,7 @@ bool bq35100_NewBattery(void)
 
   data[0] = 0x3e;                     // Set address to ManufacturerAccessControl
   data[1] = (uint8_t)SUB_CMD_NEW_BATTERY;      // First byte of GAUGE_START sub-command (0x11)
-  data[2] = (uint8_t)SUB_CMD_NEW_BATTERY>>8;   // Second byte of GAUGE_START sub-command (0x00) (register address will auto-increment)
+  data[2] = (uint8_t)(SUB_CMD_NEW_BATTERY>>8);   // Second byte of GAUGE_START sub-command (0x00) (register address will auto-increment)
 
   HAL_StatusTypeDef result = HAL_I2C_Master_Transmit(bq35100Handle, BQ35100_ADDRESS, data, 3, BQ35100_I2C_WAIT);
 

@@ -321,12 +321,14 @@ const void saveStatusTestmode( int mode )
   switch( mode )
   {
     case 1: //normal production mode
+
+      /* Reset the backup register at startup */
+      writeBackupRegister(BACKUP_REGISTER_PRODUCTIONTEST_STATE, 1);
+
       UNvalue.stRegStatus.testmodeActive = true; //set value
-      UNvalue.stRegStatus.testmodeBatteryGauge = false; //reset value
       break;
 
     case 2: //fuel gauge initialize mode
-      UNvalue.stRegStatus.testmodeActive = true; //set value
       UNvalue.stRegStatus.testmodeBatteryGauge = true; //set value
       break;
 

@@ -79,6 +79,7 @@ typedef struct {
     ENUM_virtualAddress virtualAddress;                 //virtual address from 1 to 65534, 0 and 65535 are reserved and may not used
     ENUM_virtualElementSize virtualElementSize;         //element size type 8bits, 16bits or 32bits
     void* pointerToItem;                                //pointer to element
+    const void* pointerToDefault;                             //pointer to default value
 }struct_virtual_EEPROM_item;
 
 const int eraseVirtualEEPROM(void);

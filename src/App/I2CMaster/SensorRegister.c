@@ -22,6 +22,8 @@ const SensorReg registers[] =
     {REG_MEAS_TYPE,         UINT8_T,  1,  READWRITE},
     {REG_MEAS_SAMPLES,      UINT8_T,  1,  READWRITE},
     {REG_SENSOR_DATA,       UINT16_T, 1,  READ},
+    {REG_CONTROL_IO,        UINT8_T,  1,  READWRITE},
+    {REG_DIRECTION_IO,      UINT8_T,  1,  READWRITE},
     {REG_ERROR_COUNT,       UINT16_T, 3,  READ},
     {REG_ERROR_STATUS,      UINT8_T,  1,  READ}
 };

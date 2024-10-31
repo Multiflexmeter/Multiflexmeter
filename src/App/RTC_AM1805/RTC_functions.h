@@ -32,5 +32,6 @@ const void setAlarmTime( am1805_time_t newAlarmTime );
 const void goIntoSleep(uint32_t sleepTime_sec, uint8_t waitTimeTicks);
 const void disableSleep(void);
 const uint32_t get_current_alarm(void);
+const void testRTC( int mode, struct_dateTime * time );
 
 #endif /* RTC_AM1805_RTC_FUNCTIONS_H_ */

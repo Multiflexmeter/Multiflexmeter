@@ -40,6 +40,13 @@ typedef enum{
   SENSOR_ID_ERROR,
 }SensorError;
 
+typedef enum{
+  SLOT_GPIO_0 = 0x01,
+  SLOT_GPIO_1 = 0x02,
+  SLOT_GPIO_2 = 0x04,
+  INTERRUPT = 0x08,
+}ControlIO;
+
 uint8_t sensorFirmwareVersion(int moduleId, uint8_t *firmwareVersion, uint16_t dataLength);
 uint8_t sensorProtocolVersion(int moduleId, uint8_t * protocol);
 uint8_t sensorReadType(int moduleId, uint16_t * type);
@@ -58,5 +65,7 @@ uint8_t sensorReadSampleType(int moduleId, uint8_t * sensorType);
 uint8_t sensorReadSamples(int moduleId, uint8_t * numberOfSamples);
 uint8_t sensorSetSamples(int moduleId, uint8_t samples);
 SensorError sensorReadSelected(int moduleId, uint8_t* measurementData, uint16_t dataLength);
+void sensorDirectionIO(int moduleId, uint8_t data);
+void sensorWriteIO(int moduleId, uint8_t data);
 
 #endif /* I2CMASTER_SENSORFUNCTIONS_H_ */

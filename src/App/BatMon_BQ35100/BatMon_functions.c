@@ -62,18 +62,20 @@ const void batmon_disable_gauge(void)
 }
 
 /**
- * @fn const bool batmon_isInitComplet(void)
+ * @fn const int batmon_isInitComplet(void)
  * @brief
  *
- * @return true is complete, false not complete
+ * @return true is complete, false not complete, negative is peripheral timeout
  */
-const bool batmon_isInitComplet(void)
+const int batmon_isInitComplet(void)
 {
   uint8_t controlStatus[2] = {0};
 
-  bq35100_getControlStatus(controlStatus, sizeof(controlStatus));
+  if( bq35100_getControlStatus(controlStatus, sizeof(controlStatus)))
 
-  return (controlStatus[0] & CONTROL_STATUS0_INITCOMP) ? true : false;
+    return (controlStatus[0] & CONTROL_STATUS0_INITCOMP) ? true : false;
+
+  return -1;
 }
 
 /**
@@ -184,63 +186,75 @@ const void testBatMon( int mode, int32_t * value )
   if( mode == 0 ) //enable gauge
   {
     *value = (int32_t)bq35100_enableGauge();
+    APP_LOG(TS_OFF, VLEVEL_H, "cmd: Enable Gauge\r\n");
   }
 
   if( mode == 1) //read supply
   {
     *value = (int32_t)bq35100_getVoltage();
+    APP_LOG(TS_OFF, VLEVEL_H, "cmd: getVoltage\r\n");
   }
   else if( mode == 2) //read current
   {
     *value = (int32_t)bq35100_getCurrent();
+    APP_LOG(TS_OFF, VLEVEL_H, "cmd: getCurrent\r\n");
   }
 
   else if( mode == 3 ) //read temperature
   {
     *value = (int32_t)bq35100_getInternalTemp();
+    APP_LOG(TS_OFF, VLEVEL_H, "cmd: getTemperature\r\n");
   }
 
   else if( mode == 4 ) //read state of health
   {
     *value = (int32_t)bq35100_getStateOfHealth();
+    APP_LOG(TS_OFF, VLEVEL_H, "cmd: getSOH\r\n");
   }
 
   else if( mode == 5 ) //read design capacity
   {
     *value = (int32_t)bq35100_getDesignCapacity();
+    APP_LOG(TS_OFF, VLEVEL_H, "cmd: getDesignCapacity\r\n");
   }
 
   else if( mode == 6 ) //read scaled R
   {
     *value = (int32_t)bq35100_getScaledR();
+    APP_LOG(TS_OFF, VLEVEL_H, "cmd: getMeasured-R\r\n");
   }
 
   else if( mode == 7 ) //read measured Z
   {
     *value = (int32_t) bq35100_getMeasuredZ();
+    APP_LOG(TS_OFF, VLEVEL_H, "cmd: getMeasured-Z\r\n");
   }
 
   else if( mode == 8 ) //disable gauge
   {
     *value = (int32_t)bq35100_disableGauge(true);
+    APP_LOG(TS_OFF, VLEVEL_H, "cmd: Disable Gauge\r\n");
   }
 
   else if( mode == 9 ) //enable batmonitor
   {
     writeOutput_board_io(EXT_IOVSYS_EN, GPIO_PIN_SET);
     writeOutput_board_io(EXT_IO_GE_EN, GPIO_PIN_SET); //enable GE_EN, to operate battery monitor
+    APP_LOG(TS_OFF, VLEVEL_H, "cmd: Enable Batmon\r\n");
     *value = 1;
   }
 
   else if( mode == 10 ) //disable batmonitor
   {
     writeOutput_board_io(EXT_IO_GE_EN, GPIO_PIN_RESET); //disable GE_EN, to disable battery monitor
+    APP_LOG(TS_OFF, VLEVEL_H, "cmd: Disable Batmon\r\n");
     *value = 1;
   }
 
   else if( mode == 11 ) //instructs the fuel gauge with a new cell.
   {
     *value = bq35100_NewBattery();
+    APP_LOG(TS_OFF, VLEVEL_H, "cmd: New Bat\r\n");
   }
 
 }

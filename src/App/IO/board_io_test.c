@@ -87,10 +87,12 @@ const void testSystemChecks( int mode, int32_t value )
     if( value == 0 ) //0 = off
     {
       disableVsys(); //disable vSys
+      APP_LOG(TS_OFF, VLEVEL_H, "cmd: Disable vSys\r\n");
     }
     else
     {
       enableVsys(); //enable vSys
+      APP_LOG(TS_OFF, VLEVEL_H, "cmd: Enable vSys\r\n");
     }
   }
 
@@ -99,10 +101,12 @@ const void testSystemChecks( int mode, int32_t value )
     if (value == 0) //0 = off
     {
       disable_vAlwaysOn(); //disable vAlwaysOn
+      APP_LOG(TS_OFF, VLEVEL_H, "cmd: Disable vAlwaysOn\r\n");
     }
     else
     {
       enable_vAlwaysOn(); //enable vAlwaysOn
+      APP_LOG(TS_OFF, VLEVEL_H, "cmd: Enable vAlwaysOn\r\n");
     }
   }
 
@@ -118,7 +122,7 @@ const void testSystemChecks( int mode, int32_t value )
       MX_I2C2_Init();
       init_board_io_device(IO_EXPANDER_BUS_INT);
       slotPower(0, true);
-
+      APP_LOG(TS_OFF, VLEVEL_H, "cmd: Enable slot 1\r\n");
     }
   }
 

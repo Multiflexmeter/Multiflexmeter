@@ -154,6 +154,10 @@ int main(void)
   {
     init_productiontestTask();
   }
+  else if( getStatusRegister().testmodeBatteryGauge )
+  {
+    init_batmonConfigTask();
+  }
   else
   {
     init_mainTask();

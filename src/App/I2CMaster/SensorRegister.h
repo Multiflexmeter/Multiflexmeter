@@ -19,6 +19,8 @@
 #define REG_MEAS_TYPE             0x32
 #define REG_MEAS_SAMPLES          0x33
 #define REG_SENSOR_DATA           0x38
+#define REG_CONTROL_IO            0x40
+#define REG_DIRECTION_IO          0x41
 #define REG_ERROR_COUNT           0x50
 #define REG_ERROR_STATUS          0x51
 
@@ -77,8 +79,8 @@ typedef enum{
  */
 typedef enum{
   MFM_NOT_USED = 0x00,                             /**< MFM_NOT_USED */
-  MFM_PREASURE_RS485,  /**< MFM_PREASURE_RS485 */  /**< MFM_PREASURE_RS485 */
-  MFM_PREASURE_ONEWIRE,/**< MFM_PREASURE_ONEWIRE *//**< MFM_PREASURE_ONEWIRE */
+  MFM_PRESSURE_RS485,  /**< MFM_PRESSURE_RS485 */  /**< MFM_PRESSURE_RS485 */
+  MFM_PRESSURE_ONEWIRE,/**< MFM_PRESSURE_ONEWIRE *//**< MFM_PRESSURE_ONEWIRE */
 }ENUM_MFM_MODULE;
 
 /**

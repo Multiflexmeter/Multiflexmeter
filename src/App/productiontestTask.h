@@ -11,5 +11,6 @@
 #define PRODUCTIONTESTTASK_H_
 
 const void init_productiontestTask(void);
+const void init_batmonConfigTask(void);
 
 #endif /* PRODUCTIONTESTTASK_H_ */

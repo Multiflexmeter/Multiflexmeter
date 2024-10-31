@@ -430,3 +430,18 @@ SensorError sensorReadSelected(int moduleId, uint8_t* measurementData, uint16_t 
 
   return sensorMasterReadVariableLength(sensorId2Address[moduleId], REG_SENSOR_DATA, measurementData, dataLength);
 }
+
+void sensorDirectionIO(int moduleId, uint8_t data)
+{
+  assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
+
+  sensorMasterWrite(sensorId2Address[moduleId], REG_DIRECTION_IO, &data);
+}
+
+void sensorWriteIO(int moduleId, uint8_t data)
+{
+  assert_param( moduleId >=  SENSOR_MODULE_ID1 && moduleId < MAX_SENSOR_MODULE );
+
+  sensorMasterWrite(sensorId2Address[moduleId], REG_CONTROL_IO, &data);
+}
+

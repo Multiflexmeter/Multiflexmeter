@@ -13,7 +13,7 @@
 #include "softwareVersion.h"
 
 
-#define MFM_SOFTWARE_VERSION  "0.1.24"
+#define MFM_SOFTWARE_VERSION  "0.2.05"
 #define MFM_CONFIG_PROTOCOL_VERSION  "0"
 #define MFM_SENSOR_PROTOCOL_VERSION  "0"
 

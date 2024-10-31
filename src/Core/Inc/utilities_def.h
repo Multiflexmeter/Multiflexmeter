@@ -83,6 +83,7 @@ typedef enum
   CFG_SEQ_Task_LoRaReJoinEvent,
   CFG_SEQ_Task_Main,
   CFG_SEQ_Task_UartConfig,
+  CFG_SEQ_Task_SubGHz_Phy_App_Process,
   /* USER CODE END CFG_SEQ_Task_Id_t */
   CFG_SEQ_Task_NBR
 } CFG_SEQ_Task_Id_t;

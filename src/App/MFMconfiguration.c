@@ -11,6 +11,7 @@
   */
 
 #include "platform.h"
+#include "sys_app.h"
 
 #include "eeprom_emul.h"
 
@@ -20,37 +21,45 @@ static struct_MFMSettings MFM_settings; //settings struct in RAM
 static bool initAtFirstCall = true;
 static bool vAlwaysStateChanged = false;
 
+static const uint16_t defaultInterval = 60;
+static const bool defaultAlwaysOnSupplyStatus = false;
+static const uint16_t defaultModuleType = 0;
+static const uint16_t defaultNumberOfSamples = 10;
+static const uint16_t defaultEnabledOn = true;
+static const uint16_t defaultEnabledOff = false;
+static const uint16_t defaultCRC = 0xffff;
+
 /**
  * definition of parameters with virtual address location for saving/reading from flash (virtual EEPROM)
  */
 struct_virtual_EEPROM_item stVirtualEEPROM[] =
 {
-    { IDX_INTERVAL_LORA,                VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.intervalLora },
-    { IDX_ALWAYS_ON_SUPPLY_ENABLED,     VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.alwaysOnSupplyEnabled },
+    { IDX_INTERVAL_LORA,                VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.intervalLora,                             &defaultInterval },
+    { IDX_ALWAYS_ON_SUPPLY_ENABLED,     VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.alwaysOnSupplyEnabled,                    &defaultAlwaysOnSupplyStatus },
 
-    { IDX_SENSOR1_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[0].moduleType },
-    { IDX_SENSOR2_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[1].moduleType },
-    { IDX_SENSOR3_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[2].moduleType },
-    { IDX_SENSOR4_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[3].moduleType },
-    { IDX_SENSOR5_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[4].moduleType },
-    { IDX_SENSOR6_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[5].moduleType },
+    { IDX_SENSOR1_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[0].moduleType,         &defaultModuleType },
+    { IDX_SENSOR2_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[1].moduleType,         &defaultModuleType },
+    { IDX_SENSOR3_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[2].moduleType,         &defaultModuleType },
+    { IDX_SENSOR4_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[3].moduleType,         &defaultModuleType },
+    { IDX_SENSOR5_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[4].moduleType,         &defaultModuleType },
+    { IDX_SENSOR6_MODULETYPE,           VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[5].moduleType,         &defaultModuleType },
 
-    { IDX_SENSOR1_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[0].numberOfSamples },
-    { IDX_SENSOR2_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[1].numberOfSamples },
-    { IDX_SENSOR3_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[2].numberOfSamples },
-    { IDX_SENSOR4_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[3].numberOfSamples },
-    { IDX_SENSOR5_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[4].numberOfSamples },
-    { IDX_SENSOR6_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[5].numberOfSamples },
+    { IDX_SENSOR1_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[0].numberOfSamples,    &defaultNumberOfSamples },
+    { IDX_SENSOR2_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[1].numberOfSamples,    &defaultNumberOfSamples },
+    { IDX_SENSOR3_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[2].numberOfSamples,    &defaultNumberOfSamples },
+    { IDX_SENSOR4_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[3].numberOfSamples,    &defaultNumberOfSamples },
+    { IDX_SENSOR5_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[4].numberOfSamples,    &defaultNumberOfSamples },
+    { IDX_SENSOR6_MEASURETIME,          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.slotModuleSettings[5].numberOfSamples,    &defaultNumberOfSamples },
 
-    { IDX_SENSOR1_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[0].enabled },
-    { IDX_SENSOR2_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[1].enabled },
-    { IDX_SENSOR3_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[2].enabled },
-    { IDX_SENSOR4_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[3].enabled },
-    { IDX_SENSOR5_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[4].enabled },
-    { IDX_SENSOR6_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[5].enabled },
+    { IDX_SENSOR1_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[0].enabled,            &defaultEnabledOn },
+    { IDX_SENSOR2_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[1].enabled,            &defaultEnabledOff },
+    { IDX_SENSOR3_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[2].enabled,            &defaultEnabledOff },
+    { IDX_SENSOR4_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[3].enabled,            &defaultEnabledOff },
+    { IDX_SENSOR5_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[4].enabled,            &defaultEnabledOff },
+    { IDX_SENSOR6_ENABLED,              VIRTUAL_ELEMENT_SIZE_8bits,     &MFM_settings.slotModuleSettings[5].enabled,            &defaultEnabledOff },
 
-    { IDX_CRC,                          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.crc },
-    { IDX_LAST,                         0,     0 },
+    { IDX_CRC,                          VIRTUAL_ELEMENT_SIZE_16bits,    &MFM_settings.crc,                                      &defaultCRC },
+    { IDX_LAST,                         0,     0,     0},
 
 };
 
@@ -171,15 +180,42 @@ const int reloadSettingsFromVirtualEEPROM(void)
 
     if( status != EE_OK )
     {
+      APP_LOG(TS_OFF, VLEVEL_H, "Virtual eeprom error: read item %d\r\n", item);
       readError = true;
-    }
 
+      switch (stVirtualEEPROM[item].virtualElementSize)
+      {
+        case VIRTUAL_ELEMENT_SIZE_8bits:
+
+          memcpy(stVirtualEEPROM[item].pointerToItem, stVirtualEEPROM[item].pointerToDefault, 1);
+
+          break;
+
+        case VIRTUAL_ELEMENT_SIZE_16bits:
+
+          memcpy(stVirtualEEPROM[item].pointerToItem, stVirtualEEPROM[item].pointerToDefault, 2);
+
+          break;
+
+        case VIRTUAL_ELEMENT_SIZE_32bits:
+
+          memcpy(stVirtualEEPROM[item].pointerToItem, stVirtualEEPROM[item].pointerToDefault, 4);
+
+          break;
+
+        default:
+          //nothing
+
+          break;
+      }
+    }
   }
   while(stVirtualEEPROM[++item].virtualAddress != IDX_LAST);
 
   //check if error is found at reading, return error
   if( readError )
   {
+    APP_LOG(TS_OFF, VLEVEL_H, "Virtual eeprom error: read\r\n");
     return -1;
   }
 
@@ -188,6 +224,7 @@ const int reloadSettingsFromVirtualEEPROM(void)
 
   if( crc != MFM_settings.crc) //check CRC is not equal
   {
+    APP_LOG(TS_OFF, VLEVEL_H, "Virtual eeprom error: CRC\r\n");
     return -2;  //wrong CRC
   }
 

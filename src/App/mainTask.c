@@ -63,6 +63,7 @@ static int mainTask_state;
 static int loraJoinRetryCounter = 0;
 
 static UTIL_TIMER_Object_t MainTimer;
+static UTIL_TIMER_Object_t BatMonitorActiveTimer;
 static UTIL_TIMER_Time_t MainPeriodSleep = 60000;
 static UTIL_TIMER_Time_t ForcedPeriodSleep = 0;
 static UTIL_TIMER_Time_t MainPeriodNormal = 10;
@@ -262,6 +263,24 @@ const uint16_t getUpFCounter(void)
 }
 
 /**
+ * @fn const uint32_t_t getAdrAckCounter(void)
+ * @brief function to get the up frame counter
+ *
+ * @return
+ */
+const uint32_t getAdrAckCounter(void)
+{
+  /* get adr ack counter */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    return nvm->MacGroup1.AdrAckCounter;
+}
+
+/**
  * @fn const void setDevNonce(uint16_t)
  * @brief function to set the DevNonce counter
  *
@@ -331,6 +350,24 @@ const void setUpFCounter(uint16_t counter)
     nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
 
     nvm->Crypto.FCntList.FCntUp = counter;
+}
+
+/**
+ * @fn const void setAdrAckCounter(uint16_t)
+ * @brief function to set the AdrAckCounter
+ *
+ * @param counter
+ */
+const void setAdrAckCounter(uint32_t counter)
+{
+  /* get UplinkCounter */
+    LoRaMacNvmData_t *nvm;
+    MibRequestConfirm_t mibReq;
+    mibReq.Type = MIB_NVM_CTXS;
+    LoRaMacMibGetRequestConfirm( &mibReq );
+    nvm = ( LoRaMacNvmData_t * )mibReq.Param.Contexts;
+
+    nvm->MacGroup1.AdrAckCounter = counter;
 }
 
 /**
@@ -537,8 +574,6 @@ const uint32_t getNextBatteryEOStime(uint32_t timestampNow)
   { //current time of the day after 12:00
     timestampNext+= (60L*60*36); //set next day day 12:00. 12 + 24 hours from 00:00
   }
-
-  timestampNext = timestampNow + getLoraInterval()*60*3; //temporary overrule
 
 #if VERBOSE_LEVEL == VLEVEL_H
   char timeString[30];
@@ -1035,6 +1070,9 @@ static const void printCounters(void)
   printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
   APP_LOG(TS_OFF, VerboseLevel, " UpFcnt: %u\r\n", getUpFCounter());
 
+  printSeparatorLine(TS_OFF, VerboseLevel, character, lengthPre, false);
+  APP_LOG(TS_OFF, VerboseLevel, " AdrAckCnt: %u\r\n", getAdrAckCounter());
+
   printSeparatorLine(TS_OFF, VerboseLevel, character, length, true);
 }
 
@@ -1178,6 +1216,29 @@ uint8_t getNumberOfActiveSensorModules(void)
 }
 
 /**
+ * @fn bool printStateChange(int)
+ * @brief function to detect change and print state number
+ *
+ * @param currentState
+ * @return
+ */
+bool printStateChange(int currentState)
+{
+  static int previousState = -1;
+
+  if( currentState != previousState )
+  {
+    APP_LOG(TS_OFF, VLEVEL_H,  "*S: %d -> %d\r\n", previousState, currentState );
+    previousState = currentState;
+
+    return true;
+  }
+
+ return false;
+}
+
+
+/**
  * @fn void mainTask(void)
  * @brief periodically called mainTask for general functions and communication
  *
@@ -1264,6 +1325,10 @@ const void mainTask(void)
         {
           APP_LOG(TS_OFF, VLEVEL_H, "Measure battery EOS\r\n" ); //print info
           batmon_enable(); //enable battery monitor, takes a while until batmon is ready.
+          UTIL_TIMER_Start(&BatMonitorActiveTimer); //start timer
+          unsigned long remainingTime = 0;
+          UTIL_TIMER_GetRemainingTime(&BatMonitorActiveTimer, &remainingTime);
+          APP_LOG(TS_OFF, VLEVEL_H, "BatMonitorActiveTime: %u, %u\r\n", BatMonitorActiveTimer.Timestamp, remainingTime);
         }
 
         if( enableListenUart )
@@ -1314,11 +1379,18 @@ const void mainTask(void)
           disableVsys(); //disable supply for I/O expander
           HAL_Delay(1);
           enableVsys(); //enable supply for I/O expander
+          HAL_Delay(1);
           MX_I2C2_Init(); //initialize I2C for BUS, otherwise it could not work because power was down.
-          result_int = init_board_io_device(IO_EXPANDER_BUS_INT);
+
           result_ext = init_board_io_device(IO_EXPANDER_BUS_EXT);
+          APP_LOG(TS_OFF, VLEVEL_H, "Result I2C BUS EXT: %d, 0x%X\r\n", result_ext, hi2c2.ErrorCode ); //print info
+
+          result_int = init_board_io_device(IO_EXPANDER_BUS_INT);
+          APP_LOG(TS_OFF, VLEVEL_H, "Result I2C BUS INT: %d, 0x%X\r\n", result_int, hi2c2.ErrorCode ); //print info
+
           UNUSED(result_ext);
-        }while(result_int != 0 && retry--);
+
+        }while( result_int != 0 && retry--);
         APP_LOG(TS_OFF, VLEVEL_H, "Number of retries: %d\r\n", 10 - retry ); //print info
       }
       mainTask_state = SWITCH_SENSOR_SLOT;
@@ -1357,7 +1429,7 @@ const void mainTask(void)
           mainTask_state = CHECK_SENSOR_INIT_AVAILABLE; //next state
         }
         else
-        { //no init needed
+        { //no sensor init needed
 
           mainTask_state = START_SENSOR_MEASURE; //next state
         }
@@ -1599,60 +1671,12 @@ const void mainTask(void)
             APP_LOG(TS_OFF, VLEVEL_H, "Sensor measure: timeout\r\n");
           }
 
-          if (measureEOS_enabled) //only if measureEOS is enabled this round
-          {
-            setTimeout(10000); //10sec
-            mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE; //next state
-          }
-          else
-          {
-            mainTask_state = READ_SENSOR_DATA;//skip battery
-          }
+          mainTask_state = READ_SENSOR_DATA;
         }
         else
         {
           setWait(50);  //set wait time 50ms
         }
-      }
-
-      break;
-
-    case WAIT_BATTERY_GAUGE_IS_ALIVE:
-
-      if (waiting == false)
-      {
-        int8_t result = readInput_IO_Expander(IO_EXPANDER_SYS, 1UL<<IO_EXP_VSYS_EN );
-        APP_LOG(TS_OFF, VLEVEL_H, "VSYS: %d\r\n", result);
-
-        bool gaugeReadyOrTimeout = false;
-        if (batmon_isInitComplet()  ) //wait battery monitor is ready
-        {
-          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
-
-          batmon_enable_gauge(); //enable gauging
-          gaugeReadyOrTimeout = true;
-        }
-        else if( timeout == true ) //timeout
-        {
-          //do not enable gauge, go further reading sensor
-          APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: timeout, init\r\n");
-          gaugeReadyOrTimeout = true;
-        }
-
-        if( gaugeReadyOrTimeout == true )
-        {
-          if( FRAM_Settings.numberOfActiveSensorModules > 0  ) //check sensorModule is enabled, found one module or more.
-          {
-            mainTask_state = READ_SENSOR_DATA;
-          }
-          else
-          {
-            setTimeout(10000); //10sec
-            mainTask_state = WAIT_GAUGE_IS_ACTIVE;
-          }
-        }
-
-        setWait(200); //set wait 200ms
       }
 
       break;
@@ -1679,11 +1703,11 @@ const void mainTask(void)
 
           printSensorModuleRoughData( currentSensorModuleIndex, stMFM_sensorModuleData.sensorModuleDataSize, stMFM_sensorModuleData.sensorModuleData);
 
-          if( sensorType == MFM_PREASURE_RS485 )
+          if( sensorType == MFM_PRESSURE_RS485 )
           {
             printSensorModulePressureKeller((structDataPressureSensor*)&stMFM_sensorModuleData.sensorModuleDataSize);
           }
-          else if( sensorType == MFM_PREASURE_ONEWIRE )
+          else if( sensorType == MFM_PRESSURE_ONEWIRE )
           {
             printSensorModulePressureHuba((structDataPressureSensorOneWire*)&stMFM_sensorModuleData.sensorModuleDataSize);
           }
@@ -1704,11 +1728,71 @@ const void mainTask(void)
         if (measureEOS_enabled) //only if measureEOS is enabled this round
         {
           setTimeout(10000); //10sec
-          mainTask_state = WAIT_GAUGE_IS_ACTIVE; //next state
+          mainTask_state = WAIT_BATTERY_GAUGE_IS_ALIVE; //next state
         }
         else
         {
           mainTask_state = SAVE_DATA; //Skip battery state
+        }
+      }
+
+      break;
+
+    case WAIT_BATTERY_GAUGE_IS_ALIVE:
+
+      if (waiting == false)
+      {
+        unsigned long remainingTime = 0;
+        UTIL_TIMER_GetRemainingTime(&BatMonitorActiveTimer, &remainingTime);
+        APP_LOG(TS_OFF, VLEVEL_H, "BatMonitorActiveTime: %u, %u\r\n", BatMonitorActiveTimer.Timestamp, remainingTime);
+
+        if (!UTIL_TIMER_IsRunning(&BatMonitorActiveTimer)) //check timer is expired, then batmon is ready to communicate.
+        {
+          int8_t result = readInput_IO_Expander(IO_EXPANDER_SYS, 1UL << IO_EXP_VSYS_EN);
+          APP_LOG(TS_OFF, VLEVEL_H, "VSYS: %d\r\n", result);
+
+          bool gaugeReadyOrTimeout = false;
+          int result_batmonInit = batmon_isInitComplet();
+
+          APP_LOG(TS_OFF, VLEVEL_H, "BatMonitorInit: %d\r\n", result_batmonInit);
+
+          if (result_batmonInit > 0) //wait battery monitor is ready
+          {
+            APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init complete\r\n");
+
+            batmon_enable_gauge(); //enable gauging
+            gaugeReadyOrTimeout = true;
+          }
+          else if( result_batmonInit == 0 )
+          {
+            APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: not ready\r\n");
+          }
+          else
+          { //HAL TIMEOUT detected, probably bus get stuck because bat monitor communication was not ready.
+            APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: init failed\r\n");
+            MX_I2C1_Init();
+            HAL_I2C_MspDeInit(&hi2c1);
+            HAL_I2C_MspInit(&hi2c1);
+          }
+
+          if (timeout == true) //timeout
+          {
+            //do not enable gauge, go further reading sensor
+            APP_LOG(TS_OFF, VLEVEL_H, "Battery monitor: timeout, init\r\n");
+            gaugeReadyOrTimeout = true;
+          }
+
+          if (gaugeReadyOrTimeout == true)
+          {
+            setTimeout(10000); //10sec
+            mainTask_state = WAIT_GAUGE_IS_ACTIVE;
+            UTIL_TIMER_Stop(&BatMonitorActiveTimer); //stop timer
+          }
+          setWait(200); //set wait 200ms
+        }
+        else
+        {
+          setWait(remainingTime); //set wait time
         }
       }
 
@@ -2115,10 +2199,13 @@ const void mainTask(void)
       break;
   }
 
+  printStateChange(mainTask_state);
+
   HAL_I2C_checkError(); //check on HAL I2C error.
 
-  if( getUpdateFailedCount_IO_Expander() > 1000)
+  if( getUpdateFailedCount_IO_Expander() > 100)
   {
+    resetUpdateFailedCount_IO_Expander();
     APP_LOG(TS_OFF, VLEVEL_H, "I2C update error: %u, %d\r\n", getUpdateFailedCount_IO_Expander(), countRetryI2C_error );
     MX_I2C1_Init();
     MX_I2C2_Init();
@@ -2259,6 +2346,17 @@ static const void trigger_timeout(void *context)
 }
 
 /**
+ * @fn const void trigger_BatMonitorActive(void*)
+ * @brief function to trigger after wait timer is finished.
+ *
+ * @param context
+ */
+static const void trigger_BatMonitorActive(void *context)
+{
+  UTIL_TIMER_Stop(&BatMonitorActiveTimer);
+}
+
+/**
  * @fn const void init_mainTask(void)
  * @brief function to initialize the mainTask
  *
@@ -2293,6 +2391,8 @@ const void init_mainTask(void)
   UTIL_TIMER_Start(&systemActive_Timer); //start timer
 
   UTIL_TIMER_Create(&timeout_Timer, 0, UTIL_TIMER_ONESHOT, trigger_timeout, NULL); //create timer
+
+  UTIL_TIMER_Create(&BatMonitorActiveTimer, 300, UTIL_TIMER_ONESHOT,  trigger_BatMonitorActive, NULL ); //create timer, nominal powerup time 250ms
 
 }
 

@@ -16,7 +16,7 @@
 #include "TCA9535.h"
 #include "IO_Expander.h"
 
-static uint32_t update_failed_count;
+static volatile uint32_t update_failed_count[NR_IO_EXPANDER];
 
 static volatile TCA9535Regs TCA9535_Reg_map[NR_IO_EXPANDER];
 const char IO_Expander_name[][16] =
@@ -286,11 +286,11 @@ void update_IO_Expander(bool input, bool output)
         if( result != 0 )
         {
           APP_LOG(TS_OFF, VLEVEL_H, "I/O expander update write failed: %s on address 0x%02x\r\n", IO_Expander_name[i], TCA9535_Reg_map[i].deviceAddress );
-          update_failed_count++;
+          update_failed_count[i]++;
         }
         else
         {
-          update_failed_count = 0; //reset
+          update_failed_count[i] = 0; //reset
         }
 
       }
@@ -302,11 +302,11 @@ void update_IO_Expander(bool input, bool output)
         if( result != 0 )
         {
           APP_LOG(TS_OFF, VLEVEL_H, "I/O expander update read failed: %s on address 0x%02x\r\n", IO_Expander_name[i], TCA9535_Reg_map[i].deviceAddress );
-          update_failed_count++;
+          update_failed_count[i]++;
         }
         else
         {
-          update_failed_count = 0; //reset
+          update_failed_count[i] = 0; //reset
         }
       }
     }
@@ -444,5 +444,29 @@ int8_t readInput_IO_Expander(ENUM_IO_EXPANDER device, uint16_t pinMask)
  */
 uint32_t getUpdateFailedCount_IO_Expander(void)
 {
-  return update_failed_count;
+  uint32_t maxCount = 0;
+  int i;
+  for (i = 0; i < NR_IO_EXPANDER - 1; i++)
+  {
+    if( update_failed_count[i] > maxCount )
+    {
+      maxCount = update_failed_count[i];
+    }
+  }
+
+  return maxCount;
+}
+
+/**
+ * @fn void resetUpdateFailedCount_IO_Expander(void)
+ * @brief function to reset failed counters
+ *
+ */
+void resetUpdateFailedCount_IO_Expander(void)
+{
+  int i;
+  for (i = 0; i < NR_IO_EXPANDER - 1; i++)
+  {
+    update_failed_count[i] = 0;
+  }
 }

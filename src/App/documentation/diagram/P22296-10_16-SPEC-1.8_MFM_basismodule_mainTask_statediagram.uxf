@@ -1,0 +1,1509 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>13</zoom_level>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>104</y>
+      <w>351</w>
+      <h>169</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: INIT_POWERUP
+--
+- read RTC status for wakeup source
+- sync internal time
+- init led
+- init vAlways on
+- read FRAM
+- read MeasrueEOS enabled
+- check forecedRejoin</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>338</y>
+      <w>351</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: INIT_SLEEP
+--
+- if MeasureEOS: enable battery monitor (GE)
+- enable listen uart (if needed)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>2015</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: WAIT_BATTERY_GAUGE_IS_ALIVE
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>520</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: CHECK_LORA_JOIN
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>676</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: SWITCH_ON_VSYS
+--
+- system peripheral supply on (vSys)
+- initialize I/O expander (vSys) 2x</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>832</y>
+      <w>351</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: SWITCH_SENSOR_SLOT
+--
+- check sensor slots enabled
+- read next sensor slot from FRAM
+- enable slot power
+- set measure EOS next interval
+- set wait 10ms</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>1703</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: WAIT_FOR_SENSOR_DATA
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>2327</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: WAIT_BATMON_DATA
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>2808</y>
+      <w>351</w>
+      <h>91</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: NEXT_SENSOR_MODULE
+--
+- get next sensor module
+- save next sensor module in FRAM
+- set timeout</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>3302</y>
+      <w>351</w>
+      <h>91</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: SWITCH_OFF_VSYS
+--
+- deinitialize I/O expander (vSys) 2x
+- system peripheral supply off (vSys)
+- set timeout</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>3614</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: WAIT_BATTERY_MONITOR_READY
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>4043</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: WAIT_FOR_SLEEP
+--
+- set sleep alarm</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>260</y>
+      <w>208</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Rejoin or alarm triggered</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>520</y>
+      <w>247</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+</panel_attributes>
+    <additional_attributes>170.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>832</x>
+      <y>585</y>
+      <w>221</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+number of retries exceeded</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>767</x>
+      <y>0</y>
+      <w>26</w>
+      <h>26</h>
+    </coordinates>
+    <panel_attributes>type=initial</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>767</x>
+      <y>4199</y>
+      <w>26</w>
+      <h>26</h>
+    </coordinates>
+    <panel_attributes>type=final</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>13</y>
+      <w>39</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>4108</y>
+      <w>39</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1651</x>
+      <y>2015</y>
+      <w>299</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>enable gauge function</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>2171</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: WAIT_GAUGE_IS_ACTIVE
+--
+- set wait time 200ms</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>559</x>
+      <y>2184</y>
+      <w>208</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Gauge is not active</panel_attributes>
+    <additional_attributes>30.0;80.0;140.0;80.0;10.0;80.0;10.0;10.0;40.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>728</x>
+      <y>2236</y>
+      <w>39</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>10.0;40.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>806</x>
+      <y>2236</y>
+      <w>143</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Gauge is active
+or timeout</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>702</x>
+      <y>585</y>
+      <w>65</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Join</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1170</x>
+      <y>520</y>
+      <w>299</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>trigger Join process
+set wait time 10sec</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>546</y>
+      <w>247</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+wait timer expired</panel_attributes>
+    <additional_attributes>10.0;20.0;170.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1170</x>
+      <y>897</y>
+      <w>299</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>set Unconfirmed message</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>741</y>
+      <w>39</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>858</y>
+      <w>741</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+12th measure interval of 24</panel_attributes>
+    <additional_attributes>10.0;20.0;550.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1664</x>
+      <y>858</y>
+      <w>299</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>set request time
+set Confirmed message</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>897</y>
+      <w>247</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+normal </panel_attributes>
+    <additional_attributes>10.0;20.0;170.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>1508</y>
+      <w>351</w>
+      <h>143</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: START_SENSOR_MEASURE
+--
+- write number of samples (from config)
+- read sensor module info (SW, protocol, type)
+- read sensor module measuretime and set wait
+- set timeout
+- start measurement sensor module</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>975</y>
+      <w>1079</w>
+      <h>91</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Sensor init request available</panel_attributes>
+    <additional_attributes>810.0;10.0;810.0;20.0;10.0;20.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1183</x>
+      <y>1703</y>
+      <w>299</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>Read sensor satus
+set wait time 100ms</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>1729</y>
+      <w>260</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+wait timer expired</panel_attributes>
+    <additional_attributes>10.0;20.0;180.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>1703</y>
+      <w>260</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+not Ready</panel_attributes>
+    <additional_attributes>180.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>2080</y>
+      <w>1066</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+enabled</panel_attributes>
+    <additional_attributes>800.0;10.0;800.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>2353</y>
+      <w>221</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+wait timer expired</panel_attributes>
+    <additional_attributes>10.0;20.0;150.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1144</x>
+      <y>2327</y>
+      <w>299</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>execute battery measurement
+set wait time 100ms</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1209</x>
+      <y>2392</y>
+      <w>104</w>
+      <h>91</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+valid data</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>2327</y>
+      <w>221</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+no valid data</panel_attributes>
+    <additional_attributes>150.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1339</x>
+      <y>2392</y>
+      <w>221</w>
+      <h>91</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+number of retries exceeded</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>2496</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: SAVE_DATA
+--
+write measurement to dataflash</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>2652</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: SEND_LORA_DATA
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>2678</y>
+      <w>221</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+wait timer expired</panel_attributes>
+    <additional_attributes>10.0;20.0;150.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1144</x>
+      <y>2652</y>
+      <w>299</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>trigger SendTxData()
+set wait time 10sec</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>2652</y>
+      <w>221</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+</panel_attributes>
+    <additional_attributes>150.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>2561</y>
+      <w>39</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>819</x>
+      <y>2717</y>
+      <w>221</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+number of retries exceeded</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>728</x>
+      <y>2717</y>
+      <w>65</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Join</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>2964</y>
+      <w>351</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: WAIT_LORA_TRANSMIT_READY
+--
+- get transmit status
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>3016</y>
+      <w>234</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+TX status = error</panel_attributes>
+    <additional_attributes>10.0;20.0;160.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1157</x>
+      <y>3029</y>
+      <w>299</w>
+      <h>26</h>
+    </coordinates>
+    <panel_attributes>Trigger save NVM data to FRAM</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1222</x>
+      <y>2990</y>
+      <w>299</w>
+      <h>26</h>
+    </coordinates>
+    <panel_attributes>apply new forced interval</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>2977</y>
+      <w>299</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+TX status = dutycyle restricted</panel_attributes>
+    <additional_attributes>10.0;20.0;210.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>2886</y>
+      <w>39</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>3055</y>
+      <w>871</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+other or timeout</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;20.0;650.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>3458</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: WAIT_LORA_RECEIVE_READY
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>3471</y>
+      <w>221</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+RX ready
+or Lora Mac stopped
+or timeout</panel_attributes>
+    <additional_attributes>10.0;20.0;150.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>3380</y>
+      <w>39</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>3640</y>
+      <w>221</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+wait timer expired</panel_attributes>
+    <additional_attributes>10.0;20.0;150.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1144</x>
+      <y>3614</y>
+      <w>299</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>Read battery control status
+set wait time 1000ms</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>3614</y>
+      <w>221</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+not ready</panel_attributes>
+    <additional_attributes>150.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>3718</y>
+      <w>793</w>
+      <h>65</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>590.0;10.0;10.0;10.0;10.0;30.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1274</x>
+      <y>3679</y>
+      <w>156</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Ready or timeout</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>2041</y>
+      <w>260</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+wait timer expired</panel_attributes>
+    <additional_attributes>10.0;20.0;180.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1183</x>
+      <y>2015</y>
+      <w>299</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>read control status
+set wait timer 200ms</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>2015</y>
+      <w>260</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+No valid control status</panel_attributes>
+    <additional_attributes>180.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1469</x>
+      <y>2028</y>
+      <w>208</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Valid control status
+or
+timeout</panel_attributes>
+    <additional_attributes>10.0;20.0;140.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1807</x>
+      <y>897</y>
+      <w>39</w>
+      <h>65</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;30.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1300</x>
+      <y>936</y>
+      <w>390</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;20.0;280.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>3094</y>
+      <w>1014</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Enabled</panel_attributes>
+    <additional_attributes>760.0;10.0;760.0;20.0;10.0;20.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>234</x>
+      <y>3601</y>
+      <w>338</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>bg=yellow
+style=wordwrap
+NOTE:
+Battery gauge needs +/- 15 seconds for calculating and saving data.</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>221</x>
+      <y>2002</y>
+      <w>338</w>
+      <h>143</h>
+    </coordinates>
+    <panel_attributes>bg=yellow
+style=wordwrap
+NOTE:
+Battery gauge 250ms communication powerup time
+Wait for CONTROL_STATUS, INITCOMP (Bit7): Indicates the device initialization is complete.
+Approximately 1sec</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>221</x>
+      <y>2171</y>
+      <w>338</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>bg=yellow
+style=wordwrap
+NOTE:
+Approximately 1sec</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>429</y>
+      <w>39</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>1638</y>
+      <w>39</w>
+      <h>91</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>1924</y>
+      <w>585</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Enabled</panel_attributes>
+    <additional_attributes>430.0;10.0;430.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>1768</y>
+      <w>598</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Ready
+or 
+timeout</panel_attributes>
+    <additional_attributes>440.0;10.0;440.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>2041</y>
+      <w>1274</w>
+      <h>481</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Disabled</panel_attributes>
+    <additional_attributes>910.0;10.0;960.0;10.0;960.0;320.0;10.0;320.0;10.0;350.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>3146</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: GAUGE_DISABLE
+--
+- disable battery gauge
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1612</x>
+      <y>2977</y>
+      <w>299</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>Check MeasureEos</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1508</x>
+      <y>2990</y>
+      <w>130</w>
+      <h>39</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1443</x>
+      <y>3029</y>
+      <w>195</w>
+      <h>39</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;130.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>3029</y>
+      <w>1261</w>
+      <h>260</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Disabled</panel_attributes>
+    <additional_attributes>880.0;10.0;950.0;10.0;950.0;180.0;10.0;180.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>3211</y>
+      <w>39</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1144</x>
+      <y>3458</y>
+      <w>299</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>Check MeasureEos</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>754</x>
+      <y>3523</y>
+      <w>572</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Enabled</panel_attributes>
+    <additional_attributes>420.0;10.0;420.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1430</x>
+      <y>3484</y>
+      <w>195</w>
+      <h>273</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Disabled</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0;80.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>3900</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: WAIT_USB_DISCONNECT
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>3757</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: CHECK_USB_CONNECTED
+--
+- set new measure time</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>3822</y>
+      <w>104</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+connected</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>3796</y>
+      <w>351</w>
+      <h>325</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+not connected
+or foreced sleep command</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;10.0;110.0;230.0;10.0;230.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>3965</y>
+      <w>195</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+USB disconnected or 
+Forced sleep command</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>169</x>
+      <y>3926</y>
+      <w>468</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+New measure interval</panel_attributes>
+    <additional_attributes>340.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>169</x>
+      <y>377</y>
+      <w>468</w>
+      <h>3601</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+</panel_attributes>
+    <additional_attributes>10.0;2750.0;10.0;10.0;340.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>1040</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: CHECK_SENSOR_INIT_AVAILABLE
+--
+- read register sensormodule init available
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>1196</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: START_SENSOR_INIT
+--
+- start sensor init for selected channel
+- set timeout</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>1105</y>
+      <w>104</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+available</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>1352</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: WAIT_SENSOR_INIT_READY
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>1261</y>
+      <w>39</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1664</x>
+      <y>936</y>
+      <w>299</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>Sensor init request</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1469</x>
+      <y>1365</y>
+      <w>208</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Ready or timeout</panel_attributes>
+    <additional_attributes>10.0;20.0;140.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1183</x>
+      <y>1352</y>
+      <w>299</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>Read sensor satus
+set wait time 100ms</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>1352</y>
+      <w>260</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+not Ready</panel_attributes>
+    <additional_attributes>180.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>1378</y>
+      <w>260</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+wait timer expired</panel_attributes>
+    <additional_attributes>10.0;20.0;180.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>767</x>
+      <y>949</y>
+      <w>1404</w>
+      <h>585</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+</panel_attributes>
+    <additional_attributes>1060.0;10.0;1060.0;400.0;10.0;400.0;10.0;430.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1950</x>
+      <y>936</y>
+      <w>221</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+No init request</panel_attributes>
+    <additional_attributes>10.0;20.0;150.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>1053</y>
+      <w>1222</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Not available or other result</panel_attributes>
+    <additional_attributes>10.0;20.0;920.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>91</x>
+      <y>169</y>
+      <w>546</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+Alarm not yet triggered and no rejoin</panel_attributes>
+    <additional_attributes>10.0;20.0;400.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>91</x>
+      <y>182</y>
+      <w>39</w>
+      <h>3640</h>
+    </coordinates>
+    <panel_attributes>lt</panel_attributes>
+    <additional_attributes>10.0;2780.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>91</x>
+      <y>3783</y>
+      <w>546</w>
+      <h>39</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;400.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1651</x>
+      <y>1352</y>
+      <w>299</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>Check another channel</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1937</x>
+      <y>1365</y>
+      <w>234</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+No</panel_attributes>
+    <additional_attributes>10.0;20.0;160.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>1222</y>
+      <w>871</w>
+      <h>156</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+Yes</panel_attributes>
+    <additional_attributes>650.0;100.0;650.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>1183</x>
+      <y>1859</y>
+      <w>299</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>Check MeasureEos</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>949</x>
+      <y>1885</y>
+      <w>260</w>
+      <h>39</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;180.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>611</x>
+      <y>1859</y>
+      <w>351</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>valign=top
+STATE: READ_SENSOR_DATA
+--
+- Read sensor
+- Disable slot power</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>221</x>
+      <y>1833</y>
+      <w>338</w>
+      <h>91</h>
+    </coordinates>
+    <panel_attributes>bg=yellow
+style=wordwrap
+NOTE:
+First read data, so sensor supply can be switch off, before battery monitor is enabled</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
