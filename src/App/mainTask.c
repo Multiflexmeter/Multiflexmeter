@@ -371,6 +371,20 @@ const void setAdrAckCounter(uint32_t counter)
 }
 
 /**
+ * @fn const void setAdrAckCounter(uint16_t)
+ * @brief function to set the AdrAckCounter
+ *
+ * @param counter
+ */
+const void setDatarate(uint8_t dr)
+{
+	MibRequestConfirm_t mibReq;
+	mibReq.Type = MIB_CHANNELS_DATARATE;
+	mibReq.Param.ChannelsDatarate = dr;
+	LoRaMacMibSetRequestConfirm(&mibReq);
+}
+
+/**
  * @fn const void printEndLine(uint32_t, uint32_t)
  * @brief helper function to print EndLine to debug port
  *
@@ -2576,6 +2590,17 @@ const void rxDataUsrCallback(LmHandlerAppData_t *appData)
           }
 
           break;
+
+        case 0x57: // Change DR
+        	if (appData->BufferSize != 2)
+        		break;
+        	if (optionalByte > 5){
+                APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Setting datarate\r\n");
+        		break;
+        	}
+            APP_LOG(TS_OFF, VLEVEL_H, "Lora receive: Setting datarate\r\n");
+        	setDatarate(optionalByte);
+        	break;
 
         default:
 
