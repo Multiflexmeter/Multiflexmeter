@@ -6,3 +6,4 @@ latex
 *.launch
 *.stackdump
 .settings/stm32cubeide.project.prefs
+App/common/gitver.h
