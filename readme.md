@@ -5,5 +5,5 @@ Frequent, low-cost and flexible measurements using the MultiFlexMeter. An Open-S
 ## Documentation
 
 - [Firmware Documentation](https://multiflexmeter.github.io/multiflexmeter)
-- [Hardware specification](./docs/spec-hw.pdf)
-- [Firmware specification](./docs/spec-fw.pdf)
+- [Hardware specification](./docs/P22296-1-SPEC-2.0 MFM Hardware.pdf)
+- [Firmware specification](./docs/P22296-10-SPEC-2.0 software.pdf)
