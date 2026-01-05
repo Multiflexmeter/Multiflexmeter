@@ -15,6 +15,7 @@
 #include "../common/crc16.h"
 #include "FRAM.h"
 #include "FRAM_functions.h"
+#include "assert.h"
 
 static_assert (MAX_SIZE_OTHER_SETTINGS + MAX_SIZE_LORA_SETTINGS <= SIZE_FRAM, "FRAM area sizes not correct");
 static_assert (ADDRESS_OTHER_SETTINGS + MAX_SIZE_OTHER_SETTINGS <= ADDRESS_LORA_SETTINGS, "FRAM area OTHER SETTINGS not correct");

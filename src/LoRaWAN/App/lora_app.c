@@ -34,9 +34,11 @@
 #include "CayenneLpp.h"
 #include "sys_sensors.h"
 #include "flash_if.h"
-#include "LoRaMac.h"
 
 /* USER CODE BEGIN Includes */
+#include <assert.h>
+
+#include "LoRaMac.h"
 #include "../../../App/measurement.h"
 #include "../../../App/common/common.h"
 #include "../../../App/FRAM/FRAM_functions.h"
@@ -1383,11 +1385,8 @@ static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
 #endif
 
   /* USER CODE END OnStoreContextRequest_1 */
-  /* store nvm in flash */
-  if (FLASH_IF_Erase(LORAWAN_NVM_BASE_ADDRESS, FLASH_PAGE_SIZE) == FLASH_IF_OK)
-  {
-    FLASH_IF_Write(LORAWAN_NVM_BASE_ADDRESS, (const void *)nvm, nvm_size);
-  }
+  FLASH_IF_Write(LORAWAN_NVM_BASE_ADDRESS, (const void *)nvm, nvm_size);
+
   /* USER CODE BEGIN OnStoreContextRequest_Last */
 
   /* USER CODE END OnStoreContextRequest_Last */

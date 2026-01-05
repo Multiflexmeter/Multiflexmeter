@@ -24,6 +24,8 @@
 
 #include "common.h"
 
+#include <assert.h>
+
 static bool adc_vref_read = false;
 static uint32_t adc_vref = VREFINT_CAL_VREF;
 

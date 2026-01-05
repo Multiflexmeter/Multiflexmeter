@@ -53,10 +53,7 @@ extern "C" {
 
 /*!
  * @brief LoRaWAN version definition
- * @note  possible values:
- *        - 0x01000300: Link Layer(L2) v1.0.3 + Regional Parameters(RP) v1.0.3
- *        - 0x01000400: Link Layer TS001-1.0.4 + Regional Parameters RP002-1.0.1
- *        - 0x01010100: soon available ...
+ * @note  0x01000400: Link Layer TS001-1.0.4 + Regional Parameters RP002-1.0.1
  */
 #define LORAMAC_SPECIFICATION_VERSION                   0x01000400
 
@@ -108,6 +105,9 @@ extern "C" {
  *        - CHANNEL_PLAN_GROUP_AS923_3    (Freq offset = -6.60 MHz / Freq range = 915-928MHz)
  *        - CHANNEL_PLAN_GROUP_AS923_4    (Freq offset = -5.90 MHz / Freq range = 917-920MHz)
  *        - CHANNEL_PLAN_GROUP_AS923_1_JP (Freq offset = 0.0 MHz   / Freq range = 920.6-923.4MHz)
+ *        - CHANNEL_PLAN_GROUP_AS923_1_JP_CH24_CH38_LBT 	(RP02-1.0.3)
+ *        - CHANNEL_PLAN_GROUP_AS923_1_JP_CH24_CH38_DC 		(RP02-1.0.3)
+ *        - CHANNEL_PLAN_GROUP_AS923_1_JP_CH33_CH61_LBT_DC 	(RP02-1.0.3)
  */
 #define REGION_AS923_DEFAULT_CHANNEL_PLAN              CHANNEL_PLAN_GROUP_AS923_1
 
