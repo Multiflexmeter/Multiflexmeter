@@ -1,0 +1,13 @@
+# 0.3.0
+## Features
+- **8fab895** Allow setting datarate through downlink command 0x57
+
+## Fixes
+- **6d034d7** I2C Variable read patch to use I2C restart(src/App/I2CMaster/I2C_Master.c)
+
+## Others
+- **ff5214c** Grabs firmware version from git describe, see gitver.sh
+- **205dc3a** WIP porting to CMAKE, can still build through STM32IDE
+
+# 0a8cf59 through 6d034d7 - v0.2.05
+Version as released by Dekimo. Repository supplemented with doxygen CI.
