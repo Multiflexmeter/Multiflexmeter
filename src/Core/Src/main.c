@@ -95,7 +95,6 @@ bool eraseVirtualEeprom = true;
   */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
   detectResetBackup(); //detect if the vBAT backup domain is reset, must be executed before init.
   /* USER CODE END 1 */
@@ -247,7 +246,8 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-#ifdef USE_FULL_ASSERT
+
+#ifdef  USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.

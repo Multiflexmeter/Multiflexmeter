@@ -91,11 +91,6 @@
  */
 #define ADR_ACK_COUNTER_MAX                         0xFFFFFFFF
 
-/*!
- * Delay required to simulate an ABP join like an OTAA join
- */
-#define ABP_JOIN_PENDING_DELAY_MS                   10
-
 #if defined(__ICCARM__)
 #ifndef __NO_INIT
 #define __NO_INIT __no_init
@@ -121,15 +116,14 @@ static const uint8_t LoRaMacMaxEirpTable[] = { 8, 10, 12, 13, 14, 16, 18, 20, 21
  */
 enum eLoRaMacState
 {
-    LORAMAC_IDLE             = 0x00000000,
-    LORAMAC_STOPPED          = 0x00000001,
-    LORAMAC_TX_RUNNING       = 0x00000002,
-    LORAMAC_RX               = 0x00000004,
-    LORAMAC_ACK_RETRY        = 0x00000010,
-    LORAMAC_TX_DELAYED       = 0x00000020,
-    LORAMAC_TX_CONFIG        = 0x00000040,
-    LORAMAC_RX_ABORT         = 0x00000080,
-    LORAMAC_ABP_JOIN_PENDING = 0x00000100,
+    LORAMAC_IDLE          = 0x00000000,
+    LORAMAC_STOPPED       = 0x00000001,
+    LORAMAC_TX_RUNNING    = 0x00000002,
+    LORAMAC_RX            = 0x00000004,
+    LORAMAC_ACK_RETRY     = 0x00000010,
+    LORAMAC_TX_DELAYED    = 0x00000020,
+    LORAMAC_TX_CONFIG     = 0x00000040,
+    LORAMAC_RX_ABORT      = 0x00000080,
 };
 
 /*
@@ -317,28 +311,11 @@ typedef struct sLoRaMacCtx
      * Start time of the response timeout
      */
     TimerTime_t ResponseTimeoutStartTime;
-    /*
-     * Timer required to simulate an ABP join like an OTAA join
-     */
-    TimerEvent_t AbpJoinPendingTimer;
 #endif /* LORAMAC_VERSION */
     /*!
      * Buffer containing the MAC layer commands
      */
     uint8_t MacCommandsBuffer[LORA_MAC_COMMAND_MAX_LENGTH];
-    /*
-     * Stores the reference time at at 1st JoinReq or ReJoinReq.
-     *
-     * \remark Used for the BACKOFF_DC computation.
-     */
-    SysTime_t TxBackoffRefTime;
-    /*
-     * Indicates if \ref TxBackoffRefTime must be initialized or not.
-     * \ref TxBackoffRefTime must be initialized for 1st JoinReq or RejoinReq event.
-     *
-     * \remark Used for the BACKOFF_DC computation.
-     */
-    bool IsFirstJoinReqTx;
 }LoRaMacCtx_t;
 
 /*!
@@ -1086,7 +1063,7 @@ static void ProcessRadioTxDone( void )
     // Update last tx done time for the current channel
     txDone.Channel = MacCtx.Channel;
     txDone.LastTxDoneTime = TxDoneParams.CurTime;
-    txDone.ElapsedTimeSinceTxBackoffRefTime = SysTimeSub( SysTimeGetMcuTime( ), MacCtx.TxBackoffRefTime );
+    txDone.ElapsedTimeSinceStartUp = SysTimeSub( SysTimeGetMcuTime( ), Nvm.MacGroup2.InitializationTime );
     txDone.LastTxAirTime = MacCtx.TxTimeOnAir;
     txDone.Joined  = true;
     if( Nvm.MacGroup2.NetworkActivation == ACTIVATION_TYPE_NONE )
@@ -1277,26 +1254,7 @@ static void ProcessRadioRxDone( void )
                 joinType = MLME_REJOIN_2;
             }
 #endif /* LORAMAC_VERSION */
-#if (defined( LORAMAC_VERSION ) && (( LORAMAC_VERSION == 0x01000400 ) || ( LORAMAC_VERSION == 0x01010100 )))
-            if( LORAMAC_CRYPTO_SUCCESS == macCryptoStatus )
-            {
-                VerifyParams_t verifyRxDr;
 
-                if( macMsgJoinAccept.DLSettings.Bits.RX2DataRate != 0x0F )
-                {
-                    verifyRxDr.DatarateParams.Datarate = macMsgJoinAccept.DLSettings.Bits.RX2DataRate;
-                    verifyRxDr.DatarateParams.DownlinkDwellTime = Nvm.MacGroup2.MacParams.DownlinkDwellTime;
-                    if( RegionVerify( Nvm.MacGroup2.Region, &verifyRxDr, PHY_RX_DR ) == false )
-                    {
-                        // MLME handling
-                        if( LoRaMacConfirmQueueIsCmdActive( MLME_JOIN ) == true )
-                        {
-                            LoRaMacConfirmQueueSetStatus( LORAMAC_EVENT_INFO_STATUS_JOIN_FAIL, MLME_JOIN );
-                        }
-                        break;
-                    }
-                }
-#else
             VerifyParams_t verifyRxDr;
             bool rxDrValid = false;
             verifyRxDr.DatarateParams.Datarate = macMsgJoinAccept.DLSettings.Bits.RX2DataRate;
@@ -1305,8 +1263,6 @@ static void ProcessRadioRxDone( void )
 
             if( ( LORAMAC_CRYPTO_SUCCESS == macCryptoStatus ) && ( rxDrValid == true ) )
             {
-#endif
-
                 // Network ID
                 Nvm.MacGroup2.NetID = ( uint32_t ) macMsgJoinAccept.NetID[0];
                 Nvm.MacGroup2.NetID |= ( ( uint32_t ) macMsgJoinAccept.NetID[1] << 8 );
@@ -1319,18 +1275,8 @@ static void ProcessRadioRxDone( void )
 
                 // DLSettings
                 Nvm.MacGroup2.MacParams.Rx1DrOffset = macMsgJoinAccept.DLSettings.Bits.RX1DRoffset;
-
-#if (defined( LORAMAC_VERSION ) && (( LORAMAC_VERSION == 0x01000400 ) || ( LORAMAC_VERSION == 0x01010100 )))
-                // Verify if we shall assign the new datarate
-                if( macMsgJoinAccept.DLSettings.Bits.RX2DataRate != 0x0F )
-                {
-#endif
-
                 Nvm.MacGroup2.MacParams.Rx2Channel.Datarate = macMsgJoinAccept.DLSettings.Bits.RX2DataRate;
                 Nvm.MacGroup2.MacParams.RxCChannel.Datarate = macMsgJoinAccept.DLSettings.Bits.RX2DataRate;
-#if (defined( LORAMAC_VERSION ) && (( LORAMAC_VERSION == 0x01000400 ) || ( LORAMAC_VERSION == 0x01010100 )))
-				}
-#endif
 
                 // RxDelay
                 Nvm.MacGroup2.MacParams.ReceiveDelay1 = macMsgJoinAccept.RxDelay;
@@ -1403,9 +1349,6 @@ static void ProcessRadioRxDone( void )
                     ResetMacParameters( true );
                 }
 #endif /* LORAMAC_VERSION */
-                // Restarts the retransmission backoff algorithm by indicating that the next JoinReq or ReJoinReq
-                // is the first one.
-                MacCtx.IsFirstJoinReqTx = true;
             }
             else
             {
@@ -1661,10 +1604,9 @@ static void ProcessRadioRxDone( void )
             }
 
             // Set the pending status
-			// Fix for Class C Certification test. Re-enabled part of if condition previously removed.
-            if( ( ( ( Nvm.MacGroup1.SrvAckRequested == true ) || ( macMsgData.FHDR.FCtrl.Bits.FPending > 0 ) ) && ( Nvm.MacGroup2.DeviceClass == CLASS_A ) ) ||
-                ( MacCtx.McpsIndication.ResponseTimeout > 0 ) ) 
-            //if( ( ( Nvm.MacGroup1.SrvAckRequested == true ) || ( macMsgData.FHDR.FCtrl.Bits.FPending > 0 ) ) && ( Nvm.MacGroup2.DeviceClass == CLASS_A ) )
+            /* if( ( ( ( Nvm.MacGroup1.SrvAckRequested == true ) || ( macMsgData.FHDR.FCtrl.Bits.FPending > 0 ) ) && ( Nvm.MacGroup2.DeviceClass == CLASS_A ) ) ||
+                ( MacCtx.McpsIndication.ResponseTimeout > 0 ) ) */
+            if( ( ( Nvm.MacGroup1.SrvAckRequested == true ) || ( macMsgData.FHDR.FCtrl.Bits.FPending > 0 ) ) && ( Nvm.MacGroup2.DeviceClass == CLASS_A ) )
             {
                 MacCtx.McpsIndication.IsUplinkTxPending = 1;
             }
@@ -2927,14 +2869,6 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
                 rxParamSetupReq.Datarate = payload[macIndex] & 0x0F;
                 macIndex++;
 
-#if (defined( LORAMAC_VERSION ) && (( LORAMAC_VERSION == 0x01000400 ) || ( LORAMAC_VERSION == 0x01010100 )))
-                if( rxParamSetupReq.Datarate == 0x0F )
-                {
-                    // Keep the current datarate
-                    rxParamSetupReq.Datarate = Nvm.MacGroup2.MacParams.Rx2Channel.Datarate;
-                }
-#endif
-
                 rxParamSetupReq.Frequency = ( uint32_t ) payload[macIndex++];
                 rxParamSetupReq.Frequency |= ( uint32_t ) payload[macIndex++] << 8;
                 rxParamSetupReq.Frequency |= ( uint32_t ) payload[macIndex++] << 16;
@@ -3476,13 +3410,6 @@ static LoRaMacStatus_t SendReJoinReq( JoinReqIdentifier_t joinReqType )
             break;
     }
 
-    if( MacCtx.IsFirstJoinReqTx == true )
-    {
-        MacCtx.IsFirstJoinReqTx = false;
-        // Store the current time as reference time for the retransmission backoff algorithm
-        MacCtx.TxBackoffRefTime = SysTimeGetMcuTime( );
-    }
-
     // Schedule frame
     status = ScheduleTx( allowDelayedTx );
     return status;
@@ -3630,7 +3557,7 @@ static LoRaMacStatus_t ScheduleTx( bool allowDelayedTx )
     nextChan.AggrTimeOff = Nvm.MacGroup1.AggregatedTimeOff;
     nextChan.Datarate = Nvm.MacGroup1.ChannelsDatarate;
     nextChan.DutyCycleEnabled = Nvm.MacGroup2.DutyCycleOn;
-    nextChan.ElapsedTimeSinceTxBackoffRefTime = SysTimeSub( SysTimeGetMcuTime( ), MacCtx.TxBackoffRefTime );
+    nextChan.ElapsedTimeSinceStartUp = SysTimeSub( SysTimeGetMcuTime( ), Nvm.MacGroup2.InitializationTime );
     nextChan.LastAggrTx = Nvm.MacGroup1.LastTxDoneTime;
     nextChan.LastTxIsJoinRequest = false;
     nextChan.Joined = true;
@@ -4710,8 +4637,8 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t* primitives, LoRaMacC
     TimerInit( &MacCtx.ForceRejoinReqCycleTimer, OnForceRejoinReqCycleTimerEvent );
 #endif /* LORAMAC_VERSION */
 
-    // At stack initialization no JoinReq has been transmitted yet
-    MacCtx.IsFirstJoinReqTx = true;
+    // Store the current initialization time
+    Nvm.MacGroup2.InitializationTime = SysTimeGetMcuTime( );
 
 #if (defined( LORAMAC_VERSION ) && (( LORAMAC_VERSION == 0x01000400 ) || ( LORAMAC_VERSION == 0x01010100 )))
     // Initialize MAC radio events
@@ -5799,18 +5726,7 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t* mibSet )
         }
         case MIB_SYSTEM_MAX_RX_ERROR:
         {
-#if (defined( LORAMAC_VERSION ) && (( LORAMAC_VERSION == 0x01000400 ) || ( LORAMAC_VERSION == 0x01010100 )))
-            if( mibSet->Param.SystemMaxRxError <= 500 )
-            { // Only apply the new value if in range 0..500 ms else keep current value.
-                Nvm.MacGroup2.MacParams.SystemMaxRxError = Nvm.MacGroup2.MacParamsDefaults.SystemMaxRxError = mibSet->Param.SystemMaxRxError;
-            }
-            else
-            {
-                status = LORAMAC_STATUS_PARAMETER_INVALID;
-            }
-#else
             Nvm.MacGroup2.MacParams.SystemMaxRxError = Nvm.MacGroup2.MacParamsDefaults.SystemMaxRxError = mibSet->Param.SystemMaxRxError;
-#endif
             break;
         }
         case MIB_MIN_RX_SYMBOLS:
@@ -6158,38 +6074,6 @@ LoRaMacStatus_t LoRaMacMcChannelSetupRxParams( AddressIdentifier_t groupID, McRx
     return LORAMAC_STATUS_OK;
 }
 
-#if (defined( LORAMAC_VERSION ) && (( LORAMAC_VERSION == 0x01000400 ) || ( LORAMAC_VERSION == 0x01010100 )))
-/*!
- * \brief Function executed on AbpJoinPendingTimer timer event
- */
-static void OnAbpJoinPendingTimerEvent( void *context )
-{
-    MacCtx.MacState &= ~LORAMAC_ABP_JOIN_PENDING;
-    MacCtx.MacFlags.Bits.MacDone = 1;
-    OnMacProcessNotify( );
-}
-
-/*!
- * \brief Start ABP join simulation
- */
-static void AbpJoinPendingStart( void )
-{
-    static bool initialized = false;
-
-    if( initialized == false )
-    {
-        initialized = true;
-        TimerInit( &MacCtx.AbpJoinPendingTimer, OnAbpJoinPendingTimerEvent );
-    }
-
-    MacCtx.MacState |= LORAMAC_ABP_JOIN_PENDING;
-
-    TimerStop( &MacCtx.AbpJoinPendingTimer );
-    TimerSetValue( &MacCtx.AbpJoinPendingTimer, ABP_JOIN_PENDING_DELAY_MS );
-    TimerStart( &MacCtx.AbpJoinPendingTimer );
-}
-#endif /* LORAMAC_VERSION */
-
 LoRaMacStatus_t LoRaMacProcessMicForDatablock( uint8_t *buffer, uint32_t size, uint16_t sessionCnt, uint8_t fragIndex, uint32_t descriptor, uint32_t *mic )
 {
     LoRaMacCryptoStatus_t macCryptoStatus = LORAMAC_CRYPTO_ERROR;
@@ -6207,9 +6091,6 @@ LoRaMacStatus_t LoRaMacMlmeRequest( MlmeReq_t* mlmeRequest )
 {
     LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
     MlmeConfirmQueue_t queueElement;
-#if (defined( LORAMAC_VERSION ) && (( LORAMAC_VERSION == 0x01000400 ) || ( LORAMAC_VERSION == 0x01010100 )))
-    bool isAbpJoinPending = false;
-#endif /* LORAMAC_VERSION */
     uint8_t macCmdPayload[2] = { 0x00, 0x00 };
 
     if( mlmeRequest == NULL )
@@ -6302,9 +6183,6 @@ LoRaMacStatus_t LoRaMacMlmeRequest( MlmeReq_t* mlmeRequest )
                 queueElement.ReadyToHandle = true;
                 OnMacProcessNotify( );
                 MacCtx.MacFlags.Bits.MacDone = 1;
-#if (defined( LORAMAC_VERSION ) && (( LORAMAC_VERSION == 0x01000400 ) || ( LORAMAC_VERSION == 0x01010100 )))
-                isAbpJoinPending = true;
-#endif
                 status = LORAMAC_STATUS_OK;
             }
 #endif /* LORAMAC_VERSION */
@@ -6449,12 +6327,6 @@ LoRaMacStatus_t LoRaMacMlmeRequest( MlmeReq_t* mlmeRequest )
     else
     {
         LoRaMacConfirmQueueAdd( &queueElement );
-#if (defined( LORAMAC_VERSION ) && (( LORAMAC_VERSION == 0x01000400 ) || ( LORAMAC_VERSION == 0x01010100 )))
-        if( isAbpJoinPending == true )
-        {
-            AbpJoinPendingStart( );
-        }
-#endif /* LORAMAC_VERSION */
     }
     return status;
 }
@@ -6799,22 +6671,4 @@ LoRaMacStatus_t LoRaMacDeInitialization( void )
     {
         return LORAMAC_STATUS_BUSY;
     }
-}
-
-void LoRaMacReset( void )
-{
-    // Reset state machine
-    MacCtx.MacState &= ~LORAMAC_TX_RUNNING;
-    MacCtx.MacFlags.Bits.MacDone = 1;
-
-    // Stop Timers
-    TimerStop( &MacCtx.TxDelayedTimer );
-    TimerStop( &MacCtx.RxWindowTimer1 );
-    TimerStop( &MacCtx.RxWindowTimer2 );
-
-    // Stop retransmissions
-    MacCtx.ChannelsNbTransCounter = Nvm.MacGroup2.MacParams.ChannelsNbTrans;
-
-    // Inform application layer
-    OnMacProcessNotify( );
 }

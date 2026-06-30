@@ -35,7 +35,7 @@
  *            This is a placeholder for a detailed description of the LoRaMac
  *            layer and the supported features.
  * \{
- *
+ * \internal
  * \example   periodic-uplink-lpp/B-L072Z-LRWAN1/main.c
  *            LoRaWAN class A/B/C application example for the B-L072Z-LRWAN1.
  *
@@ -62,6 +62,7 @@
  *
  * \example   periodic-uplink-lpp/SKiM980A/main.c
  *            LoRaWAN class A/B/C application example for the SKiM980A.
+ * \endinternal
  */
 /**
   ******************************************************************************
@@ -475,14 +476,6 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t* mcpsRequest, bool allowDelayedTx 
 LoRaMacStatus_t LoRaMacDeInitialization( void );
 
 LoRaMacStatus_t LoRaMacProcessMicForDatablock( uint8_t *buffer, uint32_t size, uint16_t sessionCnt, uint8_t fragIndex, uint32_t descriptor, uint32_t *mic );
-
-
-/*!
- * \brief   Resets the internal state machine.
- *
- * \details Resets the internal state machine to force the MAC to finalize a procedure.
- */
-void LoRaMacReset( void );
 
 /*! \} defgroup LORAMAC */
 

@@ -39,8 +39,6 @@
 #include "MFMconfiguration.h"
 #include "mainTask.h"
 
-#include <assert.h>
-
 const char NO_VERSION[]="";
 
 #define LORA_PERIODICALLY_CONFIRMED_MSG //comment if feature must be disabled.

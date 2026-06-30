@@ -21,8 +21,6 @@
 #include "dataflash/dataflash_functions.h"
 #include "measurement.h"
 
-#include <assert.h>
-
 static STRUCT_measurementData measurement;
 static bool readyForMeasurement = 0;
 

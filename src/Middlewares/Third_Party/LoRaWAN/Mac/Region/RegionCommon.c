@@ -46,8 +46,6 @@
 #include "mw_log_conf.h"
 
 #define BACKOFF_DC_1_HOUR                   100
-#define BACKOFF_DC_10_HOURS                 1000
-#define BACKOFF_DC_24_HOURS                 10000
 
 #define BACKOFF_DUTY_CYCLE_1_HOUR_IN_S      3600
 #define BACKOFF_DUTY_CYCLE_10_HOURS_IN_S    ( BACKOFF_DUTY_CYCLE_1_HOUR_IN_S + ( BACKOFF_DUTY_CYCLE_1_HOUR_IN_S * 10 ) )
@@ -56,17 +54,9 @@
 
 #ifndef DUTY_CYCLE_TIME_PERIOD
 /*!
- * Default duty cycle observation time period
- *
- * \remark The ETSI observation time period is 1 hour (3600000 ms) but, the implemented algorithm may violate the
- *         defined duty-cycle restrictions. In order to ensure that these restrictions never get violated we changed the
- *         default duty cycle observation time period to 1/2 hour (1800000 ms).
+* Default duty cycle observation time period is 1 hour (3600000 ms) according to ETSI.
  */
-#if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010003 )) 
 #define DUTY_CYCLE_TIME_PERIOD              3600000
-#else
-#define DUTY_CYCLE_TIME_PERIOD              1800000
-#endif
 #endif
 
 #ifndef DUTY_CYCLE_TIME_PERIOD_JOIN_BACKOFF_24H
@@ -104,24 +94,8 @@ static uint16_t GetDutyCycle( Band_t* band, bool joined, SysTime_t elapsedTimeSi
 
     if( joined == false )
     {
-#if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010003 ))  
         uint16_t joinDutyCycle = BACKOFF_DC_1_HOUR;
-#else
-        uint16_t joinDutyCycle = BACKOFF_DC_24_HOURS;
 
-        if( elapsedTimeSinceStartup.Seconds < BACKOFF_DUTY_CYCLE_1_HOUR_IN_S )
-        {
-            joinDutyCycle = BACKOFF_DC_1_HOUR;
-        }
-        else if( elapsedTimeSinceStartup.Seconds < BACKOFF_DUTY_CYCLE_10_HOURS_IN_S )
-        {
-            joinDutyCycle = BACKOFF_DC_10_HOURS;
-        }
-        else
-        {
-            joinDutyCycle = BACKOFF_DC_24_HOURS;
-        }
-#endif
         // Take the most restrictive duty cycle
         dutyCycle = MAX( dutyCycle, joinDutyCycle );
     }
@@ -147,8 +121,7 @@ static uint16_t SetMaxTimeCredits( Band_t* band, bool joined, SysTime_t elapsedT
 
     if( joined == false )
     {
-#if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010003 ))
-		if( elapsedTimeSinceStartup.Seconds < BACKOFF_DUTY_CYCLE_1_HOUR_IN_S )
+        if( elapsedTimeSinceStartup.Seconds < BACKOFF_DUTY_CYCLE_1_HOUR_IN_S )
         {
             maxCredits = DUTY_CYCLE_TIME_PERIOD;
         }
@@ -160,45 +133,6 @@ static uint16_t SetMaxTimeCredits( Band_t* band, bool joined, SysTime_t elapsedT
         {
             maxCredits = DUTY_CYCLE_TIME_PERIOD_JOIN_BACKOFF_24H;
         }
-#else
-    	TimerTime_t elapsedTime = SysTimeToMs( elapsedTimeSinceStartup );
-    	SysTime_t timeDiff = { 0 };
-        if( dutyCycle == BACKOFF_DC_1_HOUR )
-        {
-            maxCredits = DUTY_CYCLE_TIME_PERIOD;
-            band->LastMaxCreditAssignTime = elapsedTime;
-        }
-        else if( dutyCycle == BACKOFF_DC_10_HOURS )
-        {
-            maxCredits = DUTY_CYCLE_TIME_PERIOD * 10;
-            band->LastMaxCreditAssignTime = elapsedTime;
-        }
-        else
-        {
-            maxCredits = DUTY_CYCLE_TIME_PERIOD * 24;
-        }
-
-        timeDiff = SysTimeSub( elapsedTimeSinceStartup, SysTimeFromMs( band->LastMaxCreditAssignTime ) );
-
-        // Verify if we have to assign the maximum credits in cases
-        // of the preconditions have changed.
-        if( ( ( dutyCycleEnabled == false ) && ( lastTxIsJoinRequest == false ) ) ||
-            ( band->MaxTimeCredits != maxCredits ) ||
-            ( timeDiff.Seconds >= BACKOFF_24_HOURS_IN_S ) )
-        {
-            band->TimeCredits = maxCredits;
-
-            if( elapsedTimeSinceStartup.Seconds >= BACKOFF_DUTY_CYCLE_24_HOURS_IN_S )
-            {
-                timeDiff.Seconds = ( elapsedTimeSinceStartup.Seconds - BACKOFF_DUTY_CYCLE_24_HOURS_IN_S ) / BACKOFF_24_HOURS_IN_S;
-                timeDiff.Seconds *= BACKOFF_24_HOURS_IN_S;
-                timeDiff.Seconds += BACKOFF_DUTY_CYCLE_24_HOURS_IN_S;
-                timeDiff.SubSeconds = 0;
-                band->LastMaxCreditAssignTime = SysTimeToMs( timeDiff );
-            }
-        }
-#endif
-
     }
     else
     {
@@ -209,14 +143,6 @@ static uint16_t SetMaxTimeCredits( Band_t* band, bool joined, SysTime_t elapsedT
         }
     }
 
-#if (defined( REGION_VERSION ) && (( REGION_VERSION == 0x01010003 ) || ( REGION_VERSION == 0x02010001 )))
-    // Assign the max credits if its the first time
-    if( band->LastBandUpdateTime == 0 )
-    {
-        band->TimeCredits = maxCredits;
-    }
-#endif 
-
     // Setup the maximum allowed credits. We can assign them
     // safely all the time.
     band->MaxTimeCredits = maxCredits;
@@ -224,8 +150,6 @@ static uint16_t SetMaxTimeCredits( Band_t* band, bool joined, SysTime_t elapsedT
     return dutyCycle;
 }
 
-
-#if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010003 ))  
 static uint16_t UpdateTimeCredits( Band_t* band, bool joined, bool dutyCycleEnabled,
                                    bool lastTxIsJoinRequest, SysTime_t elapsedTimeSinceStartup,
                                    TimerTime_t currentTime, TimerTime_t lastBandUpdateTime )
@@ -236,18 +160,18 @@ static uint16_t UpdateTimeCredits( Band_t* band, bool joined, bool dutyCycleEnab
 
     if( joined == false )
     {
-        if( elapsedTimeSinceStartup.Seconds < BACKOFF_DUTY_CYCLE_1_HOUR_IN_S )
-        {
-            observation = BACKOFF_DUTY_CYCLE_1_HOUR_IN_S * 1000;
-        }
-        else if( elapsedTimeSinceStartup.Seconds < BACKOFF_DUTY_CYCLE_10_HOURS_IN_S )
-        {
-            observation = ( BACKOFF_DUTY_CYCLE_10_HOURS_IN_S * 1000 );
-        }
-        else
-        {
-            observation = ( BACKOFF_DUTY_CYCLE_24_HOURS_IN_S * 1000 );
-        }
+      if( elapsedTimeSinceStartup.Seconds < BACKOFF_DUTY_CYCLE_1_HOUR_IN_S )
+      {
+          observation = BACKOFF_DUTY_CYCLE_1_HOUR_IN_S * 1000;
+      }
+      else if( elapsedTimeSinceStartup.Seconds < BACKOFF_DUTY_CYCLE_10_HOURS_IN_S )
+      {
+          observation = ( BACKOFF_DUTY_CYCLE_10_HOURS_IN_S * 1000 );
+      }
+      else
+      {
+          observation = ( BACKOFF_DUTY_CYCLE_24_HOURS_IN_S * 1000 );
+      }
     }
 
     // Apply new credits only if the observation period has been elapsed.
@@ -259,35 +183,9 @@ static uint16_t UpdateTimeCredits( Band_t* band, bool joined, bool dutyCycleEnab
         band->LastBandUpdateTime = currentTime;
         band->LastMaxCreditAssignTime = observation;
     }
-    return dutyCycle;
-}
-#else
-static uint16_t UpdateTimeCredits( Band_t* band, bool joined, bool dutyCycleEnabled,
-                                   bool lastTxIsJoinRequest, SysTime_t elapsedTimeSinceStartup,
-                                   TimerTime_t currentTime )
-{
-    uint16_t dutyCycle = SetMaxTimeCredits( band, joined, elapsedTimeSinceStartup,
-                                            dutyCycleEnabled, lastTxIsJoinRequest );
-
-    if( joined == true )
-    {
-        // Apply a sliding window for the duty cycle with collection and speding
-        // credits.
-        band->TimeCredits += TimerGetElapsedTime( band->LastBandUpdateTime );
-    }
-
-    // Limit band credits to maximum
-    if( band->TimeCredits > band->MaxTimeCredits )
-    {
-        band->TimeCredits = band->MaxTimeCredits;
-    }
-
-    // Synchronize update time
-    band->LastBandUpdateTime = currentTime;
 
     return dutyCycle;
 }
-#endif
 
 static uint8_t CountChannels( uint16_t mask, uint8_t nbBits )
 {
@@ -411,19 +309,12 @@ TimerTime_t RegionCommonUpdateBandTimeOff( bool joined, Band_t* bands,
 
     for( uint8_t i = 0; i < nbBands; i++ )
     {
-#if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010003 ))
         TimerTime_t elapsedTime = TimerGetElapsedTime( bands[i].LastBandUpdateTime );
 
         // Synchronization of bands and credits
         dutyCycle = UpdateTimeCredits( &bands[i], joined, dutyCycleEnabled,
                                        lastTxIsJoinRequest, elapsedTimeSinceStartup,
                                        currentTime, elapsedTime );
-#else
-        // Synchronization of bands and credits
-        dutyCycle = UpdateTimeCredits( &bands[i], joined, dutyCycleEnabled,
-                                       lastTxIsJoinRequest, elapsedTimeSinceStartup,
-                                       currentTime );
-#endif
 
         // Calculate the credit costs for the next transmission
         // with the duty cycle and the expected time on air
@@ -453,55 +344,18 @@ TimerTime_t RegionCommonUpdateBandTimeOff( bool joined, Band_t* bands,
                 // We calculate the minTimeToWait among the bands which are not
                 // ready for transmission and which are potentially available
                 // for a transmission in the future.
-#if (defined( REGION_VERSION ) && ( REGION_VERSION == 0x02010003 ))  
                 TimerTime_t observationTimeDiff = 0;
                 if( bands[i].LastMaxCreditAssignTime >= elapsedTime )
                 {
                     observationTimeDiff = bands[i].LastMaxCreditAssignTime - elapsedTime;
                 }
-                minTimeToWait = MIN( minTimeToWait, observationTimeDiff );
-#else
-                minTimeToWait = MIN( minTimeToWait, ( creditCosts - bands[i].TimeCredits ) );
-#endif
 
+                minTimeToWait = MIN( minTimeToWait, observationTimeDiff );
                 // This band is a potential candidate for an
                 // upcoming transmission (even if its time credits are not enough
                 // at the moment), so increase the counter.
                 validBands++;
             }
-
-#if (defined( REGION_VERSION ) && (( REGION_VERSION == 0x01010003 ) || ( REGION_VERSION == 0x02010001 )))
-            // Apply a special calculation if the device is not joined.
-            if( joined == false )
-            {
-                SysTime_t backoffTimeRange = {
-                    .Seconds    = 0,
-                    .SubSeconds = 0,
-                };
-                // Get the backoff time range based on the duty cycle definition
-                if( dutyCycle == BACKOFF_DC_1_HOUR )
-                {
-                    backoffTimeRange.Seconds = BACKOFF_DUTY_CYCLE_1_HOUR_IN_S;
-                }
-                else if( dutyCycle == BACKOFF_DC_10_HOURS )
-                {
-                    backoffTimeRange.Seconds = BACKOFF_DUTY_CYCLE_10_HOURS_IN_S;
-                }
-                else
-                {
-                    backoffTimeRange.Seconds = BACKOFF_DUTY_CYCLE_24_HOURS_IN_S;
-                }
-                // Calculate the time to wait.
-                if( elapsedTimeSinceStartup.Seconds > BACKOFF_DUTY_CYCLE_24_HOURS_IN_S )
-                {
-                    backoffTimeRange.Seconds += BACKOFF_24_HOURS_IN_S * ( ( ( elapsedTimeSinceStartup.Seconds - BACKOFF_DUTY_CYCLE_24_HOURS_IN_S ) / BACKOFF_24_HOURS_IN_S ) + 1 );
-                }
-                // Calculate the time difference between now and the next range
-                backoffTimeRange  = SysTimeSub( backoffTimeRange, elapsedTimeSinceStartup );
-                minTimeToWait = SysTimeToMs( backoffTimeRange );
-            }
-#endif
-
         }
     }
 
@@ -724,7 +578,7 @@ LoRaMacStatus_t RegionCommonIdentifyChannels( RegionCommonIdentifyChannelsParam_
                                                       identifyChannelsParam->MaxBands,
                                                       identifyChannelsParam->DutyCycleEnabled,
                                                       identifyChannelsParam->LastTxIsJoinRequest,
-                                                      identifyChannelsParam->ElapsedTimeSinceTxBackoffRefTime,
+                                                      identifyChannelsParam->ElapsedTimeSinceStartUp,
                                                       identifyChannelsParam->ExpectedTimeOnAir );
 
         RegionCommonCountNbOfEnabledChannels( identifyChannelsParam->CountNbOfEnabledChannelsParam, enabledChannels,
