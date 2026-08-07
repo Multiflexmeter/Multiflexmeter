@@ -85,6 +85,8 @@ typedef struct {
 const int eraseVirtualEEPROM(void);
 const int saveSettingsToVirtualEEPROM(void);
 const int reloadSettingsFromVirtualEEPROM(void);
+const uint16_t calculateCrcSettings(void);
+uint16_t getCrcSettings(void);
 const int32_t getSensorStatus(int32_t sensorId);
 const uint16_t getLoraInterval(void);
 const int32_t setLoraInterval(uint16_t interval);

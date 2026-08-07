@@ -2173,6 +2173,14 @@ const void mainTask(void)
         FRAM_Settings.diagnosticBits.uint32 |= diagnosticsStatusBits.uint32; //OR the new reads with previous value from
         saveFramSettingsStruct(&FRAM_Settings, sizeof(FRAM_Settings)); //save FRAM data after last change
 
+        //settings may be changed by a downlink (e.g. interval), save before power-off. Only on change to limit flash wear.
+        if( getCrcSettings() != calculateCrcSettings() )
+        {
+          saveSettingsToVirtualEEPROM();
+        }
+
+        MainPeriodSleep = getLoraInterval() * TM_SECONDS_IN_1MINUTE * 1000; //recalculate, interval may be changed by a downlink after WAIT_LORA_TRANSMIT_READY
+
         control_supercap(false); //disable supercap before sleep
 
 #ifdef RTC_USED_FOR_SHUTDOWN_PROCESSOR
